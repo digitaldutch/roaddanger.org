@@ -10,8 +10,9 @@ MySQL or MariaDB with full text search support
 
 ### Installation ###
 * Put all files on a webserver with PHP support. 
-* Import de database on a MySQL/MariaDB server with full text search capability. The creation script is located in `/beheer/createdatabase.sql`.
-* Create a `configsecret.php` file in the root folder with your database connection info. Never check this one into git.
+* Import de database on a MySQL/MariaDB server with full text search capability. The database creation script is located in
+[beheer/createdatabase.sql](beheer/createdatabase.sql)
+* Read the [config.php](config.php) file. It tells you to create a `configsecret.php` file with your database connection info. Never check this one into git.
 ```PHP
 <?php
 
