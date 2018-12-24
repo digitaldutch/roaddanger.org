@@ -1,0 +1,25 @@
+<IfModule mod_rewrite.c>
+
+    RewriteEngine On
+    RewriteBase /
+
+    # Ensure www
+    RewriteCond %{HTTP_HOST} !^www\. [NC]
+    RewriteRule ^(.*)$ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Ensure https
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # No redirect if existing directory
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # No redirect if existing file
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+    # Redirect urls to index.php file. The url is sent as a GET
+    # QSA: Appends any query string from the original request URL to any query string created in the rewrite target.
+    # L: Last Rule
+    RewriteRule ^.+$ index.php?url=$1 [QSA,L]
+
+</IfModule>

@@ -1,0 +1,18 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Ensure https
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+
+    # No redirect if existing directory
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # No redirect if existing file
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+    # QSA: Appends any query string from the original request URL to any query string created in the rewrite target.
+    # L: Last Rule
+    RewriteRule ^.+$ index.php?url=$1 [QSA,L]
+</IfModule>
