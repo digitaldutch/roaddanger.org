@@ -254,11 +254,6 @@ function getFormEditAccident(){
       </div>
   
       <div style="margin-top: 5px;">
-        <div>Betrokken personen</div>
-        <div id="editAccidentPersons"></div>
-      </div>
-
-      <div style="margin-top: 5px;">
         <div>Vervoerscategorieën</div> 
         <div>
           <span id="editAccidentPedestrian" class="menuButton bgPedestrian" data-tippy-content="Voetganger(s)" onclick="changeAccidentInvolved(this, event);"></span>      
