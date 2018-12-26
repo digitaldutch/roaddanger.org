@@ -4,7 +4,11 @@ let yTouchDown      = null;
 let TTouchDown      = Object.freeze({none:0, openNavigation:1, closeNavigation:2});
 let touchDownAction = TTouchDown.none;
 
-const TUserPermission = Object.freeze({newuser:0, admin:1, moderator:2});
+const TUserPermission = Object.freeze({newuser: 0, admin: 1, moderator: 2});
+const TTransportationMode = Object.freeze({
+  unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, tractor: 8,
+  deliveryVan: 9, bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15});
+const THealth = Object.freeze({unknown: 0, injured: 1, dead: 2});
 
 const fetchOptions = { // Required for Safari. Safari sets the credentials to none, meaning no cookies are sent and login fails in AJAX :(
   method:      'GET',

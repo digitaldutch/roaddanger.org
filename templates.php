@@ -252,9 +252,14 @@ function getFormEditAccident(){
           <input id="editAccidentPersonsInjured" class="popupInput" type="number" min="0" step="1" value="0">
         </div>        
       </div>
-      
+  
       <div style="margin-top: 5px;">
-        <div>Vervoerscategorieën</div>
+        <div>Betrokken personen</div>
+        <div id="editAccidentPersons"></div>
+      </div>
+
+      <div style="margin-top: 5px;">
+        <div>Vervoerscategorieën</div> 
         <div>
           <span id="editAccidentPedestrian" class="menuButton bgPedestrian" data-tippy-content="Voetganger(s)" onclick="changeAccidentInvolved(this, event);"></span>      
           <span id="editAccidentBicycle" class="menuButton bgBicycle" data-tippy-content="Fiets(en)" onclick="changeAccidentInvolved(this, event);"></span>      
