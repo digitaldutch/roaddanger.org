@@ -6,11 +6,11 @@ let touchDownAction = TTouchDown.none;
 
 const TUserPermission = Object.freeze({newuser: 0, admin: 1, moderator: 2});
 const TTransportationMode = Object.freeze({
-  unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, tractor: 8,
-  deliveryVan: 9, bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15});
-const THealth = Object.freeze({unknown: 0, injured: 1, dead: 2});
+  unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,
+  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15});
+const THealth = Object.freeze({unknown: 0, unharmed: 1, injured: 2, dead: 3});
 
-const fetchOptions = { // Required for Safari. Safari sets the credentials to none, meaning no cookies are sent and login fails in AJAX :(
+const fetchOptions = { // Required for Safari. Safari sets the credentials by default to none, resulting in no cookies being sent and login failure in the AJAX script :(
   method:      'GET',
   headers:     {'Content-Type': 'application/json', 'Cache': 'no-cache'},
   credentials: 'same-origin',
@@ -603,4 +603,113 @@ function closeNavigation() {
   document.getElementById('navigation').classList.remove('navigationOpen');
   document.getElementById('navShadow').classList.remove('navShadowOpen');
   document.getElementById('navShadow').classList.add('navShadowClose');
+}
+
+function transportationModeText(transportationMode) {
+  switch (transportationMode) {
+    case TTransportationMode.unknown:          return 'Onbekend';
+    case TTransportationMode.pedestrian:       return 'Voetganger';
+    case TTransportationMode.bicycle:          return 'Fiets';
+    case TTransportationMode.scooter:          return 'Snorfiets/Scooter/Brommer';
+    case TTransportationMode.motorcycle:       return 'Motorfiets';
+    case TTransportationMode.car:              return 'Personenauto';
+    case TTransportationMode.taxi:             return 'Taxi/Uber';
+    case TTransportationMode.emergencyVehicle: return 'Hulpverleningsvoertuig';
+    case TTransportationMode.deliveryVan:      return 'Bestelwagen';
+    case TTransportationMode.tractor:          return 'Landbouwvoertuig';
+    case TTransportationMode.bus:              return 'Bus';
+    case TTransportationMode.tram:             return 'Tram';
+    case TTransportationMode.truck:            return 'Vrachtwagen';
+    case TTransportationMode.train:            return 'Trein';
+    case TTransportationMode.wheelchair:       return 'Scootmobiel';
+    case TTransportationMode.mopedCar:         return 'Brommobiel/Tuktuk';
+    default:                                   return '';
+  }
+}
+
+function transportationModeImage(transportationMode) {
+  switch (transportationMode) {
+    case TTransportationMode.unknown:          return 'bgUnknown';
+    case TTransportationMode.pedestrian:       return 'bgPedestrian';
+    case TTransportationMode.bicycle:          return 'bgBicycle';
+    case TTransportationMode.scooter:          return 'bgScooter';
+    case TTransportationMode.motorcycle:       return 'bgMotorcycle';
+    case TTransportationMode.car:              return 'bgCar';
+    case TTransportationMode.taxi:             return 'bgTaxi';
+    case TTransportationMode.emergencyVehicle: return 'bgEmergencyVehicle';
+    case TTransportationMode.deliveryVan:      return 'bgDeliveryVan';
+    case TTransportationMode.tractor:          return 'bgTractor';
+    case TTransportationMode.bus:              return 'bgBus';
+    case TTransportationMode.tram:             return 'bgTram';
+    case TTransportationMode.truck:            return 'bgTruck';
+    case TTransportationMode.train:            return 'bgTrain';
+    case TTransportationMode.wheelchair:       return 'bgWheelchair';
+    case TTransportationMode.mopedCar:         return 'bgMopedCar';
+    default:                                   return 'bgUnknown';
+  }
+}
+
+function transportationModeIcon(transportationMode) {
+  const bg   = transportationModeImage(transportationMode);
+  const text = 'Vervoersmiddel: ' + transportationModeText(transportationMode);
+  return `<div class="iconMedium ${bg}" data-tippy-content="${text}"></div>`;
+}
+
+function healthIcon(healthStatus) {
+  const bg   = healthImage(healthStatus);
+  const text = 'Letsel: ' + healthText(healthStatus);
+  return `<div class="iconMedium ${bg}" data-tippy-content="${text}"></div>`;
+}
+
+function healthText(healthStatus) {
+  switch (healthStatus) {
+    case THealth.unknown:  return 'Onbekend';
+    case THealth.unharmed: return 'Ongedeerd';
+    case THealth.injured:  return 'Gewond';
+    case THealth.dead:     return 'Dood';
+    default:               return '';
+  }
+}
+
+function healthImage(healthStatus) {
+  switch (healthStatus) {
+    case THealth.unknown:  return 'bgUnknown';
+    case THealth.unharmed: return 'bgUnharmed';
+    case THealth.injured:  return 'bgInjured';
+    case THealth.dead:     return 'bgDead';
+    default:               return 'bgUnknown';
+  }
+}
+
+function clone(obj) {
+  // See: https://stackoverflow.com/questions/728360/most-elegant-way-to-clone-a-javascript-object
+  // Handle the 3 simple types, and null or undefined
+  if (null == obj || "object" != typeof obj) return obj;
+
+  // Handle Date
+  if (obj instanceof Date) {
+    var lDate = new Date();
+    lDate.setTime(obj.getTime());
+    return lDate;
+  }
+
+  // Handle Array
+  if (obj instanceof Array) {
+    var lArray = [];
+    for (var i = 0, len = obj.length; i < len; i++) {
+      lArray[i] = clone(obj[i]);
+    }
+    return lArray;
+  }
+
+  // Handle Object
+  if (obj instanceof Object) {
+    var lObject = {};
+    for (var attr in obj) {
+      if (obj.hasOwnProperty(attr)) lObject[attr] = clone(obj[attr]);
+    }
+    return lObject;
+  }
+
+  throw new Error("Unable to copy obj! Its type isn't supported.");
 }

@@ -1,5 +1,6 @@
 let accidents = [];
 let articles = [];
+let editAccidentPersons = [];
 let watchEndOfPage = false;
 let spinnerLoadCard;
 let pageType;
@@ -147,22 +148,23 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
       for (let i=0; i<accident.personsinjured; i++) htmlVictims += '<div class="iconSmall bgInjured"></div>';
 
       let htmlTransport = '';
-      if (accident.pedestrian)            htmlTransport += '<div class="iconSmall bgPedestrian"  data-tippy-content="Voetganger(s)"></div>';
-      if (accident.bicycle)               htmlTransport += '<div class="iconSmall bgBicycle"  data-tippy-content="Fiets(en)"></div>';
-      if (accident.scooter)               htmlTransport += '<div class="iconSmall bgScooter"  data-tippy-content="Snorfiets(en)/Scooter(s)/Brommer(s)"></div>';
-      if (accident.motorcycle)            htmlTransport += '<div class="iconSmall bgMotorcycle"  data-tippy-content="Motorfiets(en)"></div>';
-      if (accident.car)                   htmlTransport += '<div class="iconSmall bgCar"  data-tippy-content="Personenauto(\'s)"></div>';
-      if (accident.taxi)                  htmlTransport += '<div class="iconSmall bgTaxi"  data-tippy-content="Taxi(\'s)/Uber(s)"></div>';
-      if (accident.emergencyvehicle)      htmlTransport += '<div class="iconSmall bgEmergencyVehicle"  data-tippy-content="Hulpverleningsvoertuig(en)"></div>';
-      if (accident.deliveryvan)           htmlTransport += '<div class="iconSmall bgDeliveryVan"  data-tippy-content="Bestelwagen(s)"></div>';
-      if (accident.tractor)               htmlTransport += '<div class="iconSmall bgTractor"  data-tippy-content="Landbouwvoertuig(en)"></div>';
-      if (accident.bus)                   htmlTransport += '<div class="iconSmall bgBus"  data-tippy-content="Bus(sen)"></div>';
-      if (accident.tram)                  htmlTransport += '<div class="iconSmall bgTram"  data-tippy-content="Tram(s)"></div>';
-      if (accident.truck)                 htmlTransport += '<div class="iconSmall bgTruck"  data-tippy-content="Vrachtwagen(s)"></div>';
-      if (accident.train)                 htmlTransport += '<div class="iconSmall bgTrain"  data-tippy-content="Trein(en)"></div>';
-      if (accident.wheelchair)            htmlTransport += '<div class="iconSmall bgWheelchair"  data-tippy-content="Scootmobiel(en)"></div>';
-      if (accident.mopedcar)              htmlTransport += '<div class="iconSmall bgMopedCar"  data-tippy-content="Brommobiel(en)/Tuktuk(s)"></div>';
-      if (accident.transportationunknown) htmlTransport += '<div class="iconSmall bgMopedCar"  data-tippy-content="Onbekend vervoermiddel"></div>';
+      if (accident.pedestrian)            htmlTransport += '<div class="iconSmall bgPedestrian" data-tippy-content="Voetganger(s)"></div>';
+      if (accident.bicycle)               htmlTransport += '<div class="iconSmall bgBicycle" data-tippy-content="Fiets(en)"></div>';
+      if (accident.scooter)               htmlTransport += '<div class="iconSmall bgScooter" data-tippy-content="Snorfiets(en)/Scooter(s)/Brommer(s)"></div>';
+      if (accident.motorcycle)            htmlTransport += '<div class="iconSmall bgMotorcycle" data-tippy-content="Motorfiets(en)"></div>';
+      if (accident.car)                   htmlTransport += '<div class="iconSmall bgCar" data-tippy-content="Personenauto(\'s)"></div>';
+      if (accident.taxi)                  htmlTransport += '<div class="iconSmall bgTaxi" data-tippy-content="Taxi(\'s)/Uber(s)"></div>';
+      if (accident.emergencyvehicle)      htmlTransport += '<div class="iconSmall bgEmergencyVehicle" data-tippy-content="Hulpverleningsvoertuig(en)"></div>';
+      if (accident.deliveryvan)           htmlTransport += '<div class="iconSmall bgDeliveryVan" data-tippy-content="Bestelwagen(s)"></div>';
+      if (accident.tractor)               htmlTransport += '<div class="iconSmall bgTractor" data-tippy-content="Landbouwvoertuig(en)"></div>';
+      if (accident.bus)                   htmlTransport += '<div class="iconSmall bgBus" data-tippy-content="Bus(sen)"></div>';
+      if (accident.tram)                  htmlTransport += '<div class="iconSmall bgTram" data-tippy-content="Tram(s)"></div>';
+      if (accident.truck)                 htmlTransport += '<div class="iconSmall bgTruck" data-tippy-content="Vrachtwagen(s)"></div>';
+      if (accident.train)                 htmlTransport += '<div class="iconSmall bgTrain" data-tippy-content="Trein(en)"></div>';
+      if (accident.wheelchair)            htmlTransport += '<div class="iconSmall bgWheelchair" data-tippy-content="Scootmobiel(en)"></div>';
+      if (accident.mopedcar)              htmlTransport += '<div class="iconSmall bgMopedCar" data-tippy-content="Brommobiel(en)/Tuktuk(s)"></div>';
+      if (accident.transportationunknown) htmlTransport += '<div class="iconSmall bgMopedCar" data-tippy-content="Onbekend vervoermiddel"></div>';
+      if (accident.transportationunknown) htmlTransport += '<div class="iconSmall bgUnknown" data-tippy-content="Onbekend vervoermiddel"></div>';
 
       let htmlInvolved = '';
       if (accident.child)       htmlInvolved += '<div class="iconSmall bgChild"  data-tippy-content="Kind(eren)"></div>';
@@ -335,7 +337,7 @@ function selectAccident(accidentID, smooth=false) {
   } else scrollIntoViewIfNeeded(div);
 }
 
-function showeditAccidentForm(event) {
+function showEditAccidentForm(event) {
   if (! user.loggedin){
      showLoginForm();
      return;
@@ -383,12 +385,15 @@ function showeditAccidentForm(event) {
   document.getElementById('editAccidentMopedCar').classList.remove('buttonSelected');
   document.getElementById('editAccidentTransportationUnknown').classList.remove('buttonSelected');
 
+  editAccidentPersons = [];
+  refreshAccidentPersonsGUI(editAccidentPersons);
+
   document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'inline-block';});
 
-  document.getElementById('editAccidentSection').style.display    = 'flex';
-  document.getElementById('editArticleSection').style.display     = 'flex';
+  document.getElementById('editAccidentSection').style.display = 'flex';
+  document.getElementById('editArticleSection').style.display  = 'flex';
 
-  document.getElementById('formEditAccident').style.display       = 'flex';
+  document.getElementById('formEditAccident').style.display    = 'flex';
 
   document.getElementById('editArticleUrl').focus();
 
@@ -396,9 +401,78 @@ function showeditAccidentForm(event) {
   document.querySelectorAll('[data-hidehelper]').forEach(d => {d.style.display = ! user.moderator? 'none' : 'flex';});
 }
 
+function showEditPersonForm() {
+  document.getElementById('editPersonHeader').innerText = 'Nieuw persoon toevoegen';
+  document.getElementById('buttonSavePerson').value     = 'Opslaan';
+
+  let htmlButtons = '';
+  for (const key of Object.keys(TTransportationMode)){
+    const transportationMode =  TTransportationMode[key];
+    const bgClass            = transportationModeImage(transportationMode);
+    const text               = transportationModeText(transportationMode);
+    htmlButtons += `<span id="editPersonTransportationMode${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonTransporationMode(${transportationMode});"></span>`;
+  }
+  document.getElementById('personTransportationButtons').innerHTML = htmlButtons;
+
+  htmlButtons = '';
+  for (const key of Object.keys(THealth)){
+    const health =  THealth[key];
+    const bgClass = healthImage(health);
+    const text    = healthText(health);
+    htmlButtons += `<span id="editPersonHealth${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonHealth(${health});"></span>`;
+  }
+  document.getElementById('personHealthButtons').innerHTML = htmlButtons;
+  tippy('[data-tippy-content]');
+
+  document.getElementById('formEditPerson').style.display = 'flex';
+}
+
+function selectPersonTransporationMode(){
+
+}
+
+function selectPersonTransportationMode() {
+
+}
+
+function closeEditPersonForm(){
+  document.getElementById('formEditPerson').style.display = 'none';
+}
+
+function editPerson(personID) {
+  showEditPersonForm();
+
+  const person = getPersonFromID(personID);
+
+  document.getElementById('editPersonHeader').innerText      = 'Persoon bewerken';
+  document.getElementById('buttonSavePerson').value          = 'Opslaan';
+
+  document.getElementById('personIDHidden').value            = person? person.id : '';
+}
+
+
+function refreshAccidentPersonsGUI(persons=[]) {
+  let html = '';
+
+  for (let person of persons){
+    const iconTransportation = transportationModeIcon(person.transportationmode);
+    const iconHealth         = healthIcon(person.health);
+    html += `<div class="accidentPerson" onclick="editPerson(${person.id});">
+${iconTransportation} ${iconHealth}
+</div>
+`;
+  }
+
+  document.getElementById('editAccidentPersons').innerHTML = html;
+  tippy('[data-tippy-content]');
+}
+
 function setNewArticleAccidentFields(accidentID){
   const accident = getAccidentFromID(accidentID);
   const accidentDatetime = new Date(accident.date);
+
+  // Shallow copy
+  editAccidentPersons = clone(accident.persons);
 
   document.getElementById('accidentIDHidden').value           = accident.id;
 
@@ -431,6 +505,8 @@ function setNewArticleAccidentFields(accidentID){
   selectButton('editAccidentHitRun',      accident.hitrun);
   selectButton('editAccidentTrafficJam',  accident.trafficjam);
   selectButton('editAccidentTree',        accident.tree);
+
+  refreshAccidentPersonsGUI(accident.persons);
 }
 
 function openArticleLink(event, articleID) {
@@ -441,7 +517,7 @@ function openArticleLink(event, articleID) {
 
 function editArticle(accidentID, articleID) {
   closeAllPopups();
-  showeditAccidentForm();
+  showEditAccidentForm();
   setNewArticleAccidentFields(accidentID);
 
   const article = getArticleFromID(articleID);
@@ -465,7 +541,7 @@ function editArticle(accidentID, articleID) {
 function addArticleToAccident(accidentID) {
   closeAllPopups();
 
-  showeditAccidentForm();
+  showEditAccidentForm();
   setNewArticleAccidentFields(accidentID);
 
   document.getElementById('editHeader').innerText              = 'Artikel toevoegen';
@@ -475,7 +551,7 @@ function addArticleToAccident(accidentID) {
 function editAccident(accidentID) {
   closeAllPopups();
 
-  showeditAccidentForm();
+  showEditAccidentForm();
   setNewArticleAccidentFields(accidentID);
 
   document.getElementById('editHeader').innerText                 = 'Ongeluk bewerken';
@@ -739,6 +815,10 @@ function getAccidentFromID(id){
   return accidents.find(accident => {return accident.id === id});
 }
 
+function getPersonFromID(id){
+  return accidents.find(accident => {return accident.id === id});
+}
+
 function getArticleFromID(id){
   return articles.find(article => article.id === id);
 }
@@ -852,4 +932,13 @@ function startSearch(event) {
     window.history.pushState(null, null, url);
     reloadAccidents();
   }
+}
+
+function addAccidentPerson() {
+  const person = {
+    transportationmode: TTransportationMode.unknown,
+    health: THealth.unknown};
+
+  editAccidentPersons.push(person);
+  refreshAccidentPersonsGUI(editAccidentPersons);
 }

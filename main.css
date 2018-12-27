@@ -150,6 +150,22 @@ a {
   cursor:           default;
 }
 
+.accidentPerson {
+  display:          inline-flex;
+  flex-direction:   row;
+  border:           1px solid #aaaaaa;
+  border-radius:    5px;
+  padding:          2px;
+  cursor:           pointer;
+  opacity:          0.7;
+  transition:       all .25s;
+}
+
+.accidentPerson:hover {
+  opacity:      1;
+  background-color: #ddd;
+}
+
 .cardArticle {
   position:         relative;
   min-height:       80px;
@@ -223,6 +239,17 @@ a {
   padding:             1px;
   margin:              0 1px;
   background-size:     17px;
+  background-repeat:   no-repeat;
+  background-position: center;
+}
+
+.iconMedium {
+  display:             inline-block;
+  height:              25px;
+  width:               25px;
+  padding:             1px;
+  margin:              0 1px;
+  background-size:     24px;
   background-repeat:   no-repeat;
   background-position: center;
 }
@@ -380,6 +407,7 @@ a {
 
 .bgDead {                  background-image: url(/images/cross.svg);}
 .bgInjured {               background-image: url(/images/personinjured.svg);}
+.bgUnharmed {              background-image: url(/images/unharmed.svg);}
 
 .bgPedestrian {            background-image: url(/images/pedestrian.svg);}
 .bgBicycle {               background-image: url(/images/bicycle.svg);}
@@ -396,7 +424,7 @@ a {
 .bgTrain {                 background-image: url(/images/train.svg);}
 .bgWheelchair {            background-image: url(/images/wheelchair.svg);}
 .bgMopedCar {              background-image: url(/images/mopedcar.svg);}
-.bgTransportationUnknown { background-image: url(/images/transportationunknown.svg);}
+.bgUnknown {               background-image: url(/images/unknown.svg);}
 
 .bgChild {                 background-image: url(/images/children.svg);}
 .bgPet {                   background-image: url(/images/pet.svg);}
@@ -501,7 +529,6 @@ a {
   display:          flex;
   flex-direction:   column;
   position:         absolute;
-  z-index:          100;
   top:              30px;
   left:             50%;
   transform:        translateX(-50%);
@@ -684,11 +711,6 @@ a {
   font-size:       10px;
   justify-content: center;
   align-items:     center;
-}
-
-.largeText {
-  font-size: 20px;
-  text-align: center;
 }
 
 #statistics {

@@ -163,6 +163,16 @@ else if ($function === 'loadaccidents') {
     }
 
     $sql = <<<SQL
+SELECT 
+  id,
+  transportationmode,
+  health
+FROM accidentpersons
+WHERE accidentid=:accidentid
+SQL;
+    $DBStatementPersons = $database->prepare($sql);
+
+    $sql = <<<SQL
 SELECT DISTINCT 
   ac.id,
   ac.userid,
@@ -209,7 +219,6 @@ SQL;
       // Single accident
       $params = ['id' => $id];
       $SQLWhere = " WHERE ac.id=:id ";
-
     } else if ($search !== '') {
       // Text search
       $params['search']  = $search;
@@ -266,6 +275,17 @@ SQL;
       $accident['hitrun']                = $accident['hitrun'] == 1;
       $accident['trafficjam']            = $accident['trafficjam'] == 1;
       $accident['tree']                  = $accident['tree'] == 1;
+
+      // Load persons
+      $accident['persons'] = [];
+      $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['accidentid' => $accident['id']]);
+      foreach ($DBPersons as $person) {
+        $person['id']                 = (int)$person['id'];
+        $person['transportationmode'] = (int)$person['transportationmode'];
+        $person['health']             = (int)$person['health'];
+
+        $accident['persons'][] = $person;
+      }
 
       $ids[] = $accident['id'];
       $accidents[] = $accident;

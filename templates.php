@@ -12,7 +12,7 @@ function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $showAccide
   if ($showAccidentMenu) $mainMenuItems = <<<HTML
   <input id="searchText" type="search" placeholder="Zoek" style="width: 120px; margin-left: 5px; display: none;" onkeyup="startSearch(event);" autocomplete="off">  
   <div id="buttonSearch" class="menuButton buttonSearch" onclick="showSearchField(event);"></div>
-  <div id="buttonNewArticle" class="menuButton buttonAdd" onclick="showeditAccidentForm();"></div>
+  <div id="buttonNewArticle" class="menuButton buttonAdd" onclick="showEditAccidentForm();"></div>
 HTML;
 
   return <<<HTML
@@ -56,14 +56,12 @@ $navigation
     </div>
   </div>
 </div>
-
-
 HTML;
 }
 
 function getHTMLEnd($htmlEnd='', $flexFullPage=false){
   $htmlFlex = $flexFullPage? '</div>' : '';
-  $forms    = getHTMLConfirm() . getLoginForm() . getFormEditAccident();
+  $forms    = getHTMLConfirm() . getLoginForm() . getFormEditAccident() . getFormEditPerson();
   return <<<HTML
     $htmlEnd 
     <div id="floatingMessage" class="floatingMessage" onclick="hideMessage();">
@@ -242,6 +240,11 @@ function getFormEditAccident(){
       <label for="editAccidentDate">Datum ongeluk<span class="iconTooltip" data-tippy-content="Vaak anders dan publicatiedatum artikel"></span><span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentDateFromArticle();" ">Kopieer van artikel</span></label>
       <input id="editAccidentDate" class="popupInput" type="date" autocomplete="off">
           
+      <div style="margin-top: 5px;">
+        <div>Betrokken personen <span class="button buttonGray buttonLine" onclick="addAccidentPerson();">Persoon toevoegen</span></div>   
+        <div id="editAccidentPersons"></div>
+      </div>
+
       <div class="inputGroup">
         <div class="input50">
           <label for="editAccidentPersonsDead">Doden<span class="iconTooltip" data-tippy-content="Mensen"></span></label>
@@ -271,7 +274,7 @@ function getFormEditAccident(){
           <span id="editAccidentTrain" class="menuButton bgTrain" data-tippy-content="Trein(en)" onclick="changeAccidentInvolved(this, event);"></span>
           <span id="editAccidentWheelchair" class="menuButton bgWheelchair" data-tippy-content="Scootmobiel(en)" onclick="changeAccidentInvolved(this, event);"></span>      
           <span id="editAccidentMopedCar" class="menuButton bgMopedCar" data-tippy-content="Brommobiel(en)/Tuktuk(s)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentTransportationUnknown" class="menuButton bgTransportationUnknown" data-tippy-content="Onbekend vervoermiddel" onclick="changeAccidentInvolved(this, event);"></span>      
+          <span id="editAccidentTransportationUnknown" class="menuButton bgUnknown" data-tippy-content="Onbekend vervoermiddel" onclick="changeAccidentInvolved(this, event);"></span>      
         </div>
       </div>
 
@@ -290,9 +293,40 @@ function getFormEditAccident(){
             
     <div class="popupFooter">
       <input id="buttonSaveArticle" type="button" class="button" value="Opslaan" onclick="saveArticleAccident();">
-      <input type="button" class="button buttonGray" value="Annuleren" onclick="hideDiv('formEditAccident');">
+      <input type="button" class="button buttonGray" value="Annuleren" onclick="closePopupForm();">
     </div>    
   </form>
+  
+</div>
+HTML;
+}
+
+function getFormEditPerson(){
+  return <<<HTML
+<div id="formEditPerson" class="popupOuter" style="z-index: 501;" onclick="closeEditPersonForm();">
+
+  <div class="formFullPage" onclick="event.stopPropagation();">
+    
+    <div id="editPersonHeader" class="popupHeader">Nieuw persoon toevoegen</div>
+    <div class="popupCloseCross" onclick="closeEditPersonForm();"></div>
+
+    <input id="personIDHidden" type="hidden">
+
+    <div style="margin-top: 5px;">
+      <div>Vervoersmiddel</div> 
+      <div id="personTransportationButtons"></div>
+    </div>
+            
+    <div style="margin-top: 5px;">
+      <div>Letsel</div> 
+      <div id="personHealthButtons"></div>
+    </div>
+            
+    <div class="popupFooter">
+      <input id="buttonSavePerson" type="button" class="button" value="Opslaan" onclick="savePerson();">
+      <input type="button" class="button buttonGray" value="Annuleren" onclick="closeEditPersonForm();">
+    </div>    
+  </div>
   
 </div>
 HTML;
