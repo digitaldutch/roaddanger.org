@@ -5,6 +5,8 @@ let watchEndOfPage = false;
 let spinnerLoadCard;
 let pageType;
 let TpageType = Object.freeze({stream:0, accident:1, moderations:2, statistics:3});
+let selectedTransportationMode;
+let selectedHealth;
 
 function initMain() {
   initPage();
@@ -52,7 +54,7 @@ async function loadStatistics(){
   function htmlPeriod(label, period){
     return `
     <div class="flexColumn">
-      <div class="smallStats">${label}</div>
+      <div class="smallStats">${label}</div> 
       <div class="statsIcons"><div class="iconXS bgDead"></div> ${period.personsdead} <div class="iconXS bgInjured" style="margin-left: 5px;"></div> ${period.personsinjured} </div>
     </div>`;
   }
@@ -143,29 +145,6 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
 </div>`;
       }
 
-      let htmlVictims = '';
-      for (let i=0; i<accident.personsdead;    i++) htmlVictims += '<div class="iconSmall bgDead"></div>';
-      for (let i=0; i<accident.personsinjured; i++) htmlVictims += '<div class="iconSmall bgInjured"></div>';
-
-      let htmlTransport = '';
-      if (accident.pedestrian)            htmlTransport += '<div class="iconSmall bgPedestrian" data-tippy-content="Voetganger(s)"></div>';
-      if (accident.bicycle)               htmlTransport += '<div class="iconSmall bgBicycle" data-tippy-content="Fiets(en)"></div>';
-      if (accident.scooter)               htmlTransport += '<div class="iconSmall bgScooter" data-tippy-content="Snorfiets(en)/Scooter(s)/Brommer(s)"></div>';
-      if (accident.motorcycle)            htmlTransport += '<div class="iconSmall bgMotorcycle" data-tippy-content="Motorfiets(en)"></div>';
-      if (accident.car)                   htmlTransport += '<div class="iconSmall bgCar" data-tippy-content="Personenauto(\'s)"></div>';
-      if (accident.taxi)                  htmlTransport += '<div class="iconSmall bgTaxi" data-tippy-content="Taxi(\'s)/Uber(s)"></div>';
-      if (accident.emergencyvehicle)      htmlTransport += '<div class="iconSmall bgEmergencyVehicle" data-tippy-content="Hulpverleningsvoertuig(en)"></div>';
-      if (accident.deliveryvan)           htmlTransport += '<div class="iconSmall bgDeliveryVan" data-tippy-content="Bestelwagen(s)"></div>';
-      if (accident.tractor)               htmlTransport += '<div class="iconSmall bgTractor" data-tippy-content="Landbouwvoertuig(en)"></div>';
-      if (accident.bus)                   htmlTransport += '<div class="iconSmall bgBus" data-tippy-content="Bus(sen)"></div>';
-      if (accident.tram)                  htmlTransport += '<div class="iconSmall bgTram" data-tippy-content="Tram(s)"></div>';
-      if (accident.truck)                 htmlTransport += '<div class="iconSmall bgTruck" data-tippy-content="Vrachtwagen(s)"></div>';
-      if (accident.train)                 htmlTransport += '<div class="iconSmall bgTrain" data-tippy-content="Trein(en)"></div>';
-      if (accident.wheelchair)            htmlTransport += '<div class="iconSmall bgWheelchair" data-tippy-content="Scootmobiel(en)"></div>';
-      if (accident.mopedcar)              htmlTransport += '<div class="iconSmall bgMopedCar" data-tippy-content="Brommobiel(en)/Tuktuk(s)"></div>';
-      if (accident.transportationunknown) htmlTransport += '<div class="iconSmall bgMopedCar" data-tippy-content="Onbekend vervoermiddel"></div>';
-      if (accident.transportationunknown) htmlTransport += '<div class="iconSmall bgUnknown" data-tippy-content="Onbekend vervoermiddel"></div>';
-
       let htmlInvolved = '';
       if (accident.child)       htmlInvolved += '<div class="iconSmall bgChild"  data-tippy-content="Kind(eren)"></div>';
       if (accident.pet)         htmlInvolved += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
@@ -173,6 +152,17 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
       if (accident.hitrun)      htmlInvolved += '<div class="iconSmall bgHitRun"  data-tippy-content="Doorrijden/Vluchten"></div>';
       if (accident.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam"  data-tippy-content="File/Hinder"></div>';
       if (accident.tree)        htmlInvolved += '<div class="iconSmall bgTree"  data-tippy-content="Boom/Paal"></div>';
+
+      if (htmlInvolved){
+        htmlInvolved = `
+    <div data-info="preventFullBorder">
+      <div class="accidentIcons" onclick="event.stopPropagation();">
+        <div class="flexRow" style="justify-content: flex-end">${htmlInvolved}</div>
+      </div>
+    </div>
+        
+        `;
+      }
 
       let streamHeader = '';
       if (accident.streamtopuser) {
@@ -185,6 +175,22 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
       } else {
         streamHeader = 'aangemaakt door ' + accident.user + ' ' + datetimeToAge(accident.createtime);
       }
+
+      let htmlPersons = '';
+      let i=0;
+      for (let person of accident.persons){
+        i++;
+        const bgTransportation = transportationModeImage(person.transportationmode);
+        const bgHealth         = healthImage(person.health);
+        const tooltip          = 'Persoon ' + i +
+          '<br>Vervoersmiddel: ' + transportationModeText(person.transportationmode) +
+          '<br>Letsel: ' + healthText(person.health);
+
+        htmlPersons += `<div class="accidentPerson" data-tippy-content="${tooltip}"><div class="iconMedium ${bgTransportation}"></div><div class="iconMedium ${bgHealth}"></div></div>`;
+      }
+
+      document.getElementById('editAccidentPersons').innerHTML = html;
+      tippy('[data-tippy-content]');
 
       let htmlModeration = '';
       if (accident.awaitingmoderation){
@@ -230,14 +236,9 @@ Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
     <div style="width: 100%;">
       <div class="smallFont cardTitleSmall">${dateToAge(accident.date)} | ${streamHeader}</div>
       <div class="cardTitle">${escapeHtml(accident.title)}</div>
+      <div>${htmlPersons}</div>
     </div>
-    <div data-info="preventFullBorder">
-      <div class="accidentIcons" onclick="event.stopPropagation();">
-        <div class="flexRow" style="justify-content: flex-end">${htmlVictims}</div>
-        <div class="flexRow" style="justify-content: flex-end">${htmlTransport}</div>
-        <div class="flexRow" style="justify-content: flex-end">${htmlInvolved}</div>
-      </div>
-    </div>
+    ${htmlInvolved}
   </div>
 
   <div class="postText">${escapeHtml(accident.text)}</div>    
@@ -358,8 +359,6 @@ function showEditAccidentForm(event) {
   document.getElementById('editAccidentTitle').value               = '';
   document.getElementById('editAccidentText').value                = '';
   document.getElementById('editAccidentDate').value                = '';
-  document.getElementById('editAccidentPersonsDead').value         = 0;
-  document.getElementById('editAccidentPersonsInjured').value      = 0;
 
   document.getElementById('editAccidentChild').classList.remove('buttonSelected');
   document.getElementById('editAccidentPet').classList.remove('buttonSelected');
@@ -367,23 +366,6 @@ function showEditAccidentForm(event) {
   document.getElementById('editAccidentHitRun').classList.remove('buttonSelected');
   document.getElementById('editAccidentTrafficJam').classList.remove('buttonSelected');
   document.getElementById('editAccidentTree').classList.remove('buttonSelected');
-
-  document.getElementById('editAccidentPedestrian').classList.remove('buttonSelected');
-  document.getElementById('editAccidentBicycle').classList.remove('buttonSelected');
-  document.getElementById('editAccidentScooter').classList.remove('buttonSelected');
-  document.getElementById('editAccidentMotorcycle').classList.remove('buttonSelected');
-  document.getElementById('editAccidentCar').classList.remove('buttonSelected');
-  document.getElementById('editAccidentTaxi').classList.remove('buttonSelected');
-  document.getElementById('editAccidentEmergencyVehicle').classList.remove('buttonSelected');
-  document.getElementById('editAccidentDeliveryVan').classList.remove('buttonSelected');
-  document.getElementById('editAccidentTractor').classList.remove('buttonSelected');
-  document.getElementById('editAccidentBus').classList.remove('buttonSelected');
-  document.getElementById('editAccidentTram').classList.remove('buttonSelected');
-  document.getElementById('editAccidentTruck').classList.remove('buttonSelected');
-  document.getElementById('editAccidentTrain').classList.remove('buttonSelected');
-  document.getElementById('editAccidentWheelchair').classList.remove('buttonSelected');
-  document.getElementById('editAccidentMopedCar').classList.remove('buttonSelected');
-  document.getElementById('editAccidentTransportationUnknown').classList.remove('buttonSelected');
 
   editAccidentPersons = [];
   refreshAccidentPersonsGUI(editAccidentPersons);
@@ -410,7 +392,7 @@ function showEditPersonForm() {
     const transportationMode =  TTransportationMode[key];
     const bgClass            = transportationModeImage(transportationMode);
     const text               = transportationModeText(transportationMode);
-    htmlButtons += `<span id="editPersonTransportationMode${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonTransporationMode(${transportationMode});"></span>`;
+    htmlButtons += `<span id="editPersonTransportationMode${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonTransportationMode(${transportationMode});"></span>`;
   }
   document.getElementById('personTransportationButtons').innerHTML = htmlButtons;
 
@@ -427,27 +409,73 @@ function showEditPersonForm() {
   document.getElementById('formEditPerson').style.display = 'flex';
 }
 
-function selectPersonTransporationMode(){
-
+function selectPersonTransportationMode(transportationMode){
+  selectedTransportationMode  = transportationMode;
+  for (const key of Object.keys(TTransportationMode)) {
+    const buttonTransportationMode = TTransportationMode[key];
+    const button = document.getElementById('editPersonTransportationMode' + key);
+    if (buttonTransportationMode === transportationMode) button.classList.add('buttonSelected');
+    else button.classList.remove('buttonSelected');
+  }
 }
 
-function selectPersonTransportationMode() {
-
+function selectPersonHealth(health) {
+  selectedHealth = health;
+  for (const key of Object.keys(THealth)) {
+    const buttonHealth = THealth[key];
+    const button = document.getElementById('editPersonHealth' + key);
+    if (buttonHealth === health) button.classList.add('buttonSelected');
+    else button.classList.remove('buttonSelected');
+  }
 }
 
 function closeEditPersonForm(){
   document.getElementById('formEditPerson').style.display = 'none';
 }
 
-function editPerson(personID) {
+function editPerson(personID=null) {
   showEditPersonForm();
 
   const person = getPersonFromID(personID);
 
-  document.getElementById('editPersonHeader').innerText      = 'Persoon bewerken';
-  document.getElementById('buttonSavePerson').value          = 'Opslaan';
+  document.getElementById('editPersonHeader').innerText = person? 'Persoon bewerken' : 'Nieuw persoon toevoegen';
+  document.getElementById('personIDHidden').value       = person? person.id : '';
 
-  document.getElementById('personIDHidden').value            = person? person.id : '';
+  selectPersonTransportationMode(person? person.transportationmode : null);
+  selectPersonHealth(person? person.health : null);
+}
+
+function savePerson() {
+  if (selectedTransportationMode === null){showError('Geen vervoersmiddel geselecteerd', 3); return;}
+  if (selectedHealth             === null){showError('Geen letsel geselecteerd', 3); return;}
+
+  const personID = parseInt(document.getElementById('personIDHidden').value);
+  let person;
+  if (personID){
+    person = getPersonFromID(personID);
+    person.transportationmode = selectedTransportationMode;
+    person.health             = selectedHealth;
+  } else {
+    person = {
+      id:                 editAccidentPersons.length + 1,
+      transportationmode: selectedTransportationMode,
+      health:             selectedHealth};
+
+    editAccidentPersons.push(person);
+  }
+
+  refreshAccidentPersonsGUI(editAccidentPersons);
+  closeEditPersonForm();
+}
+
+function deletePerson() {
+  confirmMessage('Persoon verwijderen?',
+    function () {
+      const personID      = parseInt(document.getElementById('personIDHidden').value);
+      editAccidentPersons = editAccidentPersons.filter(person => person.id !== personID);
+      refreshAccidentPersonsGUI(editAccidentPersons);
+      closeEditPersonForm();
+    });
 }
 
 
@@ -457,7 +485,7 @@ function refreshAccidentPersonsGUI(persons=[]) {
   for (let person of persons){
     const iconTransportation = transportationModeIcon(person.transportationmode);
     const iconHealth         = healthIcon(person.health);
-    html += `<div class="accidentPerson" onclick="editPerson(${person.id});">
+    html += `<div class="editAccidentPerson" onclick="editPerson(${person.id});">
 ${iconTransportation} ${iconHealth}
 </div>
 `;
@@ -479,25 +507,6 @@ function setNewArticleAccidentFields(accidentID){
   document.getElementById('editAccidentTitle').value          = accident.title;
   document.getElementById('editAccidentText').value           = accident.text;
   document.getElementById('editAccidentDate').value           = dateToISO(accidentDatetime);
-  document.getElementById('editAccidentPersonsDead').value    = accident.personsdead;
-  document.getElementById('editAccidentPersonsInjured').value = accident.personsinjured;
-
-  selectButton('editAccidentPedestrian',            accident.pedestrian);
-  selectButton('editAccidentBicycle',               accident.bicycle);
-  selectButton('editAccidentScooter',               accident.scooter);
-  selectButton('editAccidentMotorcycle',            accident.motorcycle);
-  selectButton('editAccidentCar',                   accident.car);
-  selectButton('editAccidentTaxi',                  accident.taxi);
-  selectButton('editAccidentEmergencyVehicle',      accident.emergencyvehicle);
-  selectButton('editAccidentDeliveryVan',           accident.deliveryvan);
-  selectButton('editAccidentTractor',               accident.tractor);
-  selectButton('editAccidentBus',                   accident.bus);
-  selectButton('editAccidentTram',                  accident.tram);
-  selectButton('editAccidentTruck',                 accident.truck);
-  selectButton('editAccidentTrain',                 accident.train);
-  selectButton('editAccidentWheelchair',            accident.wheelchair);
-  selectButton('editAccidentMopedCar',              accident.mopedcar);
-  selectButton('editAccidentTransportationUnknown', accident.transportationunknown);
 
   selectButton('editAccidentChild',       accident.child);
   selectButton('editAccidentPet',         accident.pet);
@@ -693,13 +702,13 @@ async function saveArticleAccident(){
   const saveArticle = document.getElementById('editArticleSection').style.display !== 'none';
   if (saveArticle){
     article = {
-      'id':             document.getElementById('articleIDHidden').value,
-      'url':            document.getElementById('editArticleUrl').value,
-      'title':          document.getElementById('editArticleTitle').value,
-      'text':           document.getElementById('editArticleText').value,
-      'sitename':       document.getElementById('editArticleSiteName').value,
-      'urlimage':       document.getElementById('editArticleUrlImage').value,
-      'date':           document.getElementById('editArticleDate').value,
+      id:       document.getElementById('articleIDHidden').value,
+      url:      document.getElementById('editArticleUrl').value,
+      title:    document.getElementById('editArticleTitle').value,
+      text:     document.getElementById('editArticleText').value,
+      sitename: document.getElementById('editArticleSiteName').value,
+      urlimage: document.getElementById('editArticleUrlImage').value,
+      date:     document.getElementById('editArticleDate').value,
     };
     if (article.id)  article.id  = parseInt(article.id);
 
@@ -709,43 +718,26 @@ async function saveArticleAccident(){
       return
     }
 
-    if (! article.url)         {showError('geen artikel link ingevuld'); return;}
-    if (! article.title)       {showError('geen artikel titel ingevuld'); return;}
-    if (! article.text)        {showError('geen artikel tekst ingevuld'); return;}
+    if (! article.url)                          {showError('Geen artikel link ingevuld'); return;}
+    if (! article.title)                        {showError('Geen artikel titel ingevuld'); return;}
+    if (! article.text)                         {showError('Geen artikel tekst ingevuld'); return;}
     if (article.urlimage.startsWith('http://')) {showError('Artikel foto link is onveilig. Begint met "http:". Probeer of de "https:" versie werkt. Laat anders dit veld leeg.'); return;}
-    if (! article.sitename)    {showError('geen artikel mediabron ingevuld'); return;}
-    if (! article.date)        {showError('geen artikel datum ingevuld'); return;}
+    if (! article.sitename)                     {showError('Geen artikel mediabron ingevuld'); return;}
+    if (! article.date)                         {showError('Geen artikel datum ingevuld'); return;}
   }
 
   accident = {
-    'id':                    document.getElementById('accidentIDHidden').value,
-    'title':                 document.getElementById('editAccidentTitle').value,
-    'text':                  document.getElementById('editAccidentText').value,
-    'date':                  document.getElementById('editAccidentDate').value,
-    'personsdead':           document.getElementById('editAccidentPersonsDead').value,
-    'personsinjured':        document.getElementById('editAccidentPersonsInjured').value,
-    'child':                 document.getElementById('editAccidentChild').classList.contains('buttonSelected'),
-    'pet':                   document.getElementById('editAccidentPet').classList.contains('buttonSelected'),
-    'alcohol':               document.getElementById('editAccidentAlcohol').classList.contains('buttonSelected'),
-    'hitrun':                document.getElementById('editAccidentHitRun').classList.contains('buttonSelected'),
-    'trafficjam':            document.getElementById('editAccidentTrafficJam').classList.contains('buttonSelected'),
-    'tree':                  document.getElementById('editAccidentTree').classList.contains('buttonSelected'),
-    'pedestrian':            document.getElementById('editAccidentPedestrian').classList.contains('buttonSelected'),
-    'bicycle':               document.getElementById('editAccidentBicycle').classList.contains('buttonSelected'),
-    'scooter':               document.getElementById('editAccidentScooter').classList.contains('buttonSelected'),
-    'motorcycle':            document.getElementById('editAccidentMotorcycle').classList.contains('buttonSelected'),
-    'car':                   document.getElementById('editAccidentCar').classList.contains('buttonSelected'),
-    'taxi':                  document.getElementById('editAccidentTaxi').classList.contains('buttonSelected'),
-    'emergencyvehicle':      document.getElementById('editAccidentEmergencyVehicle').classList.contains('buttonSelected'),
-    'deliveryvan':           document.getElementById('editAccidentDeliveryVan').classList.contains('buttonSelected'),
-    'tractor':               document.getElementById('editAccidentTractor').classList.contains('buttonSelected'),
-    'bus':                   document.getElementById('editAccidentBus').classList.contains('buttonSelected'),
-    'tram':                  document.getElementById('editAccidentTram').classList.contains('buttonSelected'),
-    'truck':                 document.getElementById('editAccidentTruck').classList.contains('buttonSelected'),
-    'train':                 document.getElementById('editAccidentTrain').classList.contains('buttonSelected'),
-    'wheelchair':            document.getElementById('editAccidentWheelchair').classList.contains('buttonSelected'),
-    'mopedcar':              document.getElementById('editAccidentMopedCar').classList.contains('buttonSelected'),
-    'transportationunknown': document.getElementById('editAccidentTransportationUnknown').classList.contains('buttonSelected'),
+    id:         document.getElementById('accidentIDHidden').value,
+    title:      document.getElementById('editAccidentTitle').value,
+    text:       document.getElementById('editAccidentText').value,
+    date:       document.getElementById('editAccidentDate').value,
+    persons:    editAccidentPersons,
+    child:      document.getElementById('editAccidentChild').classList.contains('buttonSelected'),
+    pet:        document.getElementById('editAccidentPet').classList.contains('buttonSelected'),
+    alcohol:    document.getElementById('editAccidentAlcohol').classList.contains('buttonSelected'),
+    hitrun:     document.getElementById('editAccidentHitRun').classList.contains('buttonSelected'),
+    trafficjam: document.getElementById('editAccidentTrafficJam').classList.contains('buttonSelected'),
+    tree:       document.getElementById('editAccidentTree').classList.contains('buttonSelected'),
   };
 
   if (accident.id) accident.id = parseInt(accident.id);
@@ -753,14 +745,9 @@ async function saveArticleAccident(){
   const saveAccident = document.getElementById('editAccidentSection').style.display !== 'none';
   if (saveAccident){
     if (saveArticle && (! user.moderator)) accident.title = article.title;
-    if (!accident.title) {
-      showError('geen ongeluk titel ingevuld');
-      return;
-    }
-    if (!accident.date) {
-      showError('geen ongeluk datum ingevuld');
-      return;
-    }
+    if (!accident.title)               {showError('Geen ongeluk titel ingevuld'); return;}
+    if (!accident.date)                {showError('Geen ongeluk datum ingevuld'); return;}
+    if (accident.persons.length === 0) {showError('Geen personen toegevoegd'); return;}
   }
 
   const url = '/ajax.php?function=saveArticleAccident';
@@ -816,7 +803,7 @@ function getAccidentFromID(id){
 }
 
 function getPersonFromID(id){
-  return accidents.find(accident => {return accident.id === id});
+  return editAccidentPersons.find(person => {return person.id === id});
 }
 
 function getArticleFromID(id){
@@ -932,13 +919,4 @@ function startSearch(event) {
     window.history.pushState(null, null, url);
     reloadAccidents();
   }
-}
-
-function addAccidentPerson() {
-  const person = {
-    transportationmode: TTransportationMode.unknown,
-    health: THealth.unknown};
-
-  editAccidentPersons.push(person);
-  refreshAccidentPersonsGUI(editAccidentPersons);
 }

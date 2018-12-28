@@ -153,15 +153,23 @@ a {
 .accidentPerson {
   display:          inline-flex;
   flex-direction:   row;
+  margin-right:     5px;
+  border:           1px solid #aaaaaa;
+  border-radius:    5px;
+  padding:          2px;
+}
+
+.editAccidentPerson {
+  display:          inline-flex;
+  flex-direction:   row;
   border:           1px solid #aaaaaa;
   border-radius:    5px;
   padding:          2px;
   cursor:           pointer;
   opacity:          0.7;
-  transition:       all .25s;
 }
 
-.accidentPerson:hover {
+.editAccidentPerson:hover {
   opacity:      1;
   background-color: #ddd;
 }
@@ -334,7 +342,6 @@ a {
   background-size:     25px;
   background-repeat:   no-repeat;
   background-position: center;
-  transition:          all .25s;
 }
 
 .menuButton:hover, .iconTooltip:hover, #loginButton:hover {
@@ -592,6 +599,7 @@ a {
   justify-content:  center;
   height:           30px;
   min-width:        90px;
+  box-sizing:       border-box;
   border:           none;
   padding:          3px 8px;
   margin-left:      5px;
@@ -619,6 +627,10 @@ a {
 
 .buttonGray {
   background-color: #999 !important;
+}
+
+.buttonRed {
+  background-color: #ffbcbc !important;
 }
 
 .buttonLine {

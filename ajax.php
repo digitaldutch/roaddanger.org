@@ -443,7 +443,6 @@ else if ($function === 'saveArticleAccident'){
       if ($exists) throw new Exception("<a href='/{$exists['accidentid']}}' style='text-decoration: underline;'>Er is al een ongeluk met deze link</a>", 1);
     }
 
-
     if ($saveAccident){
       if (! $isNewAccident){
         // Update existing accident
@@ -459,24 +458,6 @@ else if ($function === 'saveArticleAccident'){
       title                 = :title,
       text                  = :text,
       date                  = :date,
-      personsdead           = :personsdead,
-      personsinjured        = :personsinjured,
-      pedestrian            = :pedestrian,
-      wheelchair            = :wheelchair,
-      mopedcar              = :mopedcar,
-      bicycle               = :bicycle,
-      scooter               = :scooter,
-      motorcycle            = :motorcycle,
-      car                   = :car,
-      taxi                  = :taxi,
-      emergencyvehicle      = :emergencyvehicle,
-      deliveryvan           = :deliveryvan,
-      tractor               = :tractor,
-      bus                   = :bus,
-      tram                  = :tram,
-      truck                 = :truck,
-      train                 = :train,
-      transportationunknown = :transportationunknown,
       child                 = :child,
       pet                   = :pet,
       alcohol               = :alcohol,
@@ -491,24 +472,6 @@ SQL;
           ':title'                 => $accident['title'],
           ':text'                  => $accident['text'],
           ':date'                  => $accident['date'],
-          ':personsdead'           => ($accident['personsdead']    == '')? null : $accident['personsdead'],
-          ':personsinjured'        => ($accident['personsinjured'] == '')? null : $accident['personsinjured'],
-          ':pedestrian'            => $accident['pedestrian'],
-          ':wheelchair'            => $accident['wheelchair'],
-          ':mopedcar'              => $accident['mopedcar'],
-          ':bicycle'               => $accident['bicycle'],
-          ':scooter'               => $accident['scooter'],
-          ':motorcycle'            => $accident['motorcycle'],
-          ':car'                   => $accident['car'],
-          ':taxi'                  => $accident['taxi'],
-          ':emergencyvehicle'      => $accident['emergencyvehicle'],
-          ':deliveryvan'           => $accident['deliveryvan'],
-          ':tractor'               => $accident['tractor'],
-          ':bus'                   => $accident['bus'],
-          ':tram'                  => $accident['tram'],
-          ':truck'                 => $accident['truck'],
-          ':train'                 => $accident['train'],
-          ':transportationunknown' => $accident['transportationunknown'],
           ':child'                 => $accident['child'],
           ':pet'                   => $accident['pet'],
           ':alcohol'               => $accident['alcohol'],
@@ -524,12 +487,8 @@ SQL;
         // New accident
 
         $sql = <<<SQL
-    INSERT INTO accidents (userid, awaitingmoderation, title, text, date, personsdead, personsinjured,                           
-                           pedestrian, bicycle, scooter, motorcycle, car, taxi, emergencyvehicle, deliveryvan, tractor, bus, tram, truck, train, wheelchair, mopedcar, transportationunknown,
-                           child, pet, alcohol, hitrun, trafficjam, tree)
-    VALUES (:userid, :awaitingmoderation, :title, :text, :date, :personsdead, :personsinjured, 
-            :pedestrian, :bicycle, :scooter, :motorcycle, :car, :taxi, :emergencyvehicle, :deliveryvan, :tractor, :bus, :tram, :truck, :train, :wheelchair, :mopedcar, :transportationunknown,
-            :child, :pet, :alcohol, :hitrun, :trafficjam, :tree);
+    INSERT INTO accidents (userid, awaitingmoderation, title, text, date, child, pet, alcohol, hitrun, trafficjam, tree)
+    VALUES (:userid, :awaitingmoderation, :title, :text, :date, :child, :pet, :alcohol, :hitrun, :trafficjam, :tree);
 SQL;
 
         $params = array(
@@ -538,24 +497,6 @@ SQL;
           ':title'                 => $accident['title'],
           ':text'                  => $accident['text'],
           ':date'                  => $accident['date'],
-          ':personsdead'           => ($accident['personsdead']    == '')? null : $accident['personsdead'],
-          ':personsinjured'        => ($accident['personsinjured'] == '')? null : $accident['personsinjured'],
-          ':pedestrian'            => $accident['pedestrian'],
-          ':bicycle'               => $accident['bicycle'],
-          ':scooter'               => $accident['scooter'],
-          ':motorcycle'            => $accident['motorcycle'],
-          ':car'                   => $accident['car'],
-          ':taxi'                  => $accident['taxi'],
-          ':emergencyvehicle'      => $accident['emergencyvehicle'],
-          ':deliveryvan'           => $accident['deliveryvan'],
-          ':tractor'               => $accident['tractor'],
-          ':bus'                   => $accident['bus'],
-          ':tram'                  => $accident['tram'],
-          ':truck'                 => $accident['truck'],
-          ':train'                 => $accident['train'],
-          ':wheelchair'            => $accident['wheelchair'],
-          ':mopedcar'              => $accident['mopedcar'],
-          ':transportationunknown' => $accident['transportationunknown'],
           ':child'                 => $accident['child'],
           ':pet'                   => $accident['pet'],
           ':alcohol'               => $accident['alcohol'],
@@ -566,6 +507,21 @@ SQL;
         $dbresult = $database->execute($sql, $params);
         $accident['id'] = (int)$database->lastInsertID();
       }
+
+      // Save accident persons
+      $sql    = "DELETE FROM accidentpersons WHERE accidentid=:accidentid;";
+      $params = ['accidentid' => $accident['id']];
+      $database->execute($sql, $params);
+
+      $sql         = "INSERT INTO accidentpersons (accidentid, transportationmode, health) VALUES (:accidentid, :transportationmode, :health)";
+      $dbStatement = $database->prepare($sql);
+      foreach ($accident['persons']  AS $person){
+        $params = [':accidentid' => $accident['id'], ':transportationmode' => $person['transportationmode'], ':health' => $person['health']];
+        $dbStatement->execute($params);
+      }
+
+      $params = ['accidentid' => $accident['id']];
+
     }
 
     if ($saveArticle){

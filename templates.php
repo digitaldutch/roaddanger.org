@@ -77,7 +77,7 @@ HTML;
 
 function getHTMLConfirm(){
   $formConfirm = <<<HTML
-<div id="formConfirmOuter" class="popupOuter" onclick="closePopupForm();">
+<div id="formConfirmOuter" class="popupOuter" style="z-index: 1000" onclick="closePopupForm();">
   <form id="formConfirm" class="floatingForm" onclick="event.stopPropagation();">
 
     <div id="confirmHeader" class="popupHeader">Bevestigen</div>
@@ -241,41 +241,8 @@ function getFormEditAccident(){
       <input id="editAccidentDate" class="popupInput" type="date" autocomplete="off">
           
       <div style="margin-top: 5px;">
-        <div>Betrokken personen <span class="button buttonGray buttonLine" onclick="addAccidentPerson();">Persoon toevoegen</span></div>   
+        <div>Betrokken personen <span class="button buttonGray buttonLine" onclick="editPerson();">Persoon toevoegen</span></div>   
         <div id="editAccidentPersons"></div>
-      </div>
-
-      <div class="inputGroup">
-        <div class="input50">
-          <label for="editAccidentPersonsDead">Doden<span class="iconTooltip" data-tippy-content="Mensen"></span></label>
-          <input id="editAccidentPersonsDead" class="popupInput" type="number" min="0" step="1" value="0">
-        </div>
-        <div class="input50">
-          <label for="editAccidentPersonsInjured">Gewonden<span class="iconTooltip" data-tippy-content="Mensen"></span></label>
-          <input id="editAccidentPersonsInjured" class="popupInput" type="number" min="0" step="1" value="0">
-        </div>        
-      </div>
-  
-      <div style="margin-top: 5px;">
-        <div>Vervoerscategorieën</div> 
-        <div>
-          <span id="editAccidentPedestrian" class="menuButton bgPedestrian" data-tippy-content="Voetganger(s)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentBicycle" class="menuButton bgBicycle" data-tippy-content="Fiets(en)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentScooter" class="menuButton bgScooter" data-tippy-content="Snorfiets(en)/Scooter(s)/Brommer(s)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentMotorcycle" class="menuButton bgMotorcycle" data-tippy-content="Motorfiets(en)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentCar" class="menuButton bgCar" data-tippy-content="Personenauto('s)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentTaxi" class="menuButton bgTaxi" data-tippy-content="Taxi('s)/Uber(s)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentEmergencyVehicle" class="menuButton bgEmergencyVehicle" data-tippy-content="Hulpverleningsvoertuig(en)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentDeliveryVan" class="menuButton bgDeliveryVan" data-tippy-content="Bestelwagen(s)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentTractor" class="menuButton bgTractor" data-tippy-content="Landbouwvoertuig(en)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentBus" class="menuButton bgBus" data-tippy-content="Bus(sen)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentTram" class="menuButton bgTram" data-tippy-content="Tram(s)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentTruck" class="menuButton bgTruck" data-tippy-content="Vrachtwagen(s)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentTrain" class="menuButton bgTrain" data-tippy-content="Trein(en)" onclick="changeAccidentInvolved(this, event);"></span>
-          <span id="editAccidentWheelchair" class="menuButton bgWheelchair" data-tippy-content="Scootmobiel(en)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentMopedCar" class="menuButton bgMopedCar" data-tippy-content="Brommobiel(en)/Tuktuk(s)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentTransportationUnknown" class="menuButton bgUnknown" data-tippy-content="Onbekend vervoermiddel" onclick="changeAccidentInvolved(this, event);"></span>      
-        </div>
       </div>
 
       <div style="margin-top: 5px;">
@@ -325,6 +292,7 @@ function getFormEditPerson(){
     <div class="popupFooter">
       <input id="buttonSavePerson" type="button" class="button" value="Opslaan" onclick="savePerson();">
       <input type="button" class="button buttonGray" value="Annuleren" onclick="closeEditPersonForm();">
+      <input type="button" class="button buttonRed" value="Verwijderen" onclick="deletePerson();">
     </div>    
   </div>
   

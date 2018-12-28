@@ -649,16 +649,18 @@ function transportationModeImage(transportationMode) {
   }
 }
 
-function transportationModeIcon(transportationMode) {
-  const bg   = transportationModeImage(transportationMode);
-  const text = 'Vervoersmiddel: ' + transportationModeText(transportationMode);
-  return `<div class="iconMedium ${bg}" data-tippy-content="${text}"></div>`;
+function transportationModeIcon(transportationMode, addTooltip=true) {
+  const bg      = transportationModeImage(transportationMode);
+  const text    = 'Vervoersmiddel: ' + transportationModeText(transportationMode);
+  const tooltip = addTooltip? 'data-tippy-content="' + text + '"' : '';
+  return `<div class="iconMedium ${bg}" ${tooltip}></div>`;
 }
 
-function healthIcon(healthStatus) {
-  const bg   = healthImage(healthStatus);
-  const text = 'Letsel: ' + healthText(healthStatus);
-  return `<div class="iconMedium ${bg}" data-tippy-content="${text}"></div>`;
+function healthIcon(healthStatus, addTooltip=true) {
+  const bg      = healthImage(healthStatus);
+  const text    = 'Letsel: ' + healthText(healthStatus);
+  const tooltip = addTooltip? 'data-tippy-content="' + text + '"' : '';
+  return `<div class="iconMedium ${bg}" ${tooltip}></div>`;
 }
 
 function healthText(healthStatus) {
