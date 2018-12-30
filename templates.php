@@ -230,18 +230,18 @@ function getFormEditAccident(){
       <input id="accidentIDHidden" type="hidden">
   
       <div data-hidehelper class="flexColumn">
-        <label for="editAccidentTitle">Titel ongeluk <span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentInfoFromArticle();" ">Kopieer van artikel</span></label> 
+        <label for="editAccidentTitle">Titel ongeluk <span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentInfoFromArticle();" ">Hetzelfde als artikel</span></label> 
         <input id="editAccidentTitle" class="popupInput" type="text" maxlength="500" autocomplete="off" data-readonlyhelper>
   
         <label for="editAccidentText">Tekst</label>
         <textarea id="editAccidentText" maxlength="500" style="height: 50px; resize: vertical;" class="popupInput" autocomplete="off" data-readonlyhelper></textarea>
       </div>        
 
-      <label for="editAccidentDate">Datum ongeluk<span class="iconTooltip" data-tippy-content="Vaak anders dan publicatiedatum artikel"></span><span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentDateFromArticle();" ">Kopieer van artikel</span></label>
+      <label for="editAccidentDate">Datum ongeluk<span class="iconTooltip" data-tippy-content="Vaak anders dan publicatiedatum artikel"></span><span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentDateFromArticle();" ">Hetzelfde als artikel</span></label>
       <input id="editAccidentDate" class="popupInput" type="date" autocomplete="off">
           
       <div style="margin-top: 5px;">
-        <div>Betrokken personen <span class="button buttonGray buttonLine" onclick="editPerson();">Persoon toevoegen</span></div>   
+        <div>Betrokken personen <span class="button buttonGray buttonLine" onclick="showEditPersonForm();">Persoon toevoegen</span></div>   
         <div id="editAccidentPersons"></div>
       </div>
 
@@ -278,6 +278,8 @@ function getFormEditPerson(){
     <div class="popupCloseCross" onclick="closeEditPersonForm();"></div>
 
     <input id="personIDHidden" type="hidden">
+    <input id="personSaveDirectly" type="hidden">
+    <input id="personAccidentIDHidden" type="hidden">
 
     <div style="margin-top: 5px;">
       <div>Vervoersmiddel</div> 
@@ -292,7 +294,7 @@ function getFormEditPerson(){
     <div class="popupFooter">
       <input id="buttonSavePerson" type="button" class="button" value="Opslaan" onclick="savePerson();">
       <input type="button" class="button buttonGray" value="Annuleren" onclick="closeEditPersonForm();">
-      <input type="button" class="button buttonRed" value="Verwijderen" onclick="deletePerson();">
+      <input id="buttonDeletePerson" type="button" class="button buttonRed" value="Verwijderen" onclick="deletePerson();">
     </div>    
   </div>
   

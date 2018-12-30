@@ -5,8 +5,6 @@ let watchEndOfPage = false;
 let spinnerLoadCard;
 let pageType;
 let TpageType = Object.freeze({stream:0, accident:1, moderations:2, statistics:3});
-let selectedTransportationMode;
-let selectedHealth;
 
 function initMain() {
   initPage();
@@ -28,6 +26,8 @@ function initMain() {
     div.value = searchText;
     div.style.display = 'inline-block';
   }
+
+  addEditPersonButtons();
 
   if (pageType === TpageType.statistics) {
     loadStatistics();
@@ -87,7 +87,6 @@ ${htmlPeriod('2018',     stats.thisyear)}
 }
 
 async function loadAccidents(accidentID=null, articleID=null){
-
   function showAccidents(accidents){
     if (accidents.length === 0) {
       let text = '';
@@ -99,154 +98,7 @@ async function loadAccidents(accidentID=null, articleID=null){
     }
 
     let html = '';
-
-    for (let accident of accidents){
-      const articles        = getAccidentArticles(accident.id);
-      const canEditAccident = user.moderator || (accident.userid === user.id);
-
-      let htmlArticles = '';
-      for (let article of articles) {
-        const canEditArticle = user.moderator || (article.userid === user.id);
-        let htmlModeration = '';
-        if (article.awaitingmoderation){
-          let modHTML = '';
-          if (user.moderator) modHTML = `
-Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
-<div style="margin: 10px;">
-  <button class="button" onclick="articleModerateOK(${article.id})">Keur artikel goed</button>
-  <button class="button buttonGray" onclick="deleteArticle(${article.id})">Verwijder artikel</button>
-</div>
-`;
-          else if (article.userid === user.id) modHTML = 'Bedankt voor het toevoegen van dit artikel. Je bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet voor iedereen zichtbaar.';
-          else modHTML = 'Dit artikel wordt spoedig gemodereerd en is tot die tijd nog niet zichtbaar op de voorpagina.';
-
-          htmlModeration = `<div id="articleModeration${article.id}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
-        }
-
-        htmlArticles +=`
-<div class="cardArticle" id="article${article.id}" onclick="openArticleLink(event, ${article.id})">
-  <div class="articleImageWrapper"><img class="articleImage" src="${article.urlimage}" onerror="this.style.display='none';"></div>
-  <div class="articleBody">
-    <span class="postButtonArea" onclick="event.stopPropagation();">
-      <span style="position: relative;"><span class="buttonEditPost buttonDetails" data-userid="${article.userid}" onclick="showArticleMenu(event, ${article.id});"></span></span>
-      <div id="menuArticle${article.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
-        <div onclick="editArticle(${accident.id},  ${article.id});">Bewerken</div>
-        <div onclick="deleteArticle(${article.id})">Verwijderen</div>
-      </div>            
-    </span>   
-    
-    ${htmlModeration}     
-  
-    <div class="smallFont"><span class="cardSitename">${escapeHtml(article.sitename)}</span> • ${dateToAge(article.publishedtime)}</div>
-  
-    <div class="articleTitle">${escapeHtml(article.title)}</div>
-    <div class="postText">${escapeHtml(article.text)}</div>
-  </div>
-</div>`;
-      }
-
-      let htmlInvolved = '';
-      if (accident.child)       htmlInvolved += '<div class="iconSmall bgChild"  data-tippy-content="Kind(eren)"></div>';
-      if (accident.pet)         htmlInvolved += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
-      if (accident.alcohol)     htmlInvolved += '<div class="iconSmall bgAlcohol"  data-tippy-content="Alcohol/Drugs"></div>';
-      if (accident.hitrun)      htmlInvolved += '<div class="iconSmall bgHitRun"  data-tippy-content="Doorrijden/Vluchten"></div>';
-      if (accident.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam"  data-tippy-content="File/Hinder"></div>';
-      if (accident.tree)        htmlInvolved += '<div class="iconSmall bgTree"  data-tippy-content="Boom/Paal"></div>';
-
-      if (htmlInvolved){
-        htmlInvolved = `
-    <div data-info="preventFullBorder">
-      <div class="accidentIcons" onclick="event.stopPropagation();">
-        <div class="flexRow" style="justify-content: flex-end">${htmlInvolved}</div>
-      </div>
-    </div>
-        
-        `;
-      }
-
-      let streamHeader = '';
-      if (accident.streamtopuser) {
-        switch (accident.streamtoptype) {
-          case 1: streamHeader = 'aangepast door ' + accident.streamtopuser; break;
-          case 2: streamHeader = 'nieuw artikel toegevoegd door ' + accident.streamtopuser; break;
-          case 3: streamHeader = 'omhoog geplaatst door ' + accident.streamtopuser; break;
-        }
-        if (streamHeader) streamHeader += ' ' + datetimeToAge(accident.streamdatetime);
-      } else {
-        streamHeader = 'aangemaakt door ' + accident.user + ' ' + datetimeToAge(accident.createtime);
-      }
-
-      let htmlPersons = '';
-      let i=0;
-      for (let person of accident.persons){
-        i++;
-        const bgTransportation = transportationModeImage(person.transportationmode);
-        const bgHealth         = healthImage(person.health);
-        const tooltip          = 'Persoon ' + i +
-          '<br>Vervoersmiddel: ' + transportationModeText(person.transportationmode) +
-          '<br>Letsel: ' + healthText(person.health);
-
-        htmlPersons += `<div class="accidentPerson" data-tippy-content="${tooltip}"><div class="iconMedium ${bgTransportation}"></div><div class="iconMedium ${bgHealth}"></div></div>`;
-      }
-
-      document.getElementById('editAccidentPersons').innerHTML = html;
-      tippy('[data-tippy-content]');
-
-      let htmlModeration = '';
-      if (accident.awaitingmoderation){
-        let modHTML = '';
-        if (user.moderator) modHTML = `
-Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
-<div style="margin: 10px;">
-  <button class="button" onclick="accidentModerateOK(${accident.id})">Keur bijdrage goed</button>
-  <button class="button buttonGray" onclick="deleteAccident(${accident.id})">Verwijder bijdrage</button>
-</div>
-`;
-        else if (accident.userid === user.id) modHTML = 'Bedankt voor het toevoegen van onderstaand bericht. Je bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet voor iedereen zichtbaar.';
-        else modHTML = 'Deze bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet zichtbaar op de voorpagina.';
-
-        htmlModeration = `<div id="accidentModeration${accident.id}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
-      }
-
-      let htmlMenuEditItems = '';
-      if (canEditAccident) {
-        htmlMenuEditItems = `
-      <div onclick="editAccident(${accident.id});">Bewerken</div>
-      <div onclick="deleteAccident(${accident.id});">Verwijderen</div>
-`;
-      }
-
-      let htmlMenuItemStreamTop = user.moderator? '<div onclick="accidentToTopStream(${accident.id});" data-moderator>Plaats bovenaan stream</div>' : '';
-
-      html += `
-<div id="accident${accident.id}" class="cardAccident" onclick="showAccidentDetails(${accident.id})">
-
-  <span class="postButtonArea" onclick="event.stopPropagation();">
-    <span style="position: relative;"><span class="buttonEditPost buttonDetails"  data-userid="${accident.userid}" onclick="showAccidentMenu(event, ${accident.id});"></span></span>
-    <div id="menuAccident${accident.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
-      <div onclick="addArticleToAccident(${accident.id});">Artikel toevoegen</div>
-      ${htmlMenuEditItems}
-      ${htmlMenuItemStreamTop}
-    </div>            
-  </span>        
-
-  ${htmlModeration}
-   
-  <div class="cardTop">
-    <div style="width: 100%;">
-      <div class="smallFont cardTitleSmall">${dateToAge(accident.date)} | ${streamHeader}</div>
-      <div class="cardTitle">${escapeHtml(accident.title)}</div>
-      <div>${htmlPersons}</div>
-    </div>
-    ${htmlInvolved}
-  </div>
-
-  <div class="postText">${escapeHtml(accident.text)}</div>    
-  
-  ${htmlArticles}
-  
-</div>`;
-    }
+    for (let accident of accidents) html += getAccidentHTML(accident.id);
 
     document.getElementById('cards').innerHTML += html;
     tippy('[data-tippy-content]');
@@ -271,6 +123,8 @@ Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
         a.date           = new Date(a.date);
         a.createtime     = new Date(a.createtime);
         a.streamdatetime = new Date(a.streamdatetime);
+        let id = 1;
+        a.persons.forEach(person => {person.id = id; id++});
       });
       data.articles.forEach(a => {
         a.publishedtime  = new Date(a.publishedtime);
@@ -298,6 +152,146 @@ Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
     if (articleID) selectArticle(articleID);
     watchEndOfPage = true;
   }, 1);
+}
+
+function getAccidentHTML(accidentID){
+  const accident        = getAccidentFromID(accidentID);
+  const articles        = getAccidentArticles(accident.id);
+  const canEditAccident = user.moderator || (accident.userid === user.id);
+
+  let htmlArticles = '';
+  for (let article of articles) {
+    let htmlModeration = '';
+    if (article.awaitingmoderation){
+      let modHTML = '';
+      if (user.moderator) modHTML = `
+Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
+<div style="margin: 10px;">
+  <button class="button" onclick="articleModerateOK(${article.id})">Keur artikel goed</button>
+  <button class="button buttonGray" onclick="deleteArticle(${article.id})">Verwijder artikel</button>
+</div>
+`;
+      else if (article.userid === user.id) modHTML = 'Bedankt voor het toevoegen van dit artikel. Je bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet voor iedereen zichtbaar.';
+      else modHTML = 'Dit artikel wordt spoedig gemodereerd en is tot die tijd nog niet zichtbaar op de voorpagina.';
+
+      htmlModeration = `<div id="articleModeration${article.id}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
+    }
+
+    htmlArticles +=`
+<div class="cardArticle" id="article${article.id}" onclick="openArticleLink(event, ${article.id})">
+  <div class="articleImageWrapper"><img class="articleImage" src="${article.urlimage}" onerror="this.style.display='none';"></div>
+  <div class="articleBody">
+    <span class="postButtonArea" onclick="event.stopPropagation();">
+      <span style="position: relative;"><span class="buttonEditPost buttonDetails" data-userid="${article.userid}" onclick="showArticleMenu(event, ${article.id});"></span></span>
+      <div id="menuArticle${article.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
+        <div onclick="editArticle(${accident.id},  ${article.id});">Bewerken</div>
+        <div onclick="deleteArticle(${article.id})">Verwijderen</div>
+      </div>            
+    </span>   
+    
+    ${htmlModeration}     
+  
+    <div class="smallFont"><span class="cardSitename">${escapeHtml(article.sitename)}</span> • ${dateToAge(article.publishedtime)}</div>
+  
+    <div class="articleTitle">${escapeHtml(article.title)}</div>
+    <div class="postText">${escapeHtml(article.text)}</div>
+  </div>
+</div>`;
+  }
+
+  let htmlInvolved = '';
+  if (accident.child)       htmlInvolved += '<div class="iconSmall bgChild"  data-tippy-content="Kind(eren)"></div>';
+  if (accident.pet)         htmlInvolved += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
+  if (accident.alcohol)     htmlInvolved += '<div class="iconSmall bgAlcohol"  data-tippy-content="Alcohol/Drugs"></div>';
+  if (accident.hitrun)      htmlInvolved += '<div class="iconSmall bgHitRun"  data-tippy-content="Doorrijden/Vluchten"></div>';
+  if (accident.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam"  data-tippy-content="File/Hinder"></div>';
+  if (accident.tree)        htmlInvolved += '<div class="iconSmall bgTree"  data-tippy-content="Boom/Paal"></div>';
+
+  if (htmlInvolved){
+    htmlInvolved = `
+    <div data-info="preventFullBorder">
+      <div class="accidentIcons" onclick="event.stopPropagation();">
+        <div class="flexRow" style="justify-content: flex-end">${htmlInvolved}</div>
+      </div>
+    </div>`;
+  }
+
+  let streamHeader = '';
+  if (accident.streamtopuser) {
+    switch (accident.streamtoptype) {
+      case 1: streamHeader = 'aangepast door ' + accident.streamtopuser; break;
+      case 2: streamHeader = 'nieuw artikel toegevoegd door ' + accident.streamtopuser; break;
+      case 3: streamHeader = 'omhoog geplaatst door ' + accident.streamtopuser; break;
+    }
+    if (streamHeader) streamHeader += ' ' + datetimeToAge(accident.streamdatetime);
+  } else {
+    streamHeader = 'aangemaakt door ' + accident.user + ' ' + datetimeToAge(accident.createtime);
+  }
+
+  let htmlPersons = '';
+  for (const person of accident.persons) htmlPersons += getPersonButtonHTML(person);
+
+  let htmlModeration = '';
+  if (accident.awaitingmoderation){
+    let modHTML = '';
+    if (user.moderator) modHTML = `
+Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
+<div style="margin: 10px;">
+  <button class="button" onclick="accidentModerateOK(${accident.id})">Keur bijdrage goed</button>
+  <button class="button buttonGray" onclick="deleteAccident(${accident.id})">Verwijder bijdrage</button>
+</div>
+`;
+    else if (accident.userid === user.id) modHTML = 'Bedankt voor het toevoegen van onderstaand bericht. Je bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet voor iedereen zichtbaar.';
+    else modHTML = 'Deze bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet zichtbaar op de voorpagina.';
+
+    htmlModeration = `<div id="accidentModeration${accident.id}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
+  }
+
+  let htmlMenuEditItems = '';
+  if (canEditAccident) {
+    htmlMenuEditItems = `
+      <div onclick="addPersonToAccident(${accident.id});">Persoon toevoegen</div>
+      <div onclick="editAccident(${accident.id});">Bewerken</div>
+      <div onclick="deleteAccident(${accident.id});">Verwijderen</div>
+`;
+  }
+
+  let htmlMenuItemStreamTop = user.moderator? '<div onclick="accidentToTopStream(${accident.id});" data-moderator>Plaats bovenaan stream</div>' : '';
+
+  return `
+<div id="accident${accident.id}" class="cardAccident" onclick="showAccidentDetails(${accident.id})">
+  <span class="postButtonArea" onclick="event.stopPropagation();">
+    <span style="position: relative;"><span class="buttonEditPost buttonDetails"  data-userid="${accident.userid}" onclick="showAccidentMenu(event, ${accident.id});"></span></span>
+    <div id="menuAccident${accident.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
+      <div onclick="addArticleToAccident(${accident.id});">Artikel toevoegen</div>
+      ${htmlMenuEditItems}
+      ${htmlMenuItemStreamTop}
+    </div>            
+  </span>        
+
+  ${htmlModeration}
+   
+  <div class="cardTop">
+    <div style="width: 100%;">
+      <div class="smallFont cardTitleSmall">${dateToAge(accident.date)} | ${streamHeader}</div>
+      <div class="cardTitle">${escapeHtml(accident.title)}</div>
+      <div id="accidentPersons${accident.id}">${htmlPersons}</div>
+    </div>
+    ${htmlInvolved}
+  </div>
+
+  <div class="postText">${escapeHtml(accident.text)}</div>    
+  
+  ${htmlArticles}
+</div>`;
+}
+
+function getPersonButtonHTML(person) {
+  const bgTransportation = transportationModeImage(person.transportationmode);
+  const bgHealth         = healthImage(person.health);
+  const tooltip          = 'Vervoersmiddel: ' + transportationModeText(person.transportationmode) +
+    '<br>Letsel: ' + healthText(person.health);
+  return `<div class="accidentPerson" data-tippy-content="${tooltip}"><div class="iconMedium ${bgTransportation}"></div><div class="iconMedium ${bgHealth}"></div></div>`;
 }
 
 function highlightSearchText() {
@@ -383,10 +377,7 @@ function showEditAccidentForm(event) {
   document.querySelectorAll('[data-hidehelper]').forEach(d => {d.style.display = ! user.moderator? 'none' : 'flex';});
 }
 
-function showEditPersonForm() {
-  document.getElementById('editPersonHeader').innerText = 'Nieuw persoon toevoegen';
-  document.getElementById('buttonSavePerson').value     = 'Opslaan';
-
+function addEditPersonButtons(){
   let htmlButtons = '';
   for (const key of Object.keys(TTransportationMode)){
     const transportationMode =  TTransportationMode[key];
@@ -404,13 +395,25 @@ function showEditPersonForm() {
     htmlButtons += `<span id="editPersonHealth${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonHealth(${health});"></span>`;
   }
   document.getElementById('personHealthButtons').innerHTML = htmlButtons;
-  tippy('[data-tippy-content]');
+}
+
+function showEditPersonForm(personID=null, accidentID=null, saveDirectly=false) {
+  closeAllPopups();
+  const person = getPersonFromID(personID);
+
+  document.getElementById('editPersonHeader').innerText       = person? 'Persoon bewerken' : 'Nieuw persoon toevoegen';
+  document.getElementById('personIDHidden').value             = person? person.id : '';
+  document.getElementById('personAccidentIDHidden').value     = accidentID? accidentID : '';
+  document.getElementById('buttonDeletePerson').style.display = person? 'inline-flex' : 'none';
+  document.getElementById('personSaveDirectly').value         = saveDirectly;
+
+  selectPersonTransportationMode(person? person.transportationmode : null);
+  selectPersonHealth(person? person.health : null);
 
   document.getElementById('formEditPerson').style.display = 'flex';
 }
 
 function selectPersonTransportationMode(transportationMode){
-  selectedTransportationMode  = transportationMode;
   for (const key of Object.keys(TTransportationMode)) {
     const buttonTransportationMode = TTransportationMode[key];
     const button = document.getElementById('editPersonTransportationMode' + key);
@@ -419,8 +422,16 @@ function selectPersonTransportationMode(transportationMode){
   }
 }
 
+function getSelectedPersonTransportationMode(){
+  for (const key of Object.keys(TTransportationMode)) {
+    const buttonTransportationMode = TTransportationMode[key];
+    const button = document.getElementById('editPersonTransportationMode' + key);
+    if (button.classList.contains('buttonSelected')) return buttonTransportationMode;
+  }
+  return null;
+}
+
 function selectPersonHealth(health) {
-  selectedHealth = health;
   for (const key of Object.keys(THealth)) {
     const buttonHealth = THealth[key];
     const button = document.getElementById('editPersonHealth' + key);
@@ -429,25 +440,48 @@ function selectPersonHealth(health) {
   }
 }
 
+function getSelectedPersonHealth(){
+  for (const key of Object.keys(THealth)) {
+    const buttonHealth = THealth[key];
+    const button = document.getElementById('editPersonHealth' + key);
+    if (button.classList.contains('buttonSelected')) return buttonHealth;
+  }
+  return null;
+}
+
 function closeEditPersonForm(){
   document.getElementById('formEditPerson').style.display = 'none';
 }
 
-function editPerson(personID=null) {
-  showEditPersonForm();
-
-  const person = getPersonFromID(personID);
-
-  document.getElementById('editPersonHeader').innerText = person? 'Persoon bewerken' : 'Nieuw persoon toevoegen';
-  document.getElementById('personIDHidden').value       = person? person.id : '';
-
-  selectPersonTransportationMode(person? person.transportationmode : null);
-  selectPersonHealth(person? person.health : null);
-}
-
 function savePerson() {
-  if (selectedTransportationMode === null){showError('Geen vervoersmiddel geselecteerd', 3); return;}
-  if (selectedHealth             === null){showError('Geen letsel geselecteerd', 3); return;}
+  async function savePersonToServer(person) {
+    const url = '/ajax.php?function=addPersonToAccident';
+    const optionsFetch = {
+      method:  'POST',
+      body: JSON.stringify({person: person}),
+      headers: {'Content-Type': 'application/json'},
+    };
+    const response = await fetch(url, optionsFetch);
+    const text     = await response.text();
+    const data     = JSON.parse(text);
+    if (data.error) {
+      showError(data.error, 10);
+    } else {
+      const accident = getAccidentFromID(person.accidentid);
+      accident.persons.push(person);
+      person.id = accident.persons.length;
+      const divID = 'accidentPersons' + person.accidentid;
+      document.getElementById(divID).innerHTML += getPersonButtonHTML(person);
+      tippy('[data-tippy-content]');
+      showMessage('Persoon toegevoegd');
+    }
+  }
+
+  const selectedTransportationMode = getSelectedPersonTransportationMode();
+  const selectedHealth             = getSelectedPersonHealth();
+  const saveDirectly               = document.getElementById('personSaveDirectly').value;
+  if (selectedTransportationMode === null) {showError('Geen vervoersmiddel geselecteerd', 3); return;}
+  if (selectedHealth             === null) {showError('Geen letsel geselecteerd', 3); return;}
 
   const personID = parseInt(document.getElementById('personIDHidden').value);
   let person;
@@ -461,10 +495,16 @@ function savePerson() {
       transportationmode: selectedTransportationMode,
       health:             selectedHealth};
 
-    editAccidentPersons.push(person);
+    if (saveDirectly){
+      person.accidentid = parseInt(document.getElementById('personAccidentIDHidden').value);
+      savePersonToServer(person);
+    } else {
+      editAccidentPersons.push(person);
+    }
   }
 
   refreshAccidentPersonsGUI(editAccidentPersons);
+
   closeEditPersonForm();
 }
 
@@ -478,14 +518,13 @@ function deletePerson() {
     });
 }
 
-
 function refreshAccidentPersonsGUI(persons=[]) {
   let html = '';
 
   for (let person of persons){
     const iconTransportation = transportationModeIcon(person.transportationmode);
     const iconHealth         = healthIcon(person.health);
-    html += `<div class="editAccidentPerson" onclick="editPerson(${person.id});">
+    html += `<div class="editAccidentPerson" onclick="showEditPersonForm(${person.id});">
 ${iconTransportation} ${iconHealth}
 </div>
 `;
@@ -555,6 +594,10 @@ function addArticleToAccident(accidentID) {
 
   document.getElementById('editHeader').innerText              = 'Artikel toevoegen';
   document.getElementById('editAccidentSection').style.display = 'none';
+}
+
+function addPersonToAccident(accidentID) {
+  showEditPersonForm(null, accidentID, true);
 }
 
 function editAccident(accidentID) {

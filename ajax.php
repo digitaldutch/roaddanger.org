@@ -140,21 +140,21 @@ SQL;
 } // ====================
 else if ($function === 'loadaccidents') {
   try {
-    $offset          = (int)getRequest('offset',0);
-    $count           = (int)getRequest('count', 100);
-    $id              = isset($_REQUEST['id'])? (int)$_REQUEST['id'] : null;
-    $search          = isset($_REQUEST['search'])? $_REQUEST['search'] : '';
-    $moderationsList = (int)getRequest('moderations', 0);
-    $export          = (int)getRequest('export', 0);
+    $offset      = (int)getRequest('offset',0);
+    $count       = (int)getRequest('count', 100);
+    $id          = isset($_REQUEST['id'])? (int)$_REQUEST['id'] : null;
+    $search      = isset($_REQUEST['search'])? $_REQUEST['search'] : '';
+    $moderations = (int)getRequest('moderations', 0);
+    $export      = (int)getRequest('export', 0);
 
     if ($count > 1000) throw new Exception('Internal error: Count to high.');
-    if ($moderationsList && (! $user->isModerator())) throw new Exception('Moderaties zijn alleen zichtbaar voor moderators.');
+    if ($moderations && (! $user->isModerator())) throw new Exception('Moderaties zijn alleen zichtbaar voor moderators.');
 
     $accidents    = [];
     $articles     = [];
     $params       = [];
     $sqlModerated = '';
-    if ($moderationsList) {
+    if ($moderations) {
       $sqlModerated = ' (ac.awaitingmoderation=1) OR (ac.id IN (SELECT accidentid FROM articles WHERE awaitingmoderation=1)) ';
     } else if ($id === null) {
       // Individual pages are always shown and *not* moderated.
@@ -164,7 +164,6 @@ else if ($function === 'loadaccidents') {
 
     $sql = <<<SQL
 SELECT 
-  id,
   transportationmode,
   health
 FROM accidentpersons
@@ -184,24 +183,6 @@ SELECT DISTINCT
   ac.title,
   ac.text,
   ac.date,
-  ac.personsdead,
-  ac.personsinjured,
-  ac.pedestrian, 
-  ac.bicycle, 
-  ac.scooter, 
-  ac.motorcycle, 
-  ac.car, 
-  ac.taxi, 
-  ac.emergencyvehicle, 
-  ac.deliveryvan, 
-  ac.tractor, 
-  ac.bus, 
-  ac.tram, 
-  ac.truck, 
-  ac.train,  
-  ac.wheelchair, 
-  ac.mopedcar, 
-  ac.transportationunknown, 
   ac.child, 
   ac.pet, 
   ac.alcohol, 
@@ -280,7 +261,6 @@ SQL;
       $accident['persons'] = [];
       $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['accidentid' => $accident['id']]);
       foreach ($DBPersons as $person) {
-        $person['id']                 = (int)$person['id'];
         $person['transportationmode'] = (int)$person['transportationmode'];
         $person['health']             = (int)$person['health'];
 
@@ -294,7 +274,7 @@ SQL;
     if (count($accidents) > 0){
       $params = [];
       $sqlModerated = '';
-      if ($moderationsList) {
+      if ($moderations) {
         // In the moderation queue all articles are shown
       } else if ($id === null) { // Individual pages are always shown and *not* moderated. Needed
         $sqlModerated = $user->isModerator()? '':  ' AND ((ar.awaitingmoderation=0) || (ar.userid=:useridModeration)) ';
@@ -348,10 +328,25 @@ SQL;
   }
 
   echo json_encode($result);
-//  $json = safe_json_encode($result); // JD Note: It looks like this is no longer required after converting the database to Unicode.
-//  if ($json) echo $json;
-//  else echo json_encode(['ok' => false, 'error' => json_last_error()]);
 } // ====================
+else if ($function === 'addPersonToAccident') {
+  try {
+    $data    = json_decode(file_get_contents('php://input'), true);
+    $person  = $data['person'];
+
+    $sql    = "INSERT INTO accidentpersons (accidentid, transportationmode, health) VALUES (:accidentid, :transportationmode, :health)";
+    $params = [':accidentid' => $person['accidentid'], ':transportationmode' => $person['transportationmode'], ':health' => $person['health']];
+    $database->execute($sql, $params);
+
+    $result = ['ok' => true];
+  } catch (Exception $e) {
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+
+  $json = json_encode($result);
+  if ($json) echo $json;
+  else echo json_encode(['ok' => false, 'error' => json_last_error()]);
+} //==========
 else if ($function === 'getuser') {
   try {
     $result = ['ok' => true, 'user' => $user->info()];
