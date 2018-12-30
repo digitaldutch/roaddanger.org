@@ -479,7 +479,7 @@ function savePerson() {
 
   const selectedTransportationMode = getSelectedPersonTransportationMode();
   const selectedHealth             = getSelectedPersonHealth();
-  const saveDirectly               = document.getElementById('personSaveDirectly').value;
+  const saveDirectly               = document.getElementById('personSaveDirectly').value === "true";
   if (selectedTransportationMode === null) {showError('Geen vervoersmiddel geselecteerd', 3); return;}
   if (selectedHealth             === null) {showError('Geen letsel geselecteerd', 3); return;}
 
@@ -495,7 +495,7 @@ function savePerson() {
       transportationmode: selectedTransportationMode,
       health:             selectedHealth};
 
-    if (saveDirectly){
+    if (saveDirectly === true){
       person.accidentid = parseInt(document.getElementById('personAccidentIDHidden').value);
       savePersonToServer(person);
     } else {
