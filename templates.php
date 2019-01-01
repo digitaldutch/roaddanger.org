@@ -248,10 +248,7 @@ function getFormEditAccident(){
       <div style="margin-top: 5px;">
         <div>Kenmerken</div>
         <div>
-          <span id="editAccidentChild" class="menuButton bgChild" data-tippy-content="Kind(eren)" onclick="changeAccidentInvolved(this, event);"></span>      
           <span id="editAccidentPet" class="menuButton bgPet" data-tippy-content="Dier(en)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentAlcohol" class="menuButton bgAlcohol" data-tippy-content="Alcohol/Drugs" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentHitRun" class="menuButton bgHitRun" data-tippy-content="Doorrijden/Vluchten" onclick="changeAccidentInvolved(this, event);"></span>      
           <span id="editAccidentTrafficJam" class="menuButton bgTrafficJam" data-tippy-content="File/Hinder" onclick="changeAccidentInvolved(this, event);"></span>      
           <span id="editAccidentTree" class="menuButton bgTree" data-tippy-content="Boom/Paal" onclick="changeAccidentInvolved(this, event);"></span>
         </div>

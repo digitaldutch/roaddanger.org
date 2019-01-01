@@ -200,10 +200,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   }
 
   let htmlInvolved = '';
-  if (accident.child)       htmlInvolved += '<div class="iconSmall bgChild"  data-tippy-content="Kind(eren)"></div>';
   if (accident.pet)         htmlInvolved += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
-  if (accident.alcohol)     htmlInvolved += '<div class="iconSmall bgAlcohol"  data-tippy-content="Alcohol/Drugs"></div>';
-  if (accident.hitrun)      htmlInvolved += '<div class="iconSmall bgHitRun"  data-tippy-content="Doorrijden/Vluchten"></div>';
   if (accident.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam"  data-tippy-content="File/Hinder"></div>';
   if (accident.tree)        htmlInvolved += '<div class="iconSmall bgTree"  data-tippy-content="Boom/Paal"></div>';
 
@@ -288,18 +285,22 @@ Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
 
 function getPersonButtonHTML(person) {
   const bgTransportation = transportationModeImage(person.transportationmode);
-  const bgHealth         = healthImage(person.health);
-  let buttonsOptions     = '';
-  if (person.child)          buttonsOptions += '<div class="iconSmall bgChild"  data-tippy-content="Kind"></div>';
-  if (person.underinfluence) buttonsOptions += '<div class="iconSmall bgAlcohol"  data-tippy-content="Onder invloed van alcohol of drugs"></div>';
-  if (person.hitrun)         buttonsOptions += '<div class="iconSmall bgAlcohol"  data-tippy-content="Doorgereden of gevlucht"></div>';
+  let icons = '';
+  if (person.health !== THealth.unharmed) icons += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
+  if (person.child)          icons += '<div class="iconMedium bgChild"></div>';
+  if (person.underinfluence) icons += '<div class="iconMedium bgAlcohol"></div>';
+  if (person.hitrun)         icons += '<div class="iconMedium bgHitRun"></div>';
 
-  const tooltip          = 'Vervoersmiddel: ' + transportationModeText(person.transportationmode) +
-    '<br>Letsel: ' + healthText(person.health);
+  let tooltip = 'Persoon ' + person.id +
+    '<br>Vervoersmiddel: ' + transportationModeText(person.transportationmode) + '<br>Letsel: ' + healthText(person.health);
+  if (person.child)          tooltip += '<br>Kind';
+  if (person.underinfluence) tooltip += '<br>Onder invloed van alcohol of drugs';
+  if (person.hitrun)         tooltip += '<br>Doorgereden of gevlucht"';
+
+
   return `<div class="accidentPerson" data-tippy-content="${tooltip}">
-    <div class="iconMedium ${bgTransportation}"></div>
-    <div class="iconMedium ${bgHealth}"></div>
-    ${buttonsOptions}
+    <div class="iconMedium ${bgTransportation}"></div>    
+    ${icons}
 </div>`;
 }
 
@@ -363,10 +364,7 @@ function showEditAccidentForm(event) {
   document.getElementById('editAccidentText').value                = '';
   document.getElementById('editAccidentDate').value                = '';
 
-  document.getElementById('editAccidentChild').classList.remove('buttonSelected');
   document.getElementById('editAccidentPet').classList.remove('buttonSelected');
-  document.getElementById('editAccidentAlcohol').classList.remove('buttonSelected');
-  document.getElementById('editAccidentHitRun').classList.remove('buttonSelected');
   document.getElementById('editAccidentTrafficJam').classList.remove('buttonSelected');
   document.getElementById('editAccidentTree').classList.remove('buttonSelected');
 
@@ -486,7 +484,6 @@ function savePerson() {
       const divID = 'accidentPersons' + person.accidentid;
       document.getElementById(divID).innerHTML += getPersonButtonHTML(person);
       tippy('[data-tippy-content]');
-      showMessage('Persoon toegevoegd');
     }
   }
 
@@ -544,9 +541,9 @@ function refreshAccidentPersonsGUI(persons=[]) {
     const iconTransportation = transportationModeIcon(person.transportationmode);
     const iconHealth         = healthIcon(person.health);
     let buttonsOptions = '';
-    if (person.child)          buttonsOptions += '<div class="iconSmall bgChild"  data-tippy-content="Kind"></div>';
-    if (person.underinfluence) buttonsOptions += '<div class="iconSmall bgAlcohol"  data-tippy-content="Onder invloed van alcohol of drugs"></div>';
-    if (person.hitrun)         buttonsOptions += '<div class="iconSmall bgAlcohol"  data-tippy-content="Doorgereden of gevlucht"></div>';
+    if (person.child)          buttonsOptions += '<div class="iconSmall bgChild" data-tippy-content="Kind"></div>';
+    if (person.underinfluence) buttonsOptions += '<div class="iconSmall bgAlcohol" data-tippy-content="Onder invloed van alcohol of drugs"></div>';
+    if (person.hitrun)         buttonsOptions += '<div class="iconSmall bgHitRun" data-tippy-content="Doorgereden of gevlucht"></div>';
 
     html += `<div class="editAccidentPerson" onclick="showEditPersonForm(${person.id});">
 ${iconTransportation} ${iconHealth} ${buttonsOptions}
@@ -571,10 +568,7 @@ function setNewArticleAccidentFields(accidentID){
   document.getElementById('editAccidentText').value           = accident.text;
   document.getElementById('editAccidentDate').value           = dateToISO(accidentDatetime);
 
-  selectButton('editAccidentChild',       accident.child);
   selectButton('editAccidentPet',         accident.pet);
-  selectButton('editAccidentAlcohol',     accident.alcohol);
-  selectButton('editAccidentHitRun',      accident.hitrun);
   selectButton('editAccidentTrafficJam',  accident.trafficjam);
   selectButton('editAccidentTree',        accident.tree);
 
@@ -799,10 +793,7 @@ async function saveArticleAccident(){
     text:       document.getElementById('editAccidentText').value,
     date:       document.getElementById('editAccidentDate').value,
     persons:    editAccidentPersons,
-    child:      document.getElementById('editAccidentChild').classList.contains('buttonSelected'),
     pet:        document.getElementById('editAccidentPet').classList.contains('buttonSelected'),
-    alcohol:    document.getElementById('editAccidentAlcohol').classList.contains('buttonSelected'),
-    hitrun:     document.getElementById('editAccidentHitRun').classList.contains('buttonSelected'),
     trafficjam: document.getElementById('editAccidentTrafficJam').classList.contains('buttonSelected'),
     tree:       document.getElementById('editAccidentTree').classList.contains('buttonSelected'),
   };
