@@ -165,7 +165,10 @@ else if ($function === 'loadaccidents') {
     $sql = <<<SQL
 SELECT 
   transportationmode,
-  health
+  health,
+  child,
+  hitrun,
+  underinfluence
 FROM accidentpersons
 WHERE accidentid=:accidentid
 SQL;
@@ -263,6 +266,9 @@ SQL;
       foreach ($DBPersons as $person) {
         $person['transportationmode'] = (int)$person['transportationmode'];
         $person['health']             = (int)$person['health'];
+        $person['child']              = (int)$person['child'];
+        $person['underinfluence']     = (int)$person['underinfluence'];
+        $person['hitrun']             = (int)$person['hitrun'];
 
         $accident['persons'][] = $person;
       }
@@ -334,8 +340,20 @@ else if ($function === 'addPersonToAccident') {
     $data    = json_decode(file_get_contents('php://input'), true);
     $person  = $data['person'];
 
-    $sql    = "INSERT INTO accidentpersons (accidentid, transportationmode, health) VALUES (:accidentid, :transportationmode, :health)";
-    $params = [':accidentid' => $person['accidentid'], ':transportationmode' => $person['transportationmode'], ':health' => $person['health']];
+    $sql    = <<<SQL
+INSERT INTO accidentpersons 
+  (accidentid, transportationmode, health, child, underinfluence, hitrun) 
+VALUES (:accidentid, :transportationmode, :health, :child, :underinfluence, :hitrun);
+SQL;
+
+    $params = [
+      ':accidentid'         => $person['id'],
+      ':transportationmode' => $person['transportationmode'],
+      ':health'             => $person['health'],
+      ':child'              => $person['child'],
+      ':underinfluence'     => $person['underinfluence'],
+      ':hitrun'             => $person['hitrun'],
+    ];
     $database->execute($sql, $params);
 
     $result = ['ok' => true];
@@ -508,10 +526,21 @@ SQL;
       $params = ['accidentid' => $accident['id']];
       $database->execute($sql, $params);
 
-      $sql         = "INSERT INTO accidentpersons (accidentid, transportationmode, health) VALUES (:accidentid, :transportationmode, :health)";
+      $sql = <<<SQL
+INSERT INTO accidentpersons 
+  (accidentid, transportationmode, health, child, underinfluence, hitrun) 
+VALUES (:accidentid, :transportationmode, :health, :child, :underinfluence, :hitrun);
+SQL;
       $dbStatement = $database->prepare($sql);
       foreach ($accident['persons']  AS $person){
-        $params = [':accidentid' => $accident['id'], ':transportationmode' => $person['transportationmode'], ':health' => $person['health']];
+        $params = [
+          ':accidentid'         => $accident['id'],
+          ':transportationmode' => $person['transportationmode'],
+          ':health'             => $person['health'],
+          ':child'              => $person['child'],
+          ':underinfluence'     => $person['underinfluence'],
+          ':hitrun'             => $person['hitrun'],
+        ];
         $dbStatement->execute($params);
       }
 

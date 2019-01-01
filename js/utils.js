@@ -432,6 +432,20 @@ function selectButton(id, selected){
   else classList.remove('buttonSelected');
 }
 
+function toggleMenuButton(element){
+  element.classList.toggle('buttonSelected');
+}
+
+function setMenuButton(id, active){
+  const classList = document.getElementById(id).classList;
+  if (active) classList.add('buttonSelected');
+  else classList.remove('buttonSelected');
+}
+
+function menuButtonSelected(id){
+  return document.getElementById(id).classList.contains('buttonSelected');
+}
+
 function isScrolledIntoView(element) {
   let rect       = element.getBoundingClientRect();
   let elemTop    = rect.top;

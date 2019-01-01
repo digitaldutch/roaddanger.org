@@ -289,9 +289,18 @@ Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
 function getPersonButtonHTML(person) {
   const bgTransportation = transportationModeImage(person.transportationmode);
   const bgHealth         = healthImage(person.health);
+  let buttonsOptions     = '';
+  if (person.child)          buttonsOptions += '<div class="iconSmall bgChild"  data-tippy-content="Kind"></div>';
+  if (person.underinfluence) buttonsOptions += '<div class="iconSmall bgAlcohol"  data-tippy-content="Onder invloed van alcohol of drugs"></div>';
+  if (person.hitrun)         buttonsOptions += '<div class="iconSmall bgAlcohol"  data-tippy-content="Doorgereden of gevlucht"></div>';
+
   const tooltip          = 'Vervoersmiddel: ' + transportationModeText(person.transportationmode) +
     '<br>Letsel: ' + healthText(person.health);
-  return `<div class="accidentPerson" data-tippy-content="${tooltip}"><div class="iconMedium ${bgTransportation}"></div><div class="iconMedium ${bgHealth}"></div></div>`;
+  return `<div class="accidentPerson" data-tippy-content="${tooltip}">
+    <div class="iconMedium ${bgTransportation}"></div>
+    <div class="iconMedium ${bgHealth}"></div>
+    ${buttonsOptions}
+</div>`;
 }
 
 function highlightSearchText() {
@@ -410,6 +419,10 @@ function showEditPersonForm(personID=null, accidentID=null, saveDirectly=false) 
   selectPersonTransportationMode(person? person.transportationmode : null);
   selectPersonHealth(person? person.health : null);
 
+  setMenuButton('editPersonChild',          person? person.child : false);
+  setMenuButton('editPersonUnderInfluence', person? person.underinfluence: false);
+  setMenuButton('editPersonHitRun',         person? person.hitrun: false);
+
   document.getElementById('formEditPerson').style.display = 'flex';
 }
 
@@ -485,15 +498,21 @@ function savePerson() {
 
   const personID = parseInt(document.getElementById('personIDHidden').value);
   let person;
-  if (personID){
-    person = getPersonFromID(personID);
+
+  function loadPersonFromGUI(person){
     person.transportationmode = selectedTransportationMode;
     person.health             = selectedHealth;
+    person.child              = menuButtonSelected('editPersonChild');
+    person.underinfluence     = menuButtonSelected('editPersonUnderInfluence');
+    person.hitrun             = menuButtonSelected('editPersonHitRun');
+  }
+
+  if (personID){
+    person = getPersonFromID(personID);
+    loadPersonFromGUI(person);
   } else {
-    person = {
-      id:                 editAccidentPersons.length + 1,
-      transportationmode: selectedTransportationMode,
-      health:             selectedHealth};
+    person = {id: editAccidentPersons.length + 1};
+    loadPersonFromGUI(person);
 
     if (saveDirectly === true){
       person.accidentid = parseInt(document.getElementById('personAccidentIDHidden').value);
@@ -524,8 +543,13 @@ function refreshAccidentPersonsGUI(persons=[]) {
   for (let person of persons){
     const iconTransportation = transportationModeIcon(person.transportationmode);
     const iconHealth         = healthIcon(person.health);
+    let buttonsOptions = '';
+    if (person.child)          buttonsOptions += '<div class="iconSmall bgChild"  data-tippy-content="Kind"></div>';
+    if (person.underinfluence) buttonsOptions += '<div class="iconSmall bgAlcohol"  data-tippy-content="Onder invloed van alcohol of drugs"></div>';
+    if (person.hitrun)         buttonsOptions += '<div class="iconSmall bgAlcohol"  data-tippy-content="Doorgereden of gevlucht"></div>';
+
     html += `<div class="editAccidentPerson" onclick="showEditPersonForm(${person.id});">
-${iconTransportation} ${iconHealth}
+${iconTransportation} ${iconHealth} ${buttonsOptions}
 </div>
 `;
   }
