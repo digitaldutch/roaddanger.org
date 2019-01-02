@@ -165,7 +165,10 @@ else if ($function === 'loadaccidents') {
     $sql = <<<SQL
 SELECT 
   transportationmode,
-  health
+  health,
+  child,
+  underinfluence,
+  hitrun
 FROM accidentpersons
 WHERE accidentid=:accidentid
 SQL;
@@ -183,10 +186,7 @@ SELECT DISTINCT
   ac.title,
   ac.text,
   ac.date,
-  ac.child, 
   ac.pet, 
-  ac.alcohol, 
-  ac.hitrun, 
   ac.trafficjam, 
   ac.tree, 
   CONCAT(u.firstname, ' ', u.lastname) AS user, 
@@ -250,10 +250,7 @@ SQL;
       $accident['mopedcar']              = $accident['mopedcar'] == 1;
       $accident['transportationunknown'] = $accident['transportationunknown'] == 1;
 
-      $accident['child']                 = $accident['child'] == 1;
       $accident['pet']                   = $accident['pet'] == 1;
-      $accident['alcohol']               = $accident['alcohol'] == 1;
-      $accident['hitrun']                = $accident['hitrun'] == 1;
       $accident['trafficjam']            = $accident['trafficjam'] == 1;
       $accident['tree']                  = $accident['tree'] == 1;
 
@@ -263,6 +260,9 @@ SQL;
       foreach ($DBPersons as $person) {
         $person['transportationmode'] = (int)$person['transportationmode'];
         $person['health']             = (int)$person['health'];
+        $person['child']              = (int)$person['child'];
+        $person['underinfluence']     = (int)$person['underinfluence'];
+        $person['hitrun']             = (int)$person['hitrun'];
 
         $accident['persons'][] = $person;
       }
@@ -336,6 +336,10 @@ else if ($function === 'addPersonToAccident') {
 
     $sql    = "INSERT INTO accidentpersons (accidentid, transportationmode, health) VALUES (:accidentid, :transportationmode, :health)";
     $params = [':accidentid' => $person['accidentid'], ':transportationmode' => $person['transportationmode'], ':health' => $person['health']];
+    $database->execute($sql, $params);
+
+    $sql    = "UPDATE accidents SET streamdatetime=current_timestamp, streamtoptype=2, streamtopuserid=:userid WHERE id=:id;";
+    $params = array(':id' => $id, ':userid' => $user->id);
     $database->execute($sql, $params);
 
     $result = ['ok' => true];
@@ -453,10 +457,7 @@ else if ($function === 'saveArticleAccident'){
       title                 = :title,
       text                  = :text,
       date                  = :date,
-      child                 = :child,
       pet                   = :pet,
-      alcohol               = :alcohol,
-      hitrun                = :hitrun,
       trafficjam            = :trafficjam,
       tree                  = :tree
     WHERE id=:id $sqlANDOwnOnly
@@ -467,10 +468,7 @@ SQL;
           ':title'                 => $accident['title'],
           ':text'                  => $accident['text'],
           ':date'                  => $accident['date'],
-          ':child'                 => $accident['child'],
           ':pet'                   => $accident['pet'],
-          ':alcohol'               => $accident['alcohol'],
-          ':hitrun'                => $accident['hitrun'],
           ':trafficjam'            => $accident['trafficjam'],
           ':tree'                  => $accident['tree'],
         );
@@ -482,8 +480,8 @@ SQL;
         // New accident
 
         $sql = <<<SQL
-    INSERT INTO accidents (userid, awaitingmoderation, title, text, date, child, pet, alcohol, hitrun, trafficjam, tree)
-    VALUES (:userid, :awaitingmoderation, :title, :text, :date, :child, :pet, :alcohol, :hitrun, :trafficjam, :tree);
+    INSERT INTO accidents (userid, awaitingmoderation, title, text, date, pet, trafficjam, tree)
+    VALUES (:userid, :awaitingmoderation, :title, :text, :date, :pet, :trafficjam, :tree);
 SQL;
 
         $params = array(
@@ -492,10 +490,7 @@ SQL;
           ':title'                 => $accident['title'],
           ':text'                  => $accident['text'],
           ':date'                  => $accident['date'],
-          ':child'                 => $accident['child'],
           ':pet'                   => $accident['pet'],
-          ':alcohol'               => $accident['alcohol'],
-          ':hitrun'                => $accident['hitrun'],
           ':trafficjam'            => $accident['trafficjam'],
           ':tree'                  => $accident['tree'],
         );
@@ -508,10 +503,20 @@ SQL;
       $params = ['accidentid' => $accident['id']];
       $database->execute($sql, $params);
 
-      $sql         = "INSERT INTO accidentpersons (accidentid, transportationmode, health) VALUES (:accidentid, :transportationmode, :health)";
+    $sql         = <<<SQL
+INSERT INTO accidentpersons (accidentid, transportationmode, health, child, underinfluence, hitrun) 
+VALUES (:accidentid, :transportationmode, :health, :child, :underinfluence, :hitrun);
+SQL;
       $dbStatement = $database->prepare($sql);
       foreach ($accident['persons']  AS $person){
-        $params = [':accidentid' => $accident['id'], ':transportationmode' => $person['transportationmode'], ':health' => $person['health']];
+        $params = [
+          ':accidentid'         => $accident['id'],
+          ':transportationmode' => $person['transportationmode'],
+          ':health'             => $person['health'],
+          ':child'              => $person['child'],
+          ':underinfluence'     => $person['underinfluence'],
+          ':hitrun'             => $person['hitrun'],
+        ];
         $dbStatement->execute($params);
       }
 

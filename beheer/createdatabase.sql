@@ -114,6 +114,9 @@ create table accidentpersons
   accidentid int not null,
   transportationmode smallint(6) null,
   health smallint(6) null,
+  child smallint(6) null,
+  underinfluence tinyint(1) null,
+  hitrun tinyint(1) null,
   constraint accidentpersons___fkaccident
     foreign key (accidentid) references accidents (id)
       on update cascade on delete cascade
@@ -151,3 +154,4 @@ create fulltext index title
 
 alter table articles
   add primary key (id);
+

@@ -237,7 +237,7 @@ function getFormEditAccident(){
         <textarea id="editAccidentText" maxlength="500" style="height: 50px; resize: vertical;" class="popupInput" autocomplete="off" data-readonlyhelper></textarea>
       </div>        
 
-      <label for="editAccidentDate">Datum ongeluk<span class="iconTooltip" data-tippy-content="Vaak anders dan publicatiedatum artikel"></span><span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentDateFromArticle();" ">Hetzelfde als artikel</span></label>
+      <label for="editAccidentDate">Datum ongeluk<span class="iconTooltip" data-tippy-content="Vaak anders dan publicatiedatum artikel"></span><span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentDateFromArticle();" ">Zelfde als artikel</span></label>
       <input id="editAccidentDate" class="popupInput" type="date" autocomplete="off">
           
       <div style="margin-top: 5px;">
@@ -300,6 +300,7 @@ function getFormEditPerson(){
             
     <div class="popupFooter">
       <input id="buttonSavePerson" type="button" class="button" value="Opslaan" onclick="savePerson();">
+      <input id="buttonSavePerson" type="button" class="button" value="Opslaan en openblijven" onclick="savePerson(true);">
       <input type="button" class="button buttonGray" value="Annuleren" onclick="closeEditPersonForm();">
       <input id="buttonDeletePerson" type="button" class="button buttonRed" value="Verwijderen" onclick="deletePerson();">
     </div>    
