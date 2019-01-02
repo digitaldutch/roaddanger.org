@@ -287,19 +287,19 @@ function getPersonButtonHTML(person) {
   const bgTransportation = transportationModeImage(person.transportationmode);
   let icons = '';
   if (person.health !== THealth.unharmed) icons += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
+  icons += `<div class="iconMedium ${bgTransportation}"></div>`;
   if (person.child)          icons += '<div class="iconMedium bgChild"></div>';
   if (person.underinfluence) icons += '<div class="iconMedium bgAlcohol"></div>';
   if (person.hitrun)         icons += '<div class="iconMedium bgHitRun"></div>';
 
   let tooltip = 'Persoon ' + person.id +
-    '<br>Vervoersmiddel: ' + transportationModeText(person.transportationmode) + '<br>Letsel: ' + healthText(person.health);
+    '<br>Vervoermiddel: ' + transportationModeText(person.transportationmode) + '<br>Letsel: ' + healthText(person.health);
   if (person.child)          tooltip += '<br>Kind';
   if (person.underinfluence) tooltip += '<br>Onder invloed van alcohol of drugs';
   if (person.hitrun)         tooltip += '<br>Doorgereden of gevlucht"';
 
 
-  return `<div class="accidentPerson" data-tippy-content="${tooltip}">
-    <div class="iconMedium ${bgTransportation}"></div>    
+  return `<div class="accidentPerson" data-tippy-content="${tooltip}">    
     ${icons}
 </div>`;
 }
@@ -547,7 +547,7 @@ function refreshAccidentPersonsGUI(persons=[]) {
     if (person.hitrun)         buttonsOptions += '<div class="iconSmall bgHitRun" data-tippy-content="Doorgereden of gevlucht"></div>';
 
     html += `<div class="editAccidentPerson" onclick="showEditPersonForm(${person.id});">
-${iconTransportation} ${iconHealth} ${buttonsOptions}
+${iconHealth} ${iconTransportation} ${buttonsOptions}
 </div>
 `;
   }

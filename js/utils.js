@@ -666,7 +666,7 @@ function transportationModeImage(transportationMode) {
 
 function transportationModeIcon(transportationMode, addTooltip=true) {
   const bg      = transportationModeImage(transportationMode);
-  const text    = 'Vervoersmiddel: ' + transportationModeText(transportationMode);
+  const text    = 'Vervoermiddel: ' + transportationModeText(transportationMode);
   const tooltip = addTooltip? 'data-tippy-content="' + text + '"' : '';
   return `<div class="iconMedium ${bg}" ${tooltip}></div>`;
 }

@@ -279,7 +279,7 @@ function getFormEditPerson(){
     <input id="personAccidentIDHidden" type="hidden">
 
     <div style="margin-top: 5px;">
-      <div>Vervoersmiddel</div> 
+      <div>Vervoermiddel</div> 
       <div id="personTransportationButtons"></div>
     </div>
             
