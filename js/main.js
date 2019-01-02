@@ -464,7 +464,7 @@ function closeEditPersonForm(){
   document.getElementById('formEditPerson').style.display = 'none';
 }
 
-function savePerson() {
+function savePerson(stayOpen=false) {
   async function savePersonToServer(person) {
     const url = '/ajax.php?function=addPersonToAccident';
     const optionsFetch = {
@@ -490,7 +490,7 @@ function savePerson() {
   const selectedTransportationMode = getSelectedPersonTransportationMode();
   const selectedHealth             = getSelectedPersonHealth();
   const saveDirectly               = document.getElementById('personSaveDirectly').value === "true";
-  if (selectedTransportationMode === null) {showError('Geen vervoersmiddel geselecteerd', 3); return;}
+  if (selectedTransportationMode === null) {showError('Geen vervoermiddel geselecteerd', 3); return;}
   if (selectedHealth             === null) {showError('Geen letsel geselecteerd', 3); return;}
 
   const personID = parseInt(document.getElementById('personIDHidden').value);
@@ -521,7 +521,8 @@ function savePerson() {
 
   refreshAccidentPersonsGUI(editAccidentPersons);
 
-  closeEditPersonForm();
+  if (stayOpen !== true) closeEditPersonForm();
+  else showMessage('Persoon opgeslagen', 1);
 }
 
 function deletePerson() {
