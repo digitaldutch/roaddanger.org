@@ -4,7 +4,7 @@ let editAccidentPersons = [];
 let watchEndOfPage = false;
 let spinnerLoadCard;
 let pageType;
-let TpageType = Object.freeze({stream:0, accident:1, moderations:2, statistics:3});
+let TpageType = Object.freeze({stream:0, accident:1, moderations:2, statistics:3, recent: 4});
 
 function initMain() {
   initPage();
@@ -17,6 +17,7 @@ function initMain() {
   const searchText = url.searchParams.get('search');
 
   if (url.pathname.startsWith('/moderaties'))        pageType = TpageType.moderations;
+  if (url.pathname.startsWith('/recent'))            pageType = TpageType.recent;
   else if (url.pathname.startsWith('/statistieken')) pageType = TpageType.statistics;
   else if (accidentID)                               pageType = TpageType.accident;
   else                                               pageType = TpageType.stream;
@@ -113,6 +114,7 @@ async function loadAccidents(accidentID=null, articleID=null){
     if (accidentID)                         url += '&id=' + accidentID;
     if (searchText)                         url += '&search=' + encodeURIComponent(searchText);
     if (pageType === TpageType.moderations) url += '&moderations=1';
+    if (pageType === TpageType.recent)      url += '&sort=accidentdate';
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
     data           = JSON.parse(text);
@@ -286,7 +288,7 @@ Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
 function getPersonButtonHTML(person) {
   const bgTransportation = transportationModeImage(person.transportationmode);
   let icons = '';
-  if (person.health !== THealth.unharmed) icons += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
+  if (! [THealth.unharmed, THealth.unknown].includes(person.health)) icons += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
   icons += `<div class="iconMedium ${bgTransportation}"></div>`;
   if (person.child)          icons += '<div class="iconMedium bgChild"></div>';
   if (person.underinfluence) icons += '<div class="iconMedium bgAlcohol"></div>';
@@ -758,12 +760,12 @@ other tags: ${data.tagcount.other}
 }
 
 async function saveArticleAccident(){
-  let accident;
-  let article;
+  let accidentEdited;
+  let articleEdited;
 
   const saveArticle = document.getElementById('editArticleSection').style.display !== 'none';
   if (saveArticle){
-    article = {
+    articleEdited = {
       id:       document.getElementById('articleIDHidden').value,
       url:      document.getElementById('editArticleUrl').value,
       title:    document.getElementById('editArticleTitle').value,
@@ -772,23 +774,23 @@ async function saveArticleAccident(){
       urlimage: document.getElementById('editArticleUrlImage').value,
       date:     document.getElementById('editArticleDate').value,
     };
-    if (article.id)  article.id  = parseInt(article.id);
+    if (articleEdited.id)  articleEdited.id  = parseInt(articleEdited.id);
 
-    const domain = domainBlacklisted(article.url);
+    const domain = domainBlacklisted(articleEdited.url);
     if (domain) {
       showError(`Website ${domain.domain} kan niet worden toegevoegd. Reden: ${domain.reason}`);
       return
     }
 
-    if (! article.url)                          {showError('Geen artikel link ingevuld'); return;}
-    if (! article.title)                        {showError('Geen artikel titel ingevuld'); return;}
-    if (! article.text)                         {showError('Geen artikel tekst ingevuld'); return;}
-    if (article.urlimage.startsWith('http://')) {showError('Artikel foto link is onveilig. Begint met "http:". Probeer of de "https:" versie werkt. Laat anders dit veld leeg.'); return;}
-    if (! article.sitename)                     {showError('Geen artikel mediabron ingevuld'); return;}
-    if (! article.date)                         {showError('Geen artikel datum ingevuld'); return;}
+    if (! articleEdited.url)                          {showError('Geen artikel link ingevuld'); return;}
+    if (! articleEdited.title)                        {showError('Geen artikel titel ingevuld'); return;}
+    if (! articleEdited.text)                         {showError('Geen artikel tekst ingevuld'); return;}
+    if (articleEdited.urlimage.startsWith('http://')) {showError('Artikel foto link is onveilig. Begint met "http:". Probeer of de "https:" versie werkt. Laat anders dit veld leeg.'); return;}
+    if (! articleEdited.sitename)                     {showError('Geen artikel mediabron ingevuld'); return;}
+    if (! articleEdited.date)                         {showError('Geen artikel datum ingevuld'); return;}
   }
 
-  accident = {
+  accidentEdited = {
     id:         document.getElementById('accidentIDHidden').value,
     title:      document.getElementById('editAccidentTitle').value,
     text:       document.getElementById('editAccidentText').value,
@@ -799,22 +801,22 @@ async function saveArticleAccident(){
     tree:       document.getElementById('editAccidentTree').classList.contains('buttonSelected'),
   };
 
-  if (accident.id) accident.id = parseInt(accident.id);
+  if (accidentEdited.id) accidentEdited.id = parseInt(accidentEdited.id);
 
   const saveAccident = document.getElementById('editAccidentSection').style.display !== 'none';
   if (saveAccident){
-    if (saveArticle && (! user.moderator)) accident.title = article.title;
-    if (!accident.title)               {showError('Geen ongeluk titel ingevuld'); return;}
-    if (!accident.date)                {showError('Geen ongeluk datum ingevuld'); return;}
-    if (accident.persons.length === 0) {showError('Geen personen toegevoegd'); return;}
+    if (saveArticle && (! user.moderator)) accidentEdited.title = articleEdited.title;
+    if (!accidentEdited.title)               {showError('Geen ongeluk titel ingevuld'); return;}
+    if (!accidentEdited.date)                {showError('Geen ongeluk datum ingevuld'); return;}
+    if (accidentEdited.persons.length === 0) {showError('Geen personen toegevoegd'); return;}
   }
 
   const url = '/ajax.php?function=saveArticleAccident';
   const optionsFetch = {
     method:  'POST',
     body: JSON.stringify({
-      article:      article,
-      accident:     accident,
+      article:      articleEdited,
+      accident:     accidentEdited,
       savearticle:  saveArticle,
       saveaccident: saveAccident,
     }),
@@ -826,14 +828,25 @@ async function saveArticleAccident(){
   if (data.error) {
     showError(data.error, 10);
   } else {
-    let text = '';
-    if (article) {
-      text = article.id? 'Artikel opgeslagen' : 'Artikel toegevoegd';
-    } else text = 'Ongeluk opgeslagen';
-
-    showMessage(text, 1);
+    if ((pageType === TpageType.stream) || (pageType === TpageType.recent)) {
+      let i = accidents.findIndex(a => {return a.id === accidentEdited.id})
+      accidents[i].title      = accidentEdited.title;
+      accidents[i].text       = accidentEdited.text;
+      accidents[i].persons    = accidentEdited.persons;
+      accidents[i].date       = new Date(accidentEdited.date);
+      accidents[i].pet        = accidentEdited.pet;
+      accidents[i].tree       = accidentEdited.tree;
+      accidents[i].trafficjam = accidentEdited.trafficjam;
+      document.getElementById('accident' + accidentEdited.id).outerHTML = getAccidentHTML(accidentEdited.id);
+    } else {
+      window.location.href = createAccidentURL(data.accidentid, accidentEdited.title);
+      let text = '';
+      if (articleEdited) {
+        text = articleEdited.id? 'Artikel opgeslagen' : 'Artikel toegevoegd';
+      } else text = 'Ongeluk opgeslagen';
+      showMessage(text, 1);
+    }
     hideDiv('formEditAccident');
-    window.location.href = createAccidentURL(data.accidentid, accident.title);
   }
 }
 

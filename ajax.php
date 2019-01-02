@@ -145,6 +145,7 @@ else if ($function === 'loadaccidents') {
     $id          = isset($_REQUEST['id'])? (int)$_REQUEST['id'] : null;
     $search      = isset($_REQUEST['search'])? $_REQUEST['search'] : '';
     $moderations = (int)getRequest('moderations', 0);
+    $sort        = getRequest('sort');
     $export      = (int)getRequest('export', 0);
 
     if ($count > 1000) throw new Exception('Internal error: Count to high.');
@@ -162,6 +163,7 @@ else if ($function === 'loadaccidents') {
       if ($sqlModerated) $params[':useridModeration'] = $user->id;
     }
 
+    // Sort on dead=3, injured=2, unknown=0, unharmed=1
     $sql = <<<SQL
 SELECT 
   transportationmode,
@@ -171,6 +173,7 @@ SELECT
   hitrun
 FROM accidentpersons
 WHERE accidentid=:accidentid
+ORDER BY FIELD(health, 3, 2, 0, 1);
 SQL;
     $DBStatementPersons = $database->prepare($sql);
 
@@ -218,7 +221,8 @@ SQL;
     } else {
       // accidents stream
       if ($sqlModerated) $sqlModerated = ' WHERE ' . $sqlModerated;
-      $SQLWhere = " $sqlModerated ORDER BY streamdatetime DESC LIMIT $offset, $count ";
+      $orderField = ($sort === 'accidentdate')? 'ac.date DESC' : 'ac.streamdatetime DESC';
+      $SQLWhere = " $sqlModerated ORDER BY $orderField LIMIT $offset, $count ";
     }
 
     $sql .= $SQLWhere;
@@ -232,23 +236,6 @@ SQL;
       $accident['createtime']            = datetimeDBToISO8601($accident['createtime']);
       $accident['streamdatetime']        = datetimeDBToISO8601($accident['streamdatetime']);
       $accident['awaitingmoderation']    = $accident['awaitingmoderation'] == 1;
-
-      $accident['pedestrian']            = $accident['pedestrian'] == 1;
-      $accident['bicycle']               = $accident['bicycle'] == 1;
-      $accident['scooter']               = $accident['scooter'] == 1;
-      $accident['motorcycle']            = $accident['motorcycle'] == 1;
-      $accident['car']                   = $accident['car'] == 1;
-      $accident['taxi']                  = $accident['taxi'] == 1;
-      $accident['emergencyvehicle']      = $accident['emergencyvehicle'] == 1;
-      $accident['deliveryvan']           = $accident['deliveryvan'] == 1;
-      $accident['tractor']               = $accident['tractor'] == 1;
-      $accident['bus']                   = $accident['bus'] == 1;
-      $accident['tram']                  = $accident['tram'] == 1;
-      $accident['truck']                 = $accident['truck'] == 1;
-      $accident['train']                 = $accident['train'] == 1;
-      $accident['wheelchair']            = $accident['wheelchair'] == 1;
-      $accident['mopedcar']              = $accident['mopedcar'] == 1;
-      $accident['transportationunknown'] = $accident['transportationunknown'] == 1;
 
       $accident['pet']                   = $accident['pet'] == 1;
       $accident['trafficjam']            = $accident['trafficjam'] == 1;

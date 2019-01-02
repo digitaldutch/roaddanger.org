@@ -113,6 +113,7 @@ function getNavigation(){
   
     <div class="navigationSection">
       <a href="/" class="navItem">Ongelukken</a>
+      <a href="/recent" class="navItem">Recente ongelukken</a>
       <a href="/statistieken/" class="navItem">Statistieken</a>
       <a href="/overdezesite/" class="navItem">Over deze site</a>
     </div>
