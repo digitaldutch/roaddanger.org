@@ -17,7 +17,7 @@ function initMain() {
   const searchText = url.searchParams.get('search');
 
   if (url.pathname.startsWith('/moderaties'))        pageType = TpageType.moderations;
-  if (url.pathname.startsWith('/recent'))            pageType = TpageType.recent;
+  else if (url.pathname.startsWith('/recent'))       pageType = TpageType.recent;
   else if (url.pathname.startsWith('/statistieken')) pageType = TpageType.statistics;
   else if (accidentID)                               pageType = TpageType.accident;
   else                                               pageType = TpageType.stream;
@@ -414,6 +414,7 @@ function showEditPersonForm(personID=null, accidentID=null, saveDirectly=false) 
   document.getElementById('personIDHidden').value             = person? person.id : '';
   document.getElementById('personAccidentIDHidden').value     = accidentID? accidentID : '';
   document.getElementById('buttonDeletePerson').style.display = person? 'inline-flex' : 'none';
+  document.getElementById('buttonCloseEditPerson').value      = 'Annuleren';
   document.getElementById('personSaveDirectly').value         = saveDirectly;
 
   selectPersonTransportationMode(person? person.transportationmode : null);
@@ -524,7 +525,10 @@ function savePerson(stayOpen=false) {
   refreshAccidentPersonsGUI(editAccidentPersons);
 
   if (stayOpen !== true) closeEditPersonForm();
-  else showMessage('Persoon opgeslagen', 1);
+  else {
+    document.getElementById('buttonCloseEditPerson').value = 'Sluiten';
+    showMessage('Persoon opgeslagen', 1);
+  }
 }
 
 function deletePerson() {

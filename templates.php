@@ -200,7 +200,7 @@ function getFormEditAccident(){
       <label for="editArticleUrl">Artikel link (URL)<span class="iconTooltip" data-tippy-content="Kopieer de link uit de adresbalk van de webpagina met het artikel"></span></label>
       <div style="display: flex;">
         <input id="editArticleUrl" class="popupInput" type="url" maxlength="1000" autocomplete="off">
-        <div class="button" style="height: auto;" onclick="getArticleMetaData();">Artikel ophalen</div>
+        <div class="button buttonLine" onclick="getArticleMetaData();">Artikel ophalen</div>
       </div>
   
       <div id="spinnerMeta" class="spiderBackground">
@@ -231,15 +231,21 @@ function getFormEditAccident(){
       <input id="accidentIDHidden" type="hidden">
   
       <div data-hidehelper class="flexColumn">
-        <label for="editAccidentTitle">Titel ongeluk <span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentInfoFromArticle();" ">Hetzelfde als artikel</span></label> 
-        <input id="editAccidentTitle" class="popupInput" type="text" maxlength="500" autocomplete="off" data-readonlyhelper>
+        <label for="editAccidentTitle">Titel ongeluk</label> 
+        <div style="display: flex;">
+          <input id="editAccidentTitle" class="popupInput" type="text" maxlength="500" autocomplete="off" data-readonlyhelper>
+          <span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentInfoFromArticle();" ">Zelfde als artikel</span>
+        </div>
   
         <label for="editAccidentText">Tekst</label>
         <textarea id="editAccidentText" maxlength="500" style="height: 50px; resize: vertical;" class="popupInput" autocomplete="off" data-readonlyhelper></textarea>
       </div>        
 
-      <label for="editAccidentDate">Datum ongeluk<span class="iconTooltip" data-tippy-content="Vaak anders dan publicatiedatum artikel"></span><span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentDateFromArticle();" ">Zelfde als artikel</span></label>
-      <input id="editAccidentDate" class="popupInput" type="date" autocomplete="off">
+      <label for="editAccidentDate">Datum ongeluk<span class="iconTooltip" data-tippy-content="Vaak anders dan publicatiedatum artikel"></span></label>
+      <div style="display: flex;">
+        <input id="editAccidentDate" class="popupInput" type="date" autocomplete="off">
+        <span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentDateFromArticle();" ">Zelfde als artikel</span>
+      </div>
           
       <div style="margin-top: 5px;">
         <div>Betrokken personen <span class="button buttonGray buttonLine" onclick="showEditPersonForm();">Persoon toevoegen</span></div>   
@@ -300,9 +306,9 @@ function getFormEditPerson(){
     </div>
             
     <div class="popupFooter">
-      <input id="buttonSavePerson" type="button" class="button" value="Opslaan" onclick="savePerson();">
-      <input id="buttonSavePerson" type="button" class="button" value="Opslaan en openblijven" onclick="savePerson(true);">
-      <input type="button" class="button buttonGray" value="Annuleren" onclick="closeEditPersonForm();">
+      <input type="button" class="button" value="Opslaan" onclick="savePerson();">
+      <input type="button" class="button" value="Opslaan en openblijven" onclick="savePerson(true);">
+      <input id="buttonCloseEditPerson" type="button" class="button buttonGray" value="Annuleren" onclick="closeEditPersonForm();">
       <input id="buttonDeletePerson" type="button" class="button buttonRed" value="Verwijderen" onclick="deletePerson();">
     </div>    
   </div>

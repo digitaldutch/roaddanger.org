@@ -635,11 +635,8 @@ a {
 }
 
 .buttonLine {
-  height:        auto !important;
-  padding:       0 4px 2px 4px !important;
-  float:         right !important;
-  margin-bottom: 2px !important;
-  font-weight:   normal !important;
+  height:      auto !important;
+  font-weight: normal !important;
 }
 
 .spinner {
