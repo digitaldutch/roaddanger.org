@@ -165,6 +165,7 @@ a {
   flex-direction:   row;
   border:           1px solid #aaaaaa;
   border-radius:    5px;
+  margin-top:       5px;
   padding:          2px;
   cursor:           pointer;
   opacity:          0.7;

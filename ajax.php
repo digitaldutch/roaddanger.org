@@ -173,7 +173,7 @@ SELECT
   hitrun
 FROM accidentpersons
 WHERE accidentid=:accidentid
-ORDER BY FIELD(health, 3, 2, 0, 1);
+ORDER BY health IS NULL, FIELD(health, 3, 2, 0, 1);
 SQL;
     $DBStatementPersons = $database->prepare($sql);
 
@@ -246,7 +246,7 @@ SQL;
       $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['accidentid' => $accident['id']]);
       foreach ($DBPersons as $person) {
         $person['transportationmode'] = (int)$person['transportationmode'];
-        $person['health']             = (int)$person['health'];
+        $person['health']             = isset($person['health'])? $person['health'] : null;
         $person['child']              = (int)$person['child'];
         $person['underinfluence']     = (int)$person['underinfluence'];
         $person['hitrun']             = (int)$person['hitrun'];

@@ -285,10 +285,14 @@ Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
 </div>`;
 }
 
+function healthVisible(health){
+  return [THealth.dead, THealth.injured].includes(health);
+}
+
 function getPersonButtonHTML(person) {
   const bgTransportation = transportationModeImage(person.transportationmode);
   let icons = '';
-  if (! [THealth.unharmed, THealth.unknown].includes(person.health)) icons += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
+  if (healthVisible(person.health)) icons += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
   icons += `<div class="iconMedium ${bgTransportation}"></div>`;
   if (person.child)          icons += '<div class="iconMedium bgChild"></div>';
   if (person.underinfluence) icons += '<div class="iconMedium bgAlcohol"></div>';
@@ -399,9 +403,11 @@ function addEditPersonButtons(){
   htmlButtons = '';
   for (const key of Object.keys(THealth)){
     const health =  THealth[key];
-    const bgClass = healthImage(health);
-    const text    = healthText(health);
-    htmlButtons += `<span id="editPersonHealth${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonHealth(${health});"></span>`;
+    if (healthVisible(health)){
+      const bgClass = healthImage(health);
+      const text    = healthText(health);
+      htmlButtons += `<span id="editPersonHealth${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonHealth(${health});"></span>`;
+    }
   }
   document.getElementById('personHealthButtons').innerHTML = htmlButtons;
 }
@@ -449,8 +455,10 @@ function selectPersonHealth(health) {
   for (const key of Object.keys(THealth)) {
     const buttonHealth = THealth[key];
     const button = document.getElementById('editPersonHealth' + key);
-    if (buttonHealth === health) button.classList.add('buttonSelected');
-    else button.classList.remove('buttonSelected');
+    if (button){
+      if (buttonHealth === health) button.classList.add('buttonSelected');
+      else button.classList.remove('buttonSelected');
+    }
   }
 }
 
@@ -458,7 +466,7 @@ function getSelectedPersonHealth(){
   for (const key of Object.keys(THealth)) {
     const buttonHealth = THealth[key];
     const button = document.getElementById('editPersonHealth' + key);
-    if (button.classList.contains('buttonSelected')) return buttonHealth;
+    if (button && button.classList.contains('buttonSelected')) return buttonHealth;
   }
   return null;
 }
@@ -494,7 +502,6 @@ function savePerson(stayOpen=false) {
   const selectedHealth             = getSelectedPersonHealth();
   const saveDirectly               = document.getElementById('personSaveDirectly').value === "true";
   if (selectedTransportationMode === null) {showError('Geen vervoermiddel geselecteerd', 3); return;}
-  if (selectedHealth             === null) {showError('Geen letsel geselecteerd', 3); return;}
 
   const personID = parseInt(document.getElementById('personIDHidden').value);
   let person;
@@ -546,7 +553,10 @@ function refreshAccidentPersonsGUI(persons=[]) {
 
   for (let person of persons){
     const iconTransportation = transportationModeIcon(person.transportationmode);
-    const iconHealth         = healthIcon(person.health);
+    let  iconHealth         = '';
+    if (healthVisible(person.health)){
+      iconHealth = healthIcon(person.health);
+    }
     let buttonsOptions = '';
     if (person.child)          buttonsOptions += '<div class="iconSmall bgChild" data-tippy-content="Kind"></div>';
     if (person.underinfluence) buttonsOptions += '<div class="iconSmall bgAlcohol" data-tippy-content="Onder invloed van alcohol of drugs"></div>';
