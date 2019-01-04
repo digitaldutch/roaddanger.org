@@ -409,7 +409,7 @@ function addEditPersonButtons(){
     if (healthVisible(health)){
       const bgClass = healthImage(health);
       const text    = healthText(health);
-      htmlButtons += `<span id="editPersonHealth${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonHealth(${health});"></span>`;
+      htmlButtons += `<span id="editPersonHealth${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonHealth(${health}, true);"></span>`;
     }
   }
   document.getElementById('personHealthButtons').innerHTML = htmlButtons;
@@ -454,12 +454,15 @@ function getSelectedPersonTransportationMode(){
   return null;
 }
 
-function selectPersonHealth(health) {
+function selectPersonHealth(health, toggle=false) {
   for (const key of Object.keys(THealth)) {
     const buttonHealth = THealth[key];
     const button = document.getElementById('editPersonHealth' + key);
     if (button){
-      if (buttonHealth === health) button.classList.add('buttonSelected');
+      if (buttonHealth === health) {
+        if (toggle === true) button.classList.toggle('buttonSelected');
+        else button.classList.add('buttonSelected');
+      }
       else button.classList.remove('buttonSelected');
     }
   }

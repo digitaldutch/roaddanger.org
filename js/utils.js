@@ -4,6 +4,7 @@ let yTouchDown      = null;
 let TTouchDown      = Object.freeze({none:0, openNavigation:1, closeNavigation:2});
 let touchDownAction = TTouchDown.none;
 
+// Enumerated types
 const TUserPermission = Object.freeze({newuser: 0, admin: 1, moderator: 2});
 const TTransportationMode = Object.freeze({
   unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,
