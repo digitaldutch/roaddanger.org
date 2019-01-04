@@ -406,11 +406,9 @@ function addEditPersonButtons(){
   htmlButtons = '';
   for (const key of Object.keys(THealth)){
     const health =  THealth[key];
-    if (healthVisible(health)){
-      const bgClass = healthImage(health);
-      const text    = healthText(health);
-      htmlButtons += `<span id="editPersonHealth${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonHealth(${health}, true);"></span>`;
-    }
+    const bgClass = healthImage(health);
+    const text    = healthText(health);
+    htmlButtons += `<span id="editPersonHealth${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonHealth(${health}, true);"></span>`;
   }
   document.getElementById('personHealthButtons').innerHTML = htmlButtons;
 }
@@ -508,6 +506,7 @@ function savePerson(stayOpen=false) {
   const selectedHealth             = getSelectedPersonHealth();
   const saveDirectly               = document.getElementById('personSaveDirectly').value === "true";
   if (selectedTransportationMode === null) {showError('Geen vervoermiddel geselecteerd', 3); return;}
+  if (selectedHealth             === null) {showError('Geen letsel geselecteerd', 3); return;}
 
   const personID = parseInt(document.getElementById('personIDHidden').value);
   let person;
