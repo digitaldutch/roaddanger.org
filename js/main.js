@@ -743,11 +743,11 @@ async function getArticleMetaData() {
     return
   }
 
-  const isNewAccident = document.getElementById('accidentIDHidden').value === '';
+  const isNewArticle = document.getElementById('articleIDHidden').value === '';
   const url = '/ajax.php?function=getPageMetaData';
   const optionsFetch = {
     method: 'POST',
-    body:   JSON.stringify({url: urlArticle, newarticle: isNewAccident}),
+    body:   JSON.stringify({url: urlArticle, newArticle: isNewArticle}),
     headers:{'Content-Type': 'application/json'}
   };
 
@@ -848,8 +848,10 @@ async function saveArticleAccident(){
   if (data.error) {
     showError(data.error, 10);
   } else {
-    if ((pageType === TpageType.stream) || (pageType === TpageType.recent)) {
-      let i = accidents.findIndex(a => {return a.id === accidentEdited.id})
+    const editingAccident = accidentEdited.id !== '';
+    // No reload only if editing accident. Other cases for now give problems and require a full page reload.
+    if ((! saveArticle) && editingAccident && ((pageType === TpageType.stream) || (pageType === TpageType.recent))) {
+      let i = accidents.findIndex(a => {return a.id === accidentEdited.id});
       accidents[i].title      = accidentEdited.title;
       accidents[i].text       = accidentEdited.text;
       accidents[i].persons    = accidentEdited.persons;

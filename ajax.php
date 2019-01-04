@@ -366,7 +366,7 @@ else if ($function === 'getPageMetaData'){
   try{
     $data       = json_decode(file_get_contents('php://input'), true);
     $url        = $data['url'];
-    $newArticle = $data['newarticle'];
+    $newArticle = $data['newArticle'];
 
     function getFirstAvailableTag($tags){
       $result = '';
@@ -412,10 +412,8 @@ else if ($function === 'getPageMetaData'){
     if (($media['published_time'] === '') && (isset($metaData['other']['time'])))        $media['published_time'] = $metaData['other']['time'];
 
     // Check if new article url already in database.
-    $urlExists = false;
-    if ($newArticle){
-      $urlExists = urlExists($database, $media['url']);
-    }
+    if ($newArticle) $urlExists = urlExists($database, $media['url']);
+    else $urlExists = false;
 
     $result = ['ok' => true, 'media' => $media, 'tagcount' => $tagCount, 'urlexists' => $urlExists];
   } catch (Exception $e){
@@ -600,7 +598,7 @@ SQL;
     }
 
     $result = ['ok' => true, 'accidentid' => $accident['id']];
-    if ($saveArticle) $result['articleid']  = $article['id'];
+    if ($saveArticle) $result['articleid']  = (int)$article['id'];
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage(), 'errorcode' => $e->getCode()];
   }
