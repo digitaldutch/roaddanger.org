@@ -414,7 +414,7 @@ a {
   background-image: url(/images/person_loggedin.svg);
 }
 
-.bgDead {                  background-image: url(/images/cross.svg);}
+.bgDead {                  background-image: url(/images/persondead.svg);}
 .bgInjured {               background-image: url(/images/personinjured.svg);}
 .bgUnharmed {              background-image: url(/images/unharmed.svg);}
 

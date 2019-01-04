@@ -15,20 +15,33 @@ $function = $_REQUEST['function'];
 function getStatistics($database){
   $stats = [];
 
-  $sql = "SELECT COUNT(*) AS count, IFNULL(SUM(personsinjured), 0) AS personsinjured, IFNULL(SUM(personsdead), 0) AS personsdead  FROM accidents WHERE DATE (`date`) = CURDATE();";
-  $stats['today'] = $database->fetch($sql);
+  $sql = <<<SQL
+SELECT
+  transportationmode,
+  sum(ap.underinfluence=1) AS underinfluence,
+  sum(ap.hitrun=1)         AS hitrun,
+  sum(ap.child=1)          AS child,
+  sum(ap.health=3)         AS dead,
+  sum(ap.health=2)         AS injured,
+  COUNT(*) AS total
+FROM accidentpersons ap
+JOIN accidents a ON ap.accidentid = a.id
+GROUP BY transportationmode
+ORDER BY dead DESC, injured DESC
+SQL;
 
-  $sql = "SELECT COUNT(*) AS count, IFNULL(SUM(personsinjured), 0) AS personsinjured, IFNULL(SUM(personsdead), 0) AS personsdead  FROM accidents WHERE DATE (`date`) = subdate(CURDATE(), 1);";
-  $stats['yesterday'] = $database->fetch($sql);
+//  AND DATE (a.date) > SUBDATE(CURDATE(), 300)
 
-  $sql = "SELECT COUNT(*) AS count, IFNULL(SUM(personsinjured), 0) AS personsinjured, IFNULL(SUM(personsdead), 0) AS personsdead  FROM accidents WHERE DATE (`date`) > subdate(CURDATE(), 7)";
-  $stats['last7days']  = $database->fetch($sql);
-
-  $sql = "SELECT COUNT(*) AS count, IFNULL(SUM(personsinjured), 0) AS personsinjured, IFNULL(SUM(personsdead), 0) AS personsdead  FROM accidents WHERE YEARWEEK(`date`, 1) = YEARWEEK(CURDATE() - INTERVAL 1 WEEK, 1)";
-  $stats['lastweek']  = $database->fetch($sql);
-
-  $sql = "SELECT COUNT(*) AS count, IFNULL(SUM(personsinjured), 0) AS personsinjured, IFNULL(SUM(personsdead), 0) AS personsdead  FROM accidents WHERE YEAR(`date`) = YEAR(CURDATE())";
-  $stats['thisyear']  = $database->fetch($sql);
+  $stats['total'] = $database->fetchAll($sql);
+  foreach ($stats['total'] as &$stat) {
+    $stat['transportationmode'] = (int)$stat['transportationmode'];
+    $stat['underinfluence']     = (int)$stat['underinfluence'];
+    $stat['hitrun']             = (int)$stat['hitrun'];
+    $stat['child']              = (int)$stat['child'];
+    $stat['dead']               = (int)$stat['dead'];
+    $stat['injured']            = (int)$stat['injured'];
+    $stat['total']              = (int)$stat['total'];
+  }
 
   return $stats;
 }
@@ -246,7 +259,7 @@ SQL;
       $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['accidentid' => $accident['id']]);
       foreach ($DBPersons as $person) {
         $person['transportationmode'] = (int)$person['transportationmode'];
-        $person['health']             = isset($person['health'])? $person['health'] : null;
+        $person['health']             = isset($person['health'])? (int)$person['health'] : null;
         $person['child']              = (int)$person['child'];
         $person['underinfluence']     = (int)$person['underinfluence'];
         $person['hitrun']             = (int)$person['hitrun'];

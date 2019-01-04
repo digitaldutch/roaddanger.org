@@ -52,33 +52,36 @@ function initMain() {
 }
 
 async function loadStatistics(){
-  function htmlPeriod(label, period){
-    return `
-    <div class="flexColumn">
-      <div class="smallStats">${label}</div> 
-      <div class="statsIcons"><div class="iconXS bgDead"></div> ${period.personsdead} <div class="iconXS bgInjured" style="margin-left: 5px;"></div> ${period.personsinjured} </div>
-    </div>`;
-  }
-
   try {
     spinnerLoadCard.style.display = 'block';
 
-    let url          = '/ajax.php?function=getstats';
+    let url        = '/ajax.php?function=getstats';
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
     data           = JSON.parse(text);
     if (data.user) updateLoginGUI(data.user);
     if (data.error) showError(data.error);
     else {
-      const stats = data.statistics;
-      document.getElementById('statistics').innerHTML = `
-<div class="statsRow">
-${htmlPeriod('Vandaag',  stats.today)}
-${htmlPeriod('Gisteren', stats.yesterday)}
-${htmlPeriod('7 dagen',  stats.last7days)}
-${htmlPeriod('2018',     stats.thisyear)}
-</div>
-`;
+      const dbStats = data.statistics;
+      // let stats = [];
+      // for (const key of Object.keys(TTransportationMode)){
+      //   let mode = {transportationMode:  TTransportationMode[key], dead: 0, injured: 0};
+      //   stats.push(mode);
+      // }
+
+      let html = '';
+      for (const stat of dbStats.total) {
+        const icon = transportationModeIcon(stat.transportationmode);
+        html += `<tr>
+<td><div class="flexRow">${icon}<span style="margin-left: 5px;">${transportationModeText(stat.transportationmode)}</span></div></td>
+<td style="text-align: right;">${stat.dead}</td>
+<td style="text-align: right;">${stat.injured}</td>
+<td style="text-align: right;">${stat.underinfluence}</td>
+<td style="text-align: right;">${stat.hitrun}</td>
+<td style="text-align: right;">${stat.child}</td>
+</tr>`;
+      }
+      document.getElementById('tableStatsBody').innerHTML = html;
     }
   } catch (error) {
     showError(error.message);

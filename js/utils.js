@@ -663,11 +663,12 @@ function transportationModeImage(transportationMode) {
   }
 }
 
-function transportationModeIcon(transportationMode, addTooltip=true) {
-  const bg      = transportationModeImage(transportationMode);
-  const text    = 'Vervoermiddel: ' + transportationModeText(transportationMode);
-  const tooltip = addTooltip? 'data-tippy-content="' + text + '"' : '';
-  return `<div class="iconMedium ${bg}" ${tooltip}></div>`;
+function transportationModeIcon(transportationMode, addTooltip=true, small=false) {
+  const bg        = transportationModeImage(transportationMode);
+  const text      = 'Vervoermiddel: ' + transportationModeText(transportationMode);
+  const tooltip   = addTooltip? 'data-tippy-content="' + text + '"' : '';
+  const className = small? 'iconSmall' : 'iconMedium';
+  return `<div class="${className} ${bg}" ${tooltip}></div>`;
 }
 
 function healthIcon(healthStatus, addTooltip=true) {
