@@ -10,8 +10,7 @@ function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $showAccide
 
   $mainMenuItems = '';
   if ($showAccidentMenu) $mainMenuItems = <<<HTML
-  <input id="searchText" type="search" placeholder="Zoek" style="width: 120px; margin-left: 5px; display: none;" onkeyup="startSearch(event);" autocomplete="off">  
-  <div id="buttonSearch" class="menuButton buttonSearch" onclick="showSearchField(event);"></div>
+  <div id="buttonSearch" class="menuButton buttonSearch" onclick="toggleSearchBar(event);"></div>
   <div id="buttonNewArticle" class="menuButton buttonAdd" onclick="showEditAccidentForm();"></div>
 HTML;
 
@@ -33,28 +32,36 @@ $head
 $initScript
 
 </head>
-<body class="bodyPage">
+<body>
 $navigation
 
-<div id="pageBar" class="pageBarToTop">
-
-  <span class="menuButton bgMenu" onclick="toggleNavigation(event);"></span>
-
-  <div class="headerMain pageTitle"><a href="/">Het Ongeluk</a></div>
- 
-  <div class="topButtons">
-    $mainMenuItems
-    <div id="loginButton" onclick="loginClick(event);">
-      <div id="buttonPerson" class="menuButton bgPerson"></div>
-      <div id="loginName">Log in</div>
-    </div>
-
-    <div id="menuPerson" class="buttonPopupMenu">
-      <div id="menuProfile" class="menuHeader"></div>
-      <div id="menuLogin" onclick="showLoginForm();">Log in</div> 
-      <div id="menuLogout" style="display: none;" onclick="logOut();">Log uit</div>
+<div id="pageBar">
+  <div id="topBar">
+    <span class="menuButton bgMenu" onclick="toggleNavigation(event);"></span>
+  
+    <div class="headerMain pageTitle"><a href="/">Het Ongeluk</a></div>
+   
+    <div class="topButtons">
+      $mainMenuItems
+      <div id="loginButton" onclick="loginClick(event);">
+        <div id="buttonPerson" class="menuButton bgPerson"></div>
+        <div id="loginName">Log in</div>
+      </div>
+  
+      <div id="menuPerson" class="buttonPopupMenu">
+        <div id="menuProfile" class="menuHeader"></div>
+        <div id="menuLogin" onclick="showLoginForm();">Log in</div> 
+        <div id="menuLogout" style="display: none;" onclick="logOut();">Log uit</div>
+      </div>
     </div>
   </div>
+  
+  <div id="searchBar">
+     <input id="searchText" type="search" placeholder="Zoek" onkeyup="startSearchKey(event);" autocomplete="off">
+     <div class="button" onclick="startSearch(event)">Zoek</div>
+     <div class="closeButton" onclick="toggleSearchBar();"></div>  
+  </div>      
+
 </div>
 HTML;
 }

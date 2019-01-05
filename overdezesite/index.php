@@ -61,8 +61,7 @@ Vragen, opmerkingen kunnen naar <a href="mailto:$ourEmail">$ourEmail</a>.
 
 <div class="sectionTitle">Ik wil helpen modereren/samenwerken/de data gebruiken/de code uitbouwen, kan dat?</div>
 <p>
-Fijn, stuur een mailtje naar <a href="mailto:$ourEmail">$ourEmail</a>.
-</p>  
+Fijn, stuur een mailtje naar <a href="mailto:$ourEmail">$ourEmail</a>. Alle code van de deze website is open source en beschikbaar op <a href="https://github.com/janderk2/hetongeluk" target="_blank">github</a>.</p>
   
 <div class="sectionTitle">Icoontjes</div>
 <p>Icoontjes zijn van 

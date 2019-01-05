@@ -112,7 +112,7 @@ async function loadAccidents(accidentID=null, articleID=null){
   let maxLoadCount = 20;
   try {
     spinnerLoadCard.style.display = 'block';
-    const searchText = document.getElementById('searchText').value.trim().toLowerCase();
+    const searchText = searchVisible()? document.getElementById('searchText').value.trim().toLowerCase() : '';
     let url          = '/ajax.php?function=loadaccidents&count=' + maxLoadCount + '&offset=' + accidents.length;
     if (accidentID)                         url += '&id=' + accidentID;
     if (searchText)                         url += '&search=' + encodeURIComponent(searchText);
@@ -996,20 +996,22 @@ function showAccidentDetails(id){
   window.location.href = createAccidentURL(accident.id, accident.title);
 }
 
-function showSearchField() {
-  const div = document.getElementById('searchText');
-
-  if (div.style.display !== 'inline-block') {
-    div.style.display = 'inline-block';
-    div.focus();
-  }
+function searchVisible(){
+  return document.body.classList.contains('searchBody');
 }
 
-function startSearch(event) {
-  if (event.key === 'Enter') {
-    const searchText = document.getElementById('searchText').value.trim().toLowerCase()
-    const url = window.location.origin + '?search=' + encodeURIComponent(searchText);
-    window.history.pushState(null, null, url);
-    reloadAccidents();
-  }
+function toggleSearchBar() {
+  document.body.classList.toggle('searchBody');
+  if (searchVisible()) divText.focus();
+}
+
+function startSearchKey(event) {
+  if (event.key === 'Enter') startSearch();
+}
+
+function startSearch() {
+  const searchText = document.getElementById('searchText').value.trim().toLowerCase()
+  const url = window.location.origin + '?search=' + encodeURIComponent(searchText);
+  window.history.pushState(null, null, url);
+  reloadAccidents();
 }

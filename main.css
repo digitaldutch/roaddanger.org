@@ -57,8 +57,12 @@ input[readonly], textarea[readonly] {
   background-color: #e5e5e5;
 }
 
-.bodyPage {
+body {
   padding-top: 55px;
+}
+
+body.searchBody {
+  padding-top: 95px;
 }
 
 a {
@@ -303,21 +307,38 @@ a {
 }
 
 #pageBar {
-  display:          flex;
-  flex:             0 1 auto;
+  position:         fixed;
+  top:              0;
+  width:            100%;
   min-height:       40px;
-  align-items:      center;
-  padding:          3px;
   background-color: #fff;
-  border-bottom:    solid 1px #aaa;
   z-index:          200;
 }
 
-.pageBarToTop {
-  position: fixed;
-  top:      0;
-  width:    100%;
-  z-index:  1;
+#topBar {
+  display:       flex;
+  flex:          0 1 auto;
+  align-items:   center;
+  padding:       3px;
+  border-bottom: solid 1px #aaa;
+}
+
+#searchBar {
+  display:       none;
+  align-items:   center;
+  padding:       10px;
+  border-bottom: solid 1px #aaa;
+}
+
+.searchBody #searchBar {
+  display: flex;
+}
+
+#searchText {
+  margin-left:   5px;
+  height:        30px;
+  border-radius: 3px;
+  padding:       0 5px;
 }
 
 .headerMain{
@@ -576,7 +597,19 @@ a {
   transition:      all .25s;
 }
 
-.popupCloseCross:hover {
+.closeButton {
+  position:        absolute;
+  right:           10px;
+  background:      url("/images/close.svg") no-repeat center;
+  background-size: 25px;
+  height:          20px;
+  width:           20px;
+  opacity:         0.6;
+  cursor:          pointer;
+  transition:      all .25s;
+}
+
+.popupCloseCross:hover, .closeButton:hover {
   opacity: 1;
 }
 
