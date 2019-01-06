@@ -73,7 +73,7 @@ function getHTMLEnd($htmlEnd='', $flexFullPage=false){
   return <<<HTML
     $htmlEnd 
     <div id="floatingMessage" class="floatingMessage" onclick="hideMessage();">
-      <div class="popupCloseCross crossRed"></div>
+      <div id="messageCloseCross" class="popupCloseCross crossWhite"></div>
       <div id="messageText"></div>
     </div>
     <div style="clear: both;"></div>

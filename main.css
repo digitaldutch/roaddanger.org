@@ -544,15 +544,21 @@ a {
   min-height:       100px;
   justify-content:  center;
   align-items:      center;
-  color:            #df5b57;
   font-size:        18px;
-  font-weight:      bold;
   padding:          10px 15px;
-  border:           2px solid #df5b57;
   border-radius:    3px;
   box-shadow:       0 2px 10px 0 rgba(0,0,0,0.2);
-  background-color: #ffffff;
   cursor:           pointer;
+}
+
+#floatingMessage,  #floatingMessage a {
+  color:            #fff;
+  background-color: #4D90FE;
+}
+
+.errorMessage, .errorMessage a {
+  color:            #000000 !important;
+  background-color: #F9BDBD !important;
 }
 
 #messageText {
@@ -617,8 +623,8 @@ a {
   opacity: 1;
 }
 
-.crossRed {
-  background-image: url("/images/closered.svg") !important;
+.crossWhite {
+  background-image: url("/images/closewhite.svg") !important;
 }
 
 .popupFooter {

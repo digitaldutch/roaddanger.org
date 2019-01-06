@@ -757,7 +757,7 @@ async function getArticleMetaData() {
     else {
       showMetaData(data.media);
 
-      if (data.urlexists) showMessage(`Bericht is al toegevoegd aan database. <a href='/${data.urlexists.accidentid}' style='text-decoration: underline;'>Klik hier.</a>`, 30);
+      if (data.urlexists) showMessage(`Bericht is al toegevoegd aan database.<br><a href='/${data.urlexists.accidentid}' style='text-decoration: underline;'>Klik hier.</a>`, 30);
 
       document.getElementById('tarantuleResults').innerHTML = `Gevonden:<br>
 Open Graph Facebook tags: ${data.tagcount.og}<br>

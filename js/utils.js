@@ -118,25 +118,34 @@ function hideDiv(id){
   document.getElementById(id).style.display = 'none';
 }
 
-function showError(text, secondsVisible) {
-  if (secondsVisible == null) secondsVisible = 5;
-  showMessage(text, secondsVisible, '#F9BDBD');
+function showError(text, secondsVisible=5) {
+  showMessage(text, secondsVisible, true);
 }
 
-function showMessage(text, secondsVisible=3, BGColor='#ffffff') {
+function showMessage(text, secondsVisible=3, errorMessage=false) {
   clearTimeout(showMessage.timeoutMessage);
-  let div = document.getElementById('floatingMessage');
-  div.style.display         = 'flex';
-  div.style.backgroundColor = BGColor;
+  const divForm  = document.getElementById('floatingMessage');
+  const divCross = document.getElementById('messageCloseCross');
+
+  if (errorMessage) {
+    divForm.classList.add('errorMessage');
+    divCross.classList.remove('crossWhite');
+  } else {
+    divForm.classList.remove('errorMessage');
+    divCross.classList.add('crossWhite');
+  }
+
   document.getElementById('messageText').innerHTML = text;
+
+  divForm.style.display = 'flex';
 
   if (secondsVisible !== -1) showMessage.timeoutMessage = setTimeout(hideMessage, secondsVisible * 1000);
 }
 
 function hideMessage() {
   let div = document.getElementById('floatingMessage');
-  div.style.display         = "none";
-  div.style.backgroundColor = '#F9BDBD';
+  div.style.display = 'none';
+  div.classList.remove('errorMessage');
   document.getElementById('messageText').innerHTML = '';
 }
 
