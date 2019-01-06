@@ -15,8 +15,9 @@ if (stripos($_SERVER['REQUEST_URI'], '/statistieken') === 0) {
       <thead>
         <tr>
           <th style="text-align: left;">Vervoermiddel</th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgDead"></div> <div>Doden</div></div></th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgInjured"></div> <div>Gewonden</div></div></th>
+          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgDead"></div> <div class="hideOnMobile">Dood</div></div></th>
+          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgInjured"></div> <div  class="hideOnMobile">Gewond</div></div></th>
+          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnharmed"></div> <div  class="hideOnMobile">Ongedeerd</div></div></th>
           <th style="text-align: right;"><div class="iconSmall bgAlcohol" data-tippy-content="Onder invloed van alcohol of drugs"></div></th>
           <th style="text-align: right;"><div class="iconSmall bgHitRun" data-tippy-content="Doorgereden of gevlucht"></div></th>
           <th style="text-align: right;"><div class="iconSmall bgChild" data-tippy-content="Kind"></div></th>

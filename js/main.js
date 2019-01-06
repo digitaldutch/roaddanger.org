@@ -63,19 +63,15 @@ async function loadStatistics(){
     if (data.error) showError(data.error);
     else {
       const dbStats = data.statistics;
-      // let stats = [];
-      // for (const key of Object.keys(TTransportationMode)){
-      //   let mode = {transportationMode:  TTransportationMode[key], dead: 0, injured: 0};
-      //   stats.push(mode);
-      // }
 
       let html = '';
       for (const stat of dbStats.total) {
         const icon = transportationModeIcon(stat.transportationmode);
         html += `<tr>
-<td><div class="flexRow">${icon}<span style="margin-left: 5px;">${transportationModeText(stat.transportationmode)}</span></div></td>
+<td><div class="flexRow">${icon}<span class="hideOnMobile" style="margin-left: 5px;">${transportationModeText(stat.transportationmode)}</span></div></td>
 <td style="text-align: right;">${stat.dead}</td>
 <td style="text-align: right;">${stat.injured}</td>
+<td style="text-align: right;">${stat.unharmed}</td>
 <td style="text-align: right;">${stat.underinfluence}</td>
 <td style="text-align: right;">${stat.hitrun}</td>
 <td style="text-align: right;">${stat.child}</td>

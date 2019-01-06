@@ -264,12 +264,15 @@ function updateLoginGUI(userNew){
   document.getElementById('menuLogout').style.display  = user.loggedin? 'block' : 'none';
 
   if (user.loggedin) {
+    document.getElementById('loginName').style.display = 'inline-block';
+    document.getElementById('loginText').style.display = 'none';
     document.getElementById('loginName').innerText   = user.firstname;
     document.getElementById('menuProfile').innerHTML = user.firstname + '<div class="smallFont">' + permissionToText(user.permission) + '</div>';
     buttonPerson.classList.remove('buttonPerson');
     buttonPerson.classList.add('bgPersonLoggedIn');
   } else {
-    document.getElementById('loginName').innerText   = 'Log in';
+    document.getElementById('loginName').style.display = 'none';
+    document.getElementById('loginText').style.display = 'inline-block';
     document.getElementById('menuProfile').innerText = '';
     buttonPerson.classList.add('buttonPerson');
     buttonPerson.classList.remove('bgPersonLoggedIn');
@@ -583,7 +586,6 @@ function loginClick() {
 function showPersonMenu(){
   document.getElementById('menuPerson').style.display = 'block';
 }
-
 
 function download(filename, text) {
   var element = document.createElement('a');

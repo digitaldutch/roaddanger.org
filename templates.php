@@ -45,7 +45,8 @@ $navigation
       $mainMenuItems
       <div id="loginButton" onclick="loginClick(event);">
         <div id="buttonPerson" class="menuButton bgPerson"></div>
-        <div id="loginName">Log in</div>
+        <div id="loginText">Log in</div>
+        <div id="loginName" class="hideOnMobile"></div>
       </div>
   
       <div id="menuPerson" class="buttonPopupMenu">

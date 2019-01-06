@@ -23,6 +23,7 @@ SELECT
   sum(ap.child=1)          AS child,
   sum(ap.health=3)         AS dead,
   sum(ap.health=2)         AS injured,
+  sum(ap.health=1)         AS unharmed,
   COUNT(*) AS total
 FROM accidentpersons ap
 JOIN accidents a ON ap.accidentid = a.id
