@@ -107,18 +107,33 @@ create fulltext index title
 alter table accidents
   add primary key (id);
 
+create table accidentgroups
+(
+  id int auto_increment
+    primary key,
+  accidentid int not null,
+  transportationmode smallint(6) not null,
+  constraint accidentgroups___fka
+    foreign key (accidentid) references accidents (id)
+      on update cascade on delete cascade
+);
+
 create table accidentpersons
 (
   id int auto_increment
     primary key,
   accidentid int not null,
-  transportationmode smallint(6) null,
+  transportationmode smallint(6) default 0 null,
   health smallint(6) null,
   child smallint(6) null,
   underinfluence tinyint(1) null,
   hitrun tinyint(1) null,
+  groupid int null,
   constraint accidentpersons___fkaccident
     foreign key (accidentid) references accidents (id)
+      on update cascade on delete cascade,
+  constraint accidentpersons___fkgroup
+    foreign key (groupid) references accidentgroups (id)
       on update cascade on delete cascade
 );
 
