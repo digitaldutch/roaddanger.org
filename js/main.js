@@ -395,7 +395,7 @@ function addEditPersonButtons(){
     const transportationMode =  TTransportationMode[key];
     const bgClass            = transportationModeImage(transportationMode);
     const text               = transportationModeText(transportationMode);
-    htmlButtons += `<span id="editPersonTransportationMode${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonTransportationMode(${transportationMode});"></span>`;
+    htmlButtons += `<span id="editPersonTransportationMode${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonTransportationMode(${transportationMode}, true);"></span>`;
   }
   document.getElementById('personTransportationButtons').innerHTML = htmlButtons;
 
@@ -417,7 +417,6 @@ function showEditPersonForm(personID=null, accidentID=null, saveDirectly=false) 
   document.getElementById('personIDHidden').value             = person? person.id : '';
   document.getElementById('personAccidentIDHidden').value     = accidentID? accidentID : '';
   document.getElementById('buttonDeletePerson').style.display = person? 'inline-flex' : 'none';
-  document.getElementById('buttonCloseEditPerson').value      = 'Annuleren';
   document.getElementById('personSaveDirectly').value         = saveDirectly;
 
   selectPersonTransportationMode(person? person.transportationmode : null);
@@ -430,11 +429,15 @@ function showEditPersonForm(personID=null, accidentID=null, saveDirectly=false) 
   document.getElementById('formEditPerson').style.display = 'flex';
 }
 
-function selectPersonTransportationMode(transportationMode){
+function selectPersonTransportationMode(transportationMode, toggle=false){
+  selectPersonHealth(null);
   for (const key of Object.keys(TTransportationMode)) {
     const buttonTransportationMode = TTransportationMode[key];
     const button = document.getElementById('editPersonTransportationMode' + key);
-    if (buttonTransportationMode === transportationMode) button.classList.add('buttonSelected');
+    if (buttonTransportationMode === transportationMode) {
+      if (toggle === true) button.classList.toggle('buttonSelected');
+      else button.classList.add('buttonSelected');
+    }
     else button.classList.remove('buttonSelected');
   }
 }
@@ -533,10 +536,7 @@ function savePerson(stayOpen=false) {
   refreshAccidentPersonsGUI(editAccidentPersons);
 
   if (stayOpen !== true) closeEditPersonForm();
-  else {
-    document.getElementById('buttonCloseEditPerson').value = 'Sluiten';
-    showMessage('Persoon opgeslagen', 1);
-  }
+  else showMessage('Persoon opgeslagen', 1);
 }
 
 function deletePerson() {

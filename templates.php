@@ -314,9 +314,9 @@ function getFormEditPerson(){
     </div>
             
     <div class="popupFooter">
-      <input type="button" class="button" value="Opslaan" onclick="savePerson();">
+      <input type="button" class="button" value="Opslaan en sluiten" onclick="savePerson();">
       <input type="button" class="button" value="Opslaan en openblijven" onclick="savePerson(true);">
-      <input id="buttonCloseEditPerson" type="button" class="button buttonGray" value="Annuleren" onclick="closeEditPersonForm();">
+      <input id="buttonCloseEditPerson" type="button" class="button buttonGray" value="Sluiten" onclick="closeEditPersonForm();">
       <input id="buttonDeletePerson" type="button" class="button buttonRed" value="Verwijderen" onclick="deletePerson();">
     </div>    
   </div>

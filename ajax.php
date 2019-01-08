@@ -180,6 +180,7 @@ else if ($function === 'loadaccidents') {
     // Sort on dead=3, injured=2, unknown=0, unharmed=1
     $sql = <<<SQL
 SELECT 
+  groupid,
   transportationmode,
   health,
   child,
@@ -259,6 +260,7 @@ SQL;
       $accident['persons'] = [];
       $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['accidentid' => $accident['id']]);
       foreach ($DBPersons as $person) {
+        $person['groupid']            = isset($person['groupid'])? (int)$person['transportationmode'] : null;
         $person['transportationmode'] = (int)$person['transportationmode'];
         $person['health']             = isset($person['health'])? (int)$person['health'] : null;
         $person['child']              = (int)$person['child'];
