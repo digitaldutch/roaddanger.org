@@ -260,7 +260,7 @@ SQL;
       $accident['persons'] = [];
       $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['accidentid' => $accident['id']]);
       foreach ($DBPersons as $person) {
-        $person['groupid']            = isset($person['groupid'])? (int)$person['transportationmode'] : null;
+        $person['groupid']            = isset($person['groupid'])? (int)$person['groupid'] : null;
         $person['transportationmode'] = (int)$person['transportationmode'];
         $person['health']             = isset($person['health'])? (int)$person['health'] : null;
         $person['child']              = (int)$person['child'];

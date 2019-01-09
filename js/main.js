@@ -23,6 +23,7 @@ function initMain() {
   else                                               pageType = TpageType.stream;
 
   if (searchText) {
+    document.body.classList.add('searchBody');
     const div = document.getElementById('searchText');
     div.value = searchText;
     div.style.display = 'inline-block';
@@ -120,17 +121,19 @@ async function loadAccidents(accidentID=null, articleID=null){
     if (data.user) updateLoginGUI(data.user);
     if (data.error) showError(data.error);
     else {
-      data.accidents.forEach(a => {
-        a.date           = new Date(a.date);
-        a.createtime     = new Date(a.createtime);
-        a.streamdatetime = new Date(a.streamdatetime);
+      data.accidents.forEach(accident => {
+        accident.date           = new Date(accident.date);
+        accident.createtime     = new Date(accident.createtime);
+        accident.streamdatetime = new Date(accident.streamdatetime);
+
         let id = 1;
-        a.persons.forEach(person => {person.id = id; id++});
+        accident.persons.forEach(person => person.id = id++);
       });
-      data.articles.forEach(a => {
-        a.publishedtime  = new Date(a.publishedtime);
-        a.createtime     = new Date(a.createtime);
-        a.streamdatetime = new Date(a.streamdatetime);
+
+      data.articles.forEach(article => {
+        article.publishedtime  = new Date(article.publishedtime);
+        article.createtime     = new Date(article.createtime);
+        article.streamdatetime = new Date(article.streamdatetime);
       });
 
       accidents = accidents.concat(data.accidents);
@@ -153,6 +156,30 @@ async function loadAccidents(accidentID=null, articleID=null){
     if (articleID) selectArticle(articleID);
     watchEndOfPage = true;
   }, 1);
+}
+
+function getAccidentGUIButtons(accident){
+  let buttons = [];
+  accident.persons.forEach(person => {
+    // In the GUI buttons are used to visualise each person or group of persons.
+    // We group persons who are in the same transportation item (eg 4 persons in a car).
+    let button;
+    if (person.groupid) {
+      // All persons in same group are added to 1 button/icon in the GUI
+      button = buttons.find(button => button.groupid === person.groupid);
+      // Create new button if it does not yet exist
+      if (! button) {
+        button = {groupid: person.groupid, persons: []};
+        buttons.push(button);
+      }
+    } else {
+      // Persons without group always get their own GUI button/icon
+      button = {groupid: null, persons: []};
+      buttons.push(button);
+    }
+    button.persons.push(person);
+  });
+  return buttons;
 }
 
 function getAccidentHTML(accidentID){
@@ -227,7 +254,11 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   }
 
   let htmlPersons = '';
-  for (const person of accident.persons) htmlPersons += getPersonButtonHTML(person);
+  const buttons = getAccidentGUIButtons(accident);
+  for (const button of buttons) {
+    if (true) htmlPersons += getGroupButtonHTML(button);
+    else  htmlPersons += getPersonButtonHTML(button.persons[0]);
+  }
 
   let htmlModeration = '';
   if (accident.awaitingmoderation){
@@ -288,23 +319,52 @@ function healthVisible(health){
   return [THealth.dead, THealth.injured].includes(health);
 }
 
+function getGroupButtonHTML(button) {
+  if (button.persons.length < 1) return '';
+  const person1 = button.persons[0];
+  const bgTransportation = transportationModeImage(person1.transportationmode);
+  let tooltip = transportationModeText(person1.transportationmode);
+  let iconsGroup         = `<div class="iconMedium ${bgTransportation}" data-tippy-content="${tooltip}"></div>`;
+
+  let htmlPersons = '';
+  for (const person of button.persons){
+    let tooltip = 'Persoon ' + person.id +
+      '<br>Letsel: ' + healthText(person.health);
+    if (person.child)          tooltip += '<br>Kind';
+    if (person.underinfluence) tooltip += '<br>Onder invloed van alcohol of drugs';
+    if (person.hitrun)         tooltip += '<br>Doorgereden of gevlucht"';
+
+    let htmlPerson = `<div class="iconMedium ${healthImage(person.health)}"></div>`;
+    if (person.child)          htmlPerson += '<div class="iconMedium bgChild"></div>';
+    if (person.underinfluence) htmlPerson += '<div class="iconMedium bgAlcohol"></div>';
+    if (person.hitrun)         htmlPerson += '<div class="iconMedium bgHitRun"></div>';
+
+    htmlPersons += `<div class="accidentButtonSub" data-tippy-content="${tooltip}">${htmlPerson}</div>`;
+  }
+
+  return `<div class="accidentButton">
+  ${iconsGroup}
+  ${htmlPersons}
+</div>`;
+}
+
 function getPersonButtonHTML(person) {
   const bgTransportation = transportationModeImage(person.transportationmode);
   let icons = '';
-  if (healthVisible(person.health)) icons += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
   icons += `<div class="iconMedium ${bgTransportation}"></div>`;
+  if (healthVisible(person.health)) icons += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
   if (person.child)          icons += '<div class="iconMedium bgChild"></div>';
   if (person.underinfluence) icons += '<div class="iconMedium bgAlcohol"></div>';
   if (person.hitrun)         icons += '<div class="iconMedium bgHitRun"></div>';
 
-  let tooltip = 'Persoon ' + person.id +
-    '<br>Vervoermiddel: ' + transportationModeText(person.transportationmode) + '<br>Letsel: ' + healthText(person.health);
+  let tooltip = transportationModeText(person.transportationmode) +
+    '<br>Persoon ' + person.id +
+    '<br>Letsel: ' + healthText(person.health);
   if (person.child)          tooltip += '<br>Kind';
   if (person.underinfluence) tooltip += '<br>Onder invloed van alcohol of drugs';
   if (person.hitrun)         tooltip += '<br>Doorgereden of gevlucht"';
 
-
-  return `<div class="accidentPerson" data-tippy-content="${tooltip}">    
+  return `<div class="accidentButton" data-tippy-content="${tooltip}">    
     ${icons}
 </div>`;
 }
@@ -555,9 +615,7 @@ function refreshAccidentPersonsGUI(persons=[]) {
   for (let person of persons){
     const iconTransportation = transportationModeIcon(person.transportationmode);
     let  iconHealth         = '';
-    if (healthVisible(person.health)){
-      iconHealth = healthIcon(person.health);
-    }
+    if (healthVisible(person.health)) iconHealth = healthIcon(person.health);
     let buttonsOptions = '';
     if (person.child)          buttonsOptions += '<div class="iconSmall bgChild" data-tippy-content="Kind"></div>';
     if (person.underinfluence) buttonsOptions += '<div class="iconSmall bgAlcohol" data-tippy-content="Onder invloed van alcohol of drugs"></div>';
@@ -888,11 +946,11 @@ function showAccidentMenu(event, accidentID) {
 }
 
 function getAccidentFromID(id){
-  return accidents.find(accident => {return accident.id === id});
+  return accidents.find(accident => accident.id === id);
 }
 
 function getPersonFromID(id){
-  return editAccidentPersons.find(person => {return person.id === id});
+  return editAccidentPersons.find(person => person.id === id);
 }
 
 function getArticleFromID(id){
@@ -998,7 +1056,7 @@ function searchVisible(){
 
 function toggleSearchBar() {
   document.body.classList.toggle('searchBody');
-  if (searchVisible()) divText.focus();
+  if (searchVisible()) document.getElementById('searchText').focus();
 }
 
 function startSearchKey(event) {

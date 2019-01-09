@@ -155,12 +155,21 @@ a {
   cursor:           default;
 }
 
-.accidentPerson {
+.accidentButton {
   display:          inline-flex;
   flex-direction:   row;
   margin-right:     5px;
   border:           1px solid #aaaaaa;
   border-radius:    5px;
+  padding:          2px;
+}
+
+.accidentButtonSub {
+  display:          inline-flex;
+  flex-direction:   row;
+  margin:           0 3px;
+  border-radius:    5px;
+  background-color: #e5e5e5;
   padding:          2px;
 }
 
