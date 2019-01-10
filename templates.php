@@ -120,8 +120,13 @@ function getNavigation(){
   <div style="overflow-y: auto;">
   
     <div class="navigationSection">
-      <a href="/" class="navItem">Ongelukken</a>
-      <a href="/recent" class="navItem">Recente ongelukken</a>
+      <div class="navigationSectionHeader">Ongelukken</div>
+      <a href="/" class="navItem">Recente ongelukken</a>
+      <a href="/stream" class="navItem">Ongelukken stream</a>
+    </div>
+
+    <div class="navigationSection">
+      <div class="navigationSectionHeader">Overig</div>
       <a href="/statistieken/" class="navItem">Statistieken</a>
       <a href="/overdezesite/" class="navItem">Over deze site</a>
     </div>
@@ -133,10 +138,9 @@ function getNavigation(){
         <a href="/beheer/gebruikers" class="navItem" data-admin>Gebruikers</a>
         <a href="/moderaties/" class="navItem">Moderaties</a>
         <a href="/beheer/exporteren/" class="navItem">Exporteer data</a>
-      </div>
-      
+      </div>      
     </div>
-
+    
     <div class="navFooter">
      Versie $VERSION • $VERSION_DATE 
     </div>   

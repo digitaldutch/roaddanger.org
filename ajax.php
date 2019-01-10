@@ -236,7 +236,7 @@ SQL;
     } else {
       // accidents stream
       if ($sqlModerated) $sqlModerated = ' WHERE ' . $sqlModerated;
-      $orderField = ($sort === 'accidentdate')? 'ac.date DESC' : 'ac.streamdatetime DESC';
+      $orderField = ($sort === 'accidentdate')? 'ac.date DESC, ac.streamdatetime DESC' : 'ac.streamdatetime DESC';
       $SQLWhere = " $sqlModerated ORDER BY $orderField LIMIT $offset, $count ";
     }
 
@@ -505,13 +505,14 @@ SQL;
       $database->execute($sql, $params);
 
     $sql         = <<<SQL
-INSERT INTO accidentpersons (accidentid, transportationmode, health, child, underinfluence, hitrun) 
-VALUES (:accidentid, :transportationmode, :health, :child, :underinfluence, :hitrun);
+INSERT INTO accidentpersons (accidentid, groupid, transportationmode, health, child, underinfluence, hitrun) 
+VALUES (:accidentid, :groupid, :transportationmode, :health, :child, :underinfluence, :hitrun);
 SQL;
       $dbStatement = $database->prepare($sql);
       foreach ($accident['persons']  AS $person){
         $params = [
           ':accidentid'         => $accident['id'],
+          ':groupid'            => $person['groupid'],
           ':transportationmode' => $person['transportationmode'],
           ':health'             => $person['health'],
           ':child'              => $person['child'],

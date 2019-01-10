@@ -158,6 +158,8 @@ a {
 .accidentButton {
   display:          inline-flex;
   flex-direction:   row;
+  align-items:      center;
+  min-height:       31px;
   margin-right:     5px;
   border:           1px solid #aaaaaa;
   border-radius:    5px;
@@ -838,11 +840,13 @@ a {
 .navHeader {
   padding:          5px 5px 5px 10px;
   background-color: #eeeeee;
+  border-bottom:    1px solid #dddddd;
 }
 
 .navFooter {
   padding:          5px 10px;
   background-color: #eeeeee;
+  border-bottom:    1px solid #dddddd;
   font-size:        12px;
 }
 
@@ -860,7 +864,7 @@ a {
   padding:          7px 10px;
   background-color: #eeeeee;
   font-size:        16px;
-  border-top:       1px solid #dddddd;
+  border-bottom:    1px solid #dddddd;
 }
 
 .navigationSectionHeader > select{
@@ -871,8 +875,8 @@ a {
 }
 
 .navigationSection {
-  border-top: 1px solid #dddddd;
-  font-size:  16px;
+  border-bottom: 1px solid #dddddd;
+  font-size:     16px;
 }
 
 .navItem {

@@ -1,16 +1,16 @@
 <?php
 
-$VERSION      = 176;
-$VERSION_DATE = '9 januari 2019';
+$VERSION      = 177;
+$VERSION_DATE = '10 januari 2019';
 
 require_once 'configsecret.php';
 
 // Parameters below are defined in configsecret.php
-// Database login data
+// Database connection data
+//define('DB_HOST',     '');
 //define('DB_NAME',     '');
 //define('DB_USER',     '');
 //define('DB_PASSWORD', '');
-//define('DB_HOST',     '');
 
 // Other stuff
 define('DOMAIN_NAME',   'hetongeluk.nl');

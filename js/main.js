@@ -17,10 +17,11 @@ function initMain() {
   const searchText = url.searchParams.get('search');
 
   if (url.pathname.startsWith('/moderaties'))        pageType = TpageType.moderations;
+  else if (url.pathname.startsWith('/stream'))       pageType = TpageType.stream;
   else if (url.pathname.startsWith('/recent'))       pageType = TpageType.recent;
   else if (url.pathname.startsWith('/statistieken')) pageType = TpageType.statistics;
   else if (accidentID)                               pageType = TpageType.accident;
-  else                                               pageType = TpageType.stream;
+  else                                               pageType = TpageType.recent;
 
   if (searchText) {
     document.body.classList.add('searchBody');
@@ -253,12 +254,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
     streamHeader = 'aangemaakt door ' + accident.user + ' ' + datetimeToAge(accident.createtime);
   }
 
-  let htmlPersons = '';
-  const buttons = getAccidentGUIButtons(accident);
-  for (const button of buttons) {
-    if (true) htmlPersons += getGroupButtonHTML(button);
-    else  htmlPersons += getPersonButtonHTML(button.persons[0]);
-  }
+  const htmlPersons = getAccidentButtonsHTML(accident, false);
 
   let htmlModeration = '';
   if (accident.awaitingmoderation){
@@ -319,54 +315,42 @@ function healthVisible(health){
   return [THealth.dead, THealth.injured].includes(health);
 }
 
-function getGroupButtonHTML(button) {
-  if (button.persons.length < 1) return '';
-  const person1 = button.persons[0];
-  const bgTransportation = transportationModeImage(person1.transportationmode);
-  let tooltip = transportationModeText(person1.transportationmode);
-  let iconsGroup         = `<div class="iconMedium ${bgTransportation}" data-tippy-content="${tooltip}"></div>`;
+function getAccidentButtonsHTML(accident, showAllHealth=true) {
+  function getGroupButtonHTML(button) {
+    if (button.persons.length < 1) return '';
+    const person1 = button.persons[0];
+    const bgTransportation = transportationModeImage(person1.transportationmode);
+    let tooltip = transportationModeText(person1.transportationmode);
+    let iconsGroup         = `<div class="iconMedium ${bgTransportation}" data-tippy-content="${tooltip}"></div>`;
 
-  let htmlPersons = '';
-  for (const person of button.persons){
-    let tooltip = 'Persoon ' + person.id +
-      '<br>Letsel: ' + healthText(person.health);
-    if (person.child)          tooltip += '<br>Kind';
-    if (person.underinfluence) tooltip += '<br>Onder invloed van alcohol of drugs';
-    if (person.hitrun)         tooltip += '<br>Doorgereden of gevlucht"';
+    let htmlPersons = '';
+    for (const person of button.persons){
+      let tooltip = 'Persoon ' + person.id +
+        '<br>Letsel: ' + healthText(person.health);
+      if (person.child)          tooltip += '<br>Kind';
+      if (person.underinfluence) tooltip += '<br>Onder invloed van alcohol of drugs';
+      if (person.hitrun)         tooltip += '<br>Doorgereden of gevlucht"';
 
-    let htmlPerson = `<div class="iconMedium ${healthImage(person.health)}"></div>`;
-    if (person.child)          htmlPerson += '<div class="iconMedium bgChild"></div>';
-    if (person.underinfluence) htmlPerson += '<div class="iconMedium bgAlcohol"></div>';
-    if (person.hitrun)         htmlPerson += '<div class="iconMedium bgHitRun"></div>';
+      const showHealth = showAllHealth || healthVisible(person.health);
+      let htmlPerson = '';
+      if (showHealth)            htmlPerson += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
+      if (person.child)          htmlPerson += '<div class="iconMedium bgChild"></div>';
+      if (person.underinfluence) htmlPerson += '<div class="iconMedium bgAlcohol"></div>';
+      if (person.hitrun)         htmlPerson += '<div class="iconMedium bgHitRun"></div>';
 
-    htmlPersons += `<div class="accidentButtonSub" data-tippy-content="${tooltip}">${htmlPerson}</div>`;
-  }
+      if (htmlPerson) htmlPersons += `<div class="accidentButtonSub" data-tippy-content="${tooltip}">${htmlPerson}</div>`;
+    }
 
-  return `<div class="accidentButton">
+    return `<div class="accidentButton">
   ${iconsGroup}
   ${htmlPersons}
 </div>`;
-}
+  }
 
-function getPersonButtonHTML(person) {
-  const bgTransportation = transportationModeImage(person.transportationmode);
-  let icons = '';
-  icons += `<div class="iconMedium ${bgTransportation}"></div>`;
-  if (healthVisible(person.health)) icons += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
-  if (person.child)          icons += '<div class="iconMedium bgChild"></div>';
-  if (person.underinfluence) icons += '<div class="iconMedium bgAlcohol"></div>';
-  if (person.hitrun)         icons += '<div class="iconMedium bgHitRun"></div>';
-
-  let tooltip = transportationModeText(person.transportationmode) +
-    '<br>Persoon ' + person.id +
-    '<br>Letsel: ' + healthText(person.health);
-  if (person.child)          tooltip += '<br>Kind';
-  if (person.underinfluence) tooltip += '<br>Onder invloed van alcohol of drugs';
-  if (person.hitrun)         tooltip += '<br>Doorgereden of gevlucht"';
-
-  return `<div class="accidentButton" data-tippy-content="${tooltip}">    
-    ${icons}
-</div>`;
+  const buttons = getAccidentGUIButtons(accident);
+  let html = '';
+  for (const button of buttons) html += getGroupButtonHTML(button);
+  return html;
 }
 
 function highlightSearchText() {
@@ -556,7 +540,7 @@ function savePerson(stayOpen=false) {
       accident.persons.push(person);
       person.id = accident.persons.length;
       const divID = 'accidentPersons' + person.accidentid;
-      document.getElementById(divID).innerHTML += getPersonButtonHTML(person);
+      document.getElementById(divID).innerHTML = getAccidentButtonsHTML(accident);
       tippy('[data-tippy-content]');
     }
   }
