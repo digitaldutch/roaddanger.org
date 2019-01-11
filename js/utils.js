@@ -742,3 +742,19 @@ function clone(obj) {
 
   throw new Error("Unable to copy obj! Its type isn't supported.");
 }
+
+function acceptCookies() {
+  createCookie('cookiesAccepted', 1, 3650);
+  document.getElementById('cookieWarning').style.display = 'none';
+}
+
+function createCookie(name,value,days) {
+  // https://www.quirksmode.org/js/cookies.html
+  var expires = "";
+  if (days) {
+    var date = new Date();
+    date.setTime(date.getTime()+(days*24*60*60*1000));
+    expires = "; expires="+date.toGMTString();
+  }
+  document.cookie = name+"="+value+expires+"; path=/";
+}

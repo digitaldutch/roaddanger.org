@@ -179,3 +179,6 @@ function getRequest($name, $default=null) {
   return isset($_REQUEST[$name]) ? $_REQUEST[$name] : $default;
 }
 
+function cookiesApproved(){
+  return isset($_COOKIE['cookiesAccepted']) && (isset($_COOKIE['cookiesAccepted']) == 1);
+}

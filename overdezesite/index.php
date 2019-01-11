@@ -76,7 +76,7 @@ Alle code van de deze website is open source en beschikbaar op <a href="https://
 Fijn, stuur een mailtje naar <a href="mailto:$ourEmail">$ourEmail</a>.
 </p>
   
-<div class="sectionTitle">Cookies</div>
+<a name="cookieInfo"></a><div class="sectionTitle">Cookies</div>
 <p>
 Deze website gebruikt een cookie om je ingelogd te houden tussen de verschillende pagina's. Verder niets. De foto's die getoond worden zijn echter van de nieuwswebsites en die plaatsen "third-party" cookies en kunnen je dus volgen.
 </p>

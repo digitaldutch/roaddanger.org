@@ -8,6 +8,17 @@ function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $showAccide
   $initScript = ($initFunction !== '')? "<script>document.addEventListener('DOMContentLoaded', $initFunction);</script>" : '';
   $navigation = getNavigation();
 
+  if (! cookiesApproved()) {
+    $cookieWarning = <<<HTML
+    <div id="cookieWarning" class="flexRow">
+      <div>Deze website gebruikt cookies. 
+        <a href="/overdezesite/#cookieInfo" style="text-decoration: underline; color: inherit;">Meer info.</a>
+      </div>
+      <div class="button" onclick="acceptCookies();">Akkoord</div>
+    </div>
+HTML;
+  } else $cookieWarning = '';
+
   $mainMenuItems = '';
   if ($showAccidentMenu) $mainMenuItems = <<<HTML
   <div id="buttonSearch" class="menuButton buttonSearch" onclick="toggleSearchBar(event);"></div>
@@ -64,6 +75,9 @@ $navigation
   </div>      
 
 </div>
+
+$cookieWarning
+
 HTML;
 }
 

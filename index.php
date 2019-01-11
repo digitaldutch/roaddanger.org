@@ -35,9 +35,8 @@ HTML;
 HTML;
 
 } else {
-  $introText = '';
   if ($_SERVER['REQUEST_URI'] === '/') {
-    $introText = <<<HTML
+    $introText .= <<<HTML
     <div class="sectionIntro">Op deze site verzamelen we nieuwsberichten over verkeersongelukken uit Nederlandse media en nieuwswebsites.
     Meedoen? Registreer jezelf via het poppetje rechts bovenin en voeg daarna je bericht toe met het plusje.
     Meer uitleg vind je in de <a href="/overdezesite">Over deze site</a> pagina.

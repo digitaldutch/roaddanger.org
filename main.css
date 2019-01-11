@@ -567,6 +567,18 @@ a {
   background-color: #4D90FE;
 }
 
+#cookieWarning {
+  position:         fixed;
+  bottom:           0;
+  left:             0;
+  right:            0;
+  z-index:          1000;
+  color:            #fff;
+  background-color: #4D90FE;
+  padding:         20px;
+  justify-content: space-between;
+}
+
 .errorMessage, .errorMessage a {
   color:            #000000 !important;
   background-color: #F9BDBD !important;
