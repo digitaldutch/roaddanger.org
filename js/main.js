@@ -39,7 +39,7 @@ function initMain() {
     loadAccidents(accidentID, articleID);
   } else {
     // Infinity scroll event
-    // TODO: Switch to IntersectionObserver. Not yet supported by Safari :(
+    // In future switch to IntersectionObserver. At this moment Safari does not support it yet :(
     document.addEventListener("scroll", (event) => {
       if (watchEndOfPage) {
         if ((spinnerLoadCard.style.display==='block') && isScrolledIntoView(spinnerLoadCard)) {
@@ -74,8 +74,6 @@ async function loadStatistics(){
 <td style="text-align: right;">${stat.dead}</td>
 <td style="text-align: right;">${stat.injured}</td>
 <td style="text-align: right;">${stat.unharmed}</td>
-<td style="text-align: right;">${stat.underinfluence}</td>
-<td style="text-align: right;">${stat.hitrun}</td>
 <td style="text-align: right;">${stat.child}</td>
 </tr>`;
       }
@@ -229,9 +227,9 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   }
 
   let htmlInvolved = '';
-  if (accident.pet)         htmlInvolved += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
-  if (accident.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam"  data-tippy-content="File/Hinder"></div>';
-  if (accident.tree)        htmlInvolved += '<div class="iconSmall bgTree"  data-tippy-content="Boom/Paal"></div>';
+  // if (accident.pet)         htmlInvolved += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
+  // if (accident.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam"  data-tippy-content="File/Hinder"></div>';
+  // if (accident.tree)        htmlInvolved += '<div class="iconSmall bgTree"  data-tippy-content="Boom/Paal"></div>';
 
   if (htmlInvolved){
     htmlInvolved = `
@@ -328,15 +326,11 @@ function getAccidentButtonsHTML(accident, showAllHealth=true) {
       let tooltip = 'Persoon ' + person.id +
         '<br>Letsel: ' + healthText(person.health);
       if (person.child)          tooltip += '<br>Kind';
-      if (person.underinfluence) tooltip += '<br>Onder invloed van alcohol of drugs';
-      if (person.hitrun)         tooltip += '<br>Doorgereden of gevlucht"';
 
       const showHealth = showAllHealth || healthVisible(person.health);
       let htmlPerson = '';
       if (showHealth)            htmlPerson += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
       if (person.child)          htmlPerson += '<div class="iconMedium bgChild"></div>';
-      if (person.underinfluence) htmlPerson += '<div class="iconMedium bgAlcohol"></div>';
-      if (person.hitrun)         htmlPerson += '<div class="iconMedium bgHitRun"></div>';
 
       if (htmlPerson) htmlPersons += `<div class="accidentButtonSub" data-tippy-content="${tooltip}">${htmlPerson}</div>`;
     }
@@ -467,8 +461,6 @@ function showEditPersonForm(personID=null, accidentID=null, saveDirectly=false) 
   selectPersonHealth(person? person.health : null);
 
   setMenuButton('editPersonChild',          person? person.child : false);
-  setMenuButton('editPersonUnderInfluence', person? person.underinfluence: false);
-  setMenuButton('editPersonHitRun',         person? person.hitrun: false);
 
   document.getElementById('formEditPerson').style.display = 'flex';
 }
@@ -558,8 +550,6 @@ function savePerson(stayOpen=false) {
     person.transportationmode = selectedTransportationMode;
     person.health             = selectedHealth;
     person.child              = menuButtonSelected('editPersonChild');
-    person.underinfluence     = menuButtonSelected('editPersonUnderInfluence');
-    person.hitrun             = menuButtonSelected('editPersonHitRun');
   }
 
   if (personID){
@@ -602,8 +592,6 @@ function refreshAccidentPersonsGUI(persons=[]) {
     if (healthVisible(person.health)) iconHealth = healthIcon(person.health);
     let buttonsOptions = '';
     if (person.child)          buttonsOptions += '<div class="iconSmall bgChild" data-tippy-content="Kind"></div>';
-    if (person.underinfluence) buttonsOptions += '<div class="iconSmall bgAlcohol" data-tippy-content="Onder invloed van alcohol of drugs"></div>';
-    if (person.hitrun)         buttonsOptions += '<div class="iconSmall bgHitRun" data-tippy-content="Doorgereden of gevlucht"></div>';
 
     html += `<div class="editAccidentPerson" onclick="showEditPersonForm(${person.id});">
 ${iconHealth} ${iconTransportation} ${buttonsOptions}

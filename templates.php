@@ -264,7 +264,7 @@ function getFormEditAccident(){
         <div id="editAccidentPersons"></div>
       </div>
 
-      <div style="margin-top: 5px;">
+      <div style="margin-top: 5px; display: none;">
         <div>Kenmerken</div>
         <div>
           <span id="editAccidentPet" class="menuButton bgPet" data-tippy-content="Dier(en)" onclick="changeAccidentInvolved(this, event);"></span>      
@@ -310,10 +310,7 @@ function getFormEditPerson(){
     <div style="margin-top: 5px;">
       <div>Kenmerken</div> 
       <div>
-        <span id="editPersonChild" class="menuButton bgChild" data-tippy-content="Kind" onclick="toggleMenuButton(this)"></span>      
-        <span id="editPersonUnderInfluence" class="menuButton bgAlcohol" data-tippy-content="Onder invloed van alcohol of drugs" onclick="toggleMenuButton(this)"></span>      
-        <span id="editPersonHitRun" class="menuButton bgHitRun" data-tippy-content="Doorgereden of gevlucht" onclick="toggleMenuButton(this)"></span>      
-      
+        <span id="editPersonChild" class="menuButton bgChild" data-tippy-content="Kind" onclick="toggleMenuButton(this)"></span>            
       </div>
     </div>
             

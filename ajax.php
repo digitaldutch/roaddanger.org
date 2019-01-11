@@ -557,8 +557,6 @@ SQL;
         if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
         $database->execute($sql, $params, true);
-        if ($database->rowCount === 0) throw new Exception('Kan artikel niet updaten.');
-
       } else {
         // New article
 
