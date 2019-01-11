@@ -584,7 +584,7 @@ async function loadUserData() {
   }
 }
 
-function loginClick() {
+function loginClick(event) {
   event.stopPropagation();
   closeAllPopups();
 
