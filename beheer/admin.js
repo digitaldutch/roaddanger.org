@@ -17,7 +17,7 @@ async function loadUsers(){
 
   function showUsers(users){
     let html = '';
-    for (user of users){
+    for (const user of users){
       const trclass = (user.permission === TUserPermission.admin)? ' class="bgRed" ' : '';
 
       html += `<tr id="truser${user.id}" ${trclass}>
