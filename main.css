@@ -653,7 +653,12 @@ a {
 .popupFooter {
   display:         flex;
   justify-content: flex-end;
+  flex-wrap:       wrap;
   margin-top:      10px;
+}
+
+.popupFooter .button {
+  margin-bottom: 5px;
 }
 
 .popupInput {
