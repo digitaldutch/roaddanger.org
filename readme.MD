@@ -1,6 +1,6 @@
 # hetongeluk.nl
 
-A database for traffic accidents in the Netherlands.
+A database for news reports about traffic crashes in the Netherlands.
 
 Website: [hetongeluk.nl](https://www.hetongeluk.nl)
 

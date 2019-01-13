@@ -319,7 +319,7 @@ function getAccidentButtonsHTML(accident, showAllHealth=true) {
     if (button.persons.length < 1) return '';
     const person1 = button.persons[0];
     const bgTransportation = transportationModeImage(person1.transportationmode);
-    let tooltip = transportationModeText(person1.transportationmode);
+    let tooltip            = transportationModeText(person1.transportationmode);
     let iconsGroup         = `<div class="iconMedium ${bgTransportation}" data-tippy-content="${tooltip}"></div>`;
 
     let htmlPersons = '';

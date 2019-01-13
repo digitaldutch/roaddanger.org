@@ -60,7 +60,7 @@ Op de <a href="/statistieken">pagina met statistieken</a> vind je het opgetelde 
 
 <div class="sectionTitle">Wie beheren deze site?</div>
 <p>Hetongeluk.nl is begonnen als spin-off van het journalistieke project over verkeersongevallen van journalist 
-Thalia Verkade en planoloog Marco te Brömmelstroet <a href="https://decorrespondent.nl/8777/het-is-tijd-om-de-straat-terug-te-geven-aan-fietsers-en-voetgangers/922875877275-b1b31e68" target="_blank">op De Correspondent</a>. 
+Thalia Verkade en planoloog Marco te Brömmelstroet <a href="https://decorrespondent.nl/collectie/verkeersongevallen" target="_blank">op De Correspondent</a>. 
 Beheerders zijn journalist Thalia Verkade en programmeur Jan Derk Stegeman. 
 Vragen, opmerkingen kunnen naar <a href="mailto:$ourEmail">$ourEmail</a>.
 </p>
