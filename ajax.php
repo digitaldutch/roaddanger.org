@@ -24,6 +24,7 @@ SELECT
   sum(ap.health=3)         AS dead,
   sum(ap.health=2)         AS injured,
   sum(ap.health=1)         AS unharmed,
+  sum(ap.health=0)         AS healthunknown,
   COUNT(*) AS total
 FROM accidentpersons ap
 JOIN accidents a ON ap.accidentid = a.id
@@ -41,6 +42,7 @@ SQL;
     $stat['child']              = (int)$stat['child'];
     $stat['dead']               = (int)$stat['dead'];
     $stat['injured']            = (int)$stat['injured'];
+    $stat['healthunknown']      = (int)$stat['healthunknown'];
     $stat['total']              = (int)$stat['total'];
   }
 
@@ -331,28 +333,6 @@ SQL;
   }
 
   echo json_encode($result);
-} // ====================
-else if ($function === 'addPersonToAccident') {
-  try {
-    $data    = json_decode(file_get_contents('php://input'), true);
-    $person  = $data['person'];
-
-    $sql    = "INSERT INTO accidentpersons (accidentid, transportationmode, health) VALUES (:accidentid, :transportationmode, :health)";
-    $params = [':accidentid' => $person['accidentid'], ':transportationmode' => $person['transportationmode'], ':health' => $person['health']];
-    $database->execute($sql, $params);
-
-    $sql    = "UPDATE accidents SET streamdatetime=current_timestamp, streamtoptype=2, streamtopuserid=:userid WHERE id=:id;";
-    $params = array(':id' => $id, ':userid' => $user->id);
-    $database->execute($sql, $params);
-
-    $result = ['ok' => true];
-  } catch (Exception $e) {
-    $result = ['ok' => false, 'error' => $e->getMessage()];
-  }
-
-  $json = json_encode($result);
-  if ($json) echo $json;
-  else echo json_encode(['ok' => false, 'error' => json_last_error()]);
 } //==========
 else if ($function === 'getuser') {
   try {

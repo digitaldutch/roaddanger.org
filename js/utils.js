@@ -562,7 +562,7 @@ function initPage(){
   tippy.setDefaults({
     arrow:     true,
     arrowType: 'round',
-    duration:  100
+    duration:  100,
   });
   tippy('[data-tippy-content]');
 }

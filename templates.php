@@ -223,7 +223,11 @@ function getFormEditAccident(){
     <div id="editArticleSection" class="flexColumn">
       <input id="articleIDHidden" type="hidden">
   
-      <label for="editArticleUrl">Artikel link (URL)<span class="iconTooltip" data-tippy-content="Kopieer de link uit de adresbalk van de webpagina met het artikel"></span></label>
+      <div class="labelDiv">
+        <label for="editArticleUrl">Artikel link (URL)</label>
+        <span class="iconTooltip" data-tippy-content="Kopieer de link uit de adresbalk van de webpagina met het artikel"></span>
+      </div>
+
       <div style="display: flex;">
         <input id="editArticleUrl" class="popupInput" type="url" maxlength="1000" autocomplete="off">
         <div class="button buttonLine" onclick="getArticleMetaData();">Artikel ophalen</div>
@@ -267,7 +271,10 @@ function getFormEditAccident(){
         <textarea id="editAccidentText" maxlength="500" style="height: 50px; resize: vertical;" class="popupInput" autocomplete="off" data-readonlyhelper></textarea>
       </div>        
 
-      <label for="editAccidentDate">Datum ongeluk<span class="iconTooltip" data-tippy-content="Vaak anders dan publicatiedatum artikel"></span></label>
+      <div class="labelDiv">
+        <label for="editAccidentDate">Datum ongeluk</label>
+        <span class="iconTooltip" data-tippy-content="Vaak anders dan publicatiedatum artikel"></span>
+      </div>
       <div style="display: flex;">
         <input id="editAccidentDate" class="popupInput" type="date" autocomplete="off">
         <span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentDateFromArticle();" ">Zelfde als artikel</span>
@@ -308,7 +315,6 @@ function getFormEditPerson(){
     <div class="popupCloseCross" onclick="closeEditPersonForm();"></div>
 
     <input id="personIDHidden" type="hidden">
-    <input id="personSaveDirectly" type="hidden">
     <input id="personAccidentIDHidden" type="hidden">
 
     <div style="margin-top: 5px;">
@@ -329,8 +335,8 @@ function getFormEditPerson(){
     </div>
             
     <div class="popupFooter">
-      <input type="button" class="button" value="Opslaan en sluiten" onclick="savePerson();">
       <input type="button" class="button" value="Opslaan en openblijven" onclick="savePerson(true);">
+      <input type="button" class="button" value="Opslaan en sluiten" onclick="savePerson();">
       <input id="buttonCloseEditPerson" type="button" class="button buttonGray" value="Sluiten" onclick="closeEditPersonForm();">
       <input id="buttonDeletePerson" type="button" class="button buttonRed" value="Verwijderen" onclick="deletePerson();">
     </div>    

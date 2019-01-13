@@ -605,7 +605,7 @@ a {
   box-sizing:       border-box;
 }
 
-.formFullPage label {
+.formFullPage label, .labelDiv {
   margin-top: 5px;
 }
 

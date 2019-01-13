@@ -68,16 +68,18 @@ async function loadStatistics(){
 
       let html = '';
       for (const stat of dbStats.total) {
-        const icon = transportationModeIcon(stat.transportationmode);
+        const icon = transportationModeIcon(stat.transportationmode, true);
         html += `<tr>
 <td><div class="flexRow">${icon}<span class="hideOnMobile" style="margin-left: 5px;">${transportationModeText(stat.transportationmode)}</span></div></td>
 <td style="text-align: right;">${stat.dead}</td>
 <td style="text-align: right;">${stat.injured}</td>
 <td style="text-align: right;">${stat.unharmed}</td>
+<td style="text-align: right;">${stat.healthunknown}</td>
 <td style="text-align: right;">${stat.child}</td>
 </tr>`;
       }
       document.getElementById('tableStatsBody').innerHTML = html;
+      tippy('#tableStatsBody [data-tippy-content]');
     }
   } catch (error) {
     showError(error.message);
@@ -273,13 +275,12 @@ Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
   let htmlMenuEditItems = '';
   if (canEditAccident) {
     htmlMenuEditItems = `
-      <div onclick="addPersonToAccident(${accident.id});">Persoon toevoegen</div>
       <div onclick="editAccident(${accident.id});">Bewerken</div>
       <div onclick="deleteAccident(${accident.id});">Verwijderen</div>
 `;
   }
 
-  let htmlMenuItemStreamTop = user.moderator? '<div onclick="accidentToTopStream(${accident.id});" data-moderator>Plaats bovenaan stream</div>' : '';
+  let htmlMenuItemStreamTop = user.moderator? `<div onclick="accidentToTopStream(${accident.id});" data-moderator>Plaats bovenaan stream</div>` : '';
 
   return `
 <div id="accident${accident.id}" class="cardAccident" onclick="showAccidentDetails(${accident.id})">
@@ -447,7 +448,7 @@ function addEditPersonButtons(){
   document.getElementById('personHealthButtons').innerHTML = htmlButtons;
 }
 
-function showEditPersonForm(personID=null, accidentID=null, saveDirectly=false) {
+function showEditPersonForm(personID=null, accidentID=null) {
   closeAllPopups();
   const person = getPersonFromID(personID);
 
@@ -455,12 +456,11 @@ function showEditPersonForm(personID=null, accidentID=null, saveDirectly=false) 
   document.getElementById('personIDHidden').value             = person? person.id : '';
   document.getElementById('personAccidentIDHidden').value     = accidentID? accidentID : '';
   document.getElementById('buttonDeletePerson').style.display = person? 'inline-flex' : 'none';
-  document.getElementById('personSaveDirectly').value         = saveDirectly;
 
   selectPersonTransportationMode(person? person.transportationmode : null);
   selectPersonHealth(person? person.health : null);
 
-  setMenuButton('editPersonChild',          person? person.child : false);
+  setMenuButton('editPersonChild',person? person.child : false);
 
   document.getElementById('formEditPerson').style.display = 'flex';
 }
@@ -515,31 +515,8 @@ function closeEditPersonForm(){
 }
 
 function savePerson(stayOpen=false) {
-  async function savePersonToServer(person) {
-    const url = '/ajax.php?function=addPersonToAccident';
-    const optionsFetch = {
-      method:  'POST',
-      body: JSON.stringify({person: person}),
-      headers: {'Content-Type': 'application/json'},
-    };
-    const response = await fetch(url, optionsFetch);
-    const text     = await response.text();
-    const data     = JSON.parse(text);
-    if (data.error) {
-      showError(data.error, 10);
-    } else {
-      const accident = getAccidentFromID(person.accidentid);
-      accident.persons.push(person);
-      person.id = accident.persons.length;
-      const divID = 'accidentPersons' + person.accidentid;
-      document.getElementById(divID).innerHTML = getAccidentButtonsHTML(accident);
-      tippy('[data-tippy-content]');
-    }
-  }
-
   const selectedTransportationMode = getSelectedPersonTransportationMode();
   const selectedHealth             = getSelectedPersonHealth();
-  const saveDirectly               = document.getElementById('personSaveDirectly').value === "true";
   if (selectedTransportationMode === null) {showError('Geen vervoermiddel geselecteerd', 3); return;}
   if (selectedHealth             === null) {showError('Geen letsel geselecteerd', 3); return;}
 
@@ -559,12 +536,7 @@ function savePerson(stayOpen=false) {
     person = {id: editAccidentPersons.length + 1};
     loadPersonFromGUI(person);
 
-    if (saveDirectly === true){
-      person.accidentid = parseInt(document.getElementById('personAccidentIDHidden').value);
-      savePersonToServer(person);
-    } else {
-      editAccidentPersons.push(person);
-    }
+    editAccidentPersons.push(person);
   }
 
   refreshAccidentPersonsGUI(editAccidentPersons);
@@ -660,10 +632,6 @@ function addArticleToAccident(accidentID) {
 
   document.getElementById('editHeader').innerText              = 'Artikel toevoegen';
   document.getElementById('editAccidentSection').style.display = 'none';
-}
-
-function addPersonToAccident(accidentID) {
-  showEditPersonForm(null, accidentID, true);
 }
 
 function editAccident(accidentID) {
@@ -785,9 +753,8 @@ async function getArticleMetaData() {
     const data     = JSON.parse(text);
     if (data.error) showError(data.error);
     else {
-      showMetaData(data.media);
-
       if (data.urlexists) showMessage(`Bericht is al toegevoegd aan database.<br><a href='/${data.urlexists.accidentid}' style='text-decoration: underline;'>Klik hier.</a>`, 30);
+      else showMetaData(data.media);
 
       document.getElementById('tarantuleResults').innerHTML = `Gevonden:<br>
 Open Graph Facebook tags: ${data.tagcount.og}<br>
