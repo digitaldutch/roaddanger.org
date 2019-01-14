@@ -1,5 +1,6 @@
 let users = [];
 let selectedUser;
+let watchEndOfPage = false;
 
 function initAdmin(){
   spinnerLoadCard = document.getElementById('spinnerLoad');
@@ -7,57 +8,52 @@ function initAdmin(){
   loadUserData();
 
   const url = new URL(location.href);
-  if (url.pathname.startsWith('/beheer/gebruikers')) loadUsers();
+  if (url.pathname.startsWith('/beheer/gebruikers')) {
+    // Infinity scroll event
+    // In future switch to IntersectionObserver. At this moment Safari does not support it yet :(
+    document.addEventListener("scroll", (event) => {
+      if (watchEndOfPage) {
+        if ((spinnerLoadCard.style.display === 'block') && isScrolledIntoView(spinnerLoadCard)) {
+          watchEndOfPage = false;
+          loadUsers();
+        }
+      }
+    });
+
+    loadUsers();
+  }
 }
 
 async function loadUsers(){
   let data;
-  let count  = 100;
-  let offset = users.length;
+  let count = 20;
 
   function showUsers(users){
     let html = '';
     for (const user of users){
-      const trclass = (user.permission === TUserPermission.admin)? ' class="bgRed" ' : '';
+      let trClass = '';
+      if      (user.permission === TUserPermission.admin)     trClass = ' class="bgRed" ';
+      else if (user.permission === TUserPermission.moderator) trClass = ' class="bgOrange" ';
 
-      html += `<tr id="truser${user.id}" ${trclass}>
+      html += `<tr id="truser${user.id}" ${trClass}>
 <td>${user.id}</td>
-<td>${user.name}<br>${user.email}</td>
+<td>${user.name}<br><a href="mailto:${user.email}">${user.email}</a></td>
 <td>${datetimeToAge(user.lastactive)}</td>
 <td>${permissionToText(user.permission)}</td>
 <td class="trButton"><span class="editDetails">⋮</span></td>
 </tr>`;
     }
 
-    if (offset === 0){
-      html = `
-<table id="tableUsers" class="dataTable">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>Laatst actief</th>
-      <th>Permissie</th>
-      <th></th>
-    </tr>
-  </thead>  
-  <tbody id="tableBody" onclick="userTableClick(event);">
-    ${html}
-  </tbody>
-</table>
-`;
-    }
-
-    document.getElementById('users').innerHTML = html;
+    document.getElementById('tableBody').innerHTML += html;
   }
 
   try {
     spinnerLoadCard.style.display = 'block';
-    let url        = '/beheer/ajax.php?function=loadusers&count=' + count + '&offset=' + offset;
+    let url        = '/beheer/ajax.php?function=loadusers&count=' + count + '&offset=' + users.length;
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
     data           = JSON.parse(text);
-    if (data.user) updateLoginGUI(data.user);
+    if (data.user)  updateLoginGUI(data.user);
     if (data.error) showError(data.error);
     else {
       data.users.forEach(user => {
@@ -65,13 +61,17 @@ async function loadUsers(){
       });
 
       users = users.concat(data.users);
-      showUsers(users);
+      showUsers(data.users);
     }
   } catch (error) {
     showError(error.message);
   } finally {
     if (data.error || (data.users.length < count)) spinnerLoadCard.style.display = 'none';
   }
+
+  setTimeout(()=>{
+    watchEndOfPage = true;
+  }, 1);
 }
 
 function userFromID(id) {

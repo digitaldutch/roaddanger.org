@@ -242,17 +242,20 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
     </div>`;
   }
 
-  let streamHeader = '';
+  let titleSmall    = 'aangemaakt door ' + accident.user;
+  let titleModified = '';
   if (accident.streamtopuser) {
     switch (accident.streamtoptype) {
-      case 1: streamHeader = 'aangepast door ' + accident.streamtopuser; break;
-      case 2: streamHeader = 'nieuw artikel toegevoegd door ' + accident.streamtopuser; break;
-      case 3: streamHeader = 'omhoog geplaatst door ' + accident.streamtopuser; break;
+      case TStreamTopType.edited:       titleModified = ' | aangepast door ' + accident.streamtopuser; break;
+      case TStreamTopType.articleAdded: titleModified = ' | nieuw artikel toegevoegd door ' + accident.streamtopuser; break;
+      case TStreamTopType.placedOnTop:  titleModified = ' | omhoog geplaatst door ' + accident.streamtopuser; break;
     }
-    if (streamHeader) streamHeader += ' ' + datetimeToAge(accident.streamdatetime);
-  } else {
-    streamHeader = 'aangemaakt door ' + accident.user + ' ' + datetimeToAge(accident.createtime);
+    if (titleModified) titleModified += ' ' + datetimeToAge(accident.streamdatetime);
   }
+
+  // Created date is only added if no modified title
+  if (titleModified) titleSmall += titleModified;
+  else titleSmall += ' ' + datetimeToAge(accident.createtime);
 
   const htmlPersons = getAccidentButtonsHTML(accident, false);
 
@@ -297,7 +300,7 @@ Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
    
   <div class="cardTop">
     <div style="width: 100%;">
-      <div class="smallFont cardTitleSmall">${dateToAge(accident.date)} | ${streamHeader}</div>
+      <div class="smallFont cardTitleSmall">${dateToAge(accident.date)} | ${titleSmall}</div>
       <div class="cardTitle">${escapeHtml(accident.title)}</div>
       <div id="accidentPersons${accident.id}">${htmlPersons}</div>
     </div>

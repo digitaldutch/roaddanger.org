@@ -87,7 +87,7 @@ a {
 
 
 .pageSubTitle {
-  font-size:  30px;
+  font-size:  23px;
   text-align: center;
   margin:     5px 0 10px 0;
 }
@@ -981,6 +981,10 @@ a {
 
 .bgRed {
   background-color: #ffbcbc;
+}
+
+.bgOrange {
+  background-color: #ffcc8e;
 }
 
 @media (max-width: 750px) {

@@ -365,11 +365,11 @@ else if ($function === 'getPageMetaData'){
     $articleTags  = $metaData['article'];
     $itemPropTags = $metaData['itemprop'];
     $tagCount     = [
-      'og'       =>count($metaData['og']),
-      'twitter'  =>count($metaData['twitter']),
-      'article'  =>count($metaData['article']),
-      'itemprop' =>count($metaData['itemprop']),
-      'other'    =>count($metaData['other']),
+      'og'       => count($metaData['og']),
+      'twitter'  => count($metaData['twitter']),
+      'article'  => count($metaData['article']),
+      'itemprop' => count($metaData['itemprop']),
+      'other'    => count($metaData['other']),
       ];
 
     // Decode HTML entities to normal text

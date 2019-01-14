@@ -9,6 +9,7 @@ function datetimeDBToISO8601($datetimeDB){
   return $datetime->format('c'); // ISO 8601
 }
 
+
 function headerContainsGZIP($headersRaw){
   function parseHeaders($headers) {
     $headerArray = array();
@@ -119,7 +120,12 @@ function getPageMediaMetaData($url){
 
   // Time tag
   preg_match_all('~<\s*time\s+[^<>]*[datetime]=[\'"]([^"\']*)[\'"]~i', $html,$matches);
-  if (count($matches[1]) > 0) $meta['other']['time'] = $matches[1][0];
+  if (count($matches[1]) > 0) {
+    $dateText     = $matches[1][0];
+    $date         = new DateTime($dateText);
+    $current_date = new DateTime();
+    if ($date < $current_date) $meta['other']['time'] = $date->format('Y-m-d');
+  }
 
   $meta['other']['domain'] = parse_url_all($url)['domain'];
 

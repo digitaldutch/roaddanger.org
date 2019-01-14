@@ -136,7 +136,7 @@ function getNavigation(){
     <div class="navigationSection">
       <div class="navigationSectionHeader">Ongelukken</div>
       <a href="/" class="navItem">Recente ongelukken</a>
-      <a href="/stream" class="navItem">Ongelukken stream</a>
+      <a href="/stream" class="navItem">Laatst gewijzigde ongelukken</a>
     </div>
 
     <div class="navigationSection">

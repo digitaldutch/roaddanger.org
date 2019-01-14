@@ -28,9 +28,25 @@ if (stripos($_SERVER['REQUEST_URI'], '/gebruikers')) {
   if (! $user->admin) $mainHTML = htmlNoAdmin();
   else {
     $mainHTML = <<<HTML
-<div id="main" class="pageInner bgWhite">
+<div id="main" class="pageInner">
   <div class="pageSubTitle">Beheer | Gebruikers</div>
-  <div id="users"></div>
+  <div id="users">
+  
+    <table id="tableUsers" class="dataTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Laatst actief</th>
+          <th>Permissie</th>
+          <th></th>
+        </tr>
+      </thead>  
+      <tbody id="tableBody" onclick="userTableClick(event);">        
+      </tbody>
+    </table>    
+  
+  </div>
   <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
 </div>
 HTML;

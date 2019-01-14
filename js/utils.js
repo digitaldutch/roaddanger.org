@@ -5,11 +5,12 @@ let TTouchDown      = Object.freeze({none:0, openNavigation:1, closeNavigation:2
 let touchDownAction = TTouchDown.none;
 
 // Enumerated types
-const TUserPermission = Object.freeze({newuser: 0, admin: 1, moderator: 2});
+const TUserPermission     = Object.freeze({newuser: 0, admin: 1, moderator: 2});
 const TTransportationMode = Object.freeze({
   unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,
   bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15});
-const THealth = Object.freeze({unknown: 0, unharmed: 1, injured: 2, dead: 3});
+const THealth             = Object.freeze({unknown: 0, unharmed: 1, injured: 2, dead: 3});
+const TStreamTopType      = Object.freeze({unknown: 0, edited: 1, articleAdded: 2, placedOnTop: 3});
 
 const fetchOptions = { // Required for Safari. Safari sets the credentials by default to none, resulting in no cookies being sent and login failure in the AJAX script :(
   method:      'GET',
