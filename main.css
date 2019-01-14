@@ -987,6 +987,15 @@ a {
   background-color: #ffcc8e;
 }
 
+.filterElement {
+  display:      inline-block;
+  margin-right: 5px;
+}
+
+.tableHeader {
+  font-weight: bold;
+}
+
 @media (max-width: 750px) {
   .hideOnMobile {
     display: none !important;

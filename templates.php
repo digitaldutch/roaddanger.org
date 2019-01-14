@@ -140,8 +140,13 @@ function getNavigation(){
     </div>
 
     <div class="navigationSection">
+      <div class="navigationSectionHeader">Statistieken</div>
+      <a href="/statistieken/" class="navItem">Vervoermiddelen</a>
+      <a href="/statistieken/algemeen" class="navItem">Algemeen</a>
+    </div>
+
+    <div class="navigationSection">
       <div class="navigationSectionHeader">Overig</div>
-      <a href="/statistieken/" class="navItem">Statistieken</a>
       <a href="/overdezesite/" class="navItem">Over deze site</a>
     </div>
 

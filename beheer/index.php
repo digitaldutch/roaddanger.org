@@ -29,8 +29,7 @@ if (stripos($_SERVER['REQUEST_URI'], '/gebruikers')) {
   else {
     $mainHTML = <<<HTML
 <div id="main" class="pageInner">
-  <div class="pageSubTitle">Beheer | Gebruikers</div>
-  <div id="users">
+  <div class="pageSubTitle">Beheer - Gebruikers</div>
   
     <table id="tableUsers" class="dataTable">
       <thead>
@@ -46,7 +45,6 @@ if (stripos($_SERVER['REQUEST_URI'], '/gebruikers')) {
       </tbody>
     </table>    
   
-  </div>
   <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
 </div>
 HTML;
@@ -54,7 +52,7 @@ HTML;
 } else if (stripos($_SERVER['REQUEST_URI'], '/exporteren')) {
   $mainHTML = <<<HTML
 <div id="main" class="pageInner bgWhite">
-  <div class="pageSubTitle">Beheer | Exporteren</div>
+  <div class="pageSubTitle">Beheer - Exporteren</div>
   <div id="export">
     <label>Download laatste 1000 ongelukken en artikelen in JSON formaat<br>
     <button class="button" style="margin-left: 0;" onclick="downloadData();">Download data</button></label>

@@ -4,7 +4,7 @@ let editAccidentPersons = [];
 let watchEndOfPage = false;
 let spinnerLoadCard;
 let pageType;
-let TpageType = Object.freeze({stream:0, accident:1, moderations:2, statistics:3, recent: 4});
+let TpageType = Object.freeze({stream:0, accident:1, moderations:2, statistics:3, statisticsGeneral: 4, recent: 5});
 
 function initMain() {
   initPage();
@@ -16,12 +16,13 @@ function initMain() {
   const articleID  = url.searchParams.get('articleid');
   const searchText = url.searchParams.get('search');
 
-  if (url.pathname.startsWith('/moderaties'))        pageType = TpageType.moderations;
-  else if (url.pathname.startsWith('/stream'))       pageType = TpageType.stream;
-  else if (url.pathname.startsWith('/recent'))       pageType = TpageType.recent;
-  else if (url.pathname.startsWith('/statistieken')) pageType = TpageType.statistics;
-  else if (accidentID)                               pageType = TpageType.accident;
-  else                                               pageType = TpageType.recent;
+  if (url.pathname.startsWith('/moderaties'))                 pageType = TpageType.moderations;
+  else if (url.pathname.startsWith('/stream'))                pageType = TpageType.stream;
+  else if (url.pathname.startsWith('/recent'))                pageType = TpageType.recent;
+  else if (url.pathname.startsWith('/statistieken/algemeen')) pageType = TpageType.statisticsGeneral;
+  else if (url.pathname.startsWith('/statistieken'))          pageType = TpageType.statistics;
+  else if (accidentID)                                        pageType = TpageType.accident;
+  else                                                        pageType = TpageType.recent;
 
   if (searchText) {
     document.body.classList.add('searchBody');
@@ -32,7 +33,7 @@ function initMain() {
 
   addEditPersonButtons();
 
-  if (pageType === TpageType.statistics) {
+  if ((pageType === TpageType.statistics) || (pageType === TpageType.statisticsGeneral)) {
     loadStatistics();
   } else if (pageType === TpageType.accident){
     // Single accident details page
@@ -54,22 +55,12 @@ function initMain() {
 }
 
 async function loadStatistics(){
-  try {
-    spinnerLoadCard.style.display = 'block';
 
-    let url        = '/ajax.php?function=getstats';
-    const response = await fetch(url, fetchOptions);
-    const text     = await response.text();
-    data           = JSON.parse(text);
-    if (data.user) updateLoginGUI(data.user);
-    if (data.error) showError(data.error);
-    else {
-      const dbStats = data.statistics;
-
-      let html = '';
-      for (const stat of dbStats.total) {
-        const icon = transportationModeIcon(stat.transportationmode, true);
-        html += `<tr>
+  function showStatisticsTransporation(dbStats) {
+    let html = '';
+    for (const stat of dbStats.total) {
+      const icon = transportationModeIcon(stat.transportationmode, true);
+      html += `<tr>
 <td><div class="flexRow">${icon}<span class="hideOnMobile" style="margin-left: 5px;">${transportationModeText(stat.transportationmode)}</span></div></td>
 <td style="text-align: right;">${stat.dead}</td>
 <td style="text-align: right;">${stat.injured}</td>
@@ -77,9 +68,64 @@ async function loadStatistics(){
 <td style="text-align: right;">${stat.healthunknown}</td>
 <td style="text-align: right;">${stat.child}</td>
 </tr>`;
-      }
-      document.getElementById('tableStatsBody').innerHTML = html;
-      tippy('#tableStatsBody [data-tippy-content]');
+    }
+    document.getElementById('tableStatsBody').innerHTML = html;
+    tippy('#tableStatsBody [data-tippy-content]');
+  }
+
+  function showStatisticsGoingLive(dbStats) {
+    document.getElementById('statisticsGeneral').innerHTML = `
+    <div class="tableHeader">Sinds livegang (14 januari 2019)</div>
+    <table id="tableStats" class="dataTable">
+      <tbody>
+        <tr>
+          <td>Nieuwe leden</td>
+          <td style="text-align: right;">${dbStats.live.users}</td></tr>
+        <tr>
+          <td>Toegevoegde ongelukken</td>
+          <td style="text-align: right;">${dbStats.live.accidents}</td>
+        </tr>
+        <tr>
+          <td>Toegevoegde artikelen</td>
+          <td style="text-align: right;">${dbStats.live.articles}</td>
+        </tr>
+      </tbody>
+    </table>  
+
+    <div class="tableHeader" style="margin-top: 20px;">Totaal</div>
+    <table id="tableStats" class="dataTable">
+      <tbody>
+        <tr>
+          <td>Leden</td>
+          <td style="text-align: right;">${dbStats.total.users}</td>
+        </tr>
+        <tr>
+          <td>Ongelukken</td>
+          <td style="text-align: right;">${dbStats.total.accidents}</td>
+        </tr>
+        <tr>
+          <td>Artikelen</td>
+          <td style="text-align: right;">${dbStats.total.articles}</td>
+        </tr>
+      </tbody>
+    </table>  
+`;
+  }
+
+  try {
+    spinnerLoadCard.style.display = 'block';
+
+    let url        = '/ajax.php?function=getstats';
+    if (pageType === TpageType.statistics) url += '&period=' + document.getElementById('filterStatsPeriod').value
+    if (pageType === TpageType.statisticsGeneral) url += '&type=general';
+    const response = await fetch(url, fetchOptions);
+    const text     = await response.text();
+    data           = JSON.parse(text);
+    if (data.user) updateLoginGUI(data.user);
+    if (data.error) showError(data.error);
+    else {
+      if (pageType === TpageType.statisticsGeneral) showStatisticsGoingLive(data.statistics);
+      else showStatisticsTransporation(data.statistics);
     }
   } catch (error) {
     showError(error.message);

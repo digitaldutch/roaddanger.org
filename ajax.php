@@ -12,8 +12,15 @@ $function = $_REQUEST['function'];
  * @param TDatabase $database
  * @return array
  */
-function getStatistics($database){
+function getStatsTransportation($database, $period='all'){
   $stats = [];
+
+  switch ($period) {
+    case '24hours': $SQLWhere = ' WHERE DATE (`date`) > subdate(NOW(), INTERVAL 24 HOUR) '; break;
+    case '7days':   $SQLWhere = ' WHERE DATE (`date`) > subdate(CURDATE(), 7) '; break;
+    case '30days':  $SQLWhere = ' WHERE DATE (`date`) > subdate(CURDATE(), 30) '; break;
+    default:        $SQLWhere = '';
+  }
 
   $sql = <<<SQL
 SELECT
@@ -28,6 +35,7 @@ SELECT
   COUNT(*) AS total
 FROM accidentpersons ap
 JOIN accidents a ON ap.accidentid = a.id
+  $SQLWhere
 GROUP BY transportationmode
 ORDER BY dead DESC, injured DESC
 SQL;
@@ -45,6 +53,31 @@ SQL;
     $stat['healthunknown']      = (int)$stat['healthunknown'];
     $stat['total']              = (int)$stat['total'];
   }
+
+  return $stats;
+}
+/**
+ * @param TDatabase $database
+ * @return array
+ */
+function getStatsDatabase($database){
+  $stats = [];
+
+  $stats['total'] = [];
+  $sql = "SELECT COUNT(*) AS count FROM accidents";
+  $stats['total']['accidents'] = $database->fetchSingleValue($sql);
+  $sql = "SELECT COUNT(*) AS count FROM articles";
+  $stats['total']['articles'] = $database->fetchSingleValue($sql);
+  $sql = "SELECT COUNT(*) AS count FROM users";
+  $stats['total']['users'] = $database->fetchSingleValue($sql);
+
+  $stats['live'] = [];
+  $sql = "SELECT COUNT(*) FROM accidents WHERE DATE (`createtime`) >= '2019-01-14'";
+  $stats['live']['accidents'] = $database->fetchSingleValue($sql);
+  $sql = "SELECT COUNT(*) FROM articles WHERE DATE (`createtime`) >= '2019-01-14'";
+  $stats['live']['articles'] = $database->fetchSingleValue($sql);
+  $sql = "SELECT COUNT(*) FROM users WHERE DATE (`registrationtime`) >= '2019-01-14'";
+  $stats['live']['users'] = $database->fetchSingleValue($sql);
 
   return $stats;
 }
@@ -672,9 +705,16 @@ else if ($function === 'articleModerateOK'){
 } //==========
 else if ($function === 'getstats'){
   try{
+
+    $period = getRequest('period','all');
+    $type   = getRequest('type','');
+
+    if ($type === 'general') $stats = getStatsDatabase($database);
+    else $stats = getStatsTransportation($database, $period);
+
     $result = ['ok' => true,
-      'statistics' => getStatistics($database),
-      'user' => $user->info()
+      'statistics' => $stats,
+      'user'       => $user->info()
     ];
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];

@@ -5,12 +5,39 @@ require_once 'initialize.php';
 global $VERSION;
 global $user;
 
-if (stripos($_SERVER['REQUEST_URI'], '/statistieken') === 0) {
+if (stripos($_SERVER['REQUEST_URI'], '/statistieken/algemeen') === 0) {
   $mainHTML = <<<HTML
 <div class="pageInner">
-  <div class="pageSubTitle">Statistieken</div>
+  <div class="pageSubTitle">Statistieken - algemeen</div>
+
+  <div id="statisticsGeneral">
+  </div>
+  
+  <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+</div>
+HTML;
+
+  $head = "<script src=\"/js/main.js?v=$VERSION\"></script>";
+
+} else if (stripos($_SERVER['REQUEST_URI'], '/statistieken') === 0) {
+  $mainHTML = <<<HTML
+<div class="pageInner">
+  <div class="pageSubTitle">Statistieken - vervoermiddelen</div>
   <div class="sectionIntro" style="text-align: center;">Dit zijn de cijfers over de ongelukken tot nog toe in de database.</div>
   <div id="statistics">
+  
+    <div style="margin: 5px 10px;">
+      <div class="filterElement">
+        Periode<br>
+        <select id="filterStatsPeriod" oninput="loadStatistics();">
+          <option value="24hours">24 uur</option> 
+          <option value="7days">7 dagen</option> 
+          <option value="30days">30 dagen</option> 
+          <option value="all" selected>Alles</option> 
+        </select>
+      </div>
+    </div>
+
     <table id="tableStats" class="dataTable">
       <thead>
         <tr>
@@ -31,9 +58,8 @@ if (stripos($_SERVER['REQUEST_URI'], '/statistieken') === 0) {
 </div>
 HTML;
 
-  $head = <<<HTML
-<script src="/js/main.js?v=$VERSION"></script>
-HTML;
+  $head = "<script src=\"/js/main.js?v=$VERSION\"></script>";
+
 
 } else {
   if ($_SERVER['REQUEST_URI'] === '/') {
