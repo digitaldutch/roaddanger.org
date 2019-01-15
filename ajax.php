@@ -253,28 +253,30 @@ SQL;
 
     if ($id !== null) {
       // Single accident
-      $params = ['id' => $id];
+      $params = [':id' => $id];
       $SQLWhere = " WHERE ac.id=:id ";
     } else if (($search !== '') || ($siteName !== '')) {
       // Search
-      $params['search']  = $search;
-      $params['search2'] = $search;
 
-
-      $sqlWhereSiteName = '';
-      if ($siteName !== ''){
-        $sqlWhereSiteName = " AND LOWER(ar.sitename) like '%utrecht%' ";
-//        $params['sitename'] = $siteName;
+      $SQLWhereSearch = '';
+      if ($search !== ''){
+        $SQLWhereSearch = "(MATCH(ac.title, ac.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))";
+        $params[':search']  = $search;
+        $params[':search2'] = $search;
       }
-      if ($sqlModerated) $sqlModerated = ' AND ' . $sqlModerated;
+
+      if ($siteName !== ''){
+        $SQLWhereSearch .= ($SQLWhereSearch !== '')? ' AND ' : '';
+        $SQLWhereSearch .= " LOWER(ar.sitename) like :sitename ";
+        $params[':sitename'] = "%$siteName%";
+      }
+      if ($sqlModerated) $SQLWhereSearch .= ' AND ' . $sqlModerated;
 
       $SQLWhere = <<<SQL
  LEFT JOIN articles ar on ac.id = ar.accidentid      
- WHERE (MATCH(ac.title, ac.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))
-    $sqlWhereSiteName
-    $sqlModerated
-ORDER BY streamdatetime DESC
-LIMIT $offset, $count
+ WHERE $SQLWhereSearch
+  ORDER BY streamdatetime DESC
+  LIMIT $offset, $count
 SQL;
     } else {
       // accidents stream

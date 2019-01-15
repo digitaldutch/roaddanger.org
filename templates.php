@@ -71,7 +71,7 @@ $navigation
   <div id="searchBar">
      <input id="searchText" class="searchInput" type="search" placeholder="Zoek tekst" onkeyup="startSearchKey(event);" autocomplete="off">
      <input id="searchSiteName" class="searchInput" type="search" placeholder="Bron" onkeyup="startSearchKey(event);" autocomplete="off">
-     <div class="button" onclick="startSearch(event)">Zoek</div>
+     <div class="button buttonMobileSmall" onclick="startSearch(event)">Zoek</div>
      <div class="closeButton" onclick="toggleSearchBar();"></div>  
   </div>      
 

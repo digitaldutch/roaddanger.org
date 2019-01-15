@@ -336,8 +336,9 @@ a {
 
 #searchBar {
   display:       none;
+  flex-wrap:     wrap;
   align-items:   center;
-  padding:       10px;
+  padding:       10px 20px 10px 10px;
   border-bottom: solid 1px #aaa;
 }
 
@@ -632,7 +633,7 @@ a {
 
 .closeButton {
   position:        absolute;
-  right:           10px;
+  right:           5px;
   background:      url("/images/close.svg") no-repeat center;
   background-size: 25px;
   height:          20px;
@@ -999,5 +1000,13 @@ a {
 @media (max-width: 750px) {
   .hideOnMobile {
     display: none !important;
+  }
+
+  #searchBar input {
+    max-width: 100px;
+  }
+
+  .buttonMobileSmall {
+    min-width: 70px !important;
   }
 }
