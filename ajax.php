@@ -16,10 +16,11 @@ function getStatsTransportation($database, $period='all'){
   $stats = [];
 
   switch ($period) {
-    case '24hours': $SQLWhere = ' WHERE DATE (`date`) > subdate(NOW(), INTERVAL 24 HOUR) '; break;
-    case '7days':   $SQLWhere = ' WHERE DATE (`date`) > subdate(CURDATE(), 7) '; break;
-    case '30days':  $SQLWhere = ' WHERE DATE (`date`) > subdate(CURDATE(), 30) '; break;
-    default:        $SQLWhere = '';
+    case 'today':     $SQLWhere = ' WHERE DATE (`date`) = CURDATE() '; break;
+    case 'yesterday': $SQLWhere = ' WHERE DATE (`date`) = SUBDATE(CURDATE(), 1) '; break;
+    case '7days':     $SQLWhere = ' WHERE DATE (`date`) > SUBDATE(CURDATE(), 7) '; break;
+    case '30days':    $SQLWhere = ' WHERE DATE (`date`) > SUBDATE(CURDATE(), 30) '; break;
+    default:          $SQLWhere = '';
   }
 
   $sql = <<<SQL

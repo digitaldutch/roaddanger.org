@@ -30,7 +30,8 @@ HTML;
       <div class="filterElement">
         Periode<br>
         <select id="filterStatsPeriod" oninput="loadStatistics();">
-          <option value="24hours">24 uur</option> 
+          <option value="today">Vandaag</option> 
+          <option value="yesterday">Gisteren</option> 
           <option value="7days">7 dagen</option> 
           <option value="30days">30 dagen</option> 
           <option value="all" selected>Alles</option> 
