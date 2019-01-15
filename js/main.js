@@ -92,6 +92,42 @@ async function loadStatistics(){
       </tbody>
     </table>  
 
+    <div class="tableHeader" style="margin-top: 20px;">Vandaag</div>
+    <table id="tableStats" class="dataTable">
+      <tbody>
+        <tr>
+          <td>Mensen die zich aangemeld hebben op deze site</td>
+          <td style="text-align: right;">${dbStats.today.users}</td>
+        </tr>
+        <tr>
+          <td>Toegevoegde Ongelukken</td>
+          <td style="text-align: right;">${dbStats.today.crashes}</td>
+        </tr>
+        <tr>
+          <td>Toegevoegde Artikelen</td>
+          <td style="text-align: right;">${dbStats.today.articles}</td>
+        </tr>
+      </tbody>
+    </table>  
+
+    <div class="tableHeader" style="margin-top: 20px;">Gisteren</div>
+    <table id="tableStats" class="dataTable">
+      <tbody>
+        <tr>
+          <td>Mensen die zich aangemeld hebben op deze site</td>
+          <td style="text-align: right;">${dbStats.yesterday.users}</td>
+        </tr>
+        <tr>
+          <td>Toegevoegde Ongelukken</td>
+          <td style="text-align: right;">${dbStats.yesterday.crashes}</td>
+        </tr>
+        <tr>
+          <td>Toegevoegde Artikelen</td>
+          <td style="text-align: right;">${dbStats.yesterday.articles}</td>
+        </tr>
+      </tbody>
+    </table>  
+
     <div class="tableHeader" style="margin-top: 20px;">Totaal</div>
     <table id="tableStats" class="dataTable">
       <tbody>

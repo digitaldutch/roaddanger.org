@@ -72,6 +72,22 @@ function getStatsDatabase($database){
   $sql = "SELECT COUNT(*) AS count FROM users";
   $stats['total']['users'] = $database->fetchSingleValue($sql);
 
+  $stats['today'] = [];
+  $sql = "SELECT COUNT(*) AS count FROM accidents WHERE DATE(`createtime`) = CURDATE()";
+  $stats['today']['crashes'] = $database->fetchSingleValue($sql);
+  $sql = "SELECT COUNT(*) AS count FROM articles WHERE DATE(`createtime`) = CURDATE()";
+  $stats['today']['articles'] = $database->fetchSingleValue($sql);
+  $sql = "SELECT COUNT(*) AS count FROM users WHERE DATE(`registrationtime`) = CURDATE()";
+  $stats['today']['users'] = $database->fetchSingleValue($sql);
+
+  $stats['yesterday'] = [];
+  $sql = "SELECT COUNT(*) AS count FROM accidents WHERE DATE(`createtime`) = SUBDATE(CURDATE(), 1)";
+  $stats['yesterday']['crashes'] = $database->fetchSingleValue($sql);
+  $sql = "SELECT COUNT(*) AS count FROM articles WHERE DATE(`createtime`) = SUBDATE(CURDATE(), 1)";
+  $stats['yesterday']['articles'] = $database->fetchSingleValue($sql);
+  $sql = "SELECT COUNT(*) AS count FROM users WHERE DATE(`registrationtime`) = SUBDATE(CURDATE(), 1)";
+  $stats['yesterday']['users'] = $database->fetchSingleValue($sql);
+
   $stats['live'] = [];
   $sql = "SELECT COUNT(*) FROM accidents WHERE DATE (`createtime`) >= '2019-01-14'";
   $stats['live']['crashes'] = $database->fetchSingleValue($sql);
