@@ -1,10 +1,10 @@
-let accidents = [];
+let crashes = [];
 let articles = [];
-let editAccidentPersons = [];
+let editCrashPersons = [];
 let watchEndOfPage = false;
 let spinnerLoadCard;
 let pageType;
-let TpageType = Object.freeze({stream:0, accident:1, moderations:2, statistics:3, statisticsGeneral: 4, recent: 5});
+let TpageType = Object.freeze({stream:0, crash:1, moderations:2, statistics:3, statisticsGeneral: 4, recent: 5});
 
 function initMain() {
   initPage();
@@ -12,32 +12,32 @@ function initMain() {
   spinnerLoadCard = document.getElementById('spinnerLoad');
 
   const url        = new URL(location.href);
-  const accidentID = getAccidentNumberFromPath(url.pathname);
+  const crashID    = getCrashNumberFromPath(url.pathname);
   const articleID  = url.searchParams.get('articleid');
   const searchText = url.searchParams.get('search');
+  const siteName   = url.searchParams.get('sitename');
 
   if      (url.pathname.startsWith('/moderaties'))            pageType = TpageType.moderations;
   else if (url.pathname.startsWith('/stream'))                pageType = TpageType.stream;
   else if (url.pathname.startsWith('/recent'))                pageType = TpageType.recent;
   else if (url.pathname.startsWith('/statistieken/algemeen')) pageType = TpageType.statisticsGeneral;
   else if (url.pathname.startsWith('/statistieken'))          pageType = TpageType.statistics;
-  else if (accidentID)                                        pageType = TpageType.accident;
+  else if (crashID)                                           pageType = TpageType.crash;
   else                                                        pageType = TpageType.recent;
 
-  if (searchText) {
+  if (searchText || siteName) {
     document.body.classList.add('searchBody');
-    const div = document.getElementById('searchText');
-    div.value = searchText;
-    div.style.display = 'inline-block';
+    document.getElementById('searchText').value     = searchText;
+    document.getElementById('searchSiteName').value = siteName;
   }
 
   addEditPersonButtons();
 
   if ((pageType === TpageType.statistics) || (pageType === TpageType.statisticsGeneral)) {
     loadStatistics();
-  } else if (pageType === TpageType.accident){
-    // Single accident details page
-    loadAccidents(accidentID, articleID);
+  } else if (pageType === TpageType.crash){
+    // Single crash details page
+    loadCrashes(crashID, articleID);
   } else {
     // Infinity scroll event
     // In future switch to IntersectionObserver. At this moment Safari does not support it yet :(
@@ -45,12 +45,12 @@ function initMain() {
       if (watchEndOfPage) {
         if ((spinnerLoadCard.style.display==='block') && isScrolledIntoView(spinnerLoadCard)) {
           watchEndOfPage = false;
-          loadAccidents();
+          loadCrashes();
         }
       }
     });
 
-    loadAccidents();
+    loadCrashes();
   }
 }
 
@@ -79,11 +79,11 @@ async function loadStatistics(){
     <table id="tableStats" class="dataTable">
       <tbody>
         <tr>
-          <td>Nieuwe mensen</td>
+          <td>Nieuwe mensen die zich aangemeld hebben op deze site</td>
           <td style="text-align: right;">${dbStats.live.users}</td></tr>
         <tr>
           <td>Toegevoegde ongelukken</td>
-          <td style="text-align: right;">${dbStats.live.accidents}</td>
+          <td style="text-align: right;">${dbStats.live.crashes}</td>
         </tr>
         <tr>
           <td>Toegevoegde artikelen</td>
@@ -96,12 +96,12 @@ async function loadStatistics(){
     <table id="tableStats" class="dataTable">
       <tbody>
         <tr>
-          <td>Mensen</td>
+          <td>Mensen die zich aangemeld hebben op deze site</td>
           <td style="text-align: right;">${dbStats.total.users}</td>
         </tr>
         <tr>
           <td>Ongelukken</td>
-          <td style="text-align: right;">${dbStats.total.accidents}</td>
+          <td style="text-align: right;">${dbStats.total.crashes}</td>
         </tr>
         <tr>
           <td>Artikelen</td>
@@ -134,9 +134,9 @@ async function loadStatistics(){
   }
 }
 
-async function loadAccidents(accidentID=null, articleID=null){
-  function showAccidents(accidents){
-    if (accidents.length === 0) {
+async function loadCrashes(crashID=null, articleID=null){
+  function showCrashes(crashes){
+    if (crashes.length === 0) {
       let text = '';
       if (pageType === TpageType.moderations) text = 'Geen moderaties gevonden';
       else text = 'Geen ongelukken gevonden';
@@ -146,7 +146,7 @@ async function loadAccidents(accidentID=null, articleID=null){
     }
 
     let html = '';
-    for (let accident of accidents) html += getAccidentHTML(accident.id);
+    for (let crash of crashes) html += getCrashHTML(crash.id);
 
     document.getElementById('cards').innerHTML += html;
     tippy('[data-tippy-content]');
@@ -157,9 +157,12 @@ async function loadAccidents(accidentID=null, articleID=null){
   try {
     spinnerLoadCard.style.display = 'block';
     const searchText = searchVisible()? document.getElementById('searchText').value.trim().toLowerCase() : '';
-    let url          = '/ajax.php?function=loadaccidents&count=' + maxLoadCount + '&offset=' + accidents.length;
-    if (accidentID)                         url += '&id=' + accidentID;
+    const siteName   = searchVisible()? document.getElementById('searchSiteName').value.trim().toLowerCase() : '';
+
+    let url = '/ajax.php?function=loadcrashes&count=' + maxLoadCount + '&offset=' + crashes.length;
+    if (crashID)                            url += '&id=' + crashID;
     if (searchText)                         url += '&search=' + encodeURIComponent(searchText);
+    if (siteName)                           url += '&sitename=' + encodeURIComponent(siteName);
     if (pageType === TpageType.moderations) url += '&moderations=1';
     if (pageType === TpageType.recent)      url += '&sort=accidentdate';
     const response = await fetch(url, fetchOptions);
@@ -168,13 +171,13 @@ async function loadAccidents(accidentID=null, articleID=null){
     if (data.user) updateLoginGUI(data.user);
     if (data.error) showError(data.error);
     else {
-      data.accidents.forEach(accident => {
-        accident.date           = new Date(accident.date);
-        accident.createtime     = new Date(accident.createtime);
-        accident.streamdatetime = new Date(accident.streamdatetime);
+      data.crashes.forEach(crash => {
+        crash.date           = new Date(crash.date);
+        crash.createtime     = new Date(crash.createtime);
+        crash.streamdatetime = new Date(crash.streamdatetime);
 
         let id = 1;
-        accident.persons.forEach(person => person.id = id++);
+        crash.persons.forEach(person => person.id = id++);
       });
 
       data.articles.forEach(article => {
@@ -183,20 +186,20 @@ async function loadAccidents(accidentID=null, articleID=null){
         article.streamdatetime = new Date(article.streamdatetime);
       });
 
-      accidents = accidents.concat(data.accidents);
+      crashes = crashes.concat(data.crashes);
       articles  = articles.concat(data.articles);
     }
   } catch (error) {
     showError(error.message);
   } finally {
     // Hide spinner if all data is loaded
-    if (data.accidents.length < maxLoadCount) spinnerLoadCard.style.display = 'none';
+    if (data.crashes.length < maxLoadCount) spinnerLoadCard.style.display = 'none';
   }
 
-  if (accidentID && (accidents.length === 1)){
-    document.title = accidents[0].title + ' | Het Ongeluk';
+  if (crashID && (crashes.length === 1)){
+    document.title = crashes[0].title + ' | Het Ongeluk';
   }
-  showAccidents(data.accidents);
+  showCrashes(data.crashes);
   highlightSearchText();
 
   setTimeout(()=>{
@@ -229,7 +232,7 @@ function getAccidentGUIButtons(accident){
   return buttons;
 }
 
-function getAccidentHTML(accidentID){
+function getCrashHTML(accidentID){
   const accident        = getAccidentFromID(accidentID);
   const articles        = getAccidentArticles(accident.id);
   const canEditAccident = user.moderator || (accident.userid === user.id);
@@ -282,7 +285,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   if (htmlInvolved){
     htmlInvolved = `
     <div data-info="preventFullBorder">
-      <div class="accidentIcons" onclick="event.stopPropagation();">
+      <div class="cardIcons" onclick="event.stopPropagation();">
         <div class="flexRow" style="justify-content: flex-end">${htmlInvolved}</div>
       </div>
     </div>`;
@@ -303,7 +306,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   if (titleModified) titleSmall += titleModified;
   else titleSmall += ' ' + datetimeToAge(accident.createtime);
 
-  const htmlPersons = getAccidentButtonsHTML(accident, false);
+  const htmlPersons = getcrashButtonsHTML(accident, false);
 
   let htmlModeration = '';
   if (accident.awaitingmoderation){
@@ -333,7 +336,7 @@ Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
   if (user.moderator) htmlMenuEditItems += `<div onclick="accidentToTopStream(${accident.id});" data-moderator>Plaats bovenaan stream</div>`;
 
   return `
-<div id="accident${accident.id}" class="cardAccident" onclick="showAccidentDetails(${accident.id})">
+<div id="accident${accident.id}" class="cardCrash" onclick="showAccidentDetails(${accident.id})">
   <span class="postButtonArea" onclick="event.stopPropagation();">
     <span style="position: relative;"><span class="buttonEditPost buttonDetails"  data-userid="${accident.userid}" onclick="showAccidentMenu(event, ${accident.id});"></span></span>
     <div id="menuAccident${accident.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
@@ -363,7 +366,7 @@ function healthVisible(health){
   return [THealth.dead, THealth.injured].includes(health);
 }
 
-function getAccidentButtonsHTML(accident, showAllHealth=true) {
+function getcrashButtonsHTML(accident, showAllHealth=true) {
   function getGroupButtonHTML(button) {
     if (button.persons.length < 1) return '';
     const person1 = button.persons[0];
@@ -382,10 +385,10 @@ function getAccidentButtonsHTML(accident, showAllHealth=true) {
       if (showHealth)            htmlPerson += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
       if (person.child)          htmlPerson += '<div class="iconMedium bgChild"></div>';
 
-      if (htmlPerson) htmlPersons += `<div class="accidentButtonSub" data-tippy-content="${tooltip}">${htmlPerson}</div>`;
+      if (htmlPerson) htmlPersons += `<div class="crashButtonSub" data-tippy-content="${tooltip}">${htmlPerson}</div>`;
     }
 
-    return `<div class="accidentButton">
+    return `<div class="crashButton">
   ${iconsGroup}
   ${htmlPersons}
 </div>`;
@@ -435,7 +438,7 @@ function selectAccident(accidentID, smooth=false) {
   } else scrollIntoViewIfNeeded(div);
 }
 
-function showEditAccidentForm(event) {
+function showEditCrashForm(event) {
   if (! user.loggedin){
      showLoginForm();
      return;
@@ -461,15 +464,15 @@ function showEditAccidentForm(event) {
   document.getElementById('editAccidentTrafficJam').classList.remove('buttonSelected');
   document.getElementById('editAccidentTree').classList.remove('buttonSelected');
 
-  editAccidentPersons = [];
-  refreshAccidentPersonsGUI(editAccidentPersons);
+  editCrashPersons = [];
+  refreshAccidentPersonsGUI(editCrashPersons);
 
   document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'inline-block';});
 
-  document.getElementById('editAccidentSection').style.display = 'flex';
+  document.getElementById('editCrashSection').style.display = 'flex';
   document.getElementById('editArticleSection').style.display  = 'flex';
 
-  document.getElementById('formEditAccident').style.display    = 'flex';
+  document.getElementById('formEditCrash').style.display    = 'flex';
 
   document.getElementById('editArticleUrl').focus();
 
@@ -582,13 +585,13 @@ function savePerson(stayOpen=false) {
     person = getPersonFromID(personID);
     loadPersonFromGUI(person);
   } else {
-    person = {id: editAccidentPersons.length + 1};
+    person = {id: editCrashPersons.length + 1};
     loadPersonFromGUI(person);
 
-    editAccidentPersons.push(person);
+    editCrashPersons.push(person);
   }
 
-  refreshAccidentPersonsGUI(editAccidentPersons);
+  refreshAccidentPersonsGUI(editCrashPersons);
 
   if (stayOpen !== true) closeEditPersonForm();
   else showMessage('Persoon opgeslagen', 1);
@@ -598,8 +601,8 @@ function deletePerson() {
   confirmMessage('Persoon verwijderen?',
     function () {
       const personID      = parseInt(document.getElementById('personIDHidden').value);
-      editAccidentPersons = editAccidentPersons.filter(person => person.id !== personID);
-      refreshAccidentPersonsGUI(editAccidentPersons);
+      editCrashPersons = editCrashPersons.filter(person => person.id !== personID);
+      refreshAccidentPersonsGUI(editCrashPersons);
       closeEditPersonForm();
     });
 }
@@ -614,13 +617,13 @@ function refreshAccidentPersonsGUI(persons=[]) {
     let buttonsOptions = '';
     if (person.child)          buttonsOptions += '<div class="iconSmall bgChild" data-tippy-content="Kind"></div>';
 
-    html += `<div class="editAccidentPerson" onclick="showEditPersonForm(${person.id});">
+    html += `<div class="editCrashPerson" onclick="showEditPersonForm(${person.id});">
 ${iconHealth} ${iconTransportation} ${buttonsOptions}
 </div>
 `;
   }
 
-  document.getElementById('editAccidentPersons').innerHTML = html;
+  document.getElementById('editCrashPersons').innerHTML = html;
   tippy('[data-tippy-content]');
 }
 
@@ -629,7 +632,7 @@ function setNewArticleAccidentFields(accidentID){
   const accidentDatetime = new Date(accident.date);
 
   // Shallow copy
-  editAccidentPersons = clone(accident.persons);
+  editCrashPersons = clone(accident.persons);
 
   document.getElementById('accidentIDHidden').value           = accident.id;
 
@@ -652,7 +655,7 @@ function openArticleLink(event, articleID) {
 
 function editArticle(accidentID, articleID) {
   closeAllPopups();
-  showEditAccidentForm();
+  showEditCrashForm();
   setNewArticleAccidentFields(accidentID);
 
   const article = getArticleFromID(articleID);
@@ -669,24 +672,24 @@ function editArticle(accidentID, articleID) {
   document.getElementById('editArticleSiteName').value        = article.sitename;
   document.getElementById('editArticleDate').value            = dateToISO(article.publishedtime);
 
-  document.getElementById('formEditAccident').style.display    = 'flex';
-  document.getElementById('editAccidentSection').style.display = 'none';
+  document.getElementById('formEditCrash').style.display    = 'flex';
+  document.getElementById('editCrashSection').style.display = 'none';
 }
 
 function addArticleToAccident(accidentID) {
   closeAllPopups();
 
-  showEditAccidentForm();
+  showEditCrashForm();
   setNewArticleAccidentFields(accidentID);
 
   document.getElementById('editHeader').innerText              = 'Artikel toevoegen';
-  document.getElementById('editAccidentSection').style.display = 'none';
+  document.getElementById('editCrashSection').style.display = 'none';
 }
 
 function editAccident(accidentID) {
   closeAllPopups();
 
-  showEditAccidentForm();
+  showEditCrashForm();
   setNewArticleAccidentFields(accidentID);
 
   document.getElementById('editHeader').innerText                 = 'Ongeluk bewerken';
@@ -821,7 +824,7 @@ other tags: ${data.tagcount.other}
 }
 
 async function saveArticleAccident(){
-  let accidentEdited;
+  let crashEdited;
   let articleEdited;
 
   const saveArticle = document.getElementById('editArticleSection').style.display !== 'none';
@@ -851,25 +854,25 @@ async function saveArticleAccident(){
     if (! articleEdited.date)                         {showError('Geen artikel datum ingevuld'); return;}
   }
 
-  accidentEdited = {
+  crashEdited = {
     id:         document.getElementById('accidentIDHidden').value,
     title:      document.getElementById('editAccidentTitle').value,
     text:       document.getElementById('editAccidentText').value,
     date:       document.getElementById('editAccidentDate').value,
-    persons:    editAccidentPersons,
+    persons:    editCrashPersons,
     pet:        document.getElementById('editAccidentPet').classList.contains('buttonSelected'),
     trafficjam: document.getElementById('editAccidentTrafficJam').classList.contains('buttonSelected'),
     tree:       document.getElementById('editAccidentTree').classList.contains('buttonSelected'),
   };
 
-  if (accidentEdited.id) accidentEdited.id = parseInt(accidentEdited.id);
+  if (crashEdited.id) crashEdited.id = parseInt(crashEdited.id);
 
-  const saveAccident = document.getElementById('editAccidentSection').style.display !== 'none';
+  const saveAccident = document.getElementById('editCrashSection').style.display !== 'none';
   if (saveAccident){
-    if (saveArticle && (! user.moderator)) accidentEdited.title = articleEdited.title;
-    if (!accidentEdited.title)               {showError('Geen ongeluk titel ingevuld'); return;}
-    if (!accidentEdited.date)                {showError('Geen ongeluk datum ingevuld'); return;}
-    if (accidentEdited.persons.length === 0) {showError('Geen personen toegevoegd'); return;}
+    if (saveArticle && (! user.moderator)) crashEdited.title = articleEdited.title;
+    if (!crashEdited.title)               {showError('Geen ongeluk titel ingevuld'); return;}
+    if (!crashEdited.date)                {showError('Geen ongeluk datum ingevuld'); return;}
+    if (crashEdited.persons.length === 0) {showError('Geen personen toegevoegd'); return;}
   }
 
   const url = '/ajax.php?function=saveArticleAccident';
@@ -877,7 +880,7 @@ async function saveArticleAccident(){
     method:  'POST',
     body: JSON.stringify({
       article:      articleEdited,
-      accident:     accidentEdited,
+      accident:     crashEdited,
       savearticle:  saveArticle,
       saveaccident: saveAccident,
     }),
@@ -889,27 +892,27 @@ async function saveArticleAccident(){
   if (data.error) {
     showError(data.error, 10);
   } else {
-    const editingAccident = accidentEdited.id !== '';
+    const editingAccident = crashEdited.id !== '';
     // No reload only if editing accident. Other cases for now give problems and require a full page reload.
     if ((! saveArticle) && editingAccident && ((pageType === TpageType.stream) || (pageType === TpageType.recent))) {
-      let i = accidents.findIndex(a => {return a.id === accidentEdited.id});
-      accidents[i].title      = accidentEdited.title;
-      accidents[i].text       = accidentEdited.text;
-      accidents[i].persons    = accidentEdited.persons;
-      accidents[i].date       = new Date(accidentEdited.date);
-      accidents[i].pet        = accidentEdited.pet;
-      accidents[i].tree       = accidentEdited.tree;
-      accidents[i].trafficjam = accidentEdited.trafficjam;
-      document.getElementById('accident' + accidentEdited.id).outerHTML = getAccidentHTML(accidentEdited.id);
+      let i = crashes.findIndex(a => {return a.id === crashEdited.id});
+      crashes[i].title      = crashEdited.title;
+      crashes[i].text       = crashEdited.text;
+      crashes[i].persons    = crashEdited.persons;
+      crashes[i].date       = new Date(crashEdited.date);
+      crashes[i].pet        = crashEdited.pet;
+      crashes[i].tree       = crashEdited.tree;
+      crashes[i].trafficjam = crashEdited.trafficjam;
+      document.getElementById('accident' + crashEdited.id).outerHTML = getCrashHTML(crashEdited.id);
     } else {
-      window.location.href = createAccidentURL(data.accidentid, accidentEdited.title);
+      window.location.href = createAccidentURL(data.accidentid, crashEdited.title);
       let text = '';
       if (articleEdited) {
         text = articleEdited.id? 'Artikel opgeslagen' : 'Artikel toegevoegd';
       } else text = 'Ongeluk opgeslagen';
       showMessage(text, 1);
     }
-    hideDiv('formEditAccident');
+    hideDiv('formEditCrash');
   }
 }
 
@@ -934,11 +937,11 @@ function showAccidentMenu(event, accidentID) {
 }
 
 function getAccidentFromID(id){
-  return accidents.find(accident => accident.id === id);
+  return crashes.find(accident => accident.id === id);
 }
 
 function getPersonFromID(id){
-  return editAccidentPersons.find(person => person.id === id);
+  return editCrashPersons.find(person => person.id === id);
 }
 
 function getArticleFromID(id){
@@ -981,7 +984,7 @@ async function deleteAccidentDirect(accidentID) {
     if (data.error) showError(data.error);
     else {
       // Remove accident from accidents array
-      accidents = accidents.filter(a => a.id !== accidentID);
+      crashes = crashes.filter(a => a.id !== accidentID);
       // Delete the GUI element
       document.getElementById('accident' + accidentID).remove();
       showMessage('Ongeluk verwijderd');
@@ -992,11 +995,11 @@ async function deleteAccidentDirect(accidentID) {
 }
 
 function reloadAccidents(){
-  accidents = [];
+  crashes = [];
   articles  = [];
   document.getElementById('cards').innerHTML = '';
   window.scrollTo(0, 0);
-  loadAccidents();
+  loadCrashes();
 }
 
 function deleteArticle(id) {
@@ -1041,7 +1044,7 @@ function changeAccidentInvolved(item, event) {
 }
 
 function accidentByID(id) {
-  return accidents.find(a => a.id === id);
+  return crashes.find(a => a.id === id);
 }
 
 function showAccidentDetails(id){
@@ -1063,8 +1066,10 @@ function startSearchKey(event) {
 }
 
 function startSearch() {
-  const searchText = document.getElementById('searchText').value.trim().toLowerCase()
-  const url = window.location.origin + '?search=' + encodeURIComponent(searchText);
+  const searchText     = document.getElementById('searchText').value.trim().toLowerCase()
+  const searchSiteName = document.getElementById('searchSiteName').value.trim().toLowerCase()
+  let url = window.location.origin + '?search=' + encodeURIComponent(searchText);
+  if (searchSiteName) url += '&sitename=' + encodeURIComponent(searchSiteName);
   window.history.pushState(null, null, url);
   reloadAccidents();
 }

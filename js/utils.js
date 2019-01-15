@@ -428,7 +428,7 @@ function scrollIntoViewIfNeeded(target) {
   }
 }
 
-function getAccidentNumberFromPath(path){
+function getCrashNumberFromPath(path){
   const matches = path.match(/^[\/]?(\d+)/);
   if (matches && (matches.length === 2)) return parseInt(matches[1]);
   else return null;

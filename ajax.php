@@ -66,7 +66,7 @@ function getStatsDatabase($database){
 
   $stats['total'] = [];
   $sql = "SELECT COUNT(*) AS count FROM accidents";
-  $stats['total']['accidents'] = $database->fetchSingleValue($sql);
+  $stats['total']['crashes'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) AS count FROM articles";
   $stats['total']['articles'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) AS count FROM users";
@@ -74,7 +74,7 @@ function getStatsDatabase($database){
 
   $stats['live'] = [];
   $sql = "SELECT COUNT(*) FROM accidents WHERE DATE (`createtime`) >= '2019-01-14'";
-  $stats['live']['accidents'] = $database->fetchSingleValue($sql);
+  $stats['live']['crashes'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) FROM articles WHERE DATE (`createtime`) >= '2019-01-14'";
   $stats['live']['articles'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) FROM users WHERE DATE (`registrationtime`) >= '2019-01-14'";
@@ -188,20 +188,21 @@ SQL;
 
   echo json_encode($result);
 } // ====================
-else if ($function === 'loadaccidents') {
+else if ($function === 'loadcrashes') {
   try {
-    $offset      = (int)getRequest('offset',0);
-    $count       = (int)getRequest('count', 100);
-    $id          = isset($_REQUEST['id'])? (int)$_REQUEST['id'] : null;
-    $search      = isset($_REQUEST['search'])? $_REQUEST['search'] : '';
-    $moderations = (int)getRequest('moderations', 0);
-    $sort        = getRequest('sort');
-    $export      = (int)getRequest('export', 0);
+    $offset         = (int)getRequest('offset',0);
+    $count          = (int)getRequest('count', 100);
+    $id             = isset($_REQUEST['id'])? (int)$_REQUEST['id'] : null;
+    $search         = isset($_REQUEST['search'])? $_REQUEST['search'] : '';
+    $siteName       = isset($_REQUEST['sitename'])? $_REQUEST['sitename'] : '';
+    $moderations    = (int)getRequest('moderations', 0);
+    $sort           = getRequest('sort');
+    $export         = (int)getRequest('export', 0);
 
     if ($count > 1000) throw new Exception('Internal error: Count to high.');
     if ($moderations && (! $user->isModerator())) throw new Exception('Moderaties zijn alleen zichtbaar voor moderators.');
 
-    $accidents    = [];
+    $crashes    = [];
     $articles     = [];
     $params       = [];
     $sqlModerated = '';
@@ -254,17 +255,23 @@ SQL;
       // Single accident
       $params = ['id' => $id];
       $SQLWhere = " WHERE ac.id=:id ";
-    } else if ($search !== '') {
-      // Text search
+    } else if (($search !== '') || ($siteName !== '')) {
+      // Search
       $params['search']  = $search;
       $params['search2'] = $search;
 
+
+      $sqlWhereSiteName = '';
+      if ($siteName !== ''){
+        $sqlWhereSiteName = " AND LOWER(ar.sitename) like '%utrecht%' ";
+//        $params['sitename'] = $siteName;
+      }
       if ($sqlModerated) $sqlModerated = ' AND ' . $sqlModerated;
 
       $SQLWhere = <<<SQL
  LEFT JOIN articles ar on ac.id = ar.accidentid      
- WHERE MATCH(ac.title, ac.text) AGAINST (:search  IN BOOLEAN MODE)
-    OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE)
+ WHERE (MATCH(ac.title, ac.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))
+    $sqlWhereSiteName
     $sqlModerated
 ORDER BY streamdatetime DESC
 LIMIT $offset, $count
@@ -307,10 +314,10 @@ SQL;
       }
 
       $ids[] = $accident['id'];
-      $accidents[] = $accident;
+      $crashes[] = $accident;
     }
 
-    if (count($accidents) > 0){
+    if (count($crashes) > 0){
       $params = [];
       $sqlModerated = '';
       if ($moderations) {
@@ -358,7 +365,7 @@ SQL;
       }
     }
 
-    $result = ['ok' => true, 'accidents' => $accidents, 'articles' => $articles];
+    $result = ['ok' => true, 'crashes' => $crashes, 'articles' => $articles];
     if ($offset === 0) {
       $result['user'] = $user->info();
     }

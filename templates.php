@@ -1,6 +1,6 @@
 <?php
 
-function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $showAccidentMenu=false){
+function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $showCrashMenu=false){
   global $VERSION;
 
   $title = 'Het Ongeluk';
@@ -20,9 +20,9 @@ HTML;
   } else $cookieWarning = '';
 
   $mainMenuItems = '';
-  if ($showAccidentMenu) $mainMenuItems = <<<HTML
+  if ($showCrashMenu) $mainMenuItems = <<<HTML
   <div id="buttonSearch" class="menuButton buttonSearch" onclick="toggleSearchBar(event);"></div>
-  <div id="buttonNewArticle" class="menuButton buttonAdd" onclick="showEditAccidentForm();"></div>
+  <div id="buttonNewArticle" class="menuButton buttonAdd" onclick="showEditCrashForm();"></div>
 HTML;
 
   return <<<HTML
@@ -69,7 +69,8 @@ $navigation
   </div>
   
   <div id="searchBar">
-     <input id="searchText" type="search" placeholder="Zoek" onkeyup="startSearchKey(event);" autocomplete="off">
+     <input id="searchText" class="searchInput" type="search" placeholder="Zoek tekst" onkeyup="startSearchKey(event);" autocomplete="off">
+     <input id="searchSiteName" class="searchInput" type="search" placeholder="Bron" onkeyup="startSearchKey(event);" autocomplete="off">
      <div class="button" onclick="startSearch(event)">Zoek</div>
      <div class="closeButton" onclick="toggleSearchBar();"></div>  
   </div>      
@@ -83,7 +84,7 @@ HTML;
 
 function getHTMLEnd($htmlEnd='', $flexFullPage=false){
   $htmlFlex = $flexFullPage? '</div>' : '';
-  $forms    = getHTMLConfirm() . getLoginForm() . getFormEditAccident() . getFormMergeAccident() . getFormEditPerson();
+  $forms    = getHTMLConfirm() . getLoginForm() . getFormEditCrash() . getFormMergeCrash() . getFormEditPerson();
   return <<<HTML
     $htmlEnd 
     <div id="floatingMessage" class="floatingMessage" onclick="hideMessage();">
@@ -216,9 +217,9 @@ function getLoginForm() {
 HTML;
 }
 
-function getFormEditAccident(){
+function getFormEditCrash(){
   return <<<HTML
-<div id="formEditAccident" class="popupOuter" onclick="closePopupForm();">
+<div id="formEditCrash" class="popupOuter" onclick="closePopupForm();">
 
   <form class="formFullPage" onclick="event.stopPropagation();">
     
@@ -260,7 +261,7 @@ function getFormEditAccident(){
       <input id="editArticleDate" class="popupInput" type="date" autocomplete="off">
     </div>
 
-    <div id="editAccidentSection" class="flexColumn">
+    <div id="editCrashSection" class="flexColumn">
       <div class="formSubHeader">Ongeluk</div>
      
       <input id="accidentIDHidden" type="hidden">
@@ -287,7 +288,7 @@ function getFormEditAccident(){
           
       <div style="margin-top: 5px;">
         <div>Betrokken personen <span class="button buttonGray buttonLine" onclick="showEditPersonForm();">Persoon toevoegen</span></div>   
-        <div id="editAccidentPersons"></div>
+        <div id="editCrashPersons"></div>
       </div>
 
       <div style="margin-top: 5px; display: none;">
@@ -310,7 +311,7 @@ function getFormEditAccident(){
 HTML;
 }
 
-function getFormMergeAccident(){
+function getFormMergeCrash(){
   return <<<HTML
 <div id="formMergeAccident" class="popupOuter" onclick="closePopupForm();">
 

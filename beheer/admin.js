@@ -94,7 +94,7 @@ function showUserMenu(target) {
   let td = target.closest('td');
   td.innerHTML += `
 <div id="menuArticleUser" class="buttonPopupMenu" style="display: block !important;" onclick="event.preventDefault();">
-  <div onclick="adminEditUser();">Bewerken</div>
+  <div onclick="adminEditUser();">Aanpassen</div>
   <div onclick="adminDeleteUser()">Verwijderen</div>
 </div>            
   `;
@@ -204,13 +204,11 @@ function downloadData() {
     spinner.style.display = 'block';
     try {
       const maxLoadCount = 1000;
-      let url        = '/ajax.php?function=loadaccidents&count=' + maxLoadCount;
-
-
+      let url        = '/ajax.php?function=loadcrashes&count=' + maxLoadCount;
       const response = await fetch(url, fetchOptions);
       const text     = await response.text();
       const data     = JSON.parse(text);
-      const dataExport = {accidents: data.accidents, articles: data.articles};
+      const dataExport = {crashes: data.crashes, articles: data.articles};
 
       download('hetongeluk.json', JSON.stringify(dataExport));
     } finally {
