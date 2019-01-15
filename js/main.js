@@ -16,7 +16,7 @@ function initMain() {
   const articleID  = url.searchParams.get('articleid');
   const searchText = url.searchParams.get('search');
 
-  if (url.pathname.startsWith('/moderaties'))                 pageType = TpageType.moderations;
+  if      (url.pathname.startsWith('/moderaties'))            pageType = TpageType.moderations;
   else if (url.pathname.startsWith('/stream'))                pageType = TpageType.stream;
   else if (url.pathname.startsWith('/recent'))                pageType = TpageType.recent;
   else if (url.pathname.startsWith('/statistieken/algemeen')) pageType = TpageType.statisticsGeneral;
@@ -56,7 +56,7 @@ function initMain() {
 
 async function loadStatistics(){
 
-  function showStatisticsTransporation(dbStats) {
+  function showStatisticsTransportation(dbStats) {
     let html = '';
     for (const stat of dbStats.total) {
       const icon = transportationModeIcon(stat.transportationmode, true);
@@ -125,7 +125,7 @@ async function loadStatistics(){
     if (data.error) showError(data.error);
     else {
       if (pageType === TpageType.statisticsGeneral) showStatisticsGoingLive(data.statistics);
-      else showStatisticsTransporation(data.statistics);
+      else showStatisticsTransportation(data.statistics);
     }
   } catch (error) {
     showError(error.message);
@@ -266,7 +266,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
     
     ${htmlModeration}     
   
-    <div class="smallFont"><span class="cardSitename">${escapeHtml(article.sitename)}</span> • ${dateToAge(article.publishedtime)}</div>
+    <div class="smallFont"><span class="cardSitename">${escapeHtml(article.sitename)}</span> | ${dateToAge(article.publishedtime)} | toegevoegd door ${article.user}</div>
   
     <div class="articleTitle">${escapeHtml(article.title)}</div>
     <div class="postText">${escapeHtml(article.text)}</div>
@@ -292,9 +292,9 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   let titleModified = '';
   if (accident.streamtopuser) {
     switch (accident.streamtoptype) {
-      case TStreamTopType.edited:       titleModified = ' | aangepast door ' + accident.streamtopuser; break;
+      case TStreamTopType.edited:       titleModified = ' | aangepast door '                + accident.streamtopuser; break;
       case TStreamTopType.articleAdded: titleModified = ' | nieuw artikel toegevoegd door ' + accident.streamtopuser; break;
-      case TStreamTopType.placedOnTop:  titleModified = ' | omhoog geplaatst door ' + accident.streamtopuser; break;
+      case TStreamTopType.placedOnTop:  titleModified = ' | omhoog geplaatst door '         + accident.streamtopuser; break;
     }
     if (titleModified) titleModified += ' ' + datetimeToAge(accident.streamdatetime);
   }
