@@ -8,7 +8,7 @@ function initAdmin(){
   loadUserData();
 
   const url = new URL(location.href);
-  if (url.pathname.startsWith('/beheer/gebruikers')) {
+  if (url.pathname.startsWith('/beheer/mensen')) {
     // Infinity scroll event
     // In future switch to IntersectionObserver. At this moment Safari does not support it yet :(
     document.addEventListener("scroll", (event) => {
@@ -144,7 +144,7 @@ async function deleteUserDirect() {
     else {
       users = users.filter(user => user.id !== userID);
       document.getElementById('truser' + userID).remove();
-      showMessage('Gebruiker verwijderd');
+      showMessage('Lid verwijderd');
     }
   } catch (error) {
     showError(error.message);
@@ -152,7 +152,7 @@ async function deleteUserDirect() {
 }
 
 async function adminDeleteUser() {
-  confirmMessage(`Gebruiker #${user.id} "${selectedUser.name}" en alle items die deze gebruiker heeft aangemaakt verwijderen?<br><br><b>Dit kan niet ongedaan worden!</b>`,
+  confirmMessage(`Lid #${user.id} "${selectedUser.name}" en alle items die dit lid heeft aangemaakt verwijderen?<br><br><b>Dit kan niet ongedaan worden!</b>`,
     function (){
       deleteUserDirect();
     },
@@ -188,7 +188,7 @@ async function adminDeleteUser() {
   if (data.error) {
     showError(data.error, 10);
   } else {
-    showMessage('Gebruiker opgeslagen', 1);
+    showMessage('Lid opgeslagen', 1);
     window.location.reload();
   }
 }

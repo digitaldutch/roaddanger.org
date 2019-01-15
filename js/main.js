@@ -79,7 +79,7 @@ async function loadStatistics(){
     <table id="tableStats" class="dataTable">
       <tbody>
         <tr>
-          <td>Nieuwe leden</td>
+          <td>Nieuwe mensen</td>
           <td style="text-align: right;">${dbStats.live.users}</td></tr>
         <tr>
           <td>Toegevoegde ongelukken</td>
@@ -96,7 +96,7 @@ async function loadStatistics(){
     <table id="tableStats" class="dataTable">
       <tbody>
         <tr>
-          <td>Leden</td>
+          <td>Mensen</td>
           <td style="text-align: right;">${dbStats.total.users}</td>
         </tr>
         <tr>
@@ -325,11 +325,12 @@ Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
   if (canEditAccident) {
     htmlMenuEditItems = `
       <div onclick="editAccident(${accident.id});">Bewerken</div>
+      <div onclick="showMergeAccidentForm(${accident.id});">Samenvoegen</div>
       <div onclick="deleteAccident(${accident.id});">Verwijderen</div>
 `;
   }
 
-  let htmlMenuItemStreamTop = user.moderator? `<div onclick="accidentToTopStream(${accident.id});" data-moderator>Plaats bovenaan stream</div>` : '';
+  if (user.moderator) htmlMenuEditItems += `<div onclick="accidentToTopStream(${accident.id});" data-moderator>Plaats bovenaan stream</div>`;
 
   return `
 <div id="accident${accident.id}" class="cardAccident" onclick="showAccidentDetails(${accident.id})">
@@ -338,7 +339,6 @@ Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
     <div id="menuAccident${accident.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
       <div onclick="addArticleToAccident(${accident.id});">Artikel toevoegen</div>
       ${htmlMenuEditItems}
-      ${htmlMenuItemStreamTop}
     </div>            
   </span>        
 
@@ -1015,6 +1015,17 @@ function deleteAccident(id) {
   confirmMessage(`Ongeluk "${accident.title.substr(0, 100)}" verwijderen?`,
     function (){deleteAccidentDirect(id)},
     'Verwijder ongeluk', null, true);
+}
+
+function showMergeAccidentForm(id) {
+  closeAllPopups();
+  const accident = getAccidentFromID(id);
+
+  document.getElementById('formMergeAccident').style.display = 'flex';
+}
+
+function mergeAccident() {
+
 }
 
 function showMainSpinner(){

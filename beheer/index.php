@@ -24,12 +24,12 @@ function htmlNoAdmin(){
 HTML;
 }
 
-if (stripos($_SERVER['REQUEST_URI'], '/gebruikers')) {
+if (stripos($_SERVER['REQUEST_URI'], '/mensen')) {
   if (! $user->admin) $mainHTML = htmlNoAdmin();
   else {
     $mainHTML = <<<HTML
 <div id="main" class="pageInner">
-  <div class="pageSubTitle">Beheer - Gebruikers</div>
+  <div class="pageSubTitle">Beheer - mensen</div>
   
     <table id="tableUsers" class="dataTable">
       <thead>

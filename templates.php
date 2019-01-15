@@ -83,7 +83,7 @@ HTML;
 
 function getHTMLEnd($htmlEnd='', $flexFullPage=false){
   $htmlFlex = $flexFullPage? '</div>' : '';
-  $forms    = getHTMLConfirm() . getLoginForm() . getFormEditAccident() . getFormEditPerson();
+  $forms    = getHTMLConfirm() . getLoginForm() . getFormEditAccident() . getFormMergeAccident() . getFormEditPerson();
   return <<<HTML
     $htmlEnd 
     <div id="floatingMessage" class="floatingMessage" onclick="hideMessage();">
@@ -154,7 +154,7 @@ function getNavigation(){
       <div class="navigationSectionHeader">Beheer</div>
   
       <div class="navigationSection">
-        <a href="/beheer/gebruikers" class="navItem" data-admin>Gebruikers</a>
+        <a href="/beheer/mensen" class="navItem" data-admin>Mensen</a>
         <a href="/moderaties/" class="navItem">Moderaties</a>
         <a href="/beheer/exporteren/" class="navItem">Exporteer data</a>
       </div>      
@@ -310,6 +310,37 @@ function getFormEditAccident(){
 HTML;
 }
 
+function getFormMergeAccident(){
+  return <<<HTML
+<div id="formMergeAccident" class="popupOuter" onclick="closePopupForm();">
+
+  <form class="formFullPage" onclick="event.stopPropagation();">
+    
+    <div class="popupHeader">Ongeluk samenvoegen</div>
+    <div class="popupCloseCross" onclick="closePopupForm();"></div>
+
+    <input id="mergeFromAccidentIDHidden" type="hidden">
+
+    <div id="mergeAccidentSection" class="flexColumn">
+      <div class="formSubHeader">Samenvoegen met</div>
+     
+      <input id="mergeToAccidentIDHidden" type="hidden">
+  
+      <label for="mergeAccidentSearch">Zoek ongeluk</label> 
+      <input id="mergeAccidentSearch" class="popupInput" type="search" autocomplete="off">
+  
+    </div>
+            
+    <div class="popupFooter">
+      <input id="buttonMergeArticle" type="button" class="button" value="Opslaan" onclick="mergeAccident();">
+      <input type="button" class="button buttonGray" value="Annuleren" onclick="closePopupForm();">
+    </div>    
+  </form>
+  
+</div>
+HTML;
+}
+
 function getFormEditPerson(){
   return <<<HTML
 <div id="formEditPerson" class="popupOuter" style="z-index: 501;" onclick="closeEditPersonForm();">
@@ -357,7 +388,7 @@ function getFormEditUser(){
 <div id="formEditUser" class="popupOuter" onclick="closePopupForm();">
   <form class="formFullPage" onclick="event.stopPropagation();">
     
-    <div id="editHeader" class="popupHeader">Gebruiker bewerken</div>
+    <div id="editHeader" class="popupHeader">Mens gegevens aanpassen</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
 
     <input id="userID" type="hidden">

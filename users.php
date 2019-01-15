@@ -210,7 +210,7 @@ SQL;
     $this->database->execute($sql, $params);
     $userId = $this->database->lastInsertID();
 
-    $this->database->log($userId, TLogLevel::info, "Nieuwe gebruiker registratie.");
+    $this->database->log($userId, TLogLevel::info, "Nieuw mens registratie.");
 
     return $userId;
   }

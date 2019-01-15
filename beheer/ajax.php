@@ -7,7 +7,7 @@ $userInfo = $user->info();
 
 // Only admins allowed
 if (! $user->admin) {
-  $result = ['ok' => false, 'error' => 'Gebruiker is geen beheerder', 'user' => $userInfo];
+  $result = ['ok' => false, 'error' => 'Mens is geen beheerder', 'user' => $userInfo];
   die(json_encode($result));
 }
 
@@ -88,7 +88,7 @@ else if ($function === 'deleteuser') {
       $params = array(':id' => $id);
 
       $database->execute($sql, $params, true);
-      if ($database->rowCount === 0) throw new Exception('Kan gebruiker niet verwijderen.');
+      if ($database->rowCount === 0) throw new Exception('Kan mens niet verwijderen.');
     }
     $result = ['ok' => true];
   } catch (Exception $e){
