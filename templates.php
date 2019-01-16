@@ -227,10 +227,12 @@ function getFormEditCrash(){
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
 
     <div id="editArticleSection" class="flexColumn">
+      <div class="formSubHeader">Artikel</div>
+
       <input id="articleIDHidden" type="hidden">
   
       <div class="labelDiv">
-        <label for="editArticleUrl">Artikel link (URL)</label>
+        <label for="editArticleUrl">Link (URL)</label>
         <span class="iconTooltip" data-tippy-content="Kopieer de link uit de adresbalk van de webpagina met het artikel"></span>
       </div>
 
@@ -291,12 +293,12 @@ function getFormEditCrash(){
         <div id="editCrashPersons"></div>
       </div>
 
-      <div style="margin-top: 5px; display: none;">
-        <div>Kenmerken</div>
+      <div style="margin-top: 5px;">
+        <div>Kenmerken van ongeluk</div>
         <div>
-          <span id="editAccidentPet" class="menuButton bgPet" data-tippy-content="Dier(en)" onclick="changeAccidentInvolved(this, event);"></span>      
+          <span id="editAccidentPet" style="display: none;" class="menuButton bgPet" data-tippy-content="Dier(en)" onclick="changeAccidentInvolved(this, event);"></span>      
           <span id="editAccidentTrafficJam" class="menuButton bgTrafficJam" data-tippy-content="File/Hinder" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentTree" class="menuButton bgTree" data-tippy-content="Boom/Paal" onclick="changeAccidentInvolved(this, event);"></span>
+          <span id="editAccidentTree" style="display: none;" class="menuButton bgTree" data-tippy-content="Boom/Paal" onclick="changeAccidentInvolved(this, event);"></span>
         </div>
       </div>
     </div>

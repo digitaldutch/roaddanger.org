@@ -45,7 +45,7 @@ html, body {
   font-size: 14px;
   margin:    0;
   padding:   0;
-  background-color: #e5e5e5;
+  background-color: #eeeeee;
 }
 
 input, textarea {
@@ -54,7 +54,7 @@ input, textarea {
 }
 
 input[readonly], textarea[readonly] {
-  background-color: #e5e5e5;
+  background-color: #eeeeee;
 }
 
 body {
@@ -117,7 +117,7 @@ a {
 }
 
 .cardCrash:hover {
-  background-color: #f8f8f8;
+  background-color: #e3e3e3;
 }
 
 .cardTop {
@@ -149,7 +149,7 @@ a {
 .cardIcons {
   display:          flex;
   flex-direction:   column;
-  border:           1px solid #e5e5e5;
+  border:           1px solid #eeeeee;
   border-radius:    5px;
   padding:          2px;
   cursor:           default;
@@ -171,7 +171,7 @@ a {
   flex-direction:   row;
   margin:           0 3px;
   border-radius:    5px;
-  background-color: #e5e5e5;
+  background-color: #eeeeee;
   padding:          2px;
 }
 
@@ -602,7 +602,7 @@ a {
   padding:          5px 15px 10px 15px;
   border-radius:    3px;
   box-shadow:       0 2px 4px rgba(0,0,0,0.2);
-  background-color: #e5e5e5;
+  background-color: #eeeeee;
   box-sizing:       border-box;
 }
 
