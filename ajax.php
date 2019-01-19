@@ -210,6 +210,7 @@ else if ($function === 'loadcrashes') {
     $count          = (int)getRequest('count', 100);
     $id             = isset($_REQUEST['id'])? (int)$_REQUEST['id'] : null;
     $search         = isset($_REQUEST['search'])? $_REQUEST['search'] : '';
+    $searchDate     = getRequest('searchdate', '');
     $siteName       = isset($_REQUEST['sitename'])? $_REQUEST['sitename'] : '';
     $moderations    = (int)getRequest('moderations', 0);
     $sort           = getRequest('sort');
@@ -280,6 +281,13 @@ SQL;
         $params[':search']  = $search;
         $params[':search2'] = $search;
       }
+
+      if ($searchDate !== ''){
+        $SQLWhereSearch .= ($SQLWhereSearch !== '')? ' AND ' : '';
+        $SQLWhereSearch .= " ac.date=:searchdate ";
+        $params[':searchdate'] = $searchDate;
+      }
+
 
       if ($siteName !== ''){
         $SQLWhereSearch .= ($SQLWhereSearch !== '')? ' AND ' : '';

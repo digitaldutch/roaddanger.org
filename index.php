@@ -5,6 +5,7 @@ require_once 'initialize.php';
 global $VERSION;
 global $user;
 
+$showCrashMenu = false;
 if (stripos($_SERVER['REQUEST_URI'], '/statistieken/algemeen') === 0) {
   $mainHTML = <<<HTML
 <div class="pageInner">
@@ -61,8 +62,9 @@ HTML;
 
   $head = "<script src=\"/js/main.js?v=$VERSION\"></script>";
 
-
 } else {
+  $showCrashMenu = true;
+
   if ($_SERVER['REQUEST_URI'] === '/') {
     $introText .= <<<HTML
     <div class="sectionIntro">Op deze site verzamelen we nieuwsberichten over verkeersongelukken in Nederland uit Nederlandse media en nieuwswebsites.
@@ -88,7 +90,7 @@ HTML;
 
 
 $html =
-  getHTMLBeginMain('', $head, 'initMain', true) .
+  getHTMLBeginMain('', $head, 'initMain', $showCrashMenu) .
   $mainHTML .
   getHTMLEnd();
 

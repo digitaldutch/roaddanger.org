@@ -434,7 +434,7 @@ function getCrashNumberFromPath(path){
   else return null;
 }
 
-function createAccidentURL(id, title){
+function createCrashURL(id, title){
   title = title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9_-]+/g, '');
   return '/' + id + '/' + encodeURIComponent(title);
 }

@@ -304,7 +304,7 @@ function getFormEditCrash(){
     </div>
             
     <div class="popupFooter">
-      <input id="buttonSaveArticle" type="button" class="button" value="Opslaan" onclick="saveArticleAccident();">
+      <input id="buttonSaveArticle" type="button" class="button" value="Opslaan" onclick="saveArticleCrash();">
       <input type="button" class="button buttonGray" value="Annuleren" onclick="closePopupForm();">
     </div>    
   </form>
@@ -322,20 +322,29 @@ function getFormMergeCrash(){
     <div class="popupHeader">Ongeluk samenvoegen</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
 
-    <input id="mergeFromAccidentIDHidden" type="hidden">
+    <input id="mergeFromCrashIDHidden" type="hidden">
 
+    <div class="flexColumn">
+      <div class="formSubHeader">Ongeluk</div>
+     
+      <div id="mergeCrashFrom"></div>
+    </div>
+            
     <div id="mergeAccidentSection" class="flexColumn">
       <div class="formSubHeader">Samenvoegen met</div>
      
-      <input id="mergeToAccidentIDHidden" type="hidden">
+      <input id="mergeToCrashIDHidden" type="hidden">
+      <div id="mergeCrashTo"></div>  
   
       <label for="mergeAccidentSearch">Zoek ongeluk</label> 
-      <input id="mergeAccidentSearch" class="popupInput" type="search" autocomplete="off">
-  
+      <input id="mergeAccidentSearch" class="popupInput" type="search" autocomplete="off" onkeyup="searchMergeAccidentDelayed();">
+
+      <div id="spinnerMerge" class="spinnerLine"><img src="/images/spinner.svg"></div>
+      <div id="mergeSearchResults"></div>  
     </div>
             
     <div class="popupFooter">
-      <input id="buttonMergeArticle" type="button" class="button" value="Opslaan" onclick="mergeAccident();">
+      <input id="buttonMergeArticle" type="button" class="button" value="Voeg samen" onclick="mergeCrash();">
       <input type="button" class="button buttonGray" value="Annuleren" onclick="closePopupForm();">
     </div>    
   </form>
@@ -354,7 +363,6 @@ function getFormEditPerson(){
     <div class="popupCloseCross" onclick="closeEditPersonForm();"></div>
 
     <input id="personIDHidden" type="hidden">
-    <input id="personAccidentIDHidden" type="hidden">
 
     <div style="margin-top: 5px;">
       <div>Vervoermiddel</div> 

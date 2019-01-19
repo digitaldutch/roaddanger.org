@@ -166,6 +166,10 @@ a {
   padding:          2px;
 }
 
+.defaultCursor {
+  cursor: default;
+}
+
 .crashButtonSub {
   display:          inline-flex;
   flex-direction:   row;
@@ -725,13 +729,13 @@ a {
   background-size: 30px;
 }
 
-#spinnerLoad, #spinnerLoad {
+#spinnerLoad, #spinnerLoad, .spinnerLine {
   display:    none;
   margin-top: 5px;
   text-align: center;
 }
 
-#spinnerLoad img, #spinnerLoad img {
+#spinnerLoad img, #spinnerLoad img, .spinnerLine img {
   height: 24px;
 }
 
@@ -995,6 +999,24 @@ a {
 
 .tableHeader {
   font-weight: bold;
+}
+
+.searchRow {
+  display:          block;
+  position:         relative;
+  box-sizing:       border-box;
+  width:            100%;
+  cursor:           pointer;
+  padding:          5px 3px;
+  margin:           5px 0;
+  border:           solid 1px #dddddd;
+  background-color: #ffffff;
+  border-radius:    3px;
+}
+
+.searchRow:hover {
+  color:            #ffffff;
+  background-color: #4D90FE;
 }
 
 @media (max-width: 750px) {

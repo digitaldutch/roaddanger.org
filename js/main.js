@@ -1,4 +1,5 @@
 let crashes = [];
+let crashesFound = [];
 let articles = [];
 let editCrashPersons = [];
 let watchEndOfPage = false;
@@ -79,7 +80,7 @@ async function loadStatistics(){
     <table id="tableStats" class="dataTable">
       <tbody>
         <tr>
-          <td>Nieuwe mensen die zich aangemeld hebben op deze site</td>
+          <td>Mensen die zich aangemeld hebben op deze site</td>
           <td style="text-align: right;">${dbStats.live.users}</td></tr>
         <tr>
           <td>Toegevoegde ongelukken</td>
@@ -207,23 +208,10 @@ async function loadCrashes(crashID=null, articleID=null){
     if (data.user) updateLoginGUI(data.user);
     if (data.error) showError(data.error);
     else {
-      data.crashes.forEach(crash => {
-        crash.date           = new Date(crash.date);
-        crash.createtime     = new Date(crash.createtime);
-        crash.streamdatetime = new Date(crash.streamdatetime);
+      prepareCrashServerData(data);
 
-        let id = 1;
-        crash.persons.forEach(person => person.id = id++);
-      });
-
-      data.articles.forEach(article => {
-        article.publishedtime  = new Date(article.publishedtime);
-        article.createtime     = new Date(article.createtime);
-        article.streamdatetime = new Date(article.streamdatetime);
-      });
-
-      crashes = crashes.concat(data.crashes);
-      articles  = articles.concat(data.articles);
+      crashes  = crashes.concat(data.crashes);
+      articles = articles.concat(data.articles);
     }
   } catch (error) {
     showError(error.message);
@@ -244,9 +232,26 @@ async function loadCrashes(crashID=null, articleID=null){
   }, 1);
 }
 
-function getAccidentGUIButtons(accident){
+function prepareCrashServerData(data){
+  data.crashes.forEach(crash => {
+    crash.date           = new Date(crash.date);
+    crash.createtime     = new Date(crash.createtime);
+    crash.streamdatetime = new Date(crash.streamdatetime);
+
+    let id = 1;
+    crash.persons.forEach(person => person.id = id++);
+  });
+
+  data.articles.forEach(article => {
+    article.publishedtime  = new Date(article.publishedtime);
+    article.createtime     = new Date(article.createtime);
+    article.streamdatetime = new Date(article.streamdatetime);
+  });
+}
+
+function getCrashGUIButtons(crash){
   let buttons = [];
-  accident.persons.forEach(person => {
+  crash.persons.forEach(person => {
     // In the GUI buttons are used to visualise each person or group of persons.
     // We group persons who are in the same transportation item (eg 4 persons in a car).
     let button;
@@ -268,10 +273,10 @@ function getAccidentGUIButtons(accident){
   return buttons;
 }
 
-function getCrashHTML(accidentID){
-  const accident        = getAccidentFromID(accidentID);
-  const articles        = getAccidentArticles(accident.id);
-  const canEditAccident = user.moderator || (accident.userid === user.id);
+function getCrashHTML(crashID){
+  const crash        = getCrashFromID(crashID);
+  const articles     = getCrashArticles(crash.id);
+  const canEditCrash = user.moderator || (crash.userid === user.id);
 
   let htmlArticles = '';
   for (let article of articles) {
@@ -298,7 +303,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
     <span class="postButtonArea" onclick="event.stopPropagation();">
       <span style="position: relative;"><span class="buttonEditPost buttonDetails" data-userid="${article.userid}" onclick="showArticleMenu(event, ${article.id});"></span></span>
       <div id="menuArticle${article.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
-        <div onclick="editArticle(${accident.id},  ${article.id});">Bewerken</div>
+        <div onclick="editArticle(${crash.id},  ${article.id});">Bewerken</div>
         <div onclick="deleteArticle(${article.id})">Verwijderen</div>
       </div>            
     </span>   
@@ -314,9 +319,9 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   }
 
   let htmlInvolved = '';
-  // if (accident.pet)         htmlInvolved += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
-  if (accident.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam"  data-tippy-content="File/Hinder"></div>';
-  // if (accident.tree)        htmlInvolved += '<div class="iconSmall bgTree"  data-tippy-content="Boom/Paal"></div>';
+  // if (crash.pet)         htmlInvolved += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
+  if (crash.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam"  data-tippy-content="File/Hinder"></div>';
+  // if (crash.tree)        htmlInvolved += '<div class="iconSmall bgTree"  data-tippy-content="Boom/Paal"></div>';
 
   if (htmlInvolved){
     htmlInvolved = `
@@ -327,56 +332,56 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
     </div>`;
   }
 
-  let titleSmall    = 'aangemaakt door ' + accident.user;
+  let titleSmall    = 'aangemaakt door ' + crash.user;
   let titleModified = '';
-  if (accident.streamtopuser) {
-    switch (accident.streamtoptype) {
-      case TStreamTopType.edited:       titleModified = ' | aangepast door '                + accident.streamtopuser; break;
-      case TStreamTopType.articleAdded: titleModified = ' | nieuw artikel toegevoegd door ' + accident.streamtopuser; break;
-      case TStreamTopType.placedOnTop:  titleModified = ' | omhoog geplaatst door '         + accident.streamtopuser; break;
+  if (crash.streamtopuser) {
+    switch (crash.streamtoptype) {
+      case TStreamTopType.edited:       titleModified = ' | aangepast door '                + crash.streamtopuser; break;
+      case TStreamTopType.articleAdded: titleModified = ' | nieuw artikel toegevoegd door ' + crash.streamtopuser; break;
+      case TStreamTopType.placedOnTop:  titleModified = ' | omhoog geplaatst door '         + crash.streamtopuser; break;
     }
-    if (titleModified) titleModified += ' ' + datetimeToAge(accident.streamdatetime);
+    if (titleModified) titleModified += ' ' + datetimeToAge(crash.streamdatetime);
   }
 
   // Created date is only added if no modified title
   if (titleModified) titleSmall += titleModified;
-  else titleSmall += ' ' + datetimeToAge(accident.createtime);
+  else titleSmall += ' ' + datetimeToAge(crash.createtime);
 
-  const htmlPersons = getcrashButtonsHTML(accident, false);
+  const htmlPersons = getCrashButtonsHTML(crash, false);
 
   let htmlModeration = '';
-  if (accident.awaitingmoderation){
+  if (crash.awaitingmoderation){
     let modHTML = '';
     if (user.moderator) modHTML = `
-Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
+Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
 <div style="margin: 10px;">
-  <button class="button" onclick="accidentModerateOK(${accident.id})">Keur bijdrage goed</button>
-  <button class="button buttonGray" onclick="deleteAccident(${accident.id})">Verwijder bijdrage</button>
+  <button class="button" onclick="crashModerateOK(${crash.id})">Keur bijdrage goed</button>
+  <button class="button buttonGray" onclick="deleteCrash(${crash.id})">Verwijder bijdrage</button>
 </div>
 `;
-    else if (accident.userid === user.id) modHTML = 'Bedankt voor het toevoegen van onderstaand bericht. Je bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet voor iedereen zichtbaar.';
+    else if (crash.userid === user.id) modHTML = 'Bedankt voor het toevoegen van onderstaand bericht. Je bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet voor iedereen zichtbaar.';
     else modHTML = 'Deze bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet zichtbaar op de voorpagina.';
 
-    htmlModeration = `<div id="accidentModeration${accident.id}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
+    htmlModeration = `<div id="accidentModeration${crash.id}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
   }
 
   let htmlMenuEditItems = '';
-  if (canEditAccident) {
+  if (canEditCrash) {
     htmlMenuEditItems = `
-      <div onclick="editAccident(${accident.id});">Bewerken</div>
-      <div onclick="showMergeAccidentForm(${accident.id});">Samenvoegen</div>
-      <div onclick="deleteAccident(${accident.id});">Verwijderen</div>
+      <div onclick="editCrash(${crash.id});">Bewerken</div>
+      <div onclick="showMergeCrashForm(${crash.id});">Samenvoegen</div>
+      <div onclick="deleteCrash(${crash.id});">Verwijderen</div>
 `;
   }
 
-  if (user.moderator) htmlMenuEditItems += `<div onclick="accidentToTopStream(${accident.id});" data-moderator>Plaats bovenaan stream</div>`;
+  if (user.moderator) htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>Plaats bovenaan stream</div>`;
 
   return `
-<div id="accident${accident.id}" class="cardCrash" onclick="showAccidentDetails(${accident.id})">
+<div id="accident${crash.id}" class="cardCrash" onclick="showCrashDetails(${crash.id})">
   <span class="postButtonArea" onclick="event.stopPropagation();">
-    <span style="position: relative;"><span class="buttonEditPost buttonDetails"  data-userid="${accident.userid}" onclick="showAccidentMenu(event, ${accident.id});"></span></span>
-    <div id="menuAccident${accident.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
-      <div onclick="addArticleToAccident(${accident.id});">Artikel toevoegen</div>
+    <span style="position: relative;"><span class="buttonEditPost buttonDetails"  data-userid="${crash.userid}" onclick="showCrashMenu(event, ${crash.id});"></span></span>
+    <div id="menuAccident${crash.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
+      <div onclick="addArticleToCrash(${crash.id});">Artikel toevoegen</div>
       ${htmlMenuEditItems}
     </div>            
   </span>        
@@ -385,14 +390,14 @@ Lieve moderator, deze bijdrage van "${accident.user}" wacht op moderatie.
    
   <div class="cardTop">
     <div style="width: 100%;">
-      <div class="smallFont cardTitleSmall">${dateToAge(accident.date)} | ${titleSmall}</div>
-      <div class="cardTitle">${escapeHtml(accident.title)}</div>
-      <div id="accidentPersons${accident.id}">${htmlPersons}</div>
+      <div class="smallFont cardTitleSmall">${dateToAge(crash.date)} | ${titleSmall}</div>
+      <div class="cardTitle">${escapeHtml(crash.title)}</div>
+      <div id="accidentPersons${crash.id}">${htmlPersons}</div>
     </div>
     ${htmlInvolved}
   </div>
 
-  <div class="postText">${escapeHtml(accident.text)}</div>    
+  <div class="postText">${escapeHtml(crash.text)}</div>    
   
   ${htmlArticles}
 </div>`;
@@ -402,35 +407,36 @@ function healthVisible(health){
   return [THealth.dead, THealth.injured].includes(health);
 }
 
-function getcrashButtonsHTML(accident, showAllHealth=true) {
+function getCrashButtonsHTML(crash, showAllHealth=true, allowClick=false) {
   function getGroupButtonHTML(button) {
     if (button.persons.length < 1) return '';
     const person1 = button.persons[0];
     const bgTransportation = transportationModeImage(person1.transportationmode);
     let tooltip            = transportationModeText(person1.transportationmode);
     let iconsGroup         = `<div class="iconMedium ${bgTransportation}" data-tippy-content="${tooltip}"></div>`;
+    let htmlPersons        = '';
 
-    let htmlPersons = '';
     for (const person of button.persons){
       let tooltip = 'Persoon ' + person.id +
         '<br>Letsel: ' + healthText(person.health);
-      if (person.child)          tooltip += '<br>Kind';
+      if (person.child) tooltip += '<br>Kind';
 
       const showHealth = showAllHealth || healthVisible(person.health);
       let htmlPerson = '';
-      if (showHealth)            htmlPerson += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
-      if (person.child)          htmlPerson += '<div class="iconMedium bgChild"></div>';
+      if (showHealth)    htmlPerson += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
+      if (person.child)  htmlPerson += '<div class="iconMedium bgChild"></div>';
 
       if (htmlPerson) htmlPersons += `<div class="crashButtonSub" data-tippy-content="${tooltip}">${htmlPerson}</div>`;
     }
 
-    return `<div class="crashButton">
+    const clickClass = allowClick? '' : 'defaultCursor';
+    return `<div class="crashButton ${ clickClass}" onclick="event.stopPropagation();">
   ${iconsGroup}
   ${htmlPersons}
 </div>`;
   }
 
-  const buttons = getAccidentGUIButtons(accident);
+  const buttons = getCrashGUIButtons(crash);
   let html = '';
   for (const button of buttons) html += getGroupButtonHTML(button);
   return html;
@@ -463,8 +469,8 @@ function selectArticle(articleID, smooth=false) {
   } else scrollIntoViewIfNeeded(div);
 }
 
-function selectAccident(accidentID, smooth=false) {
-  const div = document.getElementById('accident' + accidentID);
+function selectCrash(crashID, smooth=false) {
+  const div = document.getElementById('accident' + crashID);
   if (smooth){
     div.scrollIntoView({
       block:    'center',
@@ -501,7 +507,7 @@ function showEditCrashForm(event) {
   document.getElementById('editAccidentTree').classList.remove('buttonSelected');
 
   editCrashPersons = [];
-  refreshAccidentPersonsGUI(editCrashPersons);
+  refreshCrashPersonsGUI(editCrashPersons);
 
   document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'inline-block';});
 
@@ -536,13 +542,12 @@ function addEditPersonButtons(){
   document.getElementById('personHealthButtons').innerHTML = htmlButtons;
 }
 
-function showEditPersonForm(personID=null, accidentID=null) {
+function showEditPersonForm(personID=null) {
   closeAllPopups();
   const person = getPersonFromID(personID);
 
   document.getElementById('editPersonHeader').innerText       = person? 'Persoon bewerken' : 'Nieuw persoon toevoegen';
   document.getElementById('personIDHidden').value             = person? person.id : '';
-  document.getElementById('personAccidentIDHidden').value     = accidentID? accidentID : '';
   document.getElementById('buttonDeletePerson').style.display = person? 'inline-flex' : 'none';
 
   selectPersonTransportationMode(person? person.transportationmode : null);
@@ -627,7 +632,7 @@ function savePerson(stayOpen=false) {
     editCrashPersons.push(person);
   }
 
-  refreshAccidentPersonsGUI(editCrashPersons);
+  refreshCrashPersonsGUI(editCrashPersons);
 
   if (stayOpen !== true) closeEditPersonForm();
   else showMessage('Persoon opgeslagen', 1);
@@ -638,18 +643,17 @@ function deletePerson() {
     function () {
       const personID      = parseInt(document.getElementById('personIDHidden').value);
       editCrashPersons = editCrashPersons.filter(person => person.id !== personID);
-      refreshAccidentPersonsGUI(editCrashPersons);
+      refreshCrashPersonsGUI(editCrashPersons);
       closeEditPersonForm();
     });
 }
 
-function refreshAccidentPersonsGUI(persons=[]) {
+function refreshCrashPersonsGUI(persons=[]) {
   let html = '';
 
   for (let person of persons){
     const iconTransportation = transportationModeIcon(person.transportationmode);
-    let  iconHealth         = '';
-    if (healthVisible(person.health)) iconHealth = healthIcon(person.health);
+    let  iconHealth          = healthIcon(person.health);
     let buttonsOptions = '';
     if (person.child)          buttonsOptions += '<div class="iconSmall bgChild" data-tippy-content="Kind"></div>';
 
@@ -663,24 +667,24 @@ ${iconHealth} ${iconTransportation} ${buttonsOptions}
   tippy('[data-tippy-content]');
 }
 
-function setNewArticleAccidentFields(accidentID){
-  const accident = getAccidentFromID(accidentID);
-  const accidentDatetime = new Date(accident.date);
+function setNewArticleCrashFields(crashID){
+  const crash = getCrashFromID(crashID);
+  const crashDatetime = new Date(crash.date);
 
   // Shallow copy
-  editCrashPersons = clone(accident.persons);
+  editCrashPersons = clone(crash.persons);
 
-  document.getElementById('accidentIDHidden').value           = accident.id;
+  document.getElementById('accidentIDHidden').value           = crash.id;
 
-  document.getElementById('editAccidentTitle').value          = accident.title;
-  document.getElementById('editAccidentText').value           = accident.text;
-  document.getElementById('editAccidentDate').value           = dateToISO(accidentDatetime);
+  document.getElementById('editAccidentTitle').value          = crash.title;
+  document.getElementById('editAccidentText').value           = crash.text;
+  document.getElementById('editAccidentDate').value           = dateToISO(crashDatetime);
 
-  selectButton('editAccidentPet',         accident.pet);
-  selectButton('editAccidentTrafficJam',  accident.trafficjam);
-  selectButton('editAccidentTree',        accident.tree);
+  selectButton('editAccidentPet',         crash.pet);
+  selectButton('editAccidentTrafficJam',  crash.trafficjam);
+  selectButton('editAccidentTree',        crash.tree);
 
-  refreshAccidentPersonsGUI(accident.persons);
+  refreshCrashPersonsGUI(crash.persons);
 }
 
 function openArticleLink(event, articleID) {
@@ -689,10 +693,10 @@ function openArticleLink(event, articleID) {
   window.open(article.url,"article");
 }
 
-function editArticle(accidentID, articleID) {
+function editArticle(crashID, articleID) {
   closeAllPopups();
   showEditCrashForm();
-  setNewArticleAccidentFields(accidentID);
+  setNewArticleCrashFields(crashID);
 
   const article = getArticleFromID(articleID);
 
@@ -712,21 +716,21 @@ function editArticle(accidentID, articleID) {
   document.getElementById('editCrashSection').style.display = 'none';
 }
 
-function addArticleToAccident(accidentID) {
+function addArticleToCrash(crashID) {
   closeAllPopups();
 
   showEditCrashForm();
-  setNewArticleAccidentFields(accidentID);
+  setNewArticleCrashFields(crashID);
 
   document.getElementById('editHeader').innerText              = 'Artikel toevoegen';
   document.getElementById('editCrashSection').style.display = 'none';
 }
 
-function editAccident(accidentID) {
+function editCrash(crashID) {
   closeAllPopups();
 
   showEditCrashForm();
-  setNewArticleAccidentFields(accidentID);
+  setNewArticleCrashFields(crashID);
 
   document.getElementById('editHeader').innerText                 = 'Ongeluk bewerken';
   document.getElementById('editArticleSection').style.display     = 'none';
@@ -734,10 +738,10 @@ function editAccident(accidentID) {
   document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'none';});
 }
 
-async function accidentToTopStream(accidentID) {
+async function crashToTopStream(crashID) {
   closeAllPopups();
 
-  const url = '/ajax.php?function=accidentToTopStream&id=' + accidentID;
+  const url = '/ajax.php?function=accidentToTopStream&id=' + crashID;
   const response = await fetch(url, fetchOptions);
   const text     = await response.text();
   const data     = JSON.parse(text);
@@ -745,18 +749,18 @@ async function accidentToTopStream(accidentID) {
   else window.location.reload();
 }
 
-async function accidentModerateOK(accidentID) {
+async function crashModerateOK(crash) {
   closeAllPopups();
 
-  const url = '/ajax.php?function=accidentModerateOK&id=' + accidentID;
+  const url = '/ajax.php?function=accidentModerateOK&id=' + crash;
   const response = await fetch(url, fetchOptions);
   const text     = await response.text();
   const data     = JSON.parse(text);
   if (data.error) showError(data.error, 10);
   else if (data.ok){
     // Remove moderation div
-    getAccidentFromID(accidentID).awaitingmoderation = false;
-    const divModeration = document.getElementById('accidentModeration' + accidentID);
+    getCrashFromID(crash).awaitingmoderation = false;
+    const divModeration = document.getElementById('accidentModeration' + crash);
     divModeration.remove();
   }
 }
@@ -786,11 +790,11 @@ function domainBlacklisted(url){
   return domainBlacklist.find(d => url.includes(d.domain));
 }
 
-function copyAccidentInfoFromArticle(){
+function copyCrashInfoFromArticle(){
   document.getElementById('editAccidentTitle').value = document.getElementById('editArticleTitle').value;
 }
 
-function copyAccidentDateFromArticle(){
+function copyCrashDateFromArticle(){
   document.getElementById('editAccidentDate').value  = document.getElementById('editArticleDate').value;
 }
 
@@ -859,7 +863,7 @@ other tags: ${data.tagcount.other}
   }
 }
 
-async function saveArticleAccident(){
+async function saveArticleCrash(){
   let crashEdited;
   let articleEdited;
 
@@ -903,8 +907,8 @@ async function saveArticleAccident(){
 
   if (crashEdited.id) crashEdited.id = parseInt(crashEdited.id);
 
-  const saveAccident = document.getElementById('editCrashSection').style.display !== 'none';
-  if (saveAccident){
+  const saveCrash = document.getElementById('editCrashSection').style.display !== 'none';
+  if (saveCrash){
     if (saveArticle && (! user.moderator)) crashEdited.title = articleEdited.title;
     if (!crashEdited.title)               {showError('Geen ongeluk titel ingevuld'); return;}
     if (!crashEdited.date)                {showError('Geen ongeluk datum ingevuld'); return;}
@@ -918,7 +922,7 @@ async function saveArticleAccident(){
       article:      articleEdited,
       accident:     crashEdited,
       savearticle:  saveArticle,
-      saveaccident: saveAccident,
+      saveaccident: saveCrash,
     }),
     headers: {'Content-Type': 'application/json'},
   };
@@ -928,9 +932,9 @@ async function saveArticleAccident(){
   if (data.error) {
     showError(data.error, 10);
   } else {
-    const editingAccident = crashEdited.id !== '';
-    // No reload only if editing accident. Other cases for now give problems and require a full page reload.
-    if ((! saveArticle) && editingAccident && ((pageType === TpageType.stream) || (pageType === TpageType.recent))) {
+    const editingCrash = crashEdited.id !== '';
+    // No reload only if editing crash. Other cases for now give problems and require a full page reload.
+    if ((! saveArticle) && editingCrash && ((pageType === TpageType.stream) || (pageType === TpageType.recent))) {
       let i = crashes.findIndex(a => {return a.id === crashEdited.id});
       crashes[i].title      = crashEdited.title;
       crashes[i].text       = crashEdited.text;
@@ -941,7 +945,7 @@ async function saveArticleAccident(){
       crashes[i].trafficjam = crashEdited.trafficjam;
       document.getElementById('accident' + crashEdited.id).outerHTML = getCrashHTML(crashEdited.id);
     } else {
-      window.location.href = createAccidentURL(data.accidentid, crashEdited.title);
+      window.location.href = createCrashURL(data.accidentid, crashEdited.title);
       let text = '';
       if (articleEdited) {
         text = articleEdited.id? 'Artikel opgeslagen' : 'Artikel toegevoegd';
@@ -962,18 +966,18 @@ function showArticleMenu(event, articlepostid) {
   if (! menuVisible) div.style.display = 'block';
 }
 
-function showAccidentMenu(event, accidentID) {
+function showCrashMenu(event, crashID) {
   event.preventDefault();
   event.stopPropagation();
 
-  const div = document.getElementById(`menuAccident${accidentID}`);
+  const div = document.getElementById(`menuAccident${crashID}`);
   const menuVisible = div.style.display === 'block';
   closeAllPopups();
   if (! menuVisible) div.style.display = 'block';
 }
 
-function getAccidentFromID(id){
-  return crashes.find(accident => accident.id === id);
+function getCrashFromID(id){
+  return crashes.find(crash => crash.id === id);
 }
 
 function getPersonFromID(id){
@@ -984,8 +988,8 @@ function getArticleFromID(id){
   return articles.find(article => article.id === id);
 }
 
-function getAccidentArticles(accidentID){
-  let list = articles.filter(article => article.accidentid === accidentID);
+function getCrashArticles(crashID){
+  let list = articles.filter(article => article.accidentid === crashID);
 
   // Sort on publication time
   list.sort(function(a, b) {return b.publishedtime - a.publishedtime;});
@@ -1011,18 +1015,18 @@ async function deleteArticleDirect(articleID) {
   }
 }
 
-async function deleteAccidentDirect(accidentID) {
-  const url = '/ajax.php?function=deleteAccident&id=' + accidentID;
+async function deleteCrashDirect(crashID) {
+  const url = '/ajax.php?function=deleteAccident&id=' + crashID;
   try {
     const response = await fetch(url, fetchOptions);
     const text = await response.text();
     const data = JSON.parse(text);
     if (data.error) showError(data.error);
     else {
-      // Remove accident from accidents array
-      crashes = crashes.filter(a => a.id !== accidentID);
+      // Remove crash from crashes array
+      crashes = crashes.filter(a => a.id !== crashID);
       // Delete the GUI element
-      document.getElementById('accident' + accidentID).remove();
+      document.getElementById('accident' + crashID).remove();
       showMessage('Ongeluk verwijderd');
     }
   } catch (error) {
@@ -1030,7 +1034,7 @@ async function deleteAccidentDirect(accidentID) {
   }
 }
 
-function reloadAccidents(){
+function reloadCrashes(){
   crashes = [];
   articles  = [];
   document.getElementById('cards').innerHTML = '';
@@ -1047,24 +1051,93 @@ function deleteArticle(id) {
     'Verwijder artikel', null, true);
 }
 
-function deleteAccident(id) {
+function deleteCrash(id) {
   closeAllPopups();
-  const accident = getAccidentFromID(id);
+  const crash = getCrashFromID(id);
 
-  confirmMessage(`Ongeluk "${accident.title.substr(0, 100)}" verwijderen?`,
-    function (){deleteAccidentDirect(id)},
+  confirmMessage(`Ongeluk "${crash.title.substr(0, 100)}" verwijderen?`,
+    function (){deleteCrashDirect(id)},
     'Verwijder ongeluk', null, true);
 }
 
-function showMergeAccidentForm(id) {
+function showMergeCrashForm(id) {
   closeAllPopups();
-  const accident = getAccidentFromID(id);
+  const crash = getCrashFromID(id);
 
+  document.getElementById('mergeFromCrashIDHidden').value = crash.id;
+  document.getElementById('mergeCrashFrom').innerHTML = `
+${crash.title}
+<div class="smallFont">${crash.date.toLocaleDateString()}</div>
+`;
   document.getElementById('formMergeAccident').style.display = 'flex';
 }
 
-function mergeAccident() {
+function searchMergeAccidentDelayed() {
+  document.getElementById('spinnerMerge').style.display = 'block';
+  document.getElementById('mergeCrashTo').innerHTML     = '';
+  document.getElementById('mergeToCrashIDHidden').value = '';
 
+  clearTimeout(searchMergeAccidentDelayed.timeout);
+  searchMergeAccidentDelayed.timeout = setTimeout(searchMergeAccident,500);
+}
+
+function searchMergeAccident(){
+  async function searchCrashOnServer(searchText) {
+    if (text.length < 2) return;
+
+    const crashID = parseInt(document.getElementById('mergeFromCrashIDHidden').value);
+    const crash   = getCrashFromID(crashID);
+
+    const date = '';
+    try {
+      const url      = '/ajax.php?function=loadcrashes&count=8&search=' + encodeURIComponent(searchText) + '&searchdate=' + dateToISO(crash.date);
+      const response = await fetch(url, fetchOptions);
+      const text     = await response.text();
+      const data     = JSON.parse(text);
+      if (data.error) showError(data.error);
+      else if (data.ok){
+        prepareCrashServerData(data);
+        crashesFound = data.crashes;
+
+        let html = '';
+        let id   = '';
+        crashesFound.forEach(crash => {
+          id   = crash.id;
+          html += `
+<div class="searchRow" onclick="mergeSearchResultClick(${crash.id})">
+  ${crash.title}
+  <div class="smallFont">${crash.date.toLocaleDateString()}</div>
+</div>
+`;
+        });
+        document.getElementById('mergeSearchResults').innerHTML = html;
+      }
+    } finally {
+      document.getElementById('spinnerMerge').style.display = 'none';
+    }
+  }
+
+  const text = document.getElementById('mergeAccidentSearch').value.trim().toLowerCase();
+  searchCrashOnServer(text);
+}
+
+function mergeSearchResultClick(crashID) {
+  const crash = crashesFound.find(crash => crash.id === crashID);
+  let html = '';
+  if (crash){
+    html = `
+  ${crash.title}
+  <div class="smallFont">${crash.date.toLocaleDateString()}</div>
+`;
+  }
+
+  document.getElementById('mergeCrashTo').innerHTML       = html;
+  document.getElementById('mergeAccidentSearch').value    = '';
+  document.getElementById('mergeSearchResults').innerHTML = '';
+}
+
+function mergeCrash() {
+  showMessage('To Do: Dit werkt nog niet.');
 }
 
 function showMainSpinner(){
@@ -1075,17 +1148,17 @@ function hideMainSpinner() {
   document.getElementById('mainSpinner').style.display = 'none';
 }
 
-function changeAccidentInvolved(item, event) {
+function changeCrashInvolved(item, event) {
   item.classList.toggle('buttonSelected');
 }
 
-function accidentByID(id) {
+function crashByID(id) {
   return crashes.find(a => a.id === id);
 }
 
-function showAccidentDetails(id){
-  const accident = accidentByID(id);
-  window.location.href = createAccidentURL(accident.id, accident.title);
+function showCrashDetails(id){
+  const crash = crashByID(id);
+  window.location.href = createCrashURL(crash.id, crash.title);
 }
 
 function searchVisible(){
@@ -1107,5 +1180,5 @@ function startSearch() {
   let url = window.location.origin + '?search=' + encodeURIComponent(searchText);
   if (searchSiteName) url += '&sitename=' + encodeURIComponent(searchSiteName);
   window.history.pushState(null, null, url);
-  reloadAccidents();
+  reloadCrashes();
 }
