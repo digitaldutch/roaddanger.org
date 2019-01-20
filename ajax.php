@@ -299,7 +299,7 @@ SQL;
       $SQLWhere = <<<SQL
  LEFT JOIN articles ar on ac.id = ar.accidentid      
  WHERE $SQLWhereSearch
-  ORDER BY streamdatetime DESC
+  ORDER BY date DESC
   LIMIT $offset, $count
 SQL;
     } else {
