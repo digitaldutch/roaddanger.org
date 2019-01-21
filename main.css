@@ -1001,6 +1001,18 @@ a {
   font-weight: bold;
 }
 
+.crashRow {
+  display:          block;
+  position:         relative;
+  box-sizing:       border-box;
+  width:            100%;
+  padding:          5px 3px;
+  margin:           5px 0;
+  border:           solid 1px #dddddd;
+  background-color: #ffffff;
+  border-radius:    3px;
+}
+
 .searchRow {
   display:          block;
   position:         relative;
@@ -1010,7 +1022,7 @@ a {
   padding:          5px 3px;
   margin:           5px 0;
   border:           solid 1px #dddddd;
-  background-color: #ffffff;
+  /*background-color: #ffffff;*/
   border-radius:    3px;
 }
 

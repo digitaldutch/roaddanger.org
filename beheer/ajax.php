@@ -35,9 +35,9 @@ SQL;
     $users = [];
     $DBResults = $database->fetchAll($sql);
     foreach ($DBResults as $user) {
-      $user['id']             = (int)$user['id'];
-      $user['permission']     = (int)$user['permission'];
-      $user['lastactive']     = datetimeDBToISO8601($user['lastactive']);
+      $user['id']         = (int)$user['id'];
+      $user['permission'] = (int)$user['permission'];
+      $user['lastactive'] = datetimeDBToISO8601($user['lastactive']);
 
       $users[] = $user;
     }

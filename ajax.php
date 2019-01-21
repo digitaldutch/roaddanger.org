@@ -41,8 +41,6 @@ GROUP BY transportationmode
 ORDER BY dead DESC, injured DESC
 SQL;
 
-//  AND DATE (a.date) > SUBDATE(CURDATE(), 300)
-
   $stats['total'] = $database->fetchAll($sql);
   foreach ($stats['total'] as &$stat) {
     $stat['transportationmode'] = (int)$stat['transportationmode'];
@@ -88,13 +86,15 @@ function getStatsDatabase($database){
   $sql = "SELECT COUNT(*) AS count FROM users WHERE DATE(`registrationtime`) = SUBDATE(CURDATE(), 1)";
   $stats['yesterday']['users'] = $database->fetchSingleValue($sql);
 
-  $stats['live'] = [];
-  $sql = "SELECT COUNT(*) FROM accidents WHERE DATE (`createtime`) >= '2019-01-14'";
-  $stats['live']['crashes'] = $database->fetchSingleValue($sql);
-  $sql = "SELECT COUNT(*) FROM articles WHERE DATE (`createtime`) >= '2019-01-14'";
-  $stats['live']['articles'] = $database->fetchSingleValue($sql);
-  $sql = "SELECT COUNT(*) FROM users WHERE DATE (`registrationtime`) >= '2019-01-14'";
-  $stats['live']['users'] = $database->fetchSingleValue($sql);
+  $stats['deCorrespondent'] = [];
+  $sql = "SELECT COUNT(*) FROM accidents WHERE DATE (`createtime`) >= '2019-01-14' AND DATE (`createtime`) <= '2019-01-20'";
+  $stats['deCorrespondent']['crashes'] = $database->fetchSingleValue($sql);
+  $sql = "SELECT COUNT(*) FROM accidents WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20'";
+  $stats['deCorrespondent']['crashesOccurred'] = $database->fetchSingleValue($sql);
+  $sql = "SELECT COUNT(*) FROM articles WHERE DATE (`createtime`) >= '2019-01-14' AND DATE (`createtime`) <= '2019-01-20'";
+  $stats['deCorrespondent']['articles'] = $database->fetchSingleValue($sql);
+  $sql = "SELECT COUNT(*) FROM users WHERE DATE (`registrationtime`) >= '2019-01-14' AND DATE (`registrationtime`) <= '2019-01-20'";
+  $stats['deCorrespondent']['users'] = $database->fetchSingleValue($sql);
 
   return $stats;
 }
@@ -204,13 +204,14 @@ SQL;
 
   echo json_encode($result);
 } // ====================
-else if ($function === 'loadcrashes') {
+else if ($function === 'loadCrashes') {
   try {
     $offset         = (int)getRequest('offset',0);
     $count          = (int)getRequest('count', 100);
     $id             = isset($_REQUEST['id'])? (int)$_REQUEST['id'] : null;
-    $search         = isset($_REQUEST['search'])? $_REQUEST['search'] : '';
-    $searchDate     = getRequest('searchdate', '');
+    $searchText     = isset($_REQUEST['search'])? $_REQUEST['search'] : '';
+    $searchDateFrom = getRequest('searchDateFrom', '');
+    $searchDateTo   = getRequest('searchDateTo', '');
     $siteName       = isset($_REQUEST['sitename'])? $_REQUEST['sitename'] : '';
     $moderations    = (int)getRequest('moderations', 0);
     $sort           = getRequest('sort');
@@ -268,66 +269,66 @@ LEFT JOIN users u  on u.id  = ac.userid
 LEFT JOIN users tu on tu.id = ac.streamtopuserid
 SQL;
 
+    $SQLWhere = '';
     if ($id !== null) {
       // Single accident
       $params = [':id' => $id];
       $SQLWhere = " WHERE ac.id=:id ";
-    } else if (($search !== '') || ($siteName !== '')) {
-      // Search
+    } else {
 
-      $SQLWhereSearch = '';
-      if ($search !== ''){
-        $SQLWhereSearch = "(MATCH(ac.title, ac.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))";
-        $params[':search']  = $search;
-        $params[':search2'] = $search;
+      $SQLJoin = '';
+      if ($searchText !== ''){
+        addSQLWhere($SQLWhere, "(MATCH(ac.title, ac.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))");
+        $SQLJoin = ' LEFT JOIN articles ar on ac.id = ar.accidentid ';
+        $params[':search']  = $searchText;
+        $params[':search2'] = $searchText;
       }
 
-      if ($searchDate !== ''){
-        $SQLWhereSearch .= ($SQLWhereSearch !== '')? ' AND ' : '';
-        $SQLWhereSearch .= " ac.date=:searchdate ";
-        $params[':searchdate'] = $searchDate;
+      if ($searchDateFrom !== ''){
+        addSQLWhere($SQLWhere, " ac.date >= :searchDateFrom ");
+        $params[':searchDateFrom'] = $searchDateFrom;
       }
 
+      if ($searchDateTo !== ''){
+        addSQLWhere($SQLWhere, " ac.date <= :searchDateTo ");
+        $params[':searchDateTo'] = $searchDateTo;
+      }
 
       if ($siteName !== ''){
-        $SQLWhereSearch .= ($SQLWhereSearch !== '')? ' AND ' : '';
-        $SQLWhereSearch .= " LOWER(ar.sitename) like :sitename ";
+        addSQLWhere($SQLWhere, " LOWER(ar.sitename) LIKE :sitename ");
         $params[':sitename'] = "%$siteName%";
       }
-      if ($sqlModerated) $SQLWhereSearch .= ' AND ' . $sqlModerated;
+      if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);
+
+      $orderField = ($sort === 'accidentdate')? 'ac.date DESC, ac.streamdatetime DESC' : 'ac.streamdatetime DESC';
 
       $SQLWhere = <<<SQL
- LEFT JOIN articles ar on ac.id = ar.accidentid      
- WHERE $SQLWhereSearch
-  ORDER BY date DESC
+   $SQLJoin      
+   $SQLWhere
+  ORDER BY $orderField 
   LIMIT $offset, $count
 SQL;
-    } else {
-      // accidents stream
-      if ($sqlModerated) $sqlModerated = ' WHERE ' . $sqlModerated;
-      $orderField = ($sort === 'accidentdate')? 'ac.date DESC, ac.streamdatetime DESC' : 'ac.streamdatetime DESC';
-      $SQLWhere = " $sqlModerated ORDER BY $orderField LIMIT $offset, $count ";
     }
 
     $sql .= $SQLWhere;
     $ids = [];
     $DBResults = $database->fetchAll($sql, $params);
-    foreach ($DBResults as $accident) {
-      $accident['id']                    = (int)$accident['id'];
-      $accident['userid']                = (int)$accident['userid'];
-      $accident['streamtopuserid']       = (int)$accident['streamtopuserid'];
-      $accident['streamtoptype']         = (int)$accident['streamtoptype'];
-      $accident['createtime']            = datetimeDBToISO8601($accident['createtime']);
-      $accident['streamdatetime']        = datetimeDBToISO8601($accident['streamdatetime']);
-      $accident['awaitingmoderation']    = $accident['awaitingmoderation'] == 1;
+    foreach ($DBResults as $crash) {
+      $crash['id']                    = (int)$crash['id'];
+      $crash['userid']                = (int)$crash['userid'];
+      $crash['streamtopuserid']       = (int)$crash['streamtopuserid'];
+      $crash['streamtoptype']         = (int)$crash['streamtoptype'];
+      $crash['createtime']            = datetimeDBToISO8601($crash['createtime']);
+      $crash['streamdatetime']        = datetimeDBToISO8601($crash['streamdatetime']);
+      $crash['awaitingmoderation']    = $crash['awaitingmoderation'] == 1;
 
-      $accident['pet']                   = $accident['pet'] == 1;
-      $accident['trafficjam']            = $accident['trafficjam'] == 1;
-      $accident['tree']                  = $accident['tree'] == 1;
+      $crash['pet']                   = $crash['pet'] == 1;
+      $crash['trafficjam']            = $crash['trafficjam'] == 1;
+      $crash['tree']                  = $crash['tree'] == 1;
 
       // Load persons
-      $accident['persons'] = [];
-      $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['accidentid' => $accident['id']]);
+      $crash['persons'] = [];
+      $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['accidentid' => $crash['id']]);
       foreach ($DBPersons as $person) {
         $person['groupid']            = isset($person['groupid'])? (int)$person['groupid'] : null;
         $person['transportationmode'] = (int)$person['transportationmode'];
@@ -336,11 +337,11 @@ SQL;
         $person['underinfluence']     = (int)$person['underinfluence'];
         $person['hitrun']             = (int)$person['hitrun'];
 
-        $accident['persons'][] = $person;
+        $crash['persons'][] = $person;
       }
 
-      $ids[] = $accident['id'];
-      $crashes[] = $accident;
+      $ids[] = $crash['id'];
+      $crashes[] = $crash;
     }
 
     if (count($crashes) > 0){
@@ -382,9 +383,9 @@ SQL;
         $article['userid']             = (int)$article['userid'];
         $article['awaitingmoderation'] = $article['awaitingmoderation'] == 1;
         $article['accidentid']         = (int)$article['accidentid'];
-        $accident['createtime']        = datetimeDBToISO8601($accident['createtime']);
-        $accident['publishedtime']     = datetimeDBToISO8601($accident['publishedtime']);
-        $accident['streamdatetime']    = datetimeDBToISO8601($accident['streamdatetime']);
+        $crash['createtime']        = datetimeDBToISO8601($crash['createtime']);
+        $crash['publishedtime']     = datetimeDBToISO8601($crash['publishedtime']);
+        $crash['streamdatetime']    = datetimeDBToISO8601($crash['streamdatetime']);
         // JD NOTE: Do not sanitize strings. We handle escaping in JavaScript
 
         $articles[] = $article;
@@ -472,17 +473,17 @@ else if ($function === 'getPageMetaData'){
 
   echo json_encode($result);
 } //==========
-else if ($function === 'saveArticleAccident'){
+else if ($function === 'saveArticleCrash'){
   try {
     $data                         = json_decode(file_get_contents('php://input'), true);
     $article                      = $data['article'];
-    $accident                     = $data['accident'];
+    $crash                        = $data['accident'];
     $saveArticle                  = $data['savearticle'];
-    $saveAccident                 = $data['saveaccident'];
-    $isNewAccident                = (! isset($accident['id'])) || ($accident['id'] <= 0);
+    $saveCrash                    = $data['saveaccident'];
+    $isNewCrash                   = (! isset($crash['id'])) || ($crash['id'] <= 0);
     $moderationRequired           = ! $user->isModerator();
-    $accidentIsAwaitingModeration = $moderationRequired && $isNewAccident;
-    $articleIsAwaitingModeration  = $moderationRequired && (! $accidentIsAwaitingModeration);
+    $crashIsAwaitingModeration    = $moderationRequired && $isNewCrash;
+    $articleIsAwaitingModeration  = $moderationRequired && (! $crashIsAwaitingModeration);
 
     // Check if new article url already in database.
     if ($saveArticle && ($article['id'] < 1)){
@@ -490,9 +491,9 @@ else if ($function === 'saveArticleAccident'){
       if ($exists) throw new Exception("<a href='/{$exists['accidentid']}}' style='text-decoration: underline;'>Er is al een ongeluk met deze link</a>", 1);
     }
 
-    if ($saveAccident){
-      if (! $isNewAccident){
-        // Update existing accident
+    if ($saveCrash){
+      if (! $isNewCrash){
+        // Update existing crash
 
         // We don't set awaitingmoderation for updates because it is unfriendly for helpers. We may need to come back on this policy if it is misused.
         $sqlANDOwnOnly = (! $user->isModerator())? ' AND userid=:useridwhere ' : '';
@@ -511,21 +512,21 @@ else if ($function === 'saveArticleAccident'){
     WHERE id=:id $sqlANDOwnOnly
 SQL;
         $params = array(
-          ':id'                    => $accident['id'],
+          ':id'                    => $crash['id'],
           ':userid'                => $user->id,
-          ':title'                 => $accident['title'],
-          ':text'                  => $accident['text'],
-          ':date'                  => $accident['date'],
-          ':pet'                   => $accident['pet'],
-          ':trafficjam'            => $accident['trafficjam'],
-          ':tree'                  => $accident['tree'],
+          ':title'                 => $crash['title'],
+          ':text'                  => $crash['text'],
+          ':date'                  => $crash['date'],
+          ':pet'                   => $crash['pet'],
+          ':trafficjam'            => $crash['trafficjam'],
+          ':tree'                  => $crash['tree'],
         );
         if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
         $database->execute($sql, $params, true);
-        if ($database->rowCount === 0) throw new Exception('Helpers kunnen alleen hun eigen ongelukken updaten. Sorry.');
+        if ($database->rowCount === 0) throw new Exception('Helpers kunnen alleen hun eigen ongelukken updaten.');
       } else {
-        // New accident
+        // New crash
 
         $sql = <<<SQL
     INSERT INTO accidents (userid, awaitingmoderation, title, text, date, pet, trafficjam, tree)
@@ -535,20 +536,20 @@ SQL;
         $params = array(
           ':userid'                => $user->id,
           ':awaitingmoderation'    => $moderationRequired,
-          ':title'                 => $accident['title'],
-          ':text'                  => $accident['text'],
-          ':date'                  => $accident['date'],
-          ':pet'                   => $accident['pet'],
-          ':trafficjam'            => $accident['trafficjam'],
-          ':tree'                  => $accident['tree'],
+          ':title'                 => $crash['title'],
+          ':text'                  => $crash['text'],
+          ':date'                  => $crash['date'],
+          ':pet'                   => $crash['pet'],
+          ':trafficjam'            => $crash['trafficjam'],
+          ':tree'                  => $crash['tree'],
         );
         $dbresult = $database->execute($sql, $params);
-        $accident['id'] = (int)$database->lastInsertID();
+        $crash['id'] = (int)$database->lastInsertID();
       }
 
-      // Save accident persons
+      // Save crash persons
       $sql    = "DELETE FROM accidentpersons WHERE accidentid=:accidentid;";
-      $params = ['accidentid' => $accident['id']];
+      $params = ['accidentid' => $crash['id']];
       $database->execute($sql, $params);
 
     $sql         = <<<SQL
@@ -556,9 +557,9 @@ INSERT INTO accidentpersons (accidentid, groupid, transportationmode, health, ch
 VALUES (:accidentid, :groupid, :transportationmode, :health, :child, :underinfluence, :hitrun);
 SQL;
       $dbStatement = $database->prepare($sql);
-      foreach ($accident['persons']  AS $person){
+      foreach ($crash['persons'] AS $person){
         $params = [
-          ':accidentid'         => $accident['id'],
+          ':accidentid'         => $crash['id'],
           ':groupid'            => $person['groupid'],
           ':transportationmode' => $person['transportationmode'],
           ':health'             => $person['health'],
@@ -569,7 +570,7 @@ SQL;
         $dbStatement->execute($params);
       }
 
-      $params = ['accidentid' => $accident['id']];
+      $params = ['accidentid' => $crash['id']];
 
     }
 
@@ -591,7 +592,7 @@ SQL;
       WHERE id=:id $sqlANDOwnOnly
 SQL;
         $params = [
-          ':accidentid'  => $accident['id'],
+          ':accidentid'  => $crash['id'],
           ':url'         => $article['url'],
           ':title'       => $article['title'],
           ':text'        => $article['text'],
@@ -611,11 +612,11 @@ SQL;
     INSERT INTO articles (userid, awaitingmoderation, accidentid, url, title, text, publishedtime, sitename, urlimage)
     VALUES (:userid, :awaitingmoderation, :accidentid, :url, :title, :text, :date, :sitename, :urlimage);
 SQL;
-        // Article moderation is only required if the accident is not awaiting moderation
+        // Article moderation is only required if the crash is not awaiting moderation
         $params = array(
           ':userid'             => $user->id,
           ':awaitingmoderation' => $articleIsAwaitingModeration,
-          ':accidentid'         => $accident['id'],
+          ':accidentid'         => $crash['id'],
           ':url'                => $article['url'],
           ':title'              => $article['title'],
           ':text'               => $article['text'],
@@ -626,9 +627,9 @@ SQL;
         $database->execute($sql, $params);
         $article['id'] = $database->lastInsertID();
 
-        if (! $saveAccident){
+        if (! $saveCrash){
           // New artikel
-          // Update accident streamtype
+          // Update crash stream type
           $sql = <<<SQL
     UPDATE accidents SET
       updatetime      = current_timestamp,
@@ -638,7 +639,7 @@ SQL;
     WHERE id=:id;
 SQL;
           $params = array(
-            ':id'             => $accident['id'],
+            ':id'             => $crash['id'],
             ':userid'         => $user->id,
           );
           $database->execute($sql, $params);
@@ -646,10 +647,32 @@ SQL;
       }
     }
 
-    $result = ['ok' => true, 'accidentid' => $accident['id']];
+    $result = ['ok' => true, 'accidentid' => $crash['id']];
     if ($saveArticle) $result['articleid']  = (int)$article['id'];
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage(), 'errorcode' => $e->getCode()];
+  }
+  echo json_encode($result);
+} //==========
+else if ($function === 'mergeCrashes'){
+  try {
+    if (! $user->isModerator()) throw new Exception('Alleen moderatoren mogen ongelukken samenvoegen.');
+
+    $idFrom = (int)$_REQUEST['idFrom'];
+    $idTo   = (int)$_REQUEST['idTo'];
+
+    // Move articles to other crash
+    $sql    = "UPDATE articles set accidentid=:idTo WHERE accidentid=:idFrom;";
+    $params = [':idFrom' => $idFrom, ':idTo' => $idTo];
+    $database->execute($sql, $params);
+
+    $sql    = "DELETE FROM accidents WHERE id=:idFrom;";
+    $params = [':idFrom' => $idFrom];
+    $database->execute($sql, $params);
+
+    $result = ['ok' => true];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
 } //==========
@@ -671,7 +694,7 @@ else if ($function === 'deleteArticle'){
   }
   echo json_encode($result);
 } //==========
-else if ($function === 'deleteAccident'){
+else if ($function === 'deleteCrash'){
   try{
     $id = (int)$_REQUEST['id'];
     if ($id > 0){
@@ -681,7 +704,7 @@ else if ($function === 'deleteAccident'){
       if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
       $database->execute($sql, $params, true);
-      if ($database->rowCount === 0) throw new Exception('Alleen moderatoren mogen ongelukken verwijderen. Sorry.');
+      if ($database->rowCount === 0) throw new Exception('Alleen moderatoren mogen ongelukken verwijderen.');
     }
     $result = ['ok' => true];
   } catch (Exception $e){
@@ -689,9 +712,9 @@ else if ($function === 'deleteAccident'){
   }
   echo json_encode($result);
 } //==========
-else if ($function === 'accidentToTopStream'){
+else if ($function === 'crashToStreamTop'){
   try{
-    if (! $user->isModerator()) throw new Exception('Alleen moderatoren mogen ongelukken omhoog plaatsen. Sorry.');
+    if (! $user->isModerator()) throw new Exception('Alleen moderatoren mogen ongelukken omhoog plaatsen.');
 
     $id = (int)$_REQUEST['id'];
     if ($id > 0){
@@ -705,7 +728,7 @@ else if ($function === 'accidentToTopStream'){
   }
   echo json_encode($result);
 } //==========
-else if ($function === 'accidentModerateOK'){
+else if ($function === 'crashModerateOK'){
   try{
     if (! $user->isModerator()) throw new Exception('Alleen moderatoren mogen ongelukken modereren.');
 

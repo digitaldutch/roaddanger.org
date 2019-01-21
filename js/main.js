@@ -1,11 +1,12 @@
 let crashes = [];
 let crashesFound = [];
 let articles = [];
+let articlesFound = [];
 let editCrashPersons = [];
 let watchEndOfPage = false;
 let spinnerLoadCard;
 let pageType;
-let TpageType = Object.freeze({stream:0, crash:1, moderations:2, statistics:3, statisticsGeneral: 4, recent: 5});
+let TpageType = Object.freeze({stream:0, crash:1, moderations:2, statistics:3, statisticsGeneral: 4, recent: 5, decorrespondent: 6});
 
 function initMain() {
   initPage();
@@ -20,6 +21,7 @@ function initMain() {
 
   if      (url.pathname.startsWith('/moderaties'))            pageType = TpageType.moderations;
   else if (url.pathname.startsWith('/stream'))                pageType = TpageType.stream;
+  else if (url.pathname.startsWith('/decorrespondent'))       pageType = TpageType.decorrespondent;
   else if (url.pathname.startsWith('/recent'))                pageType = TpageType.recent;
   else if (url.pathname.startsWith('/statistieken/algemeen')) pageType = TpageType.statisticsGeneral;
   else if (url.pathname.startsWith('/statistieken'))          pageType = TpageType.statistics;
@@ -41,7 +43,7 @@ function initMain() {
     loadCrashes(crashID, articleID);
   } else {
     // Infinity scroll event
-    // In future switch to IntersectionObserver. At this moment Safari does not support it yet :(
+    // In the future switch to IntersectionObserver. At this moment Safari does not support it yet :(
     document.addEventListener("scroll", (event) => {
       if (watchEndOfPage) {
         if ((spinnerLoadCard.style.display==='block') && isScrolledIntoView(spinnerLoadCard)) {
@@ -76,19 +78,23 @@ async function loadStatistics(){
 
   function showStatisticsGoingLive(dbStats) {
     document.getElementById('statisticsGeneral').innerHTML = `
-    <div class="tableHeader">Sinds livegang (14 januari 2019)</div>
+    <div class="tableHeader">De Correspondent week (14 t/m 20 januari 2019)</div>
     <table id="tableStats" class="dataTable">
       <tbody>
         <tr>
           <td>Mensen die zich aangemeld hebben op deze site</td>
-          <td style="text-align: right;">${dbStats.live.users}</td></tr>
+          <td style="text-align: right;">${dbStats.deCorrespondent.users}</td></tr>
+        <tr>
+          <td>Ongelukken</td>
+          <td style="text-align: right;">${dbStats.deCorrespondent.crashesOccurred}</td>
+        </tr>
         <tr>
           <td>Toegevoegde ongelukken</td>
-          <td style="text-align: right;">${dbStats.live.crashes}</td>
+          <td style="text-align: right;">${dbStats.deCorrespondent.crashes}</td>
         </tr>
         <tr>
           <td>Toegevoegde artikelen</td>
-          <td style="text-align: right;">${dbStats.live.articles}</td>
+          <td style="text-align: right;">${dbStats.deCorrespondent.articles}</td>
         </tr>
       </tbody>
     </table>  
@@ -196,12 +202,14 @@ async function loadCrashes(crashID=null, articleID=null){
     const searchText = searchVisible()? document.getElementById('searchText').value.trim().toLowerCase() : '';
     const siteName   = searchVisible()? document.getElementById('searchSiteName').value.trim().toLowerCase() : '';
 
-    let url = '/ajax.php?function=loadcrashes&count=' + maxLoadCount + '&offset=' + crashes.length;
-    if (crashID)                            url += '&id=' + crashID;
-    if (searchText)                         url += '&search=' + encodeURIComponent(searchText);
-    if (siteName)                           url += '&sitename=' + encodeURIComponent(siteName);
-    if (pageType === TpageType.moderations) url += '&moderations=1';
-    if (pageType === TpageType.recent)      url += '&sort=accidentdate';
+    let url = '/ajax.php?function=loadCrashes&count=' + maxLoadCount + '&offset=' + crashes.length;
+    if (crashID)                                url += '&id=' + crashID;
+    if (searchText)                             url += '&search=' + encodeURIComponent(searchText);
+    if (siteName)                               url += '&sitename=' + encodeURIComponent(siteName);
+    if (pageType === TpageType.moderations)     url += '&moderations=1';
+    if (pageType === TpageType.recent)          url += '&sort=accidentdate';
+    if (pageType === TpageType.decorrespondent) url += '&sort=accidentdate&searchDateFrom=2019-01-14&searchDateTo=2019-01-20';
+
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
     data           = JSON.parse(text);
@@ -274,12 +282,12 @@ function getCrashGUIButtons(crash){
 }
 
 function getCrashHTML(crashID){
-  const crash        = getCrashFromID(crashID);
-  const articles     = getCrashArticles(crash.id);
-  const canEditCrash = user.moderator || (crash.userid === user.id);
+  const crash         = getCrashFromID(crashID);
+  const crashArticles = getCrashArticles(crash.id, articles);
+  const canEditCrash  = user.moderator || (crash.userid === user.id);
 
   let htmlArticles = '';
-  for (let article of articles) {
+  for (let article of crashArticles) {
     let htmlModeration = '';
     if (article.awaitingmoderation){
       let modHTML = '';
@@ -741,7 +749,7 @@ function editCrash(crashID) {
 async function crashToTopStream(crashID) {
   closeAllPopups();
 
-  const url = '/ajax.php?function=accidentToTopStream&id=' + crashID;
+  const url = '/ajax.php?function=crashToStreamTop&id=' + crashID;
   const response = await fetch(url, fetchOptions);
   const text     = await response.text();
   const data     = JSON.parse(text);
@@ -752,7 +760,7 @@ async function crashToTopStream(crashID) {
 async function crashModerateOK(crash) {
   closeAllPopups();
 
-  const url = '/ajax.php?function=accidentModerateOK&id=' + crash;
+  const url = '/ajax.php?function=crashModerateOK&id=' + crash;
   const response = await fetch(url, fetchOptions);
   const text     = await response.text();
   const data     = JSON.parse(text);
@@ -915,7 +923,7 @@ async function saveArticleCrash(){
     if (crashEdited.persons.length === 0) {showError('Geen personen toegevoegd'); return;}
   }
 
-  const url = '/ajax.php?function=saveArticleAccident';
+  const url = '/ajax.php?function=saveArticleCrash';
   const optionsFetch = {
     method:  'POST',
     body: JSON.stringify({
@@ -988,7 +996,7 @@ function getArticleFromID(id){
   return articles.find(article => article.id === id);
 }
 
-function getCrashArticles(crashID){
+function getCrashArticles(crashID, articles){
   let list = articles.filter(article => article.accidentid === crashID);
 
   // Sort on publication time
@@ -1016,7 +1024,7 @@ async function deleteArticleDirect(articleID) {
 }
 
 async function deleteCrashDirect(crashID) {
-  const url = '/ajax.php?function=deleteAccident&id=' + crashID;
+  const url = '/ajax.php?function=deleteCrash&id=' + crashID;
   try {
     const response = await fetch(url, fetchOptions);
     const text = await response.text();
@@ -1060,85 +1068,136 @@ function deleteCrash(id) {
     'Verwijder ongeluk', null, true);
 }
 
+function crashRowHTML(crash, isSearch=false){
+  const crashArticles = getCrashArticles(crash.id, articlesFound);
+  if (isSearch) {
+    return `
+<div class="searchRow" onclick="mergeSearchResultClick(${crash.id})">
+  ${crash.title}
+  <div class="smallFont">#${crash.id} ${crash.date.toLocaleDateString()}</div>
+</div>
+  `;
+  } else {
+    return `
+${crash.title}
+<div class="smallFont">#${crash.id} ${crash.date.toLocaleDateString()}</div>
+  `;
+  }
+}
+
 function showMergeCrashForm(id) {
   closeAllPopups();
   const crash = getCrashFromID(id);
 
-  document.getElementById('mergeFromCrashIDHidden').value = crash.id;
-  document.getElementById('mergeCrashFrom').innerHTML = `
-${crash.title}
-<div class="smallFont">${crash.date.toLocaleDateString()}</div>
-`;
-  document.getElementById('formMergeAccident').style.display = 'flex';
+  document.getElementById('mergeFromCrashIDHidden').value     = crash.id;
+  document.getElementById('mergeAccidentSearch').value        = '';
+  document.getElementById('mergeAccidentSearchDay').value     = 0; // Same day
+  document.getElementById('mergeToCrashIDHidden').value       = '';
+  document.getElementById('mergeCrashTo').innerHTML           = '';
+  document.getElementById('mergeCrashTo').style.display       = 'none';
+  document.getElementById('mergeSearchResults').innerHTML     = '';
+  document.getElementById('mergeSearchResults').style.display = 'none';
+  document.getElementById('mergeCrashFrom').innerHTML         = crashRowHTML(crash);
+  document.getElementById('formMergeAccident').style.display  = 'flex';
 }
 
 function searchMergeAccidentDelayed() {
-  document.getElementById('spinnerMerge').style.display = 'block';
-  document.getElementById('mergeCrashTo').innerHTML     = '';
-  document.getElementById('mergeToCrashIDHidden').value = '';
+  document.getElementById('spinnerMerge').style.display       = 'block';
+  document.getElementById('mergeCrashTo').innerHTML           = '';
+  document.getElementById('mergeCrashTo').style.display       = 'none';
+  document.getElementById('mergeSearchResults').innerHTML     = '';
+  document.getElementById('mergeSearchResults').style.display = 'none';
+  document.getElementById('mergeToCrashIDHidden').value       = '';
 
   clearTimeout(searchMergeAccidentDelayed.timeout);
   searchMergeAccidentDelayed.timeout = setTimeout(searchMergeAccident,500);
 }
 
 function searchMergeAccident(){
-  async function searchCrashOnServer(searchText) {
-    if (text.length < 2) return;
-
-    const crashID = parseInt(document.getElementById('mergeFromCrashIDHidden').value);
-    const crash   = getCrashFromID(crashID);
-
-    const date = '';
+  async function searchCrashOnServer() {
     try {
-      const url      = '/ajax.php?function=loadcrashes&count=8&search=' + encodeURIComponent(searchText) + '&searchdate=' + dateToISO(crash.date);
+      const searchText = document.getElementById('mergeAccidentSearch').value.trim().toLowerCase();
+      if (searchText.length < 2) return;
+
+      const crashID = parseInt(document.getElementById('mergeFromCrashIDHidden').value);
+      const crash   = getCrashFromID(crashID);
+      let url       = '/ajax.php?function=loadCrashes&count=10&search=' + encodeURIComponent(searchText);
+
+      const dateSearch = document.getElementById('mergeAccidentSearchDay').value;
+      let dateFrom;
+      let dateTo;
+      if (dateSearch === '0'){
+        dateFrom = crash.date;
+        dateTo   = crash.date;
+      } else if (isInt(dateSearch)) {
+        dateFrom = crash.date.addDays(-dateSearch);
+        dateTo   = crash.date.addDays(dateSearch);
+      }
+
+      if (dateFrom) url += '&searchDateFrom=' + dateToISO(dateFrom) + '&searchDateTo=' + dateToISO(dateTo);
+
       const response = await fetch(url, fetchOptions);
       const text     = await response.text();
       const data     = JSON.parse(text);
       if (data.error) showError(data.error);
       else if (data.ok){
         prepareCrashServerData(data);
-        crashesFound = data.crashes;
+        crashesFound  = data.crashes;
+        articlesFound = data.articles;
 
         let html = '';
-        let id   = '';
-        crashesFound.forEach(crash => {
-          id   = crash.id;
-          html += `
-<div class="searchRow" onclick="mergeSearchResultClick(${crash.id})">
-  ${crash.title}
-  <div class="smallFont">${crash.date.toLocaleDateString()}</div>
-</div>
-`;
+        crashesFound.forEach(crashFound => {
+          if (crashFound.id !== crash.id) html += crashRowHTML(crashFound, true);
+
         });
-        document.getElementById('mergeSearchResults').innerHTML = html;
+        document.getElementById('mergeSearchResults').innerHTML     = html;
+        document.getElementById('mergeSearchResults').style.display = 'block';
       }
     } finally {
       document.getElementById('spinnerMerge').style.display = 'none';
     }
   }
 
-  const text = document.getElementById('mergeAccidentSearch').value.trim().toLowerCase();
-  searchCrashOnServer(text);
+  searchCrashOnServer();
 }
 
 function mergeSearchResultClick(crashID) {
   const crash = crashesFound.find(crash => crash.id === crashID);
   let html = '';
-  if (crash){
-    html = `
-  ${crash.title}
-  <div class="smallFont">${crash.date.toLocaleDateString()}</div>
-`;
+  let crashId = '';
+  if (crash) {
+    html  = crashRowHTML(crash);
+    crashId = crash.id;
   }
 
+  document.getElementById('mergeToCrashIDHidden').value   = crashId;
   document.getElementById('mergeCrashTo').innerHTML       = html;
-  document.getElementById('mergeAccidentSearch').value    = '';
-  document.getElementById('mergeSearchResults').innerHTML = '';
+  document.getElementById('mergeCrashTo').style.display   = 'block';
 }
 
 function mergeCrash() {
-  showMessage('To Do: Dit werkt nog niet.');
+  const fromID = document.getElementById('mergeFromCrashIDHidden').value;
+  const toID   = document.getElementById('mergeToCrashIDHidden').value;
+  if (! toID) showError('Geen samenvoeg crash geselecteerd');
+
+  const crashFrom = getCrashFromID(parseInt(fromID));
+  const crashTo   = getCrashFromID(parseInt(toID));
+
+  async function mergeCrashesOnServer(fromID, toID){
+    const url = `/ajax.php?function=mergeCrashes&idFrom=${fromID}&idTo=${toID}`;
+    const response = await fetch(url, fetchOptions);
+    const text     = await response.text();
+    const data     = JSON.parse(text);
+    if (data.error) showError(data.error);
+    else window.location.reload();
+  }
+
+  confirmMessage(`Ongeluk <br>#${crashFrom.id} ${crashFrom.title}<br><br>samenvoegen met<br>#${crashTo.id} ${crashTo.title}?`,
+    function () {
+      mergeCrashesOnServer(fromID, toID);
+    }, 'Ja, voeg samen');
 }
+
 
 function showMainSpinner(){
   document.getElementById('mainSpinner').style.display = 'inline-block';

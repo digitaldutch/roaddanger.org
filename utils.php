@@ -192,3 +192,8 @@ function getRequest($name, $default=null) {
 function cookiesApproved(){
   return isset($_COOKIE['cookiesAccepted']) && (isset($_COOKIE['cookiesAccepted']) == 1);
 }
+
+function addSQLWhere(&$whereSql, $wherePart){
+  $whereSql .= ($whereSql === '')? ' WHERE ' : ' AND ';
+  $whereSql .= ' ' . $wherePart . ' ';
+}

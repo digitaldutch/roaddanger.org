@@ -204,7 +204,7 @@ function downloadData() {
     spinner.style.display = 'block';
     try {
       const maxLoadCount = 1000;
-      let url        = '/ajax.php?function=loadcrashes&count=' + maxLoadCount;
+      let url        = '/ajax.php?function=loadCrashes&count=' + maxLoadCount;
       const response = await fetch(url, fetchOptions);
       const text     = await response.text();
       const data     = JSON.parse(text);

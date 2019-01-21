@@ -138,6 +138,7 @@ function getNavigation(){
       <div class="navigationSectionHeader">Ongelukken</div>
       <a href="/" class="navItem">Recente ongelukken</a>
       <a href="/stream" class="navItem">Laatst gewijzigde ongelukken</a>
+      <a href="/decorrespondent" class="navItem">De Correspondent week</a>
     </div>
 
     <div class="navigationSection">
@@ -272,7 +273,7 @@ function getFormEditCrash(){
         <label for="editAccidentTitle">Titel ongeluk</label> 
         <div style="display: flex;">
           <input id="editAccidentTitle" class="popupInput" type="text" maxlength="500" autocomplete="off" data-readonlyhelper>
-          <span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentInfoFromArticle();" ">Zelfde als artikel</span>
+          <span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentInfoFromArticle();">Zelfde als artikel</span>
         </div>
   
         <label for="editAccidentText">Tekst</label>
@@ -327,17 +328,34 @@ function getFormMergeCrash(){
     <div class="flexColumn">
       <div class="formSubHeader">Ongeluk</div>
      
-      <div id="mergeCrashFrom"></div>
+      <div id="mergeCrashFrom" class="crashRow"></div>
     </div>
             
     <div id="mergeAccidentSection" class="flexColumn">
       <div class="formSubHeader">Samenvoegen met</div>
      
       <input id="mergeToCrashIDHidden" type="hidden">
-      <div id="mergeCrashTo"></div>  
+      <div id="mergeCrashTo" class="crashRow"></div>  
   
-      <label for="mergeAccidentSearch">Zoek ongeluk</label> 
-      <input id="mergeAccidentSearch" class="popupInput" type="search" autocomplete="off" onkeyup="searchMergeAccidentDelayed();">
+      <div class="flexRow">
+        
+        <div class="flexColumn" style="flex-grow: 1;">
+          <label for="mergeAccidentSearch">Zoek ongeluk</label>
+          <input id="mergeAccidentSearch" class="popupInput" style="margin-right: 5px;" type="search" autocomplete="off"  placeholder="Zoek tekst" onkeyup="searchMergeAccidentDelayed();">
+        </div>
+        
+        <div class="flexColumn">
+        <label>Datum</label>
+        <select id="mergeAccidentSearchDay" oninput="searchMergeAccidentDelayed();">
+          <option value=""></option>
+          <option value="0">Zelfde dag</option>
+          <option value="1">1 dag marge</option>
+          <option value="2">2 dagen marge</option>
+          <option value="7">7 dagen marge</option>
+          <option value="30">30 dagen marge</option>
+        </select>
+        </div>
+      </div>
 
       <div id="spinnerMerge" class="spinnerLine"><img src="/images/spinner.svg"></div>
       <div id="mergeSearchResults"></div>  

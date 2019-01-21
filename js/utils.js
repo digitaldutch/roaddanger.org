@@ -18,6 +18,24 @@ const fetchOptions = { // Required for Safari. Safari sets the credentials by de
   credentials: 'same-origin',
 };
 
+if (!Date.prototype.addDays) {
+  Date.prototype.addDays = function(days) {
+    if (days === 0) return this;
+    var newDate = new Date(this.valueOf());
+    newDate.setDate(newDate.getDate() + parseInt(days));
+    return newDate;
+  }
+}
+
+function isInt(value) {
+  var x;
+  if (isNaN(value)) {
+    return false;
+  }
+  x = parseFloat(value);
+  return (x | 0) === x;
+}
+
 function dateFromISO(datetimeISO){
   if (! datetimeISO) return null;
   datetimeISO = datetimeISO.replace(' ', 'T');
