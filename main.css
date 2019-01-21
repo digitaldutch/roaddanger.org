@@ -1031,6 +1031,18 @@ a {
   background-color: #4D90FE;
 }
 
+.textArea{
+  width:  100%;
+  height: 100px;
+  resize: vertical;
+}
+
+.buttonBar {
+  display:         flex;
+  margin-top:      10px;
+  justify-content: flex-end;
+}
+
 @media (max-width: 750px) {
   .hideOnMobile {
     display: none !important;

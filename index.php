@@ -6,7 +6,7 @@ global $VERSION;
 global $user;
 
 $showCrashMenu = false;
-if (stripos($_SERVER['REQUEST_URI'], '/statistieken/algemeen') === 0) {
+if (strpos($_SERVER['REQUEST_URI'], '/statistieken/algemeen') === 0) {
   $mainHTML = <<<HTML
 <div class="pageInner">
   <div class="pageSubTitle">Statistieken - algemeen</div>
@@ -20,7 +20,7 @@ HTML;
 
   $head = "<script src=\"/js/main.js?v=$VERSION\"></script>";
 
-} else if (stripos($_SERVER['REQUEST_URI'], '/statistieken') === 0) {
+} else if (strpos($_SERVER['REQUEST_URI'], '/statistieken') === 0) {
   $mainHTML = <<<HTML
 <div class="pageInner">
   <div class="pageSubTitle">Statistieken - vervoermiddelen</div>
@@ -64,13 +64,11 @@ HTML;
 
 } else {
   $showCrashMenu = true;
+  $generalMessage = $database->fetchSingleValue("SELECT value FROM options WHERE name='globalMessage';");
 
-  if ($_SERVER['REQUEST_URI'] === '/') {
+  if (isset($generalMessage)) {
     $introText .= <<<HTML
-    <div class="sectionIntro">Op deze site verzamelen we nieuwsberichten over verkeersongelukken in Nederland uit Nederlandse media en nieuwswebsites.
-    Meedoen? Registreer jezelf via het poppetje rechts bovenin en voeg daarna je bericht toe met het plusje.
-    Meer uitleg vind je in de <a href="/overdezesite">Over deze site</a> pagina.
-  </div>
+    <div class="sectionIntro">$generalMessage</div>
 HTML;
   }
 

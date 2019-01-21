@@ -188,7 +188,7 @@ async function adminDeleteUser() {
   if (data.error) {
     showError(data.error, 10);
   } else {
-    showMessage('Lid opgeslagen', 1);
+    showMessage('Mens opgeslagen', 1);
     window.location.reload();
   }
 }
@@ -218,5 +218,30 @@ function downloadData() {
   }
 
   confirmMessage('Laatste 1000 ongelukken exporteren?', doDownload, 'Download');
+
+}
+
+async function saveOptions() {
+  const url = '/beheer/ajax.php?function=saveOptions';
+  const options = {
+    globalMessage: document.getElementById('optionGlobalMessage').value,
+  };
+
+  const optionsFetch = {
+    method:  'POST',
+    body: JSON.stringify({
+      options: options,
+    }),
+    headers: {'Content-Type': 'application/json'},
+  };
+  const response = await fetch(url, optionsFetch);
+  const text     = await response.text();
+  const data     = JSON.parse(text);
+  if (data.error) {
+    showError(data.error, 10);
+  } else {
+    showMessage('Options opgeslagen', 1);
+    window.location.reload();
+  }
 
 }

@@ -24,7 +24,7 @@ function htmlNoAdmin(){
 HTML;
 }
 
-if (stripos($_SERVER['REQUEST_URI'], '/mensen')) {
+if (containsText($_SERVER['REQUEST_URI'], '/mensen')) {
   if (! $user->admin) $mainHTML = htmlNoAdmin();
   else {
     $mainHTML = <<<HTML
@@ -49,14 +49,34 @@ if (stripos($_SERVER['REQUEST_URI'], '/mensen')) {
 </div>
 HTML;
   }
-} else if (stripos($_SERVER['REQUEST_URI'], '/exporteren')) {
+} else if (containsText($_SERVER['REQUEST_URI'], '/beheer/exporteren')) {
   $mainHTML = <<<HTML
 <div id="main" class="pageInner bgWhite">
   <div class="pageSubTitle">Beheer - Exporteren</div>
   <div id="export">
     <label>Download laatste 1000 ongelukken en artikelen in JSON formaat<br>
-    <button class="button" style="margin-left: 0;" onclick="downloadData();">Download data</button></label>
+    <div class="buttonBar">
+      <button class="button" style="margin-left: 0;" onclick="downloadData();">Download data</button></label>
+    </div>  
     <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+  </div>
+</div>
+HTML;
+} else if (containsText($_SERVER['REQUEST_URI'], '/beheer/opties')) {
+
+  $sql = "SELECT value FROM options WHERE name=:name;";
+  $message = $database->fetchSingleValue($sql, [':name' => 'globalMessage']);
+
+  $mainHTML = <<<HTML
+<div id="main" class="pageInner">
+  <div class="pageSubTitle">Beheer - opties</div>
+  <div>
+    <label>Website mededeling (wordt op alle ongeluk pagina's getoond)<br>
+    <textarea id="optionGlobalMessage" class="textArea" maxlength="1000">$message</textarea></label>
+    
+    <div class="buttonBar">
+      <button class="button" style="margin-left: 0;" onclick="saveOptions();">Opslaan</button>
+    </div>
   </div>
 </div>
 HTML;

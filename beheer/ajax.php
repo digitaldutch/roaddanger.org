@@ -52,6 +52,25 @@ SQL;
 
   echo json_encode($result);
 } // ====================
+else if ($function === 'saveOptions') {
+  try{
+    $data    = json_decode(file_get_contents('php://input'), true);
+    $options = $data['options'];
+
+    $sql         = "INSERT INTO options (name, value) VALUES (:name, :value) ON DUPLICATE KEY UPDATE value=:value2";
+    $DBStatement = $database->prepare($sql);
+
+    foreach ($options as $key => $value){
+      $params = [':name' => $key, ':value' => $value, ':value2' => $value];
+      $database->executePrepared($params, $DBStatement);
+    }
+
+    $result = ['ok' => true];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage(), 'errorcode' => $e->getCode()];
+  }
+  echo json_encode($result);
+} // ====================
 else if ($function === 'saveuser') {
   try{
     $data    = json_decode(file_get_contents('php://input'), true);

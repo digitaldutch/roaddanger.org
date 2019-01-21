@@ -197,3 +197,8 @@ function addSQLWhere(&$whereSql, $wherePart){
   $whereSql .= ($whereSql === '')? ' WHERE ' : ' AND ';
   $whereSql .= ' ' . $wherePart . ' ';
 }
+
+function containsText($haystack, $needle){
+  // https://stackoverflow.com/a/4366748/63849
+  return strpos($haystack, $needle) !== false;
+}

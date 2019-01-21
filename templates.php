@@ -158,6 +158,7 @@ function getNavigation(){
       <div class="navigationSection">
         <a href="/beheer/mensen" class="navItem" data-admin>Mensen</a>
         <a href="/moderaties/" class="navItem">Moderaties</a>
+        <a href="/beheer/opties/" class="navItem">Opties</a>
         <a href="/beheer/exporteren/" class="navItem">Exporteer data</a>
       </div>      
     </div>
