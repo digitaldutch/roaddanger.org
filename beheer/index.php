@@ -71,8 +71,12 @@ HTML;
 <div id="main" class="pageInner">
   <div class="pageSubTitle">Beheer - opties</div>
   <div>
-    <label>Website mededeling (wordt op alle ongeluk pagina's getoond)<br>
-    <textarea id="optionGlobalMessage" class="textArea" maxlength="1000">$message</textarea></label>
+    <label for="optionGlobalMessage">Website mededeling (wordt op alle ongeluk pagina's getoond)</label>
+    <textarea id="optionGlobalMessage" class="textArea" maxlength="1000">$message</textarea>
+    <div class="smallFont">Externe link:  [url=https://www.hetongeluk.nl]Het Ongeluk[/url]<br>
+    Interne link:  [url=/overdezesite]Over deze site[/url]<br>
+    Paragrafen: Voeg lege regels toe
+    </div>
     
     <div class="buttonBar">
       <button class="button" style="margin-left: 0;" onclick="saveOptions();">Opslaan</button>

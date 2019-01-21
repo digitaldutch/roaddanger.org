@@ -65,10 +65,11 @@ HTML;
 } else {
   $showCrashMenu = true;
   $generalMessage = $database->fetchSingleValue("SELECT value FROM options WHERE name='globalMessage';");
+  $messageHTML = formatMessage($generalMessage);
 
   if (isset($generalMessage)) {
     $introText .= <<<HTML
-    <div class="sectionIntro">$generalMessage</div>
+    <div class="sectionIntro">$messageHTML</div>
 HTML;
   }
 

@@ -202,3 +202,16 @@ function containsText($haystack, $needle){
   // https://stackoverflow.com/a/4366748/63849
   return strpos($haystack, $needle) !== false;
 }
+
+function formatMessage($text){
+  require_once "./scripts/lib_autolink.php";
+
+  $text = htmlspecialchars($text); // Escape all html special characters for protection
+  $text = nl2br($text);            // Replace line endings with html equivalent
+  $text = autolink($text);         // Linkify all links
+
+  // PHPBB link style: [url=https://www.hetongeluk.nl]Het Ongeluk[/url]
+  $text = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/', '<a href="$1">$2</a>', $text);
+
+  return $text;
+}
