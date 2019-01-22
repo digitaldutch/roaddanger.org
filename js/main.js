@@ -13,11 +13,12 @@ function initMain() {
 
   spinnerLoadCard = document.getElementById('spinnerLoad');
 
-  const url        = new URL(location.href);
-  const crashID    = getCrashNumberFromPath(url.pathname);
-  const articleID  = url.searchParams.get('articleid');
-  const searchText = url.searchParams.get('search');
-  const siteName   = url.searchParams.get('sitename');
+  const url              = new URL(location.href);
+  const crashID          = getCrashNumberFromPath(url.pathname);
+  const articleID        = url.searchParams.get('articleid');
+  const searchText       = url.searchParams.get('search');
+  const searchSiteName   = url.searchParams.get('sitename');
+  const searchHealthDead = url.searchParams.get('hd');
 
   if      (url.pathname.startsWith('/moderaties'))            pageType = TpageType.moderations;
   else if (url.pathname.startsWith('/stream'))                pageType = TpageType.stream;
@@ -28,10 +29,11 @@ function initMain() {
   else if (crashID)                                           pageType = TpageType.crash;
   else                                                        pageType = TpageType.recent;
 
-  if (searchText || siteName) {
+  if (searchText || searchSiteName || searchHealthDead) {
     document.body.classList.add('searchBody');
     document.getElementById('searchText').value     = searchText;
-    document.getElementById('searchSiteName').value = siteName;
+    document.getElementById('searchSiteName').value = searchSiteName;
+    if (searchHealthDead) document.getElementById('searchPersonHealthDead').classList.add('buttonSelectedBlue');
   }
 
   addEditPersonButtons();
@@ -199,13 +201,15 @@ async function loadCrashes(crashID=null, articleID=null){
   let maxLoadCount = 20;
   try {
     spinnerLoadCard.style.display = 'block';
-    const searchText = searchVisible()? document.getElementById('searchText').value.trim().toLowerCase() : '';
-    const siteName   = searchVisible()? document.getElementById('searchSiteName').value.trim().toLowerCase() : '';
+    const searchText       = searchVisible()? document.getElementById('searchText').value.trim().toLowerCase() : '';
+    const searchSiteName   = searchVisible()? document.getElementById('searchSiteName').value.trim().toLowerCase() : '';
+    const searchHealthDead = searchVisible()? document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue') : '';
 
     let url = '/ajax.php?function=loadCrashes&count=' + maxLoadCount + '&offset=' + crashes.length;
     if (crashID)                                url += '&id=' + crashID;
     if (searchText)                             url += '&search=' + encodeURIComponent(searchText);
-    if (siteName)                               url += '&sitename=' + encodeURIComponent(siteName);
+    if (searchSiteName)                         url += '&sitename=' + encodeURIComponent(searchSiteName);
+    if (searchHealthDead)                       url += '&healthdead=1';
     if (pageType === TpageType.moderations)     url += '&moderations=1';
     if (pageType === TpageType.recent)          url += '&sort=accidentdate';
     if (pageType === TpageType.decorrespondent) url += '&sort=accidentdate&searchDateFrom=2019-01-14&searchDateTo=2019-01-20';
@@ -600,6 +604,10 @@ function selectPersonHealth(health, toggle=false) {
       else button.classList.remove('buttonSelected');
     }
   }
+}
+
+function selectSearchPersonDead() {
+  document.getElementById('searchPersonHealthDead').classList.toggle('buttonSelectedBlue');
 }
 
 function getSelectedPersonHealth(){
@@ -1241,10 +1249,13 @@ function startSearchKey(event) {
 }
 
 function startSearch() {
-  const searchText     = document.getElementById('searchText').value.trim().toLowerCase()
-  const searchSiteName = document.getElementById('searchSiteName').value.trim().toLowerCase()
+  const searchText       = document.getElementById('searchText').value.trim().toLowerCase()
+  const searchSiteName   = document.getElementById('searchSiteName').value.trim().toLowerCase()
+  const searchHealthDead = document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue');
+
   let url = window.location.origin + '?search=' + encodeURIComponent(searchText);
-  if (searchSiteName) url += '&sitename=' + encodeURIComponent(searchSiteName);
+  if (searchSiteName)   url += '&sitename=' + encodeURIComponent(searchSiteName);
+  if (searchHealthDead) url += '&hd=1';
   window.history.pushState(null, null, url);
   reloadCrashes();
 }

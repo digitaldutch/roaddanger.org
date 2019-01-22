@@ -206,16 +206,17 @@ SQL;
 } // ====================
 else if ($function === 'loadCrashes') {
   try {
-    $offset         = (int)getRequest('offset',0);
-    $count          = (int)getRequest('count', 100);
-    $id             = isset($_REQUEST['id'])? (int)$_REQUEST['id'] : null;
-    $searchText     = isset($_REQUEST['search'])? $_REQUEST['search'] : '';
-    $searchDateFrom = getRequest('searchDateFrom', '');
-    $searchDateTo   = getRequest('searchDateTo', '');
-    $siteName       = isset($_REQUEST['sitename'])? $_REQUEST['sitename'] : '';
-    $moderations    = (int)getRequest('moderations', 0);
-    $sort           = getRequest('sort');
-    $export         = (int)getRequest('export', 0);
+    $offset           = (int)getRequest('offset',0);
+    $count            = (int)getRequest('count', 100);
+    $id               = isset($_REQUEST['id'])? (int)$_REQUEST['id'] : null;
+    $searchText       = isset($_REQUEST['search'])? $_REQUEST['search'] : '';
+    $searchDateFrom   = getRequest('searchDateFrom', '');
+    $searchDateTo     = getRequest('searchDateTo', '');
+    $searchSiteName   = isset($_REQUEST['sitename'])? $_REQUEST['sitename'] : '';
+    $searchHealthDead = (int)getRequest('healthdead', 0);
+    $moderations      = (int)getRequest('moderations', 0);
+    $sort             = getRequest('sort');
+    $export           = (int)getRequest('export', 0);
 
     if ($count > 1000) throw new Exception('Internal error: Count to high.');
     if ($moderations && (! $user->isModerator())) throw new Exception('Moderaties zijn alleen zichtbaar voor moderators.');
@@ -279,7 +280,7 @@ SQL;
       $SQLJoin = '';
       if ($searchText !== ''){
         addSQLWhere($SQLWhere, "(MATCH(ac.title, ac.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))");
-        $SQLJoin = ' LEFT JOIN articles ar on ac.id = ar.accidentid ';
+        $SQLJoin .= ' LEFT JOIN articles ar on ac.id = ar.accidentid ';
         $params[':search']  = $searchText;
         $params[':search2'] = $searchText;
       }
@@ -294,9 +295,14 @@ SQL;
         $params[':searchDateTo'] = $searchDateTo;
       }
 
-      if ($siteName !== ''){
+      if ($searchSiteName !== ''){
         addSQLWhere($SQLWhere, " LOWER(ar.sitename) LIKE :sitename ");
-        $params[':sitename'] = "%$siteName%";
+        $params[':sitename'] = "%$searchSiteName%";
+      }
+
+      if ($searchHealthDead === 1){
+        $SQLJoin .= ' JOIN accidentpersons ap on ac.id = ap.accidentid ';
+        addSQLWhere($SQLWhere, " ap.health=3 ");
       }
       if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);
 

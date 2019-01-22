@@ -430,6 +430,12 @@ a {
   border-radius:    5px;
 }
 
+.buttonSelectedBlue {
+  opacity:          1;
+  background-color: #4D90FE;
+  border-radius:    5px;
+}
+
 .buttonAdd {
   background-image: url(/images/add.svg);
 }
@@ -455,6 +461,7 @@ a {
 }
 
 .bgDead {                  background-image: url(/images/persondead.svg);}
+.bgDeadBlack {             background-image: url(/images/persondead_black.svg);}
 .bgInjured {               background-image: url(/images/person_injured.svg);}
 .bgUnharmed {              background-image: url(/images/unharmed.svg);}
 

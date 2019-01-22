@@ -71,6 +71,7 @@ $navigation
   <div id="searchBar">
      <input id="searchText" class="searchInput" type="search" placeholder="Zoek tekst" onkeyup="startSearchKey(event);" autocomplete="off">
      <input id="searchSiteName" class="searchInput" type="search" placeholder="Bron" onkeyup="startSearchKey(event);" autocomplete="off">
+     <span id="searchPersonHealthDead" class="menuButton bgDeadBlack" style="margin-left: 5px;" data-tippy-content="Letsel: dood" onclick="selectSearchPersonDead();"></span>      
      <div class="button buttonMobileSmall" onclick="startSearch(event)">Zoek</div>
      <div class="closeButton" onclick="toggleSearchBar();"></div>  
   </div>      
