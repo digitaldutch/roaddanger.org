@@ -68,7 +68,7 @@ HTML;
   $generalMessage = $database->fetchSingleValue("SELECT value FROM options WHERE name='globalMessage';");
   $messageHTML    = formatMessage($generalMessage);
   if      (strpos($_SERVER['REQUEST_URI'], '/stream') === 0) $title = 'Laatst gewijzigde ongelukken';
-  else if (strpos($_SERVER['REQUEST_URI'], '/decorrespondent') === 0) $title = 'De Correspondent week';
+  else if (strpos($_SERVER['REQUEST_URI'], '/decorrespondent') === 0) $title = 'De Correspondent week<br>14 t/m 20 januari 2019';
   else $title = 'Recente ongelukken';
 
   if (isset($generalMessage)) {

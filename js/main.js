@@ -170,7 +170,6 @@ async function loadStatistics(){
   try {
     spinnerLoadCard.style.display = 'block';
 
-    const period = document.getElementById('filterStatsPeriod').value;
     let url      = '/ajax.php?function=getstats';
     if (pageType === TpageType.statistics) url += '&period=' + document.getElementById('filterStatsPeriod').value;
     if (pageType === TpageType.statisticsGeneral) url += '&type=general';
@@ -182,7 +181,7 @@ async function loadStatistics(){
     else {
       if (pageType === TpageType.statisticsGeneral) showStatisticsGeneral(data.statistics);
       else {
-        let url = window.location.origin + '/statistieken?period=' + period;
+        let url = window.location.origin + '/statistieken?period=' + document.getElementById('filterStatsPeriod').value;
         window.history.pushState(null, null, url);
 
         showStatisticsTransportation(data.statistics);
