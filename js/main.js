@@ -39,6 +39,8 @@ function initMain() {
   addEditPersonButtons();
 
   if ((pageType === TpageType.statistics) || (pageType === TpageType.statisticsGeneral)) {
+    const period = url.searchParams.get('period');
+    if (period) document.getElementById('filterStatsPeriod').value = period;
     loadStatistics();
   } else if (pageType === TpageType.crash){
     // Single crash details page
@@ -78,7 +80,7 @@ async function loadStatistics(){
     tippy('#tableStatsBody [data-tippy-content]');
   }
 
-  function showStatisticsGoingLive(dbStats) {
+  function showStatisticsGeneral(dbStats) {
     document.getElementById('statisticsGeneral').innerHTML = `
     <div class="tableHeader">De Correspondent week (14 t/m 20 januari 2019)</div>
     <table id="tableStats" class="dataTable">
@@ -89,6 +91,14 @@ async function loadStatistics(){
         <tr>
           <td>Ongelukken</td>
           <td style="text-align: right;">${dbStats.deCorrespondent.crashesOccurred}</td>
+        </tr>
+        <tr>
+          <td>Doden</td>
+          <td style="text-align: right;">${dbStats.deCorrespondent.dead}</td>
+        </tr>
+        <tr>
+          <td>Gewond</td>
+          <td style="text-align: right;">${dbStats.deCorrespondent.injured}</td>
         </tr>
         <tr>
           <td>Toegevoegde ongelukken</td>
@@ -153,15 +163,16 @@ async function loadStatistics(){
           <td style="text-align: right;">${dbStats.total.articles}</td>
         </tr>
       </tbody>
-    </table>  
+    </table>
 `;
   }
 
   try {
     spinnerLoadCard.style.display = 'block';
 
-    let url        = '/ajax.php?function=getstats';
-    if (pageType === TpageType.statistics) url += '&period=' + document.getElementById('filterStatsPeriod').value
+    const period = document.getElementById('filterStatsPeriod').value;
+    let url      = '/ajax.php?function=getstats';
+    if (pageType === TpageType.statistics) url += '&period=' + document.getElementById('filterStatsPeriod').value;
     if (pageType === TpageType.statisticsGeneral) url += '&type=general';
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
@@ -169,8 +180,13 @@ async function loadStatistics(){
     if (data.user) updateLoginGUI(data.user);
     if (data.error) showError(data.error);
     else {
-      if (pageType === TpageType.statisticsGeneral) showStatisticsGoingLive(data.statistics);
-      else showStatisticsTransportation(data.statistics);
+      if (pageType === TpageType.statisticsGeneral) showStatisticsGeneral(data.statistics);
+      else {
+        let url = window.location.origin + '/statistieken?period=' + period;
+        window.history.pushState(null, null, url);
+
+        showStatisticsTransportation(data.statistics);
+      }
     }
   } catch (error) {
     showError(error.message);
@@ -1082,7 +1098,7 @@ function crashRowHTML(crash, isSearch=false){
     const htmlPersons = getCrashButtonsHTML(crash, false);
 
     const crashArticles = getCrashArticles(crash.id, allArticles);
-    const img = crashArticles? `<img class="thumbnail" src="${crashArticles[0].urlimage}">` : '';
+    const img = (crashArticles.length > 0)? `<img class="thumbnail" src="${crashArticles[0].urlimage}">` : '';
     return `
   <div class="flexRow" style="justify-content: space-between;">
     <div style="padding: 3px;">
@@ -1253,7 +1269,10 @@ function startSearch() {
   const searchSiteName   = document.getElementById('searchSiteName').value.trim().toLowerCase()
   const searchHealthDead = document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue');
 
-  let url = window.location.pathname + '?search=' + encodeURIComponent(searchText);
+  let url = window.location.origin;
+  if      (pageType === TpageType.decorrespondent) url += '/decorrespondent';
+  else if (pageType === TpageType.stream)          url += '/stream';
+  url += '?search=' + encodeURIComponent(searchText);
   if (searchSiteName)   url += '&sitename=' + encodeURIComponent(searchSiteName);
   if (searchHealthDead) url += '&hd=1';
   window.history.pushState(null, null, url);

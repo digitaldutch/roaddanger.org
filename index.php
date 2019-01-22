@@ -34,6 +34,7 @@ HTML;
           <option value="today">Vandaag</option> 
           <option value="yesterday">Gisteren</option> 
           <option value="7days">7 dagen</option> 
+          <option value="decorrespondent">De Correspondent week</option> 
           <option value="30days">30 dagen</option> 
           <option value="all" selected>Alles</option> 
         </select>

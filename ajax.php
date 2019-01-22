@@ -16,11 +16,12 @@ function getStatsTransportation($database, $period='all'){
   $stats = [];
 
   switch ($period) {
-    case 'today':     $SQLWhere = ' WHERE DATE (`date`) = CURDATE() '; break;
-    case 'yesterday': $SQLWhere = ' WHERE DATE (`date`) = SUBDATE(CURDATE(), 1) '; break;
-    case '7days':     $SQLWhere = ' WHERE DATE (`date`) > SUBDATE(CURDATE(), 7) '; break;
-    case '30days':    $SQLWhere = ' WHERE DATE (`date`) > SUBDATE(CURDATE(), 30) '; break;
-    default:          $SQLWhere = '';
+    case 'today':           $SQLWhere = ' WHERE DATE (`date`) = CURDATE() '; break;
+    case 'yesterday':       $SQLWhere = ' WHERE DATE (`date`) = SUBDATE(CURDATE(), 1) '; break;
+    case '7days':           $SQLWhere = ' WHERE DATE (`date`) > SUBDATE(CURDATE(), 7) '; break;
+    case 'decorrespondent': $SQLWhere = " WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' "; break;
+    case '30days':          $SQLWhere = ' WHERE DATE (`date`) > SUBDATE(CURDATE(), 30) '; break;
+    default:                $SQLWhere = '';
   }
 
   $sql = <<<SQL
@@ -89,12 +90,16 @@ function getStatsDatabase($database){
   $stats['deCorrespondent'] = [];
   $sql = "SELECT COUNT(*) FROM accidents WHERE DATE (`createtime`) >= '2019-01-14' AND DATE (`createtime`) <= '2019-01-20'";
   $stats['deCorrespondent']['crashes'] = $database->fetchSingleValue($sql);
-  $sql = "SELECT COUNT(*) FROM accidents WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20'";
-  $stats['deCorrespondent']['crashesOccurred'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) FROM articles WHERE DATE (`createtime`) >= '2019-01-14' AND DATE (`createtime`) <= '2019-01-20'";
   $stats['deCorrespondent']['articles'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) FROM users WHERE DATE (`registrationtime`) >= '2019-01-14' AND DATE (`registrationtime`) <= '2019-01-20'";
   $stats['deCorrespondent']['users'] = $database->fetchSingleValue($sql);
+  $sql = "SELECT COUNT(*) FROM accidents WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20'";
+  $stats['deCorrespondent']['crashesOccurred'] = $database->fetchSingleValue($sql);
+  $sql = "SELECT COUNT(*) FROM accidents JOIN accidentpersons a on accidents.id = a.accidentid WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' AND a.health=3";
+  $stats['deCorrespondent']['dead'] = $database->fetchSingleValue($sql);
+  $sql = "SELECT COUNT(*) FROM accidents JOIN accidentpersons a on accidents.id = a.accidentid WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' AND a.health=2";
+  $stats['deCorrespondent']['injured'] = $database->fetchSingleValue($sql);
 
   return $stats;
 }
