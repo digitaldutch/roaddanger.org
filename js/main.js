@@ -1253,7 +1253,7 @@ function startSearch() {
   const searchSiteName   = document.getElementById('searchSiteName').value.trim().toLowerCase()
   const searchHealthDead = document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue');
 
-  let url = window.location.origin + '?search=' + encodeURIComponent(searchText);
+  let url = window.location.pathname + '?search=' + encodeURIComponent(searchText);
   if (searchSiteName)   url += '&sitename=' + encodeURIComponent(searchSiteName);
   if (searchHealthDead) url += '&hd=1';
   window.history.pushState(null, null, url);
