@@ -1069,20 +1069,27 @@ function deleteCrash(id) {
 }
 
 function crashRowHTML(crash, isSearch=false){
-  const crashArticles = getCrashArticles(crash.id, articlesFound);
-  if (isSearch) {
+
+  function innerHTML(crash, allArticles) {
+    const htmlPersons = getCrashButtonsHTML(crash, false);
+
+    const crashArticles = getCrashArticles(crash.id, allArticles);
+    const img = crashArticles? `<img class="thumbnail" src="${crashArticles[0].urlimage}">` : '';
     return `
-<div class="searchRow" onclick="mergeSearchResultClick(${crash.id})">
-  ${crash.title}
-  <div class="smallFont">#${crash.id} ${crash.date.toLocaleDateString()}</div>
-</div>
-  `;
-  } else {
-    return `
-${crash.title}
-<div class="smallFont">#${crash.id} ${crash.date.toLocaleDateString()}</div>
-  `;
+  <div class="flexRow" style="justify-content: space-between;">
+    <div style="padding: 3px;">
+      ${crash.title}
+      <div class="smallFont">#${crash.id} ${crash.date.toLocaleDateString()}</div>
+      <div>${htmlPersons}</div>
+    </div>
+    <div class="thumbnailWrapper">${img}</div>
+  </div>`;
   }
+
+  if (isSearch) {
+    const html = innerHTML(crash, articlesFound);
+    return `<div class="searchRow" onclick="mergeSearchResultClick(${crash.id})">${html}</div>`;
+  } else return innerHTML(crash, articles);
 }
 
 function showMergeCrashForm(id) {
@@ -1176,12 +1183,12 @@ function mergeSearchResultClick(crashID) {
 }
 
 function mergeCrash() {
-  const fromID = document.getElementById('mergeFromCrashIDHidden').value;
-  const toID   = document.getElementById('mergeToCrashIDHidden').value;
+  const fromID = parseInt(document.getElementById('mergeFromCrashIDHidden').value);
+  const toID   = parseInt(document.getElementById('mergeToCrashIDHidden').value);
   if (! toID) showError('Geen samenvoeg crash geselecteerd');
 
   const crashFrom = getCrashFromID(parseInt(fromID));
-  const crashTo   = getCrashFromID(parseInt(toID));
+  const crashTo   = crashesFound.find(crash => crash.id === toID);
 
   async function mergeCrashesOnServer(fromID, toID){
     const url = `/ajax.php?function=mergeCrashes&idFrom=${fromID}&idTo=${toID}`;

@@ -63,13 +63,17 @@ HTML;
   $head = "<script src=\"/js/main.js?v=$VERSION\"></script>";
 
 } else {
-  $showCrashMenu = true;
+  $showCrashMenu  = true;
   $generalMessage = $database->fetchSingleValue("SELECT value FROM options WHERE name='globalMessage';");
-  $messageHTML = formatMessage($generalMessage);
+  $messageHTML    = formatMessage($generalMessage);
+  if      (strpos($_SERVER['REQUEST_URI'], '/stream') === 0) $title = 'Laatst gewijzigde ongelukken';
+  else if (strpos($_SERVER['REQUEST_URI'], '/decorrespondent') === 0) $title = 'De Correspondent week';
+  else $title = 'Recente ongelukken';
 
   if (isset($generalMessage)) {
     $introText .= <<<HTML
-    <div class="sectionIntro">$messageHTML</div>
+  <div class="pageSubTitle">$title</div>
+  <div class="sectionIntro">$messageHTML</div>
 HTML;
   }
 

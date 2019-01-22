@@ -48,7 +48,7 @@ html, body {
   background-color: #eeeeee;
 }
 
-input, textarea {
+input, textarea, select {
   border:  0.5px solid #aaaaaa;
   padding: 2px;
 }
@@ -85,11 +85,10 @@ a {
   font-family: inherit;
 }
 
-
 .pageSubTitle {
-  font-size:  23px;
-  text-align: center;
-  margin:     5px 0 10px 0;
+  font-size:   20px;
+  text-align:  center;
+  margin:      5px 0 10px 0;
 }
 
 .sectionTitle {
@@ -103,7 +102,7 @@ a {
 .pageInner {
   max-width: 600px;
   margin:    0 auto;
-  padding:   10px;
+  padding:   5px 10px;
 }
 
 .cardCrash {
@@ -1006,10 +1005,8 @@ a {
   position:         relative;
   box-sizing:       border-box;
   width:            100%;
-  padding:          5px 3px;
   margin:           5px 0;
-  border:           solid 1px #dddddd;
-  background-color: #ffffff;
+  background-color: #dddddd;
   border-radius:    3px;
 }
 
@@ -1019,10 +1016,8 @@ a {
   box-sizing:       border-box;
   width:            100%;
   cursor:           pointer;
-  padding:          5px 3px;
   margin:           5px 0;
   border:           solid 1px #dddddd;
-  /*background-color: #ffffff;*/
   border-radius:    3px;
 }
 
@@ -1041,6 +1036,21 @@ a {
   display:         flex;
   margin-top:      10px;
   justify-content: flex-end;
+}
+
+.thumbnail {
+  display:    block;
+  height:     100%;
+  min-height: 60px;
+  width:      120px;
+  object-fit: cover;
+}
+
+.thumbnailWrapper {
+  overflow:                   hidden;
+  min-width:                  120px;
+  border-top-right-radius:    3px;
+  border-bottom-right-radius: 3px;
 }
 
 @media (max-width: 750px) {
