@@ -275,7 +275,7 @@ function getFormEditCrash(){
         <label for="editAccidentTitle">Titel ongeluk</label> 
         <div style="display: flex;">
           <input id="editAccidentTitle" class="popupInput" type="text" maxlength="500" autocomplete="off" data-readonlyhelper>
-          <span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentInfoFromArticle();">Zelfde als artikel</span>
+          <span data-hideedit class="button buttonGray buttonLine" onclick="copyCrashInfoFromArticle();">Zelfde als artikel</span>
         </div>
   
         <label for="editAccidentText">Tekst</label>
@@ -288,7 +288,7 @@ function getFormEditCrash(){
       </div>
       <div style="display: flex;">
         <input id="editAccidentDate" class="popupInput" type="date" autocomplete="off">
-        <span data-hideedit class="button buttonGray buttonLine" onclick="copyAccidentDateFromArticle();" ">Zelfde als artikel</span>
+        <span data-hideedit class="button buttonGray buttonLine" onclick="copyCrashDateFromArticle();" ">Zelfde als artikel</span>
       </div>
           
       <div style="margin-top: 5px;">
