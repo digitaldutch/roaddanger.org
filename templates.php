@@ -299,9 +299,9 @@ function getFormEditCrash(){
       <div style="margin-top: 5px;">
         <div>Kenmerken van ongeluk</div>
         <div>
-          <span id="editAccidentPet" style="display: none;" class="menuButton bgPet" data-tippy-content="Dier(en)" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentTrafficJam" class="menuButton bgTrafficJam" data-tippy-content="File/Hinder" onclick="changeAccidentInvolved(this, event);"></span>      
-          <span id="editAccidentTree" style="display: none;" class="menuButton bgTree" data-tippy-content="Boom/Paal" onclick="changeAccidentInvolved(this, event);"></span>
+          <span id="editAccidentPet" style="display: none;" class="menuButton bgPet" data-tippy-content="Dier(en)" onclick="changeCrashInvolved(this, event);"></span>      
+          <span id="editAccidentTrafficJam" class="menuButton bgTrafficJam" data-tippy-content="File/Hinder" onclick="changeCrashInvolved(this, event);"></span>      
+          <span id="editAccidentTree" style="display: none;" class="menuButton bgTree" data-tippy-content="Boom/Paal" onclick="changeCrashInvolved(this, event);"></span>
         </div>
       </div>
     </div>
