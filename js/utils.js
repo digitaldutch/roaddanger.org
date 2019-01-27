@@ -780,6 +780,6 @@ function createCookie(name,value,days) {
 
 function formatText(text) {
   text = escapeHtml(text);
-  text = text.replace(/(?:\r\n|\r|\n)/g, '<br>');
+  text = text.replace(/(?:\r\n{2,}|\r{2,}|\n{2,})/g, '<br><br>');
   return text;
 }

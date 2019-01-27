@@ -943,12 +943,12 @@ async function saveArticleCrash(){
     articleEdited = {
       id:       document.getElementById('articleIDHidden').value,
       url:      document.getElementById('editArticleUrl').value,
-      title:    document.getElementById('editArticleTitle').value,
-      text:     document.getElementById('editArticleText').value,
-      alltext:  document.getElementById('editArticleAllText').value,
-      sitename: document.getElementById('editArticleSiteName').value,
-      urlimage: document.getElementById('editArticleUrlImage').value,
+      sitename: document.getElementById('editArticleSiteName').value.trim(),
+      title:    document.getElementById('editArticleTitle').value.trim(),
+      text:     document.getElementById('editArticleText').value.trim(),
+      urlimage: document.getElementById('editArticleUrlImage').value.trim(),
       date:     document.getElementById('editArticleDate').value,
+      alltext:  document.getElementById('editArticleAllText').value.trim(),
     };
     if (articleEdited.id)  articleEdited.id  = parseInt(articleEdited.id);
 
@@ -1005,16 +1005,30 @@ async function saveArticleCrash(){
     showError(data.error, 10);
   } else {
     const editingCrash = crashEdited.id !== '';
+
     // No reload only if editing crash. Other cases for now give problems and require a full page reload.
-    if ((! saveArticle) && editingCrash && ((pageType === TpageType.stream) || (pageType === TpageType.recent))) {
-      let i = crashes.findIndex(a => {return a.id === crashEdited.id});
-      crashes[i].title      = crashEdited.title;
-      crashes[i].text       = crashEdited.text;
-      crashes[i].persons    = crashEdited.persons;
-      crashes[i].date       = new Date(crashEdited.date);
-      crashes[i].pet        = crashEdited.pet;
-      crashes[i].tree       = crashEdited.tree;
-      crashes[i].trafficjam = crashEdited.trafficjam;
+    const isCrashList = ((pageType === TpageType.stream) || (pageType === TpageType.recent) || (pageType === TpageType.decorrespondent));
+    if (editingCrash && isCrashList) {
+      if (saveCrash){
+        // Save changes in crashes cache
+        let i = crashes.findIndex(crash => {return crash.id === crashEdited.id});
+        crashes[i].title      = crashEdited.title;
+        crashes[i].text       = crashEdited.text;
+        crashes[i].persons    = crashEdited.persons;
+        crashes[i].date       = new Date(crashEdited.date);
+        crashes[i].pet        = crashEdited.pet;
+        crashes[i].tree       = crashEdited.tree;
+        crashes[i].trafficjam = crashEdited.trafficjam;
+      } else if (saveArticle) {
+        let i = articles.findIndex(article => {return article.id === articleEdited.id});
+        articles[i].url        = articleEdited.url;
+        articles[i].sitename   = articleEdited.sitename;
+        articles[i].title      = articleEdited.title;
+        articles[i].text       = articleEdited.text;
+        articles[i].urlimage   = articleEdited.urlimage;
+        articles[i].date       = articleEdited.date;
+        articles[i].hasalltext = articleEdited.alltext.length > 0;
+      }
       document.getElementById('accident' + crashEdited.id).outerHTML = getCrashHTML(crashEdited.id);
     } else {
       window.location.href = createCrashURL(data.accidentid, crashEdited.title);

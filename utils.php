@@ -58,7 +58,7 @@ function getPageMediaMetaData($url){
       'verify_peer_name' => false,
     ),
     'http' => array(
-      'follow_location'  => false,
+      'follow_location'  => true,
       'header'=>"User-agent: Mozilla/5.0 (compatible;This is not a Googlebot)\r\n" .
         "Accept-Charset: UTF-8, *;q=0\r\n" .
         "Accept-Encoding: gzip\r\n"

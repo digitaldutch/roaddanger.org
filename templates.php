@@ -269,7 +269,7 @@ function getFormEditCrash(){
         <label for="editArticleAllText">Volledige artikel tekst (niet verplicht)</label>
         <span class="iconTooltip" data-tippy-content="Niet verplicht, maar zeer nuttig voor onze tekstanalyses. Deze moeten nu nog handmatig gekopieerd worden. Onze dank is groot als je deze wilt toevoegen."></span>
       </div>
-      <textarea id="editArticleAllText" maxlength="10000" style="height: 100px; resize: vertical;" class="popupInput" autocomplete="off"></textarea>
+      <textarea id="editArticleAllText" maxlength="10000" style="height: 150px; resize: vertical;" class="popupInput" autocomplete="off"></textarea>
     </div>
 
     <div id="editCrashSection" class="flexColumn">
