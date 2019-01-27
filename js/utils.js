@@ -308,8 +308,8 @@ function updateLoginGUI(userNew){
 
   document.querySelectorAll('.buttonEditPost').forEach(
     button => {
-      const buttonUserid   = parseInt(button.getAttribute('data-userid'));
-      const canEditArticle = user.loggedin && ((user.permission !== TUserPermission.newuser) || (buttonUserid === user.id));
+      const buttonUserId   = parseInt(button.getAttribute('data-userid'));
+      const canEditArticle = user.loggedin && ((user.permission !== TUserPermission.newuser) || (buttonUserId === user.id));
       button.style.display = canEditArticle? 'inline-block' : 'none';
     }
   );
@@ -463,7 +463,7 @@ function selectButton(id, selected){
   else classList.remove('buttonSelected');
 }
 
-function toggleMenuButton(element){
+function toggleSelectionButton(element){
   element.classList.toggle('buttonSelected');
 }
 
@@ -776,4 +776,10 @@ function createCookie(name,value,days) {
     expires = "; expires="+date.toGMTString();
   }
   document.cookie = name+"="+value+expires+"; path=/";
+}
+
+function formatText(text) {
+  text = escapeHtml(text);
+  text = text.replace(/(?:\r\n|\r|\n)/g, '<br>');
+  return text;
 }

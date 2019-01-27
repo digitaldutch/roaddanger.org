@@ -374,6 +374,7 @@ SELECT
   ar.accidentid,
   ar.title,
   ar.text,
+  IF(ar.alltext > '', 1, 0) AS hasalltext,
   ar.createtime,
   ar.publishedtime,
   ar.streamdatetime,
@@ -393,10 +394,11 @@ SQL;
         $article['id']                 = (int)$article['id'];
         $article['userid']             = (int)$article['userid'];
         $article['awaitingmoderation'] = $article['awaitingmoderation'] == 1;
+        $article['hasalltext']         = $article['hasalltext'] == 1;
         $article['accidentid']         = (int)$article['accidentid'];
-        $crash['createtime']        = datetimeDBToISO8601($crash['createtime']);
-        $crash['publishedtime']     = datetimeDBToISO8601($crash['publishedtime']);
-        $crash['streamdatetime']    = datetimeDBToISO8601($crash['streamdatetime']);
+        $crash['createtime']           = datetimeDBToISO8601($crash['createtime']);
+        $crash['publishedtime']        = datetimeDBToISO8601($crash['publishedtime']);
+        $crash['streamdatetime']       = datetimeDBToISO8601($crash['streamdatetime']);
         // JD NOTE: Do not sanitize strings. We handle escaping in JavaScript
 
         $articles[] = $article;
@@ -593,13 +595,14 @@ SQL;
 
         $sql = <<<SQL
     UPDATE articles SET
-      accidentid  = :accidentid,
-      url         = :url,
-      title       = :title,
-      text        = :text,
+      accidentid    = :accidentid,
+      url           = :url,
+      title         = :title,
+      text          = :text,
+      alltext       = :alltext,
       publishedtime = :date,
-      sitename    = :sitename,
-      urlimage    = :urlimage
+      sitename      = :sitename,
+      urlimage      = :urlimage
       WHERE id=:id $sqlANDOwnOnly
 SQL;
         $params = [
@@ -607,6 +610,7 @@ SQL;
           ':url'         => $article['url'],
           ':title'       => $article['title'],
           ':text'        => $article['text'],
+          ':alltext'     => $article['alltext'],
           ':date'        => $article['date'],
           ':sitename'    => $article['sitename'],
           ':urlimage'    => $article['urlimage'],
@@ -620,8 +624,8 @@ SQL;
         // New article
 
         $sql = <<<SQL
-    INSERT INTO articles (userid, awaitingmoderation, accidentid, url, title, text, publishedtime, sitename, urlimage)
-    VALUES (:userid, :awaitingmoderation, :accidentid, :url, :title, :text, :date, :sitename, :urlimage);
+    INSERT INTO articles (userid, awaitingmoderation, accidentid, url, title, text, alltext, publishedtime, sitename, urlimage)
+    VALUES (:userid, :awaitingmoderation, :accidentid, :url, :title, :text, :alltext, :date, :sitename, :urlimage);
 SQL;
         // Article moderation is only required if the crash is not awaiting moderation
         $params = array(
@@ -631,6 +635,7 @@ SQL;
           ':url'                => $article['url'],
           ':title'              => $article['title'],
           ':text'               => $article['text'],
+          ':alltext'            => $article['alltext'],
           ':sitename'           => $article['sitename'],
           ':date'               => $article['date'],
           ':urlimage'           => $article['urlimage']);
@@ -766,6 +771,28 @@ else if ($function === 'articleModerateOK'){
       $database->execute($sql, $params);
     }
     $result = ['ok' => true];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} //==========
+else if ($function === 'getArticleText'){
+  try{
+
+    $id = (int)$_REQUEST['id'];
+    if ($id > 0){
+      $params = array(':id' => $id);
+
+      $sqlANDOwnOnly = '';
+      if (! $user->isModerator()) {
+        $params[':useridwhere'] = $user->id;
+        $sqlANDOwnOnly = ' AND userid=:useridwhere ';
+      }
+
+      $sql  = "SELECT alltext FROM articles WHERE id=:id $sqlANDOwnOnly;";
+      $text = $database->fetchSingleValue($sql, $params);
+    }
+    $result = ['ok' => true, 'text' => $text];
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }

@@ -262,6 +262,7 @@ a {
 
 .iconSmall {
   display:             inline-block;
+  outline:             none;
   height:              18px;
   width:               18px;
   padding:             1px;
@@ -372,6 +373,7 @@ a {
 .menuButton {
   position:            relative;
   display:             inline-block;
+  outline:             none;
   height:              30px;
   width:               30px;
   padding:             1px;
@@ -380,10 +382,32 @@ a {
   background-size:     25px;
   background-repeat:   no-repeat;
   background-position: center;
+  border-radius:       5px;
+}
+
+.buttonSelectionSmall {
+  position:            relative;
+  display:             inline-block;
+  outline:             none;
+  height:              17px;
+  width:               17px;
+  padding:             3px;
+  margin:              0 1px;
+  background-size:     16px;
+  opacity:             0.5;
+  background-repeat:   no-repeat;
+  background-position: center;
+  border-radius:       5px;
+}
+
+.buttonSelectionSmall:hover {
+  opacity:          1;
+  background-color: #dddddd;
 }
 
 .menuButton:hover, .iconTooltip:hover, #loginButton:hover {
-  opacity: 1;
+  opacity:          1;
+  background-color: #dddddd;
 }
 
 #loginButton {
@@ -427,13 +451,11 @@ a {
 .buttonSelected {
   opacity:          1;
   background-color: #bbbbbb;
-  border-radius:    5px;
 }
 
 .buttonSelectedBlue {
   opacity:          1;
   background-color: #4D90FE;
-  border-radius:    5px;
 }
 
 .buttonAdd {
@@ -444,17 +466,10 @@ a {
   background-image: url(/images/person.svg);
 }
 
-.buttonSearch {
-  background-image: url(/images/search.svg);
-}
-
-.bgMenu {
-  background-image: url(/images/menu.svg);
-}
-
-.buttonDetails {
-  background-image: url(/images/tripledots.svg);
-}
+.buttonSearch {  background-image: url(/images/search.svg);}
+.bgMenu {        background-image: url(/images/menu.svg);}
+.bgArticle {     background-image: url(/images/article.svg);}
+.buttonDetails { background-image: url(/images/tripledots.svg);}
 
 .bgPersonLoggedIn {
   background-image: url(/images/person_loggedin.svg);

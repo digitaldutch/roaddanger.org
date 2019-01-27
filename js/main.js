@@ -323,12 +323,18 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
       htmlModeration = `<div id="articleModeration${article.id}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
     }
 
+    let htmlButtonAllText = '';
+    if (user.moderator && article.hasalltext) htmlButtonAllText = `<span class="buttonSelectionSmall bgArticle" data-userid="${article.userid}" data-tippy-content="Toon alle tekst" onclick="toggleAllText(this, event, ${article.id});"></span>`;
+
     htmlArticles +=`
 <div class="cardArticle" id="article${article.id}" onclick="openArticleLink(event, ${article.id})">
   <div class="articleImageWrapper"><img class="articleImage" src="${article.urlimage}" onerror="this.style.display='none';"></div>
   <div class="articleBody">
     <span class="postButtonArea" onclick="event.stopPropagation();">
-      <span style="position: relative;"><span class="buttonEditPost buttonDetails" data-userid="${article.userid}" onclick="showArticleMenu(event, ${article.id});"></span></span>
+      <span style="position: relative;">
+        ${htmlButtonAllText}
+        <span class="buttonEditPost buttonDetails" data-userid="${article.userid}" onclick="showArticleMenu(event, ${article.id});"></span>
+      </span>
       <div id="menuArticle${article.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
         <div onclick="editArticle(${crash.id},  ${article.id});">Bewerken</div>
         <div onclick="deleteArticle(${article.id})">Verwijderen</div>
@@ -340,7 +346,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
     <div class="smallFont"><span class="cardSitename">${escapeHtml(article.sitename)}</span> | ${dateToAge(article.publishedtime)} | toegevoegd door ${article.user}</div>
   
     <div class="articleTitle">${escapeHtml(article.title)}</div>
-    <div class="postText">${escapeHtml(article.text)}</div>
+    <div id="articleText${article.id}" class="postText">${escapeHtml(article.text)}</div>
   </div>
 </div>`;
   }
@@ -521,13 +527,14 @@ function showEditCrashForm(event) {
   document.getElementById('editArticleUrl').value                 = '';
   document.getElementById('editArticleTitle').value               = '';
   document.getElementById('editArticleText').value                = '';
+  document.getElementById('editArticleAllText').value             = '';
   document.getElementById('editArticleUrlImage').value            = '';
   document.getElementById('editArticleSiteName').value            = '';
   document.getElementById('editArticleDate').value                = '';
 
-  document.getElementById('editAccidentTitle').value               = '';
-  document.getElementById('editAccidentText').value                = '';
-  document.getElementById('editAccidentDate').value                = '';
+  document.getElementById('editAccidentTitle').value              = '';
+  document.getElementById('editAccidentText').value               = '';
+  document.getElementById('editAccidentDate').value               = '';
 
   document.getElementById('editAccidentPet').classList.remove('buttonSelected');
   document.getElementById('editAccidentTrafficJam').classList.remove('buttonSelected');
@@ -666,7 +673,7 @@ function savePerson(stayOpen=false) {
   refreshCrashPersonsGUI(editCrashPersons);
 
   if (stayOpen !== true) closeEditPersonForm();
-  else showMessage('Persoon opgeslagen', 1);
+  else showMessage('Persoon opgeslagen', 0.5);
 }
 
 function deletePerson() {
@@ -724,6 +731,20 @@ function openArticleLink(event, articleID) {
   window.open(article.url,"article");
 }
 
+function toggleAllText(element, event, articleId){
+  event.preventDefault();
+  event.stopPropagation();
+
+  toggleSelectionButton(element);
+
+  const article = getArticleFromID(articleId);
+  const textElement = document.getElementById('articleText' + articleId);
+  if (element.classList.contains('buttonSelected')) {
+    textElement.innerHTML = '⌛';
+    getArticleText(articleId).then(text => textElement.innerHTML = formatText(text));
+  } else textElement.innerHTML = formatText(article.text);
+}
+
 function editArticle(crashID, articleID) {
   closeAllPopups();
   showEditCrashForm();
@@ -731,20 +752,30 @@ function editArticle(crashID, articleID) {
 
   const article = getArticleFromID(articleID);
 
-  document.getElementById('editHeader').innerText      = 'Artikel bewerken';
-  document.getElementById('buttonSaveArticle').value          = 'Opslaan';
+  document.getElementById('editHeader').innerText           = 'Artikel bewerken';
+  document.getElementById('buttonSaveArticle').value        = 'Opslaan';
 
-  document.getElementById('articleIDHidden').value            = article? article.id : '';
+  document.getElementById('articleIDHidden').value          = article? article.id : '';
 
-  document.getElementById('editArticleUrl').value             = article.url;
-  document.getElementById('editArticleTitle').value           = article.title;
-  document.getElementById('editArticleText').value            = article.text;
-  document.getElementById('editArticleUrlImage').value        = article.urlimage;
-  document.getElementById('editArticleSiteName').value        = article.sitename;
-  document.getElementById('editArticleDate').value            = dateToISO(article.publishedtime);
+  document.getElementById('editArticleUrl').value           = article.url;
+  document.getElementById('editArticleTitle').value         = article.title;
+  document.getElementById('editArticleText').value          = article.text;
+  document.getElementById('editArticleAllText').readonly    = true;
+  document.getElementById('editArticleAllText').value       = '⌛';
+
+  document.getElementById('editArticleUrlImage').value      = article.urlimage;
+  document.getElementById('editArticleSiteName').value      = article.sitename;
+  document.getElementById('editArticleDate').value          = dateToISO(article.publishedtime);
 
   document.getElementById('formEditCrash').style.display    = 'flex';
   document.getElementById('editCrashSection').style.display = 'none';
+
+  const text = getArticleText(articleID).then(
+    text => {
+      document.getElementById('editArticleAllText').value    = text;
+      document.getElementById('editArticleAllText').readonly = false;
+    }
+  );
 }
 
 function addArticleToCrash(crashID) {
@@ -778,6 +809,15 @@ async function crashToTopStream(crashID) {
   const data     = JSON.parse(text);
   if (data.error) showError(data.error, 10);
   else window.location.reload();
+}
+
+async function getArticleText(articleId) {
+  const url = '/ajax.php?function=getArticleText&id=' + articleId;
+  const response = await fetch(url, fetchOptions);
+  const text     = await response.text();
+  const data     = JSON.parse(text);
+  if (data.error) showError(data.error, 10);
+  else return data.text;
 }
 
 async function crashModerateOK(crash) {
@@ -905,6 +945,7 @@ async function saveArticleCrash(){
       url:      document.getElementById('editArticleUrl').value,
       title:    document.getElementById('editArticleTitle').value,
       text:     document.getElementById('editArticleText').value,
+      alltext:  document.getElementById('editArticleAllText').value,
       sitename: document.getElementById('editArticleSiteName').value,
       urlimage: document.getElementById('editArticleUrlImage').value,
       date:     document.getElementById('editArticleDate').value,
@@ -1235,10 +1276,6 @@ function showMainSpinner(){
 
 function hideMainSpinner() {
   document.getElementById('mainSpinner').style.display = 'none';
-}
-
-function changeCrashInvolved(item, event) {
-  item.classList.toggle('buttonSelected');
 }
 
 function crashByID(id) {

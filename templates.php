@@ -246,7 +246,7 @@ function getFormEditCrash(){
   
       <div id="spinnerMeta" class="spiderBackground">
         <div class="popupHeader">Tarantula is aan het werk...</div>
-        <div><img src="/images/tarantula.jpg" style="height: 200px;"></div>
+        <div><img src="/images/tarantula.jpg" style="height: 200px;" alt="Tarantula spider"></div>
         <div id="tarantuleResults"></div> 
       </div>
   
@@ -256,14 +256,20 @@ function getFormEditCrash(){
       <label for="editArticleTitle">Titel</label>
       <input id="editArticleTitle" class="popupInput" type="text" maxlength="500" autocomplete="off" data-readonlyhelper>
   
-      <label for="editArticleText">Tekst</label>
+      <label for="editArticleText">Samenvatting</label>
       <textarea id="editArticleText" maxlength="500" style="height: 50px; resize: vertical;" class="popupInput" autocomplete="off" data-readonlyhelper></textarea>
-  
+   
       <label for="editArticleUrlImage">Foto link (URL)</label>
       <input id="editArticleUrlImage" class="popupInput" type="url" maxlength="1000" autocomplete="off" data-readonlyhelper>
       
       <label for="editArticleDate">Publicatiedatum</label>
       <input id="editArticleDate" class="popupInput" type="date" autocomplete="off">
+
+      <div class="labelDiv">
+        <label for="editArticleAllText">Volledige artikel tekst (niet verplicht)</label>
+        <span class="iconTooltip" data-tippy-content="Niet verplicht, maar zeer nuttig voor onze tekstanalyses. Deze moeten nu nog handmatig gekopieerd worden. Onze dank is groot als je deze wilt toevoegen."></span>
+      </div>
+      <textarea id="editArticleAllText" maxlength="10000" style="height: 100px; resize: vertical;" class="popupInput" autocomplete="off"></textarea>
     </div>
 
     <div id="editCrashSection" class="flexColumn">
@@ -299,9 +305,9 @@ function getFormEditCrash(){
       <div style="margin-top: 5px;">
         <div>Kenmerken van ongeluk</div>
         <div>
-          <span id="editAccidentPet" style="display: none;" class="menuButton bgPet" data-tippy-content="Dier(en)" onclick="changeCrashInvolved(this, event);"></span>      
-          <span id="editAccidentTrafficJam" class="menuButton bgTrafficJam" data-tippy-content="File/Hinder" onclick="changeCrashInvolved(this, event);"></span>      
-          <span id="editAccidentTree" style="display: none;" class="menuButton bgTree" data-tippy-content="Boom/Paal" onclick="changeCrashInvolved(this, event);"></span>
+          <span id="editAccidentPet" style="display: none;" class="menuButton bgPet" data-tippy-content="Dier(en)" onclick="toggleSelectionButton(this);"></span>      
+          <span id="editAccidentTrafficJam" class="menuButton bgTrafficJam" data-tippy-content="File/Hinder" onclick="toggleSelectionButton(this);"></span>      
+          <span id="editAccidentTree" style="display: none;" class="menuButton bgTree" data-tippy-content="Boom/Paal" onclick="toggleSelectionButton(this);"></span>
         </div>
       </div>
     </div>
@@ -397,7 +403,7 @@ function getFormEditPerson(){
     <div style="margin-top: 5px;">
       <div>Kenmerken</div> 
       <div>
-        <span id="editPersonChild" class="menuButton bgChild" data-tippy-content="Kind" onclick="toggleMenuButton(this)"></span>            
+        <span id="editPersonChild" class="menuButton bgChild" data-tippy-content="Kind" onclick="toggleSelectionButton(this)"></span>            
       </div>
     </div>
             

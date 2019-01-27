@@ -24,6 +24,17 @@ create table logs
 alter table logs
   add primary key (id);
 
+create table options
+(
+  name varchar(50) not null,
+  value varchar(10000) null,
+  constraint options_name_uindex
+    unique (name)
+);
+
+alter table options
+  add primary key (name);
+
 create table users
 (
   id int auto_increment,
@@ -58,7 +69,6 @@ create table accidents
   streamtoptype smallint(6) null,
   date date null,
   text varchar(500) null,
-  title varchar(500) not null,
   website varchar(1000) null,
   personsdead int null,
   personsinjured int null,
@@ -84,13 +94,17 @@ create table accidents
   hitrun tinyint(1) default 0 null,
   tree tinyint(1) default 0 null,
   trafficjam tinyint(1) default 0 null,
+  title varchar(500) not null,
   constraint posts_id_uindex
     unique (id),
   constraint posts___fk_user
     foreign key (userid) references users (id)
       on update cascade on delete cascade
 )
-  comment 'streamtoptype: 1: edited, 2: artikel toegevoegd, 3: bovenaangeplaatst';
+  comment 'streamtoptype: 1: edited, 2: article added, 3: placed on top';
+
+create index accidents__date_streamdate_index
+  on accidents (date, streamdatetime);
 
 create index accidents__index_date
   on accidents (date);
@@ -137,9 +151,10 @@ create table articles
   publishedtime timestamp default '0000-00-00 00:00:00' not null,
   title varchar(500) not null,
   text varchar(500) not null,
-  sitename varchar(200) not null,
+  alltext varchar(10000) default '' null,
   url varchar(1000) not null,
   urlimage varchar(1000) not null,
+  sitename varchar(200) not null,
   constraint articles_id_uindex
     unique (id),
   constraint articles___fk_accidents
