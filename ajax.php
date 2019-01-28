@@ -123,6 +123,24 @@ function urlExists($database, $url){
   return false;
 }
 
+/**
+ * @param TDatabase $database
+ * @param integer $crashId
+ * @param integer $userId
+ * @param integer $streamTopType unknown: 0, edited: 1, articleAdded: 2, placedOnTop: 3
+ */
+function setCrashStreamTop($database, $crashId, $userId, $streamTopType){
+  $sql = <<<SQL
+  UPDATE accidents SET
+    streamdatetime  = current_timestamp,
+    streamtoptype   = $streamTopType, 
+    streamtopuserid = :userid
+  WHERE id=:id;
+SQL;
+  $params = array(':id' => $crashId, ':userid' => $userId);
+  $database->execute($sql, $params);
+}
+
 if ($function == 'login') {
   if (is_null($_REQUEST['email']) || is_null($_REQUEST['password'])) dieWithJSONErrorMessage('Invalid AJAX login call.');
 
@@ -213,7 +231,7 @@ else if ($function === 'loadCrashes') {
   try {
     $offset           = (int)getRequest('offset',0);
     $count            = (int)getRequest('count', 100);
-    $id               = isset($_REQUEST['id'])? (int)$_REQUEST['id'] : null;
+    $crashId               = isset($_REQUEST['id'])? (int)$_REQUEST['id'] : null;
     $searchText       = isset($_REQUEST['search'])? $_REQUEST['search'] : '';
     $searchDateFrom   = getRequest('searchDateFrom', '');
     $searchDateTo     = getRequest('searchDateTo', '');
@@ -232,7 +250,7 @@ else if ($function === 'loadCrashes') {
     $sqlModerated = '';
     if ($moderations) {
       $sqlModerated = ' (ac.awaitingmoderation=1) OR (ac.id IN (SELECT accidentid FROM articles WHERE awaitingmoderation=1)) ';
-    } else if ($id === null) {
+    } else if ($crashId === null) {
       // Individual pages are always shown and *not* moderated.
       $sqlModerated = $user->isModerator()? '':  ' ((ac.awaitingmoderation=0) || (ac.userid=:useridModeration)) ';
       if ($sqlModerated) $params[':useridModeration'] = $user->id;
@@ -276,9 +294,9 @@ LEFT JOIN users tu on tu.id = ac.streamtopuserid
 SQL;
 
     $SQLWhere = '';
-    if ($id !== null) {
+    if ($crashId !== null) {
       // Single accident
-      $params = [':id' => $id];
+      $params = [':id' => $crashId];
       $SQLWhere = " WHERE ac.id=:id ";
     } else {
 
@@ -360,7 +378,7 @@ SQL;
       $sqlModerated = '';
       if ($moderations) {
         // In the moderation queue all articles are shown
-      } else if ($id === null) { // Individual pages are always shown and *not* moderated. Needed
+      } else if ($crashId === null) { // Individual pages are always shown and *not* moderated. Needed
         $sqlModerated = $user->isModerator()? '':  ' AND ((ar.awaitingmoderation=0) || (ar.userid=:useridModeration)) ';
         if ($sqlModerated) $params[':useridModeration'] = $user->id;
       }
@@ -618,8 +636,10 @@ SQL;
         ];
 
         if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
-
         $database->execute($sql, $params, true);
+
+        if (! $saveCrash) setCrashStreamTop($database, $crash['id'], $user->id, 1);
+
       } else {
         // New article
 
@@ -643,23 +663,7 @@ SQL;
         $database->execute($sql, $params);
         $article['id'] = $database->lastInsertID();
 
-        if (! $saveCrash){
-          // New artikel
-          // Update crash stream type
-          $sql = <<<SQL
-    UPDATE accidents SET
-      updatetime      = current_timestamp,
-      streamdatetime  = current_timestamp,
-      streamtoptype   = 2, 
-      streamtopuserid = :userid
-    WHERE id=:id;
-SQL;
-          $params = array(
-            ':id'             => $crash['id'],
-            ':userid'         => $user->id,
-          );
-          $database->execute($sql, $params);
-        }
+        if (! $saveCrash) setCrashStreamTop($database, $crash['id'], $user->id, 2);
       }
     }
 
@@ -694,11 +698,11 @@ else if ($function === 'mergeCrashes'){
 } //==========
 else if ($function === 'deleteArticle'){
   try{
-    $id = (int)$_REQUEST['id'];
-    if ($id > 0){
+    $crashId = (int)$_REQUEST['id'];
+    if ($crashId > 0){
       $sqlANDOwnOnly = (! $user->isModerator())? ' AND userid=:useridwhere ' : '';
       $sql = "DELETE FROM articles WHERE id=:id $sqlANDOwnOnly ;";
-      $params = array(':id' => $id);
+      $params = array(':id' => $crashId);
       if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
       $database->execute($sql, $params, true);
@@ -712,11 +716,11 @@ else if ($function === 'deleteArticle'){
 } //==========
 else if ($function === 'deleteCrash'){
   try{
-    $id = (int)$_REQUEST['id'];
-    if ($id > 0){
+    $crashId = (int)$_REQUEST['id'];
+    if ($crashId > 0){
       $sqlANDOwnOnly = (! $user->isModerator())? ' AND userid=:useridwhere ' : '';
       $sql = "DELETE FROM accidents WHERE id=:id $sqlANDOwnOnly ;";
-      $params = array(':id' => $id);
+      $params = array(':id' => $crashId);
       if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
       $database->execute($sql, $params, true);
@@ -732,12 +736,8 @@ else if ($function === 'crashToStreamTop'){
   try{
     if (! $user->isModerator()) throw new Exception('Alleen moderatoren mogen ongelukken omhoog plaatsen.');
 
-    $id = (int)$_REQUEST['id'];
-    if ($id > 0){
-      $sql    = "UPDATE accidents SET streamdatetime=current_timestamp, streamtoptype=3, streamtopuserid=:userid WHERE id=:id;";
-      $params = array(':id' => $id, ':userid' => $user->id);
-      $database->execute($sql, $params);
-    }
+    $crashId = (int)$_REQUEST['id'];
+    if ($crashId > 0) setCrashStreamTop($database, $crashId, $user->id, 3);
     $result = ['ok' => true];
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
@@ -748,10 +748,10 @@ else if ($function === 'crashModerateOK'){
   try{
     if (! $user->isModerator()) throw new Exception('Alleen moderatoren mogen ongelukken modereren.');
 
-    $id = (int)$_REQUEST['id'];
-    if ($id > 0){
+    $crashId = (int)$_REQUEST['id'];
+    if ($crashId > 0){
       $sql    = "UPDATE accidents SET awaitingmoderation=0 WHERE id=:id;";
-      $params = array(':id' => $id);
+      $params = array(':id' => $crashId);
       $database->execute($sql, $params);
     }
     $result = ['ok' => true];
@@ -764,10 +764,10 @@ else if ($function === 'articleModerateOK'){
   try{
     if (! $user->isModerator()) throw new Exception('Alleen moderatoren mogen artikelen modereren.');
 
-    $id = (int)$_REQUEST['id'];
-    if ($id > 0){
+    $crashId = (int)$_REQUEST['id'];
+    if ($crashId > 0){
       $sql    = "UPDATE articles SET awaitingmoderation=0 WHERE id=:id;";
-      $params = array(':id' => $id);
+      $params = array(':id' => $crashId);
       $database->execute($sql, $params);
     }
     $result = ['ok' => true];
@@ -779,9 +779,9 @@ else if ($function === 'articleModerateOK'){
 else if ($function === 'getArticleText'){
   try{
 
-    $id = (int)$_REQUEST['id'];
-    if ($id > 0){
-      $params = array(':id' => $id);
+    $crashId = (int)$_REQUEST['id'];
+    if ($crashId > 0){
+      $params = array(':id' => $crashId);
 
       $sqlANDOwnOnly = '';
       if (! $user->isModerator()) {
