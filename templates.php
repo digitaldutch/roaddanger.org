@@ -305,7 +305,7 @@ function getFormEditCrash(){
       <div style="margin-top: 5px;">
         <div>Kenmerken van ongeluk</div>
         <div>
-          <span id="editAccidentPet" style="display: none;" class="menuButton bgPet" data-tippy-content="Dier(en)" onclick="toggleSelectionButton(this);"></span>      
+          <span id="editAccidentPet" class="menuButton bgPet" data-tippy-content="Dier(en)" onclick="toggleSelectionButton(this);"></span>      
           <span id="editAccidentTrafficJam" class="menuButton bgTrafficJam" data-tippy-content="File/Hinder" onclick="toggleSelectionButton(this);"></span>      
           <span id="editAccidentTree" style="display: none;" class="menuButton bgTree" data-tippy-content="Boom/Paal" onclick="toggleSelectionButton(this);"></span>
         </div>
@@ -404,6 +404,8 @@ function getFormEditPerson(){
       <div>Kenmerken</div> 
       <div>
         <span id="editPersonChild" class="menuButton bgChild" data-tippy-content="Kind" onclick="toggleSelectionButton(this)"></span>            
+        <span id="editPersonUnderInfluence" class="menuButton bgAlcohol" data-tippy-content="Onder invloed" onclick="toggleSelectionButton(this)"></span>            
+        <span id="editPersonHitRun" class="menuButton bgHitRun" data-tippy-content="Doorrijden/vluchten" onclick="toggleSelectionButton(this)"></span>            
       </div>
     </div>
             

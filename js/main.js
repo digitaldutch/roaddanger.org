@@ -352,7 +352,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   }
 
   let htmlInvolved = '';
-  // if (crash.pet)         htmlInvolved += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
+  if (crash.pet)         htmlInvolved += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
   if (crash.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam"  data-tippy-content="File/Hinder"></div>';
   // if (crash.tree)        htmlInvolved += '<div class="iconSmall bgTree"  data-tippy-content="Boom/Paal"></div>';
 
@@ -452,12 +452,16 @@ function getCrashButtonsHTML(crash, showAllHealth=true, allowClick=false) {
     for (const person of button.persons){
       let tooltip = 'Persoon ' + person.id +
         '<br>Letsel: ' + healthText(person.health);
-      if (person.child) tooltip += '<br>Kind';
+      if (person.child)          tooltip += '<br>Kind';
+      if (person.underinfluence) tooltip += '<br>Onder invloed';
+      if (person.hitrun)         tooltip += '<br>Doorrijden/vluchten';
 
       const showHealth = showAllHealth || healthVisible(person.health);
       let htmlPerson = '';
-      if (showHealth)    htmlPerson += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
-      if (person.child)  htmlPerson += '<div class="iconMedium bgChild"></div>';
+      if (showHealth)            htmlPerson += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
+      if (person.child)          htmlPerson += '<div class="iconMedium bgChild"></div>';
+      if (person.underinfluence) htmlPerson += '<div class="iconMedium bgAlcohol"></div>';
+      if (person.hitrun)         htmlPerson += '<div class="iconMedium bgHitRun"></div>';
 
       if (htmlPerson) htmlPersons += `<div class="crashButtonSub" data-tippy-content="${tooltip}">${htmlPerson}</div>`;
     }
@@ -588,6 +592,8 @@ function showEditPersonForm(personID=null) {
   selectPersonHealth(person? person.health : null);
 
   setMenuButton('editPersonChild',person? person.child : false);
+  setMenuButton('editPersonUnderInfluence',person? person.underinfluence : false);
+  setMenuButton('editPersonHitRun',person? person.hitrun : false);
 
   document.getElementById('formEditPerson').style.display = 'flex';
 }
@@ -658,6 +664,8 @@ function savePerson(stayOpen=false) {
     person.transportationmode = selectedTransportationMode;
     person.health             = selectedHealth;
     person.child              = menuButtonSelected('editPersonChild');
+    person.underinfluence     = menuButtonSelected('editPersonUnderInfluence');
+    person.hitrun             = menuButtonSelected('editPersonHitRun');
   }
 
   if (personID){
@@ -691,9 +699,11 @@ function refreshCrashPersonsGUI(persons=[]) {
 
   for (let person of persons){
     const iconTransportation = transportationModeIcon(person.transportationmode);
-    let  iconHealth          = healthIcon(person.health);
+    const iconHealth         = healthIcon(person.health);
     let buttonsOptions = '';
     if (person.child)          buttonsOptions += '<div class="iconSmall bgChild" data-tippy-content="Kind"></div>';
+    if (person.underinfluence) buttonsOptions += '<div class="iconSmall bgAlcohol" data-tippy-content="Onder invloed"></div>';
+    if (person.hitrun)         buttonsOptions += '<div class="iconSmall bgHitRun" data-tippy-content="Doorrijden/vluchten"></div>';
 
     html += `<div class="editCrashPerson" onclick="showEditPersonForm(${person.id});">
 ${iconHealth} ${iconTransportation} ${buttonsOptions}
