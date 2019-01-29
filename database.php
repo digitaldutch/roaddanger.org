@@ -157,10 +157,10 @@ class TDatabase {
     return $this->fetchSingleValue($sql, $params);
   }
 
-  public function log($userid, $level=TLogLevel::info, $info=''){
+  public function log($userId, $level=TLogLevel::info, $info=''){
     $ip = substr(getCallerIP(), 0, 45);
     $sql = 'INSERT INTO logs (userid, level, ip, info) VALUES (:userid, :level, :ip, :info)';
-    $params = array(':userid' => $userid, ':level' => $level, ':ip' => $ip, ':info' => substr($info, 0, 500));
+    $params = array(':userid' => $userId, ':level' => $level, ':ip' => $ip, ':info' => substr($info, 0, 500));
     return $this->execute($sql, $params);
   }
 

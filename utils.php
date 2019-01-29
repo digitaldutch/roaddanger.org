@@ -75,7 +75,7 @@ function getPageMediaMetaData($url){
 
   $url = str_replace('//m.', '//www.', $url);
   $html = @file_get_contents($url, false, stream_context_create($arrContextOptions));
-  if ($html === false) throw new Exception("Kan link '$url'' niet openen");
+  if ($html === false) throw new Exception("Kan link '$url' niet openen");
 
   // Convert GZIP content if needed
   if (headerContainsGZIP($http_response_header)) $html = gzdecode($html);

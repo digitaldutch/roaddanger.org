@@ -226,8 +226,8 @@ async function loadCrashes(crashID=null, articleID=null){
     if (searchSiteName)                         url += '&sitename=' + encodeURIComponent(searchSiteName);
     if (searchHealthDead)                       url += '&healthdead=1';
     if (pageType === TpageType.moderations)     url += '&moderations=1';
-    if (pageType === TpageType.recent)          url += '&sort=accidentdate';
-    if (pageType === TpageType.decorrespondent) url += '&sort=accidentdate&searchDateFrom=2019-01-14&searchDateTo=2019-01-20';
+    if (pageType === TpageType.recent)          url += '&sort=crashDate';
+    if (pageType === TpageType.decorrespondent) url += '&sort=crashDate&searchDateFrom=2019-01-14&searchDateTo=2019-01-20';
 
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
@@ -259,6 +259,12 @@ async function loadCrashes(crashID=null, articleID=null){
   }, 1);
 }
 
+function prepareArticleServerData(article){
+  article.publishedtime  = new Date(article.publishedtime);
+  article.createtime     = new Date(article.createtime);
+  article.streamdatetime = new Date(article.streamdatetime);
+}
+
 function prepareCrashServerData(data){
   data.crashes.forEach(crash => {
     crash.date           = new Date(crash.date);
@@ -269,11 +275,7 @@ function prepareCrashServerData(data){
     crash.persons.forEach(person => person.id = id++);
   });
 
-  data.articles.forEach(article => {
-    article.publishedtime  = new Date(article.publishedtime);
-    article.createtime     = new Date(article.createtime);
-    article.streamdatetime = new Date(article.streamdatetime);
-  });
+  data.articles.forEach(article => prepareArticleServerData(article));
 }
 
 function getCrashGUIButtons(crash){
@@ -327,8 +329,10 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
     if (user.moderator && article.hasalltext) htmlButtonAllText = `<span class="buttonSelectionSmall bgArticle" data-userid="${article.userid}" data-tippy-content="Toon alle tekst" onclick="toggleAllText(this, event, ${article.id});"></span>`;
 
     htmlArticles +=`
-<div class="cardArticle" id="article${article.id}" onclick="openArticleLink(event, ${article.id})">
-  <div class="articleImageWrapper"><img class="articleImage" src="${article.urlimage}" onerror="this.style.display='none';"></div>
+<div class="cardArticle" id="article${article.id}" onclick="closeAllPopups(); event.stopPropagation();">
+  <a href="${article.url}" target="article">
+    <div class="articleImageWrapper"><img class="articleImage" src="${article.urlimage}" onerror="this.style.display='none';"></div>
+  </a>
   <div class="articleBody">
     <span class="postButtonArea" onclick="event.stopPropagation();">
       <span style="position: relative;">
@@ -343,7 +347,10 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
     
     ${htmlModeration}     
   
-    <div class="smallFont"><span class="cardSitename">${escapeHtml(article.sitename)}</span> | ${dateToAge(article.publishedtime)} | toegevoegd door ${article.user}</div>
+    <div class="smallFont articleTitleSmall">
+      <a href="${article.url}" target="article"><span class="cardSitename">${escapeHtml(article.sitename)}</span></a> 
+      | ${dateToAge(article.publishedtime)} | toegevoegd door ${article.user}
+    </div>
   
     <div class="articleTitle">${escapeHtml(article.title)}</div>
     <div id="articleText${article.id}" class="postText">${escapeHtml(article.text)}</div>
@@ -395,7 +402,7 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
     else if (crash.userid === user.id) modHTML = 'Bedankt voor het toevoegen van onderstaand bericht. Je bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet voor iedereen zichtbaar.';
     else modHTML = 'Deze bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet zichtbaar op de voorpagina.';
 
-    htmlModeration = `<div id="accidentModeration${crash.id}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
+    htmlModeration = `<div id="crashModeration${crash.id}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
   }
 
   let htmlMenuEditItems = '';
@@ -410,10 +417,10 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
   if (user.moderator) htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>Plaats bovenaan stream</div>`;
 
   return `
-<div id="accident${crash.id}" class="cardCrash" onclick="showCrashDetails(${crash.id})">
+<div id="crash${crash.id}" class="cardCrash" onclick="showCrashDetails(${crash.id})">
   <span class="postButtonArea" onclick="event.stopPropagation();">
     <span style="position: relative;"><span class="buttonEditPost buttonDetails"  data-userid="${crash.userid}" onclick="showCrashMenu(event, ${crash.id});"></span></span>
-    <div id="menuAccident${crash.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
+    <div id="menuCrash${crash.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
       <div onclick="addArticleToCrash(${crash.id});">Artikel toevoegen</div>
       ${htmlMenuEditItems}
     </div>            
@@ -425,7 +432,7 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
     <div style="width: 100%;">
       <div class="smallFont cardTitleSmall">${dateToAge(crash.date)} | ${titleSmall}</div>
       <div class="cardTitle">${escapeHtml(crash.title)}</div>
-      <div id="accidentPersons${crash.id}">${htmlPersons}</div>
+      <div>${htmlPersons}</div>
     </div>
     ${htmlInvolved}
   </div>
@@ -507,10 +514,10 @@ function selectArticle(articleID, smooth=false) {
 }
 
 function selectCrash(crashID, smooth=false) {
-  const div = document.getElementById('accident' + crashID);
+  const div = document.getElementById('crash' + crashID);
   if (smooth){
     div.scrollIntoView({
-      block:    'center',
+      block:    'start',
       behavior: 'smooth',
       inline:   'nearest'});
 
@@ -523,26 +530,26 @@ function showEditCrashForm(event) {
      return;
   }
 
-  document.getElementById('editHeader').innerText                 = 'Nieuw artikel en ongeluk toevoegen';
-  document.getElementById('buttonSaveArticle').value              = 'Opslaan';
-  document.getElementById('accidentIDHidden').value               = '';
-  document.getElementById('articleIDHidden').value                = '';
+  document.getElementById('editHeader').innerText       = 'Nieuw artikel en ongeluk toevoegen';
+  document.getElementById('buttonSaveArticle').value    = 'Opslaan';
+  document.getElementById('crashIDHidden').value        = '';
+  document.getElementById('articleIDHidden').value      = '';
 
-  document.getElementById('editArticleUrl').value                 = '';
-  document.getElementById('editArticleTitle').value               = '';
-  document.getElementById('editArticleText').value                = '';
-  document.getElementById('editArticleAllText').value             = '';
-  document.getElementById('editArticleUrlImage').value            = '';
-  document.getElementById('editArticleSiteName').value            = '';
-  document.getElementById('editArticleDate').value                = '';
+  document.getElementById('editArticleUrl').value       = '';
+  document.getElementById('editArticleTitle').value     = '';
+  document.getElementById('editArticleText').value      = '';
+  document.getElementById('editArticleAllText').value   = '';
+  document.getElementById('editArticleUrlImage').value  = '';
+  document.getElementById('editArticleSiteName').value  = '';
+  document.getElementById('editArticleDate').value      = '';
 
-  document.getElementById('editAccidentTitle').value              = '';
-  document.getElementById('editAccidentText').value               = '';
-  document.getElementById('editAccidentDate').value               = '';
+  document.getElementById('editCrashTitle').value       = '';
+  document.getElementById('editCrashText').value        = '';
+  document.getElementById('editCrashDate').value        = '';
 
-  document.getElementById('editAccidentPet').classList.remove('buttonSelected');
-  document.getElementById('editAccidentTrafficJam').classList.remove('buttonSelected');
-  document.getElementById('editAccidentTree').classList.remove('buttonSelected');
+  document.getElementById('editCrashPet').classList.remove('buttonSelected');
+  document.getElementById('editCrashTrafficJam').classList.remove('buttonSelected');
+  document.getElementById('editCrashTree').classList.remove('buttonSelected');
 
   editCrashPersons = [];
   refreshCrashPersonsGUI(editCrashPersons);
@@ -722,15 +729,15 @@ function setNewArticleCrashFields(crashID){
   // Shallow copy
   editCrashPersons = clone(crash.persons);
 
-  document.getElementById('accidentIDHidden').value           = crash.id;
+  document.getElementById('crashIDHidden').value           = crash.id;
 
-  document.getElementById('editAccidentTitle').value          = crash.title;
-  document.getElementById('editAccidentText').value           = crash.text;
-  document.getElementById('editAccidentDate').value           = dateToISO(crashDatetime);
+  document.getElementById('editCrashTitle').value          = crash.title;
+  document.getElementById('editCrashText').value           = crash.text;
+  document.getElementById('editCrashDate').value           = dateToISO(crashDatetime);
 
-  selectButton('editAccidentPet',         crash.pet);
-  selectButton('editAccidentTrafficJam',  crash.trafficjam);
-  selectButton('editAccidentTree',        crash.tree);
+  selectButton('editCrashPet',         crash.pet);
+  selectButton('editCrashTrafficJam',  crash.trafficjam);
+  selectButton('editCrashTree',        crash.tree);
 
   refreshCrashPersonsGUI(crash.persons);
 }
@@ -841,7 +848,7 @@ async function crashModerateOK(crash) {
   else if (data.ok){
     // Remove moderation div
     getCrashFromID(crash).awaitingmoderation = false;
-    const divModeration = document.getElementById('accidentModeration' + crash);
+    const divModeration = document.getElementById('crashModeration' + crash);
     divModeration.remove();
   }
 }
@@ -872,11 +879,11 @@ function domainBlacklisted(url){
 }
 
 function copyCrashInfoFromArticle(){
-  document.getElementById('editAccidentTitle').value = document.getElementById('editArticleTitle').value;
+  document.getElementById('editCrashTitle').value = document.getElementById('editArticleTitle').value;
 }
 
 function copyCrashDateFromArticle(){
-  document.getElementById('editAccidentDate').value  = document.getElementById('editArticleDate').value;
+  document.getElementById('editCrashDate').value  = document.getElementById('editArticleDate').value;
 }
 
 async function getArticleMetaData() {
@@ -918,7 +925,7 @@ async function getArticleMetaData() {
   };
 
   document.getElementById('spinnerMeta').style.display = 'flex';
-  document.getElementById('tarantuleResults').innerHTML = '<img src="/images/spinner.svg" style="height: 30px;">';
+  document.getElementById('tarantulaResults').innerHTML = '<img src="/images/spinner.svg" style="height: 30px;">';
   try {
     const response = await fetch(url, optionsFetch);
     const text     = await response.text();
@@ -926,10 +933,10 @@ async function getArticleMetaData() {
     const data     = JSON.parse(text);
     if (data.error) showError(data.error);
     else {
-      if (data.urlexists) showMessage(`Bericht is al toegevoegd aan database.<br><a href='/${data.urlexists.accidentid}' style='text-decoration: underline;'>Klik hier.</a>`, 30);
+      if (data.urlExists) showMessage(`Bericht is al toegevoegd aan database.<br><a href='/${data.urlExists.crashId}' style='text-decoration: underline;'>Klik hier.</a>`, 30);
       else showMetaData(data.media);
 
-      document.getElementById('tarantuleResults').innerHTML = `Gevonden:<br>
+      document.getElementById('tarantulaResults').innerHTML = `Gevonden:<br>
 Open Graph Facebook tags: ${data.tagcount.og}<br>
 Twitter tags: ${data.tagcount.twitter}<br>
 article tags: ${data.tagcount.article}<br>
@@ -977,14 +984,14 @@ async function saveArticleCrash(){
   }
 
   crashEdited = {
-    id:         document.getElementById('accidentIDHidden').value,
-    title:      document.getElementById('editAccidentTitle').value,
-    text:       document.getElementById('editAccidentText').value,
-    date:       document.getElementById('editAccidentDate').value,
+    id:         document.getElementById('crashIDHidden').value,
+    title:      document.getElementById('editCrashTitle').value,
+    text:       document.getElementById('editCrashText').value,
+    date:       document.getElementById('editCrashDate').value,
     persons:    editCrashPersons,
-    pet:        document.getElementById('editAccidentPet').classList.contains('buttonSelected'),
-    trafficjam: document.getElementById('editAccidentTrafficJam').classList.contains('buttonSelected'),
-    tree:       document.getElementById('editAccidentTree').classList.contains('buttonSelected'),
+    pet:        document.getElementById('editCrashPet').classList.contains('buttonSelected'),
+    trafficjam: document.getElementById('editCrashTrafficJam').classList.contains('buttonSelected'),
+    tree:       document.getElementById('editCrashTree').classList.contains('buttonSelected'),
   };
 
   if (crashEdited.id) crashEdited.id = parseInt(crashEdited.id);
@@ -1002,9 +1009,9 @@ async function saveArticleCrash(){
     method:  'POST',
     body: JSON.stringify({
       article:      articleEdited,
-      accident:     crashEdited,
-      savearticle:  saveArticle,
-      saveaccident: saveCrash,
+      crash:        crashEdited,
+      saveArticle:  saveArticle,
+      saveCrash:    saveCrash,
     }),
     headers: {'Content-Type': 'application/json'},
   };
@@ -1017,8 +1024,8 @@ async function saveArticleCrash(){
     const editingCrash = crashEdited.id !== '';
 
     // No reload only if editing crash. Other cases for now give problems and require a full page reload.
-    const isCrashList = ((pageType === TpageType.stream) || (pageType === TpageType.recent) || (pageType === TpageType.decorrespondent));
-    if (editingCrash && isCrashList) {
+    const isCrashPage = ((pageType === TpageType.crash) || (pageType === TpageType.recent) || (pageType === TpageType.decorrespondent) || (pageType === TpageType.decorrespondent));
+    if (editingCrash && isCrashPage) {
       if (saveCrash){
         // Save changes in crashes cache
         let i = crashes.findIndex(crash => {return crash.id === crashEdited.id});
@@ -1031,17 +1038,22 @@ async function saveArticleCrash(){
         crashes[i].trafficjam = crashEdited.trafficjam;
       } else if (saveArticle) {
         let i = articles.findIndex(article => {return article.id === articleEdited.id});
-        articles[i].url        = articleEdited.url;
-        articles[i].sitename   = articleEdited.sitename;
-        articles[i].title      = articleEdited.title;
-        articles[i].text       = articleEdited.text;
-        articles[i].urlimage   = articleEdited.urlimage;
-        articles[i].date       = articleEdited.date;
-        articles[i].hasalltext = articleEdited.alltext.length > 0;
+        if (i >= 0){
+          articles[i].url        = articleEdited.url;
+          articles[i].sitename   = articleEdited.sitename;
+          articles[i].title      = articleEdited.title;
+          articles[i].text       = articleEdited.text;
+          articles[i].urlimage   = articleEdited.urlimage;
+          articles[i].date       = articleEdited.date;
+          articles[i].hasalltext = articleEdited.alltext.length > 0;
+        } else if (data.article){
+          prepareArticleServerData(data.article);
+          articles.push(data.article);
+        }
       }
-      document.getElementById('accident' + crashEdited.id).outerHTML = getCrashHTML(crashEdited.id);
+      document.getElementById('crash' + crashEdited.id).outerHTML = getCrashHTML(crashEdited.id);
     } else {
-      window.location.href = createCrashURL(data.accidentid, crashEdited.title);
+      window.location.href = createCrashURL(data.crashId, crashEdited.title);
       let text = '';
       if (articleEdited) {
         text = articleEdited.id? 'Artikel opgeslagen' : 'Artikel toegevoegd';
@@ -1066,7 +1078,7 @@ function showCrashMenu(event, crashID) {
   event.preventDefault();
   event.stopPropagation();
 
-  const div = document.getElementById(`menuAccident${crashID}`);
+  const div = document.getElementById(`menuCrash${crashID}`);
   const menuVisible = div.style.display === 'block';
   closeAllPopups();
   if (! menuVisible) div.style.display = 'block';
@@ -1120,9 +1132,9 @@ async function deleteCrashDirect(crashID) {
     if (data.error) showError(data.error);
     else {
       // Remove crash from crashes array
-      crashes = crashes.filter(a => a.id !== crashID);
+      crashes = crashes.filter(crash => crash.id !== crashID);
       // Delete the GUI element
-      document.getElementById('accident' + crashID).remove();
+      document.getElementById('crash' + crashID).remove();
       showMessage('Ongeluk verwijderd');
     }
   } catch (error) {
@@ -1185,18 +1197,18 @@ function showMergeCrashForm(id) {
   const crash = getCrashFromID(id);
 
   document.getElementById('mergeFromCrashIDHidden').value     = crash.id;
-  document.getElementById('mergeAccidentSearch').value        = '';
-  document.getElementById('mergeAccidentSearchDay').value     = 0; // Same day
+  document.getElementById('mergeCrashSearch').value           = '';
+  document.getElementById('mergeCrashSearchDay').value        = 0; // Same day
   document.getElementById('mergeToCrashIDHidden').value       = '';
   document.getElementById('mergeCrashTo').innerHTML           = '';
   document.getElementById('mergeCrashTo').style.display       = 'none';
   document.getElementById('mergeSearchResults').innerHTML     = '';
   document.getElementById('mergeSearchResults').style.display = 'none';
   document.getElementById('mergeCrashFrom').innerHTML         = crashRowHTML(crash);
-  document.getElementById('formMergeAccident').style.display  = 'flex';
+  document.getElementById('formMergeCrash').style.display     = 'flex';
 }
 
-function searchMergeAccidentDelayed() {
+function searchMergeCrashDelayed() {
   document.getElementById('spinnerMerge').style.display       = 'block';
   document.getElementById('mergeCrashTo').innerHTML           = '';
   document.getElementById('mergeCrashTo').style.display       = 'none';
@@ -1204,57 +1216,51 @@ function searchMergeAccidentDelayed() {
   document.getElementById('mergeSearchResults').style.display = 'none';
   document.getElementById('mergeToCrashIDHidden').value       = '';
 
-  clearTimeout(searchMergeAccidentDelayed.timeout);
-  searchMergeAccidentDelayed.timeout = setTimeout(searchMergeAccident,500);
+  clearTimeout(searchMergeCrashDelayed.timeout);
+  searchMergeCrashDelayed.timeout = setTimeout(searchMergeCrash,500);
 }
 
-function searchMergeAccident(){
-  async function searchCrashOnServer() {
-    try {
-      const searchText = document.getElementById('mergeAccidentSearch').value.trim().toLowerCase();
-      if (searchText.length < 2) return;
+async function searchMergeCrash() {
+  try {
+    const searchText = document.getElementById('mergeCrashSearch').value.trim().toLowerCase();
+    if (searchText.length < 2) return;
 
-      const crashID = parseInt(document.getElementById('mergeFromCrashIDHidden').value);
-      const crash   = getCrashFromID(crashID);
-      let url       = '/ajax.php?function=loadCrashes&count=10&search=' + encodeURIComponent(searchText);
+    const crashID = parseInt(document.getElementById('mergeFromCrashIDHidden').value);
+    const crash   = getCrashFromID(crashID);
+    let url       = '/ajax.php?function=loadCrashes&count=10&search=' + encodeURIComponent(searchText);
 
-      const dateSearch = document.getElementById('mergeAccidentSearchDay').value;
-      let dateFrom;
-      let dateTo;
-      if (dateSearch === '0'){
-        dateFrom = crash.date;
-        dateTo   = crash.date;
-      } else if (isInt(dateSearch)) {
-        dateFrom = crash.date.addDays(-dateSearch);
-        dateTo   = crash.date.addDays(dateSearch);
-      }
-
-      if (dateFrom) url += '&searchDateFrom=' + dateToISO(dateFrom) + '&searchDateTo=' + dateToISO(dateTo);
-
-      const response = await fetch(url, fetchOptions);
-      const text     = await response.text();
-      const data     = JSON.parse(text);
-      if (data.error) showError(data.error);
-      else if (data.ok){
-        prepareCrashServerData(data);
-        crashesFound  = data.crashes;
-        articlesFound = data.articles;
-
-        let html = '';
-        crashesFound.forEach(crashFound => {
-          if (crashFound.id !== crash.id) html += crashRowHTML(crashFound, true);
-
-        });
-        document.getElementById('mergeSearchResults').innerHTML     = html;
-        document.getElementById('mergeSearchResults').style.display = 'block';
-      }
-    } finally {
-      document.getElementById('spinnerMerge').style.display = 'none';
+    const dateSearch = document.getElementById('mergeCrashSearchDay').value;
+    let dateFrom;
+    let dateTo;
+    if (dateSearch === '0'){
+      dateFrom = crash.date;
+      dateTo   = crash.date;
+    } else if (isInt(dateSearch)) {
+      dateFrom = crash.date.addDays(-dateSearch);
+      dateTo   = crash.date.addDays(dateSearch);
     }
-  }
 
-  searchCrashOnServer();
+    if (dateFrom) url += '&searchDateFrom=' + dateToISO(dateFrom) + '&searchDateTo=' + dateToISO(dateTo);
+
+    const response = await fetch(url, fetchOptions);
+    const text     = await response.text();
+    const data     = JSON.parse(text);
+    if (data.error) showError(data.error);
+    else if (data.ok){
+      prepareCrashServerData(data);
+      crashesFound  = data.crashes;
+      articlesFound = data.articles;
+
+      let html = '';
+      crashesFound.forEach(crashFound => {if (crashFound.id !== crash.id) html += crashRowHTML(crashFound, true);});
+      document.getElementById('mergeSearchResults').innerHTML     = html;
+      document.getElementById('mergeSearchResults').style.display = 'block';
+    }
+  } finally {
+    document.getElementById('spinnerMerge').style.display = 'none';
+  }
 }
+
 
 function mergeSearchResultClick(crashID) {
   const crash = crashesFound.find(crash => crash.id === crashID);
@@ -1279,12 +1285,29 @@ function mergeCrash() {
   const crashTo   = crashesFound.find(crash => crash.id === toID);
 
   async function mergeCrashesOnServer(fromID, toID){
-    const url = `/ajax.php?function=mergeCrashes&idFrom=${fromID}&idTo=${toID}`;
+    const url      = `/ajax.php?function=mergeCrashes&idFrom=${fromID}&idTo=${toID}`;
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
     const data     = JSON.parse(text);
     if (data.error) showError(data.error);
-    else window.location.reload();
+    else {
+      articles.forEach(article => {if (article.accidentid === fromID) article.accidentid = toID;});
+      crashes.filter(crash => crash.id !== fromID);
+
+      // Update GUI
+      // Delete from crash
+      const fromElement = document.getElementById('crash' + fromID);
+      if (fromElement) fromElement.remove();
+
+      closePopupForm();
+
+      // Update to crash
+      const toElement = document.getElementById('crash' + toID);
+      if (toElement) {
+        toElement.outerHTML = getCrashHTML(toID);
+        selectCrash(toID, true);
+      }
+    }
   }
 
   confirmMessage(`Ongeluk <br>#${crashFrom.id} ${crashFrom.title}<br><br>samenvoegen met<br>#${crashTo.id} ${crashTo.title}?`,

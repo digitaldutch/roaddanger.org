@@ -116,8 +116,8 @@ function urlExists($database, $url){
   $DBResults = $database->fetchAll($sql, $params);
   foreach ($DBResults as $found) {
     return [
-      'articleid'  => (int)$found['id'],
-      'accidentid' => (int)$found['accidentid'],
+      'articleId' => (int)$found['id'],
+      'crashId'   => (int)$found['accidentid'],
       ];
   }
   return false;
@@ -139,6 +139,42 @@ function setCrashStreamTop($database, $crashId, $userId, $streamTopType){
 SQL;
   $params = array(':id' => $crashId, ':userid' => $userId);
   $database->execute($sql, $params);
+}
+
+function getArticleSelect(){
+  return <<<SQL
+SELECT
+  ar.id,
+  ar.userid,
+  ar.awaitingmoderation,
+  ar.accidentid,
+  ar.title,
+  ar.text,
+  IF(ar.alltext > '', 1, 0) AS hasalltext,
+  ar.createtime,
+  ar.publishedtime,
+  ar.streamdatetime,
+  ar.sitename,
+  ar.url,
+  ar.urlimage,
+  CONCAT(u.firstname, ' ', u.lastname) AS user 
+FROM articles ar
+JOIN users u on u.id = ar.userid
+SQL;
+}
+
+function cleanArticleDBRow($article){
+  $article['id']                 = (int)$article['id'];
+  $article['userid']             = (int)$article['userid'];
+  $article['awaitingmoderation'] = $article['awaitingmoderation'] == 1;
+  $article['hasalltext']         = $article['hasalltext'] == 1;
+  $article['accidentid']         = (int)$article['accidentid'];
+  $article['createtime']         = datetimeDBToISO8601($article['createtime']);
+  $article['publishedtime']      = datetimeDBToISO8601($article['publishedtime']);
+  $article['streamdatetime']     = datetimeDBToISO8601($article['streamdatetime']);
+  // JD NOTE: Do not sanitize strings. We handle escaping in JavaScript
+
+  return $article;
 }
 
 if ($function == 'login') {
@@ -329,7 +365,7 @@ SQL;
       }
       if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);
 
-      $orderField = ($sort === 'accidentdate')? 'ac.date DESC, ac.streamdatetime DESC' : 'ac.streamdatetime DESC';
+      $orderField = ($sort === 'crashDate')? 'ac.date DESC, ac.streamdatetime DESC' : 'ac.streamdatetime DESC';
 
       $SQLWhere = <<<SQL
    $SQLJoin      
@@ -383,25 +419,10 @@ SQL;
         if ($sqlModerated) $params[':useridModeration'] = $user->id;
       }
 
-      $commaArrays = implode (", ", $ids);
+      $commaArrays      = implode (", ", $ids);
+      $sqlArticleSelect = getArticleSelect();
       $sqlArticles = <<<SQL
-SELECT
-  ar.id,
-  ar.userid,
-  ar.awaitingmoderation,
-  ar.accidentid,
-  ar.title,
-  ar.text,
-  IF(ar.alltext > '', 1, 0) AS hasalltext,
-  ar.createtime,
-  ar.publishedtime,
-  ar.streamdatetime,
-  ar.sitename,
-  ar.url,
-  ar.urlimage,
-  CONCAT(u.firstname, ' ', u.lastname) AS user 
-FROM articles ar
-JOIN users u on u.id = ar.userid
+$sqlArticleSelect
 WHERE ar.accidentid IN ($commaArrays)
  $sqlModerated
 ORDER BY ar.streamdatetime DESC
@@ -409,16 +430,7 @@ SQL;
 
       $DBResults = $database->fetchAll($sqlArticles, $params);
       foreach ($DBResults as $article) {
-        $article['id']                 = (int)$article['id'];
-        $article['userid']             = (int)$article['userid'];
-        $article['awaitingmoderation'] = $article['awaitingmoderation'] == 1;
-        $article['hasalltext']         = $article['hasalltext'] == 1;
-        $article['accidentid']         = (int)$article['accidentid'];
-        $crash['createtime']           = datetimeDBToISO8601($crash['createtime']);
-        $crash['publishedtime']        = datetimeDBToISO8601($crash['publishedtime']);
-        $crash['streamdatetime']       = datetimeDBToISO8601($crash['streamdatetime']);
-        // JD NOTE: Do not sanitize strings. We handle escaping in JavaScript
-
+        $article = cleanArticleDBRow($article);
         $articles[] = $article;
       }
     }
@@ -475,9 +487,9 @@ else if ($function === 'getPageMetaData'){
     $media = [
       'url'            => getFirstAvailableTag([$ogTags['og:url'], $url]),
       'urlimage'       => getFirstAvailableTag([$ogTags['og:image']]),
-      'title'          => html_entity_decode(strip_tags(getFirstAvailableTag([$ogTags['og:title'], $twitterTags['twitter:title']])),ENT_QUOTES),
-      'description'    => html_entity_decode(strip_tags(getFirstAvailableTag([$ogTags['og:description'], $twitterTags['twitter:description'], $metaData['other']['description']])),ENT_QUOTES),
-      'sitename'       => html_entity_decode(getFirstAvailableTag([$ogTags['og:site_name'], $metaData['other']['domain']]),ENT_QUOTES),
+      'title'          => html_entity_decode(htmlspecialchars_decode(strip_tags(getFirstAvailableTag([$ogTags['og:title'], $twitterTags['twitter:title']]))),ENT_QUOTES),
+      'description'    => html_entity_decode(strip_tags(htmlspecialchars_decode(getFirstAvailableTag([$ogTags['og:description'], $twitterTags['twitter:description'], $metaData['other']['description']]))),ENT_QUOTES),
+      'sitename'       => html_entity_decode(htmlspecialchars_decode(getFirstAvailableTag([$ogTags['og:site_name'], $metaData['other']['domain']])),ENT_QUOTES),
       'published_time' => getFirstAvailableTag([$ogTags['og:article:published_time'], $articleTags['article:published_time'], $itemPropTags['datePublished'], $articleTags['article:modified_time']]),
     ];
 
@@ -497,7 +509,7 @@ else if ($function === 'getPageMetaData'){
     if ($newArticle) $urlExists = urlExists($database, $media['url']);
     else $urlExists = false;
 
-    $result = ['ok' => true, 'media' => $media, 'tagcount' => $tagCount, 'urlexists' => $urlExists];
+    $result = ['ok' => true, 'media' => $media, 'tagcount' => $tagCount, 'urlExists' => $urlExists];
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
@@ -508,9 +520,9 @@ else if ($function === 'saveArticleCrash'){
   try {
     $data                         = json_decode(file_get_contents('php://input'), true);
     $article                      = $data['article'];
-    $crash                        = $data['accident'];
-    $saveArticle                  = $data['savearticle'];
-    $saveCrash                    = $data['saveaccident'];
+    $crash                        = $data['crash'];
+    $saveArticle                  = $data['saveArticle'];
+    $saveCrash                    = $data['saveCrash'];
     $isNewCrash                   = (! isset($crash['id'])) || ($crash['id'] <= 0);
     $moderationRequired           = ! $user->isModerator();
     $crashIsAwaitingModeration    = $moderationRequired && $isNewCrash;
@@ -519,7 +531,7 @@ else if ($function === 'saveArticleCrash'){
     // Check if new article url already in database.
     if ($saveArticle && ($article['id'] < 1)){
       $exists = urlExists($database, $article['url']);
-      if ($exists) throw new Exception("<a href='/{$exists['accidentid']}}' style='text-decoration: underline;'>Er is al een ongeluk met deze link</a>", 1);
+      if ($exists) throw new Exception("<a href='/{$exists['crashId']}}' style='text-decoration: underline;'>Er is al een ongeluk met deze link</a>", 1);
     }
 
     if ($saveCrash){
@@ -579,18 +591,18 @@ SQL;
       }
 
       // Save crash persons
-      $sql    = "DELETE FROM accidentpersons WHERE accidentid=:accidentid;";
-      $params = ['accidentid' => $crash['id']];
+      $sql    = "DELETE FROM accidentpersons WHERE accidentid=:crashId;";
+      $params = ['crashId' => $crash['id']];
       $database->execute($sql, $params);
 
     $sql         = <<<SQL
 INSERT INTO accidentpersons (accidentid, groupid, transportationmode, health, child, underinfluence, hitrun) 
-VALUES (:accidentid, :groupid, :transportationmode, :health, :child, :underinfluence, :hitrun);
+VALUES (:crashId, :groupid, :transportationmode, :health, :child, :underinfluence, :hitrun);
 SQL;
       $dbStatement = $database->prepare($sql);
       foreach ($crash['persons'] AS $person){
         $params = [
-          ':accidentid'         => $crash['id'],
+          ':crashId'            => $crash['id'],
           ':groupid'            => $person['groupid'],
           ':transportationmode' => $person['transportationmode'],
           ':health'             => $person['health'],
@@ -601,8 +613,7 @@ SQL;
         $dbStatement->execute($params);
       }
 
-      $params = ['accidentid' => $crash['id']];
-
+      $params = ['crashId' => $crash['id']];
     }
 
     if ($saveArticle){
@@ -613,7 +624,7 @@ SQL;
 
         $sql = <<<SQL
     UPDATE articles SET
-      accidentid    = :accidentid,
+      accidentid    = :crashId,
       url           = :url,
       title         = :title,
       text          = :text,
@@ -624,7 +635,7 @@ SQL;
       WHERE id=:id $sqlANDOwnOnly
 SQL;
         $params = [
-          ':accidentid'  => $crash['id'],
+          ':crashId'     => $crash['id'],
           ':url'         => $article['url'],
           ':title'       => $article['title'],
           ':text'        => $article['text'],
@@ -642,33 +653,43 @@ SQL;
 
       } else {
         // New article
-
         $sql = <<<SQL
     INSERT INTO articles (userid, awaitingmoderation, accidentid, url, title, text, alltext, publishedtime, sitename, urlimage)
-    VALUES (:userid, :awaitingmoderation, :accidentid, :url, :title, :text, :alltext, :date, :sitename, :urlimage);
+    VALUES (:userid, :awaitingmoderation, :accidentid, :url, :title, :text, :alltext, :publishedtime, :sitename, :urlimage);
 SQL;
         // Article moderation is only required if the crash is not awaiting moderation
+        $article['userid']             = $user->id;
+        $article['accidentid']         = $crash['id'];
+        $article['awaitingmoderation'] = $articleIsAwaitingModeration;
         $params = array(
-          ':userid'             => $user->id,
-          ':awaitingmoderation' => $articleIsAwaitingModeration,
-          ':accidentid'         => $crash['id'],
+          ':userid'             => $article['userid'],
+          ':awaitingmoderation' => $article['awaitingmoderation'],
+          ':accidentid'         => $article['accidentid'],
           ':url'                => $article['url'],
           ':title'              => $article['title'],
           ':text'               => $article['text'],
           ':alltext'            => $article['alltext'],
           ':sitename'           => $article['sitename'],
-          ':date'               => $article['date'],
+          ':publishedtime'      => $article['date'],
           ':urlimage'           => $article['urlimage']);
 
         $database->execute($sql, $params);
-        $article['id'] = $database->lastInsertID();
+        $article['id'] = (int)$database->lastInsertID();
 
         if (! $saveCrash) setCrashStreamTop($database, $crash['id'], $user->id, 2);
       }
     }
 
-    $result = ['ok' => true, 'accidentid' => $crash['id']];
-    if ($saveArticle) $result['articleid']  = (int)$article['id'];
+    $result = ['ok' => true, 'crashId' => $crash['id']];
+    if ($saveArticle) {
+      $sqlArticleSelect = getArticleSelect();
+      $sqlArticle = "$sqlArticleSelect WHERE ar.ID=:id";
+
+      $DBArticle = $database->fetch($sqlArticle, ['id' => $article['id']]);
+      $DBArticle = cleanArticleDBRow($DBArticle);
+
+      $result['article'] = $DBArticle;
+    }
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage(), 'errorcode' => $e->getCode()];
   }

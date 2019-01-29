@@ -247,7 +247,7 @@ function getFormEditCrash(){
       <div id="spinnerMeta" class="spiderBackground">
         <div class="popupHeader">Tarantula is aan het werk...</div>
         <div><img src="/images/tarantula.jpg" style="height: 200px;" alt="Tarantula spider"></div>
-        <div id="tarantuleResults"></div> 
+        <div id="tarantulaResults"></div> 
       </div>
   
       <label for="editArticleSiteName">Mediabron</label>
@@ -275,25 +275,25 @@ function getFormEditCrash(){
     <div id="editCrashSection" class="flexColumn">
       <div class="formSubHeader">Ongeluk</div>
      
-      <input id="accidentIDHidden" type="hidden">
+      <input id="crashIDHidden" type="hidden">
   
       <div data-hidehelper class="flexColumn">
-        <label for="editAccidentTitle">Titel ongeluk</label> 
+        <label for="editCrashTitle">Titel ongeluk</label> 
         <div style="display: flex;">
-          <input id="editAccidentTitle" class="popupInput" type="text" maxlength="500" autocomplete="off" data-readonlyhelper>
+          <input id="editCrashTitle" class="popupInput" type="text" maxlength="500" autocomplete="off" data-readonlyhelper>
           <span data-hideedit class="button buttonGray buttonLine" onclick="copyCrashInfoFromArticle();">Zelfde als artikel</span>
         </div>
   
-        <label for="editAccidentText">Tekst</label>
-        <textarea id="editAccidentText" maxlength="500" style="height: 50px; resize: vertical;" class="popupInput" autocomplete="off" data-readonlyhelper></textarea>
+        <label for="editCrashText">Tekst</label>
+        <textarea id="editCrashText" maxlength="500" style="height: 50px; resize: vertical;" class="popupInput" autocomplete="off" data-readonlyhelper></textarea>
       </div>        
 
       <div class="labelDiv">
-        <label for="editAccidentDate">Datum ongeluk</label>
+        <label for="editCrashDate">Datum ongeluk</label>
         <span class="iconTooltip" data-tippy-content="Vaak anders dan publicatiedatum artikel"></span>
       </div>
       <div style="display: flex;">
-        <input id="editAccidentDate" class="popupInput" type="date" autocomplete="off">
+        <input id="editCrashDate" class="popupInput" type="date" autocomplete="off">
         <span data-hideedit class="button buttonGray buttonLine" onclick="copyCrashDateFromArticle();" ">Zelfde als artikel</span>
       </div>
           
@@ -305,9 +305,9 @@ function getFormEditCrash(){
       <div style="margin-top: 5px;">
         <div>Kenmerken van ongeluk</div>
         <div>
-          <span id="editAccidentPet" class="menuButton bgPet" data-tippy-content="Dier(en)" onclick="toggleSelectionButton(this);"></span>      
-          <span id="editAccidentTrafficJam" class="menuButton bgTrafficJam" data-tippy-content="File/Hinder" onclick="toggleSelectionButton(this);"></span>      
-          <span id="editAccidentTree" style="display: none;" class="menuButton bgTree" data-tippy-content="Boom/Paal" onclick="toggleSelectionButton(this);"></span>
+          <span id="editCrashPet" class="menuButton bgPet" data-tippy-content="Dier(en)" onclick="toggleSelectionButton(this);"></span>      
+          <span id="editCrashTrafficJam" class="menuButton bgTrafficJam" data-tippy-content="File/Hinder" onclick="toggleSelectionButton(this);"></span>      
+          <span id="editCrashTree" style="display: none;" class="menuButton bgTree" data-tippy-content="Boom/Paal" onclick="toggleSelectionButton(this);"></span>
         </div>
       </div>
     </div>
@@ -324,7 +324,7 @@ HTML;
 
 function getFormMergeCrash(){
   return <<<HTML
-<div id="formMergeAccident" class="popupOuter" onclick="closePopupForm();">
+<div id="formMergeCrash" class="popupOuter" onclick="closePopupForm();">
 
   <form class="formFullPage" onclick="event.stopPropagation();">
     
@@ -339,7 +339,7 @@ function getFormMergeCrash(){
       <div id="mergeCrashFrom" class="crashRow"></div>
     </div>
             
-    <div id="mergeAccidentSection" class="flexColumn">
+    <div id="mergeCrashSection" class="flexColumn">
       <div class="formSubHeader">Samenvoegen met</div>
      
       <input id="mergeToCrashIDHidden" type="hidden">
@@ -348,13 +348,13 @@ function getFormMergeCrash(){
       <div class="flexRow">
         
         <div class="flexColumn" style="flex-grow: 1;">
-          <label for="mergeAccidentSearch">Zoek ongeluk</label>
-          <input id="mergeAccidentSearch" class="popupInput" style="margin-right: 5px;" type="search" autocomplete="off"  placeholder="Zoek tekst" onkeyup="searchMergeAccidentDelayed();">
+          <label for="mergeCrashSearch">Zoek ongeluk</label>
+          <input id="mergeCrashSearch" class="popupInput" style="margin-right: 5px;" type="search" autocomplete="off"  placeholder="Zoek tekst" onkeyup="searchMergeCrashDelayed();">
         </div>
         
         <div class="flexColumn">
         <label>Datum</label>
-        <select id="mergeAccidentSearchDay" oninput="searchMergeAccidentDelayed();">
+        <select id="mergeCrashSearchDay" oninput="searchMergeCrashDelayed();">
           <option value=""></option>
           <option value="0">Zelfde dag</option>
           <option value="1">1 dag marge</option>
