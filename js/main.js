@@ -6,7 +6,7 @@ let editCrashPersons = [];
 let watchEndOfPage = false;
 let spinnerLoadCard;
 let pageType;
-let TpageType = Object.freeze({stream:0, crash:1, moderations:2, statistics:3, statisticsGeneral: 4, recent: 5, decorrespondent: 6});
+let TpageType = Object.freeze({stream:0, crash:1, moderations:2, statistics:3, statisticsGeneral: 4, statisticsCrashPartners: 5, recent: 6, deCorrespondent: 7});
 
 function initMain() {
   initPage();
@@ -20,14 +20,15 @@ function initMain() {
   const searchSiteName   = url.searchParams.get('sitename');
   const searchHealthDead = url.searchParams.get('hd');
 
-  if      (url.pathname.startsWith('/moderaties'))            pageType = TpageType.moderations;
-  else if (url.pathname.startsWith('/stream'))                pageType = TpageType.stream;
-  else if (url.pathname.startsWith('/decorrespondent'))       pageType = TpageType.decorrespondent;
-  else if (url.pathname.startsWith('/recent'))                pageType = TpageType.recent;
-  else if (url.pathname.startsWith('/statistieken/algemeen')) pageType = TpageType.statisticsGeneral;
-  else if (url.pathname.startsWith('/statistieken'))          pageType = TpageType.statistics;
-  else if (crashID)                                           pageType = TpageType.crash;
-  else                                                        pageType = TpageType.recent;
+  if      (url.pathname.startsWith('/moderaties'))                 pageType = TpageType.moderations;
+  else if (url.pathname.startsWith('/stream'))                     pageType = TpageType.stream;
+  else if (url.pathname.startsWith('/decorrespondent'))            pageType = TpageType.deCorrespondent;
+  else if (url.pathname.startsWith('/recent'))                     pageType = TpageType.recent;
+  else if (url.pathname.startsWith('/statistieken/algemeen'))      pageType = TpageType.statisticsGeneral;
+  else if (url.pathname.startsWith('/statistieken/crashpartners')) pageType = TpageType.statisticsCrashPartners;
+  else if (url.pathname.startsWith('/statistieken'))               pageType = TpageType.statistics;
+  else if (crashID)                                                pageType = TpageType.crash;
+  else                                                             pageType = TpageType.recent;
 
   if (searchText || searchSiteName || searchHealthDead) {
     document.body.classList.add('searchBody');
@@ -38,9 +39,8 @@ function initMain() {
 
   addEditPersonButtons();
 
-  if ((pageType === TpageType.statistics) || (pageType === TpageType.statisticsGeneral)) {
-    const period = url.searchParams.get('period');
-    if (period) document.getElementById('filterStatsPeriod').value = period;
+  if ((pageType === TpageType.statistics) || (pageType === TpageType.statisticsGeneral) || (pageType === TpageType.statisticsCrashPartners)) {
+    initStatistics();
     loadStatistics();
   } else if (pageType === TpageType.crash){
     // Single crash details page
@@ -61,6 +61,32 @@ function initMain() {
   }
 }
 
+function initStatistics(){
+  const url = new URL(location.href);
+  if (pageType === TpageType.statistics){
+    const period = url.searchParams.get('period');
+    if (period) document.getElementById('filterStatsPeriod').value = period;
+  } else if (pageType === TpageType.statisticsCrashPartners){
+    let html = '';
+    for (const key of Object.keys(TTransportationMode)){
+      const transportationMode =  TTransportationMode[key];
+      const text               = transportationModeText(transportationMode);
+      const selected           = transportationMode === TTransportationMode.bicycle? ' selected ' : '';
+      html += `<option value="${transportationMode}" ${selected}>${text}</option>`;
+    }
+
+    document.getElementById('filterVictimTransportationMode').innerHTML = html;
+
+    // set select
+    let transportationMode = url.searchParams.get('transportationMode');
+    if (transportationMode) document.getElementById('filterVictimTransportationMode').value = transportationMode;
+
+    // Set transportation mode text
+    transportationMode = parseInt(document.getElementById('filterVictimTransportationMode').value);
+    document.getElementById('crashPartnerTransportationMode').innerText = transportationModeText(transportationMode);
+  }
+}
+
 async function loadStatistics(){
 
   function showStatisticsTransportation(dbStats) {
@@ -74,6 +100,8 @@ async function loadStatistics(){
 <td style="text-align: right;">${stat.unharmed}</td>
 <td style="text-align: right;">${stat.healthunknown}</td>
 <td style="text-align: right;">${stat.child}</td>
+<td style="text-align: right;">${stat.underinfluence}</td>
+<td style="text-align: right;">${stat.hitrun}</td>
 </tr>`;
     }
     document.getElementById('tableStatsBody').innerHTML = html;
@@ -167,19 +195,51 @@ async function loadStatistics(){
 `;
   }
 
+  function showStatisticsCrashPartners(dbStats, victimTransportationMode) {
+
+    let total = 0;
+    dbStats.crashPartners.forEach(partner => total += partner.deathCount);
+
+    let html = '';
+    for (const crashPartner of dbStats.crashPartners){
+      const iconMode   = crashPartner.transportationMode === -1? victimTransportationMode : crashPartner.transportationMode;
+      const icon       = transportationModeIcon(iconMode, true);
+      const tmText     = crashPartner.transportationMode === -1? 'Eenzijdig ongeluk' : transportationModeText(crashPartner.transportationMode);
+      const percentage = 100 * crashPartner.deathCount / total;
+      html += `<tr>
+<td><div class="flexRow">${icon}<span class="hideOnMobile" style="margin-left: 5px;">${tmText}</span></div></td>
+<td style="text-align: right;">${crashPartner.deathCount}</td>
+<td style="text-align: right;">${percentage.toFixed(1)}%</td>
+</tr>`;
+    }
+    document.getElementById('tableStatsBody').innerHTML = html;
+    tippy('#tableStatsBody [data-tippy-content]');
+
+  }
+
   try {
     spinnerLoadCard.style.display = 'block';
 
-    let url      = '/ajax.php?function=getstats';
-    if (pageType === TpageType.statistics) url += '&period=' + document.getElementById('filterStatsPeriod').value;
-    if (pageType === TpageType.statisticsGeneral) url += '&type=general';
+    let url      = '/ajax.php?function=getStatistics';
+    if      (pageType === TpageType.statistics)              url += '&period=' + document.getElementById('filterStatsPeriod').value;
+    else if (pageType === TpageType.statisticsGeneral)       url += '&type=general';
+    else if (pageType === TpageType.statisticsCrashPartners) url += '&type=crashPartners&transportationMode='  + document.getElementById('filterVictimTransportationMode').value;
+
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
     data           = JSON.parse(text);
     if (data.user) updateLoginGUI(data.user);
     if (data.error) showError(data.error);
     else {
-      if (pageType === TpageType.statisticsGeneral) showStatisticsGeneral(data.statistics);
+      if      (pageType === TpageType.statisticsGeneral) showStatisticsGeneral(data.statistics);
+      else if (pageType === TpageType.statisticsCrashPartners) {
+        const victimTransportationMode = parseInt(document.getElementById('filterVictimTransportationMode').value);
+
+        let url = window.location.origin + '/statistieken/crashpartners/?transportationMode=' + document.getElementById('filterVictimTransportationMode').value;
+        window.history.pushState(null, null, url);
+
+        showStatisticsCrashPartners(data.statistics, victimTransportationMode);
+      }
       else {
         let url = window.location.origin + '/statistieken?period=' + document.getElementById('filterStatsPeriod').value;
         window.history.pushState(null, null, url);
@@ -192,6 +252,12 @@ async function loadStatistics(){
   } finally {
     spinnerLoadCard.style.display = 'none';
   }
+}
+
+function statsCrashPartnersTransportationModeChange(){
+  const transportationMode = parseInt(document.getElementById('filterVictimTransportationMode').value);
+  document.getElementById('crashPartnerTransportationMode').innerText = transportationModeText(transportationMode);
+  loadStatistics();
 }
 
 async function loadCrashes(crashID=null, articleID=null){
@@ -227,7 +293,7 @@ async function loadCrashes(crashID=null, articleID=null){
     if (searchHealthDead)                       url += '&healthdead=1';
     if (pageType === TpageType.moderations)     url += '&moderations=1';
     if (pageType === TpageType.recent)          url += '&sort=crashDate';
-    if (pageType === TpageType.decorrespondent) url += '&sort=crashDate&searchDateFrom=2019-01-14&searchDateTo=2019-01-20';
+    if (pageType === TpageType.deCorrespondent) url += '&sort=crashDate&searchDateFrom=2019-01-14&searchDateTo=2019-01-20';
 
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
@@ -1024,7 +1090,7 @@ async function saveArticleCrash(){
     const editingCrash = crashEdited.id !== '';
 
     // No reload only if editing crash. Other cases for now give problems and require a full page reload.
-    const isCrashPage = ((pageType === TpageType.crash) || (pageType === TpageType.recent) || (pageType === TpageType.decorrespondent) || (pageType === TpageType.decorrespondent));
+    const isCrashPage = ((pageType === TpageType.crash) || (pageType === TpageType.recent) || (pageType === TpageType.deCorrespondent) || (pageType === TpageType.deCorrespondent));
     if (editingCrash && isCrashPage) {
       if (saveCrash){
         // Save changes in crashes cache
@@ -1353,7 +1419,7 @@ function startSearch() {
   const searchHealthDead = document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue');
 
   let url = window.location.origin;
-  if      (pageType === TpageType.decorrespondent) url += '/decorrespondent';
+  if      (pageType === TpageType.deCorrespondent) url += '/decorrespondent';
   else if (pageType === TpageType.stream)          url += '/stream';
   url += '?search=' + encodeURIComponent(searchText);
   if (searchSiteName)   url += '&sitename=' + encodeURIComponent(searchSiteName);

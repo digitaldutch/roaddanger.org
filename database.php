@@ -65,6 +65,16 @@ class TDatabase {
     }
   }
 
+  public function fetchAllGroup($sql, $params=null){
+    try {
+      $statement = $this->pdo->prepare($sql);
+      $statement->execute($params);
+      return $statement->fetchAll(PDO::FETCH_GROUP);
+    } catch (Exception $e) {
+      return false;
+    }
+  }
+
   public function fetchObject($sql, $params=null){
     try {
       $statement = $this->pdo->prepare($sql);

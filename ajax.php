@@ -56,6 +56,79 @@ SQL;
 
   return $stats;
 }
+
+/**
+ * @param TDatabase $database
+ * @return array
+ */
+function getStatsCrashPartners($database){
+  $victimTransportationMode = (int)getRequest('transportationMode',2);
+
+  $sqlCrashesWithDeath = <<<SQL
+  SELECT
+    a.id
+  FROM accidentpersons ap
+  JOIN accidents a ON ap.accidentid = a.id
+  WHERE (ap.transportationmode=$victimTransportationMode AND ap.health=3)
+SQL;
+
+  // Get all persons from accidents with dead
+  $sql = <<<SQL
+select
+  a.id AS accidentid,
+  transportationmode,
+  health
+from accidentpersons ap
+JOIN accidents a ON ap.accidentid = a.id
+where
+  a.id IN ($sqlCrashesWithDeath);
+SQL;
+
+
+  $allCrashPartners = [];
+  $crashes = $database->fetchAllGroup($sql);
+  foreach ($crashes as $id => $persons) {
+    $deathCount    = 0;
+    $crashPartnersModes = [];
+    foreach ($persons as $person){
+      $person['transportationmode'] = (int)$person['transportationmode'];
+      $person['health']             = (int)$person['health'];
+
+      if (($person['transportationmode'] === $victimTransportationMode) && ($person['health'] === 3)) $deathCount += 1;
+      else if (! in_array($person['transportationmode'], $crashPartnersModes)) $crashPartnersModes[] = $person['transportationmode'];
+    }
+
+    if (count($crashPartnersModes) ===0) $allCrashPartners[-1] += $deathCount; // Unilateral crash
+    else {
+      $partnersAdded = 0;
+      foreach ($crashPartnersModes as $crashPartnerMode){
+        if ($victimTransportationMode !== $crashPartnerMode) {
+          $allCrashPartners[$crashPartnerMode] += $deathCount;
+          $partnersAdded += 1;
+        }
+      }
+      if (! $partnersAdded){
+        foreach ($crashPartnersModes as $crashPartnerMode){
+          if ($victimTransportationMode === $crashPartnerMode) {
+            $allCrashPartners[$crashPartnerMode] += $deathCount;
+          }
+        }
+      }
+    }
+  }
+
+  arsort($allCrashPartners);
+  $stats = [];
+  foreach ($allCrashPartners as $victimTransportationMode => $deathCount){
+    $stats[] = ['transportationMode' => $victimTransportationMode, 'deathCount' => $deathCount];
+  }
+
+  return ['crashPartners' => $stats];
+}
+
+
+
+
 /**
  * @param TDatabase $database
  * @return array
@@ -819,14 +892,14 @@ else if ($function === 'getArticleText'){
   }
   echo json_encode($result);
 } //==========
-else if ($function === 'getstats'){
+else if ($function === 'getStatistics'){
   try{
-
     $period = getRequest('period','all');
     $type   = getRequest('type','');
 
-    if ($type === 'general') $stats = getStatsDatabase($database);
-    else $stats = getStatsTransportation($database, $period);
+    if      ($type === 'general')       $stats = getStatsDatabase($database);
+    else if ($type === 'crashPartners') $stats = getStatsCrashPartners($database);
+    else                                $stats = getStatsTransportation($database, $period);
 
     $result = ['ok' => true,
       'statistics' => $stats,

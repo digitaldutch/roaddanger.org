@@ -20,6 +20,39 @@ HTML;
 
   $head = "<script src=\"/js/main.js?v=$VERSION\"></script>";
 
+} else if (strpos($_SERVER['REQUEST_URI'], '/statistieken/crashpartners') === 0) {
+  $mainHTML = <<<HTML
+<div class="pageInner">
+  <div class="pageSubTitle">Statistieken - crashpartners doden</div>
+  <div class="sectionIntro" style="text-align: center;">Dit zijn de cijfers over de ongelukken tot nog toe in de database.</div>
+  <div id="statistics">
+  
+    <div style="margin: 5px 0;">
+      <div class="filterElement">
+        Vervoermiddel doden<br>
+        <select id="filterVictimTransportationMode" oninput="statsCrashPartnersTransportationModeChange();">
+        </select>
+      </div>
+    </div>
+
+    <table id="tableStats" class="dataTable">
+      <thead>
+        <tr>
+          <th style="text-align: left;">Crashpartner</th>
+          <th style="text-align: right;">Aantal doden (<span id="crashPartnerTransportationMode"></span>)</th>
+          <th style="text-align: right;">Percentage</th>
+        </tr>
+      </thead>  
+      <tbody id="tableStatsBody">
+        
+      </tbody>
+    </table>  
+  </div>
+  <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+</div>
+HTML;
+
+  $head = "<script src=\"/js/main.js?v=$VERSION\"></script>";
 } else if (strpos($_SERVER['REQUEST_URI'], '/statistieken') === 0) {
   $mainHTML = <<<HTML
 <div class="pageInner">
@@ -50,6 +83,8 @@ HTML;
           <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnharmed" data-tippy-content="Ongedeerd"></div> <div  class="hideOnMobile">Ongedeerd</div></div></th>
           <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnknown" data-tippy-content="Letsel onbekend"></div> <div  class="hideOnMobile">Onbekend</div></div></th>
           <th style="text-align: right;"><div class="iconSmall bgChild" data-tippy-content="Kind"></div></th>
+          <th style="text-align: right;"><div class="iconSmall bgAlcohol" data-tippy-content="Onder invloed"></div></th>
+          <th style="text-align: right;"><div class="iconSmall bgHitRun" data-tippy-content="Doorrijden/vluchten"></div></th>
         </tr>
       </thead>  
       <tbody id="tableStatsBody">

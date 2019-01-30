@@ -144,8 +144,9 @@ function getNavigation(){
 
     <div class="navigationSection">
       <div class="navigationSectionHeader">Statistieken</div>
-      <a href="/statistieken/" class="navItem">Vervoermiddelen</a>
       <a href="/statistieken/algemeen" class="navItem">Algemeen</a>
+      <a href="/statistieken/vervoermiddelen" class="navItem">Vervoermiddelen</a>
+      <a href="/statistieken/crashpartners" class="navItem">Crashpartners doden</a>
     </div>
 
     <div class="navigationSection">
@@ -266,8 +267,8 @@ function getFormEditCrash(){
       <input id="editArticleDate" class="popupInput" type="date" autocomplete="off">
 
       <div class="labelDiv">
-        <label for="editArticleAllText">Volledige artikel tekst (niet verplicht)</label>
-        <span class="iconTooltip" data-tippy-content="Niet verplicht, maar zeer nuttig voor onze tekstanalyses. Deze moeten nu nog handmatig gekopieerd worden. Onze dank is groot als je deze wilt toevoegen."></span>
+        <label for="editArticleAllText">Volledige artikel tekst (niet verplicht, maar...)</label>
+        <span class="iconTooltip" data-tippy-content="Niet verplicht, maar zeer nuttig voor onze tekstanalyses. De tekst moet nu nog handmatig gekopieerd worden. Onze dank is groot als je dat wilt doen."></span>
       </div>
       <textarea id="editArticleAllText" maxlength="10000" style="height: 150px; resize: vertical;" class="popupInput" autocomplete="off"></textarea>
     </div>
