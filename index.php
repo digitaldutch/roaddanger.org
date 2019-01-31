@@ -20,10 +20,10 @@ HTML;
 
   $head = "<script src=\"/js/main.js?v=$VERSION\"></script>";
 
-} else if (strpos($_SERVER['REQUEST_URI'], '/statistieken/crashpartners') === 0) {
+} else if (strpos($_SERVER['REQUEST_URI'], '/statistieken/andere_partij') === 0) {
   $mainHTML = <<<HTML
 <div class="pageInner">
-  <div class="pageSubTitle">Statistieken - crashpartners doden</div>
+  <div class="pageSubTitle">Statistieken - Doden, andere partij</div>
   <div class="sectionIntro" style="text-align: center;">Dit zijn de cijfers over de ongelukken tot nog toe in de database.</div>
   <div id="statistics">
   
@@ -38,7 +38,7 @@ HTML;
     <table id="tableStats" class="dataTable">
       <thead>
         <tr>
-          <th style="text-align: left;">Crashpartner</th>
+          <th style="text-align: left;">Andere partij</th>
           <th style="text-align: right;">Aantal doden (<span id="crashPartnerTransportationMode"></span>)</th>
           <th style="text-align: right;">Percentage</th>
         </tr>

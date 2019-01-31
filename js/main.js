@@ -25,7 +25,7 @@ function initMain() {
   else if (url.pathname.startsWith('/decorrespondent'))            pageType = TpageType.deCorrespondent;
   else if (url.pathname.startsWith('/recent'))                     pageType = TpageType.recent;
   else if (url.pathname.startsWith('/statistieken/algemeen'))      pageType = TpageType.statisticsGeneral;
-  else if (url.pathname.startsWith('/statistieken/crashpartners')) pageType = TpageType.statisticsCrashPartners;
+  else if (url.pathname.startsWith('/statistieken/andere_partij')) pageType = TpageType.statisticsCrashPartners;
   else if (url.pathname.startsWith('/statistieken'))               pageType = TpageType.statistics;
   else if (crashID)                                                pageType = TpageType.crash;
   else                                                             pageType = TpageType.recent;
@@ -207,7 +207,7 @@ async function loadStatistics(){
       const tmText     = crashPartner.transportationMode === -1? 'Eenzijdig ongeluk' : transportationModeText(crashPartner.transportationMode);
       const percentage = 100 * crashPartner.deathCount / total;
       html += `<tr>
-<td><div class="flexRow">${icon}<span class="hideOnMobile" style="margin-left: 5px;">${tmText}</span></div></td>
+<td><div class="flexRow">${icon}<span style="margin-left: 5px;">${tmText}</span></div></td>
 <td style="text-align: right;">${crashPartner.deathCount}</td>
 <td style="text-align: right;">${percentage.toFixed(1)}%</td>
 </tr>`;
@@ -235,7 +235,7 @@ async function loadStatistics(){
       else if (pageType === TpageType.statisticsCrashPartners) {
         const victimTransportationMode = parseInt(document.getElementById('filterVictimTransportationMode').value);
 
-        let url = window.location.origin + '/statistieken/crashpartners/?transportationMode=' + document.getElementById('filterVictimTransportationMode').value;
+        let url = window.location.origin + '/statistieken/andere_partij/?transportationMode=' + document.getElementById('filterVictimTransportationMode').value;
         window.history.pushState(null, null, url);
 
         showStatisticsCrashPartners(data.statistics, victimTransportationMode);
