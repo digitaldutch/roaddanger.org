@@ -5,6 +5,16 @@ require_once 'initialize.php';
 global $VERSION;
 global $user;
 
+$uri = urldecode($_SERVER['REQUEST_URI']);
+if      (strpos($uri, '/stream')                     === 0) $pageType = TPageType::stream;
+else if (strpos($uri, '/decorrespondent')            === 0) $pageType = TPageType::deCorrespondent;
+else if (strpos($uri, '/moderaties')                 === 0) $pageType = TPageType::moderations;
+else if (strpos($uri, '/mozaïek')                    === 0) $pageType = TPageType::mosaic;
+else if (strpos($uri, '/statistieken/algemeen')      === 0) $pageType = TPageType::statisticsGeneral;
+else if (strpos($uri, '/statistieken/andere_partij') === 0) $pageType = TPageType::statisticsCrashPartners;
+else if (strpos($uri, '/statistieken/vervoertypes')  === 0) $pageType = TPageType::statisticsTransportationModes;
+else                                                                                  $pageType = TPageType::recent;
+
 $showCrashMenu = false;
 if (strpos($_SERVER['REQUEST_URI'], '/statistieken/algemeen') === 0) {
   $mainHTML = <<<HTML
@@ -23,8 +33,7 @@ HTML;
 } else if (strpos($_SERVER['REQUEST_URI'], '/statistieken/andere_partij') === 0) {
   $mainHTML = <<<HTML
 <div class="pageInner">
-  <div class="pageSubTitle">Statistieken - Doden, andere partij</div>
-  <div class="sectionIntro" style="text-align: center;">Dit zijn de cijfers over de ongelukken tot nog toe in de database.</div>
+  <div class="pageSubTitle">Statistieken - Doden, andere partij<span class="iconTooltip" data-tippy-content="Dit zijn de cijfers over de ongelukken tot nog toe in de database."></span></div>
   <div id="statistics">
   
     <div style="margin: 5px 0;">
@@ -56,8 +65,8 @@ HTML;
 } else if (strpos($_SERVER['REQUEST_URI'], '/statistieken') === 0) {
   $mainHTML = <<<HTML
 <div class="pageInner">
-  <div class="pageSubTitle">Statistieken - vervoertypes</div>
-  <div class="sectionIntro" style="text-align: center;">Dit zijn de cijfers over de ongelukken tot nog toe in de database.</div>
+  <div class="pageSubTitle">Statistieken - vervoertypes<span class="iconTooltip" data-tippy-content="Dit zijn de cijfers over de ongelukken tot nog toe in de database."></span></div>
+  
   <div id="statistics">
   
     <div style="margin: 5px 10px;">
@@ -102,15 +111,11 @@ HTML;
   $showCrashMenu  = true;
   $generalMessage = $database->fetchSingleValue("SELECT value FROM options WHERE name='globalMessage';");
   $messageHTML    = formatMessage($generalMessage);
-  if      (strpos($_SERVER['REQUEST_URI'], '/stream') === 0) $title = 'Laatst gewijzigde ongelukken';
-  else if (strpos($_SERVER['REQUEST_URI'], '/decorrespondent') === 0) $title = 'De Correspondent week<br>14 t/m 20 januari 2019';
-  else $title = 'Recente ongelukken';
 
-  if (isset($generalMessage)) {
-    $introText .= <<<HTML
-  <div class="pageSubTitle">$title</div>
-  <div class="sectionIntro">$messageHTML</div>
-HTML;
+  $introText = "<div id='pageSubTitle' class='pageSubTitle'>$title</div>";
+
+  if (isset($generalMessage) && in_array($pageType, [TPageType::recent, TPageType::stream, TPageType::deCorrespondent, TPageType::crash])) {
+    $introText .= "<div class='sectionIntro'>$messageHTML</div>";
   }
 
   $mainHTML = <<<HTML

@@ -1,5 +1,17 @@
 <?php
 
+abstract class TPageType {
+  const stream                        = 0;
+  const crash                         = 1;
+  const moderations                   = 2;
+  const statisticsTransportationModes = 3;
+  const statisticsGeneral             = 4;
+  const statisticsCrashPartners       = 5;
+  const recent                        = 6;
+  const deCorrespondent               = 7;
+  const mosaic                        = 8;
+}
+
 function getCallerIP(){
   return (isset($_SERVER["REMOTE_ADDR"]))? $_SERVER["REMOTE_ADDR"] : '';
 }

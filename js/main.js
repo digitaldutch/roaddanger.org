@@ -6,7 +6,7 @@ let editCrashPersons = [];
 let watchEndOfPage = false;
 let spinnerLoadCard;
 let pageType;
-let TpageType = Object.freeze({stream:0, crash:1, moderations:2, statisticsTransportationModes:3, statisticsGeneral: 4, statisticsCrashPartners: 5, recent: 6, deCorrespondent: 7});
+let TpageType = Object.freeze({stream:0, crash:1, moderations:2, statisticsTransportationModes:3, statisticsGeneral: 4, statisticsCrashPartners: 5, recent: 6, deCorrespondent: 7, mosaic: 8});
 
 function initMain() {
   initPage();
@@ -19,17 +19,30 @@ function initMain() {
   const searchText       = url.searchParams.get('search');
   const searchSiteName   = url.searchParams.get('sitename');
   const searchHealthDead = url.searchParams.get('hd');
+  const pathName         = decodeURIComponent(url.pathname);
 
-  if      (url.pathname.startsWith('/moderaties'))                 pageType = TpageType.moderations;
-  else if (url.pathname.startsWith('/stream'))                     pageType = TpageType.stream;
-  else if (url.pathname.startsWith('/decorrespondent'))            pageType = TpageType.deCorrespondent;
-  else if (url.pathname.startsWith('/recent'))                     pageType = TpageType.recent;
-  else if (url.pathname.startsWith('/statistieken/algemeen'))      pageType = TpageType.statisticsGeneral;
-  else if (url.pathname.startsWith('/statistieken/andere_partij')) pageType = TpageType.statisticsCrashPartners;
-  else if (url.pathname.startsWith('/statistieken/vervoertypes'))  pageType = TpageType.statisticsTransportationModes;
-  else if (url.pathname.startsWith('/statistieken'))               pageType = TpageType.statisticsGeneral;
-  else if (crashID)                                                pageType = TpageType.crash;
-  else                                                             pageType = TpageType.recent;
+  if      (pathName.startsWith('/moderaties'))                 pageType = TpageType.moderations;
+  else if (pathName.startsWith('/stream'))                     pageType = TpageType.stream;
+  else if (pathName.startsWith('/decorrespondent'))            pageType = TpageType.deCorrespondent;
+  else if (pathName.startsWith('/mozaïek'))                    pageType = TpageType.mosaic;
+  else if (pathName.startsWith('/statistieken/algemeen'))      pageType = TpageType.statisticsGeneral;
+  else if (pathName.startsWith('/statistieken/andere_partij')) pageType = TpageType.statisticsCrashPartners;
+  else if (pathName.startsWith('/statistieken/vervoertypes'))  pageType = TpageType.statisticsTransportationModes;
+  else if (pathName.startsWith('/statistieken'))               pageType = TpageType.statisticsGeneral;
+  else if (crashID)                                            pageType = TpageType.crash;
+  else                                                         pageType = TpageType.recent;
+
+  let title = '';
+  switch (pageType){
+    case TpageType.stream:          title = 'Laatst gewijzigde ongelukken'; break;
+    case TpageType.deCorrespondent: title = 'De Correspondent week<br>14 t/m 20 januari 2019'; break;
+    case TpageType.moderations:     title = 'Moderaties'; break;
+    case TpageType.recent:          title = 'Recente ongelukken'; break;
+    default:                        title = '';
+  }
+
+  if (title) document.getElementById('pageSubTitle').innerHTML = title;
+
 
   if (searchText || searchSiteName || searchHealthDead) {
     document.body.classList.add('searchBody');
@@ -299,17 +312,16 @@ function statsCrashPartnersTransportationModeChange(){
 
 async function loadCrashes(crashID=null, articleID=null){
   function showCrashes(crashes){
+    let html = '';
     if (crashes.length === 0) {
       let text = '';
       if (pageType === TpageType.moderations) text = 'Geen moderaties gevonden';
       else text = 'Geen ongelukken gevonden';
 
-      document.getElementById('cards').innerHTML = `<div style="text-align: center;">${text}</div>`;
-      return;
+      html = `<div style="text-align: center;">${text}</div>`;
+    } else {
+      for (let crash of crashes) html += getCrashHTML(crash.id);
     }
-
-    let html = '';
-    for (let crash of crashes) html += getCrashHTML(crash.id);
 
     document.getElementById('cards').innerHTML += html;
     tippy('[data-tippy-content]');
@@ -350,9 +362,8 @@ async function loadCrashes(crashID=null, articleID=null){
     if (data.crashes.length < maxLoadCount) spinnerLoadCard.style.display = 'none';
   }
 
-  if (crashID && (crashes.length === 1)){
-    document.title = crashes[0].title + ' | Het Ongeluk';
-  }
+  if (crashID && (crashes.length === 1)) document.title = crashes[0].title + ' | Het Ongeluk';
+
   showCrashes(data.crashes);
   highlightSearchText();
 
