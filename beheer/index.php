@@ -54,7 +54,7 @@ HTML;
 <div id="main" class="pageInner bgWhite">
   <div class="pageSubTitle">Beheer - Exporteren</div>
   <div id="export">
-    <label>Download laatste 1000 ongelukken en artikelen in JSON formaat<br>
+    <label>Download laatste 10000 ongelukken met artikelen in gzip JSON formaat. Bestand wordt elke 24 uur ververst.<br>
     <div class="buttonBar">
       <button class="button" style="margin-left: 0;" onclick="downloadData();">Download data</button></label>
     </div>  

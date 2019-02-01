@@ -199,26 +199,34 @@ function afterLoginAction(){
 
 
 function downloadData() {
+
+  function download(uri, filename) {
+    var element = document.createElement('a');
+    element.setAttribute('href', uri);
+    element.setAttribute('download', filename);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  }
+
   async function doDownload(){
     const spinner = document.getElementById('spinnerLoad');
     spinner.style.display = 'block';
     try {
-      const maxLoadCount = 1000;
-      let url        = '/ajax.php?function=loadCrashes&count=' + maxLoadCount;
-      const response = await fetch(url, fetchOptions);
-      const text     = await response.text();
-      const data     = JSON.parse(text);
-      const dataExport = {crashes: data.crashes, articles: data.articles};
+      let url          = '/beheer/exportdata.php?function=downloadData';
+      const response   = await fetch(url, fetchOptions);
+      const text       = await response.text();
+      const data       = JSON.parse(text);
 
-      download('hetongeluk.json', JSON.stringify(dataExport));
+      url = '/beheer/' + data.filename;
+      download(url, data.filename);
     } finally {
       spinner.style.display = 'none';
     }
-
   }
 
-  confirmMessage('Laatste 1000 ongelukken exporteren?', doDownload, 'Download');
-
+  confirmMessage('Data van alle ongelukken exporteren?', doDownload, 'Download');
 }
 
 async function saveOptions() {

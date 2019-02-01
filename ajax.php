@@ -340,7 +340,7 @@ else if ($function === 'loadCrashes') {
   try {
     $offset           = (int)getRequest('offset',0);
     $count            = (int)getRequest('count', 100);
-    $crashId               = isset($_REQUEST['id'])? (int)$_REQUEST['id'] : null;
+    $crashId          = isset($_REQUEST['id'])? (int)$_REQUEST['id'] : null;
     $searchText       = isset($_REQUEST['search'])? $_REQUEST['search'] : '';
     $searchDateFrom   = getRequest('searchDateFrom', '');
     $searchDateTo     = getRequest('searchDateTo', '');
@@ -904,6 +904,68 @@ else if ($function === 'getStatistics'){
     $result = ['ok' => true,
       'statistics' => $stats,
       'user'       => $user->info()
+    ];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} //==========
+else if ($function === 'downloadData'){
+  try{
+    $count = (int)getRequest('count', 100);
+
+    $sql = <<<SQL
+SELECT
+  id,
+  groupid,
+  transportationmode,
+  health,
+  child,
+  underinfluence,
+  hitrun
+FROM accidentpersons
+WHERE accidentid=:accidentid
+SQL;
+    $DBStatementPersons = $database->prepare($sql);
+
+    $sql = <<<SQL
+SELECT DISTINCT 
+  ac.id,
+  ac.title,
+  ac.text,
+  ac.date,
+  ac.pet, 
+  ac.trafficjam 
+FROM accidents ac
+ORDER BY date DESC 
+LIMIT 10
+SQL;
+
+    $DBResults = $database->fetchAll($sql);
+    foreach ($DBResults as $crash) {
+      $crash['id']                    = (int)$crash['id'];
+      $crash['pet']                   = (int)$crash['pet'];
+      $crash['trafficjam']            = (int)$crash['trafficjam'];
+
+      // Load persons
+      $crash['persons'] = [];
+      $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['accidentid' => $crash['id']]);
+      foreach ($DBPersons as $person) {
+        $person['groupid']            = isset($person['groupid'])? (int)$person['groupid'] : null;
+        $person['transportationmode'] = (int)$person['transportationmode'];
+        $person['health']             = isset($person['health'])? (int)$person['health'] : null;
+        $person['child']              = (int)$person['child'];
+        $person['underinfluence']     = (int)$person['underinfluence'];
+        $person['hitrun']             = (int)$person['hitrun'];
+
+        $crash['persons'][] = $person;
+      }
+
+      $ids[] = $crash['id'];
+      $crashes[] = $crash;
+    }
+
+    $result = ['ok' => true, 'data' => $crashes
     ];
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
