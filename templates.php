@@ -145,7 +145,7 @@ function getNavigation(){
     <div class="navigationSection">
       <div class="navigationSectionHeader">Statistieken</div>
       <a href="/statistieken/algemeen" class="navItem">Algemeen</a>
-      <a href="/statistieken/vervoermiddelen" class="navItem">Vervoermiddelen</a>
+      <a href="/statistieken/vervoertypes" class="navItem">Vervoertypes</a>
       <a href="/statistieken/andere_partij" class="navItem">Doden, andere partij</a>
     </div>
 
@@ -392,7 +392,7 @@ function getFormEditPerson(){
     <input id="personIDHidden" type="hidden">
 
     <div style="margin-top: 5px;">
-      <div>Vervoermiddel</div> 
+      <div>Vervoertype</div> 
       <div id="personTransportationButtons"></div>
     </div>
             

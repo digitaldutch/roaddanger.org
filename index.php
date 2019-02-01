@@ -29,7 +29,7 @@ HTML;
   
     <div style="margin: 5px 0;">
       <div class="filterElement">
-        Vervoermiddel doden<br>
+        Vervoertype doden<br>
         <select id="filterVictimTransportationMode" oninput="statsCrashPartnersTransportationModeChange();">
         </select>
       </div>
@@ -56,7 +56,7 @@ HTML;
 } else if (strpos($_SERVER['REQUEST_URI'], '/statistieken') === 0) {
   $mainHTML = <<<HTML
 <div class="pageInner">
-  <div class="pageSubTitle">Statistieken - vervoermiddelen</div>
+  <div class="pageSubTitle">Statistieken - vervoertypes</div>
   <div class="sectionIntro" style="text-align: center;">Dit zijn de cijfers over de ongelukken tot nog toe in de database.</div>
   <div id="statistics">
   
@@ -77,7 +77,7 @@ HTML;
     <table id="tableStats" class="dataTable">
       <thead>
         <tr>
-          <th style="text-align: left;">Vervoermiddel</th>
+          <th style="text-align: left;">Vervoertype</th>
           <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgDead" data-tippy-content="Dood"></div> <div class="hideOnMobile">Dood</div></div></th>
           <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgInjured" data-tippy-content="Gewond"></div> <div  class="hideOnMobile">Gewond</div></div></th>
           <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnharmed" data-tippy-content="Ongedeerd"></div> <div  class="hideOnMobile">Ongedeerd</div></div></th>

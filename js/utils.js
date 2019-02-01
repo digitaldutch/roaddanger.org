@@ -683,7 +683,7 @@ function transportationModeImage(transportationMode) {
 
 function transportationModeIcon(transportationMode, addTooltip=true, small=false) {
   const bg        = transportationModeImage(transportationMode);
-  const text      = 'Vervoermiddel: ' + transportationModeText(transportationMode);
+  const text      = 'Vervoertype: ' + transportationModeText(transportationMode);
   const tooltip   = addTooltip? 'data-tippy-content="' + text + '"' : '';
   const className = small? 'iconSmall' : 'iconMedium';
   return `<div class="${className} ${bg}" ${tooltip}></div>`;

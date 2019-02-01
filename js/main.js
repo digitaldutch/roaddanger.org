@@ -6,7 +6,7 @@ let editCrashPersons = [];
 let watchEndOfPage = false;
 let spinnerLoadCard;
 let pageType;
-let TpageType = Object.freeze({stream:0, crash:1, moderations:2, statistics:3, statisticsGeneral: 4, statisticsCrashPartners: 5, recent: 6, deCorrespondent: 7});
+let TpageType = Object.freeze({stream:0, crash:1, moderations:2, statisticsTransportationModes:3, statisticsGeneral: 4, statisticsCrashPartners: 5, recent: 6, deCorrespondent: 7});
 
 function initMain() {
   initPage();
@@ -26,7 +26,8 @@ function initMain() {
   else if (url.pathname.startsWith('/recent'))                     pageType = TpageType.recent;
   else if (url.pathname.startsWith('/statistieken/algemeen'))      pageType = TpageType.statisticsGeneral;
   else if (url.pathname.startsWith('/statistieken/andere_partij')) pageType = TpageType.statisticsCrashPartners;
-  else if (url.pathname.startsWith('/statistieken'))               pageType = TpageType.statistics;
+  else if (url.pathname.startsWith('/statistieken/vervoertypes'))  pageType = TpageType.statisticsTransportationModes;
+  else if (url.pathname.startsWith('/statistieken'))               pageType = TpageType.statisticsGeneral;
   else if (crashID)                                                pageType = TpageType.crash;
   else                                                             pageType = TpageType.recent;
 
@@ -39,7 +40,7 @@ function initMain() {
 
   addEditPersonButtons();
 
-  if ((pageType === TpageType.statistics) || (pageType === TpageType.statisticsGeneral) || (pageType === TpageType.statisticsCrashPartners)) {
+  if ((pageType === TpageType.statisticsTransportationModes) || (pageType === TpageType.statisticsGeneral) || (pageType === TpageType.statisticsCrashPartners)) {
     initStatistics();
     loadStatistics();
   } else if (pageType === TpageType.crash){
@@ -63,7 +64,7 @@ function initMain() {
 
 function initStatistics(){
   const url = new URL(location.href);
-  if (pageType === TpageType.statistics){
+  if (pageType === TpageType.statisticsTransportationModes){
     const period = url.searchParams.get('period');
     if (period) document.getElementById('filterStatsPeriod').value = period;
   } else if (pageType === TpageType.statisticsCrashPartners){
@@ -114,11 +115,12 @@ async function loadStatistics(){
     <table id="tableStats" class="dataTable">
       <tbody>
         <tr>
-          <td>Mensen die zich aangemeld hebben op deze site</td>
-          <td style="text-align: right;">${dbStats.deCorrespondent.users}</td></tr>
-        <tr>
           <td>Ongelukken</td>
-          <td style="text-align: right;">${dbStats.deCorrespondent.crashesOccurred}</td>
+          <td style="text-align: right;">${dbStats.deCorrespondent.crashes}</td>
+        </tr>
+        <tr>
+          <td>Artikelen</td>
+          <td style="text-align: right;">${dbStats.deCorrespondent.articles}</td>
         </tr>
         <tr>
           <td>Doden</td>
@@ -130,11 +132,15 @@ async function loadStatistics(){
         </tr>
         <tr>
           <td>Toegevoegde ongelukken</td>
-          <td style="text-align: right;">${dbStats.deCorrespondent.crashes}</td>
+          <td style="text-align: right;">${dbStats.deCorrespondent.crashesAdded}</td>
         </tr>
         <tr>
           <td>Toegevoegde artikelen</td>
-          <td style="text-align: right;">${dbStats.deCorrespondent.articles}</td>
+          <td style="text-align: right;">${dbStats.deCorrespondent.articlesAdded}</td>
+        </tr>
+        <tr>
+          <td>Mensen die zich aangemeld hebben op deze site</td>
+          <td style="text-align: right;">${dbStats.deCorrespondent.users}</td>
         </tr>
       </tbody>
     </table>  
@@ -143,45 +149,65 @@ async function loadStatistics(){
     <table id="tableStats" class="dataTable">
       <tbody>
         <tr>
-          <td>Mensen die zich aangemeld hebben op deze site</td>
-          <td style="text-align: right;">${dbStats.today.users}</td>
-        </tr>
-        <tr>
-          <td>Toegevoegde Ongelukken</td>
+          <td>Ongelukken</td>
           <td style="text-align: right;">${dbStats.today.crashes}</td>
         </tr>
         <tr>
-          <td>Toegevoegde Artikelen</td>
+          <td>Artikelen</td>
           <td style="text-align: right;">${dbStats.today.articles}</td>
         </tr>
-      </tbody>
-    </table>  
-
-    <div class="tableHeader" style="margin-top: 20px;">Gisteren</div>
-    <table id="tableStats" class="dataTable">
-      <tbody>
         <tr>
-          <td>Mensen die zich aangemeld hebben op deze site</td>
-          <td style="text-align: right;">${dbStats.yesterday.users}</td>
+          <td>Doden</td>
+          <td style="text-align: right;">${dbStats.today.dead}</td>
         </tr>
         <tr>
+          <td>Gewond</td>
+          <td style="text-align: right;">${dbStats.today.injured}</td>
+        </tr>        
+        <tr>
           <td>Toegevoegde Ongelukken</td>
-          <td style="text-align: right;">${dbStats.yesterday.crashes}</td>
+          <td style="text-align: right;">${dbStats.today.crashesAdded}</td>
         </tr>
         <tr>
           <td>Toegevoegde Artikelen</td>
-          <td style="text-align: right;">${dbStats.yesterday.articles}</td>
+          <td style="text-align: right;">${dbStats.today.articlesAdded}</td>
         </tr>
       </tbody>
     </table>  
 
-    <div class="tableHeader" style="margin-top: 20px;">Totaal</div>
+    <div class="tableHeader" style="margin-top: 20px;">7 dagen</div>
     <table id="tableStats" class="dataTable">
       <tbody>
         <tr>
-          <td>Mensen die zich aangemeld hebben op deze site</td>
-          <td style="text-align: right;">${dbStats.total.users}</td>
+          <td>Ongelukken</td>
+          <td style="text-align: right;">${dbStats.sevenDays.crashes}</td>
         </tr>
+        <tr>
+          <td>Artikelen</td>
+          <td style="text-align: right;">${dbStats.sevenDays.articles}</td>
+        </tr>
+        <tr>
+          <td>Doden</td>
+          <td style="text-align: right;">${dbStats.sevenDays.dead}</td>
+        </tr>
+        <tr>
+          <td>Gewond</td>
+          <td style="text-align: right;">${dbStats.sevenDays.injured}</td>
+        </tr>        
+        <tr>
+          <td>Toegevoegde Ongelukken</td>
+          <td style="text-align: right;">${dbStats.sevenDays.crashesAdded}</td>
+        </tr>
+        <tr>
+          <td>Toegevoegde Artikelen</td>
+          <td style="text-align: right;">${dbStats.sevenDays.articlesAdded}</td>
+        </tr>
+      </tbody>
+    </table>  
+
+    <div class="tableHeader" style="margin-top: 20px;">Totaal in database</div>
+    <table id="tableStats" class="dataTable">
+      <tbody>
         <tr>
           <td>Ongelukken</td>
           <td style="text-align: right;">${dbStats.total.crashes}</td>
@@ -189,6 +215,18 @@ async function loadStatistics(){
         <tr>
           <td>Artikelen</td>
           <td style="text-align: right;">${dbStats.total.articles}</td>
+        </tr>
+        <tr>
+          <td>Doden</td>
+          <td style="text-align: right;">${dbStats.total.dead}</td>
+        </tr>
+        <tr>
+          <td>Gewond</td>
+          <td style="text-align: right;">${dbStats.total.injured}</td>
+        </tr>                
+        <tr>
+          <td>Mensen die zich aangemeld hebben op deze site</td>
+          <td style="text-align: right;">${dbStats.total.users}</td>
         </tr>
       </tbody>
     </table>
@@ -214,16 +252,15 @@ async function loadStatistics(){
     }
     document.getElementById('tableStatsBody').innerHTML = html;
     tippy('#tableStatsBody [data-tippy-content]');
-
   }
 
   try {
     spinnerLoadCard.style.display = 'block';
 
     let url      = '/ajax.php?function=getStatistics';
-    if      (pageType === TpageType.statistics)              url += '&period=' + document.getElementById('filterStatsPeriod').value;
-    else if (pageType === TpageType.statisticsGeneral)       url += '&type=general';
-    else if (pageType === TpageType.statisticsCrashPartners) url += '&type=crashPartners&transportationMode='  + document.getElementById('filterVictimTransportationMode').value;
+    if      (pageType === TpageType.statisticsTransportationModes) url += '&period=' + document.getElementById('filterStatsPeriod').value;
+    else if (pageType === TpageType.statisticsGeneral)            url += '&type=general';
+    else if (pageType === TpageType.statisticsCrashPartners)      url += '&type=crashPartners&transportationMode='  + document.getElementById('filterVictimTransportationMode').value;
 
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
@@ -235,13 +272,13 @@ async function loadStatistics(){
       else if (pageType === TpageType.statisticsCrashPartners) {
         const victimTransportationMode = parseInt(document.getElementById('filterVictimTransportationMode').value);
 
-        let url = window.location.origin + '/statistieken/andere_partij/?transportationMode=' + document.getElementById('filterVictimTransportationMode').value;
+        let url = window.location.origin + '/statistieken/andere_partij?transportationMode=' + document.getElementById('filterVictimTransportationMode').value;
         window.history.pushState(null, null, url);
 
         showStatisticsCrashPartners(data.statistics, victimTransportationMode);
       }
       else {
-        let url = window.location.origin + '/statistieken?period=' + document.getElementById('filterStatsPeriod').value;
+        let url = window.location.origin + '/statistieken/vervoertypes?period=' + document.getElementById('filterStatsPeriod').value;
         window.history.pushState(null, null, url);
 
         showStatisticsTransportation(data.statistics);
@@ -727,7 +764,7 @@ function closeEditPersonForm(){
 function savePerson(stayOpen=false) {
   const selectedTransportationMode = getSelectedPersonTransportationMode();
   const selectedHealth             = getSelectedPersonHealth();
-  if (selectedTransportationMode === null) {showError('Geen vervoermiddel geselecteerd', 3); return;}
+  if (selectedTransportationMode === null) {showError('Geen vervoertype geselecteerd', 3); return;}
   if (selectedHealth             === null) {showError('Geen letsel geselecteerd', 3); return;}
 
   const personID = parseInt(document.getElementById('personIDHidden').value);
