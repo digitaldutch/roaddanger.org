@@ -359,7 +359,7 @@ SQL;
 else if ($function === 'loadCrashes') {
   try {
     $offset           = (int)getRequest('offset',0);
-    $count            = (int)getRequest('count', 100);
+    $count            = (int)getRequest('count', 20);
     $crashId          = isset($_REQUEST['id'])? (int)$_REQUEST['id'] : null;
     $searchText       = isset($_REQUEST['search'])? $_REQUEST['search'] : '';
     $searchDateFrom   = getRequest('searchDateFrom', '');
@@ -369,6 +369,7 @@ else if ($function === 'loadCrashes') {
     $moderations      = (int)getRequest('moderations', 0);
     $sort             = getRequest('sort');
     $export           = (int)getRequest('export', 0);
+    $imageUrlsOnly    = (int)getRequest('imageUrlsOnly', 0) === 1;
 
     if ($count > 1000) throw new Exception('Internal error: Count to high.');
     if ($moderations && (! $user->isModerator())) throw new Exception('Moderaties zijn alleen zichtbaar voor moderators.');

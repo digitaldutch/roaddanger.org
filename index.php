@@ -9,7 +9,7 @@ $uri = urldecode($_SERVER['REQUEST_URI']);
 if      (strpos($uri, '/stream')                     === 0) $pageType = TPageType::stream;
 else if (strpos($uri, '/decorrespondent')            === 0) $pageType = TPageType::deCorrespondent;
 else if (strpos($uri, '/moderaties')                 === 0) $pageType = TPageType::moderations;
-else if (strpos($uri, '/mozaïek')                    === 0) $pageType = TPageType::mosaic;
+else if (strpos($uri, '/mozaiek')                    === 0) $pageType = TPageType::mosaic;
 else if (strpos($uri, '/statistieken/algemeen')      === 0) $pageType = TPageType::statisticsGeneral;
 else if (strpos($uri, '/statistieken/andere_partij') === 0) $pageType = TPageType::statisticsCrashPartners;
 else if (strpos($uri, '/statistieken/vervoertypes')  === 0) $pageType = TPageType::statisticsTransportationModes;

@@ -24,7 +24,7 @@ function initMain() {
   if      (pathName.startsWith('/moderaties'))                 pageType = TpageType.moderations;
   else if (pathName.startsWith('/stream'))                     pageType = TpageType.stream;
   else if (pathName.startsWith('/decorrespondent'))            pageType = TpageType.deCorrespondent;
-  else if (pathName.startsWith('/mozaïek'))                    pageType = TpageType.mosaic;
+  else if (pathName.startsWith('/mozaiek'))                    pageType = TpageType.mosaic;
   else if (pathName.startsWith('/statistieken/algemeen'))      pageType = TpageType.statisticsGeneral;
   else if (pathName.startsWith('/statistieken/andere_partij')) pageType = TpageType.statisticsCrashPartners;
   else if (pathName.startsWith('/statistieken/vervoertypes'))  pageType = TpageType.statisticsTransportationModes;
@@ -71,6 +71,7 @@ function initMain() {
       }
     });
 
+    if (pageType === TpageType.mosaic) document.getElementById('cards').classList.add('mosaic');
     loadCrashes();
   }
 }
@@ -319,6 +320,13 @@ async function loadCrashes(crashID=null, articleID=null){
       else text = 'Geen ongelukken gevonden';
 
       html = `<div style="text-align: center;">${text}</div>`;
+    } else if (pageType === TpageType.mosaic) {
+      for (let crash of crashes) {
+        const crashArticles = getCrashArticles(crash.id, articles);
+        for (let article of crashArticles) {
+          html +=`<div><img src="${article.urlimage}" onerror="this.style.visibility='hidden';"></div>`;
+        }
+      }
     } else {
       for (let crash of crashes) html += getCrashHTML(crash.id);
     }
@@ -328,7 +336,7 @@ async function loadCrashes(crashID=null, articleID=null){
   }
 
   let data;
-  let maxLoadCount = 20;
+  let maxLoadCount = (pageType === TpageType.mosaic)? 60 : 20;
   try {
     spinnerLoadCard.style.display = 'block';
     const searchText       = searchVisible()? document.getElementById('searchText').value.trim().toLowerCase() : '';
@@ -341,8 +349,9 @@ async function loadCrashes(crashID=null, articleID=null){
     if (searchSiteName)                         url += '&sitename=' + encodeURIComponent(searchSiteName);
     if (searchHealthDead)                       url += '&healthdead=1';
     if (pageType === TpageType.moderations)     url += '&moderations=1';
-    if (pageType === TpageType.recent)          url += '&sort=crashDate';
+    if ((pageType === TpageType.recent) || (pageType === TpageType.mosaic)) url += '&sort=crashDate';
     if (pageType === TpageType.deCorrespondent) url += '&sort=crashDate&searchDateFrom=2019-01-14&searchDateTo=2019-01-20';
+    if (pageType === TpageType.mosaic)          url += '&imageUrlsOnly=1';
 
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
@@ -556,6 +565,7 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
   ${htmlArticles}
 </div>`;
 }
+
 
 function healthVisible(health){
   return [THealth.dead, THealth.injured].includes(health);
