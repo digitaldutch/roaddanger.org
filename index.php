@@ -13,9 +13,12 @@ else if (strpos($uri, '/mozaiek')                    === 0) $pageType = TPageTyp
 else if (strpos($uri, '/statistieken/algemeen')      === 0) $pageType = TPageType::statisticsGeneral;
 else if (strpos($uri, '/statistieken/andere_partij') === 0) $pageType = TPageType::statisticsCrashPartners;
 else if (strpos($uri, '/statistieken/vervoertypes')  === 0) $pageType = TPageType::statisticsTransportationModes;
-else                                                                                  $pageType = TPageType::recent;
+else if (strpos($uri, '/exporteren')                 === 0) $pageType = TPageType::export;
+else                                                               $pageType = TPageType::recent;
 
 $showCrashMenu = false;
+$head = "<script src=\"/js/main.js?v=$VERSION\"></script>";
+
 if (strpos($_SERVER['REQUEST_URI'], '/statistieken/algemeen') === 0) {
   $mainHTML = <<<HTML
 <div class="pageInner">
@@ -27,8 +30,6 @@ if (strpos($_SERVER['REQUEST_URI'], '/statistieken/algemeen') === 0) {
   <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
 </div>
 HTML;
-
-  $head = "<script src=\"/js/main.js?v=$VERSION\"></script>";
 
 } else if (strpos($_SERVER['REQUEST_URI'], '/statistieken/andere_partij') === 0) {
   $mainHTML = <<<HTML
@@ -61,7 +62,6 @@ HTML;
 </div>
 HTML;
 
-  $head = "<script src=\"/js/main.js?v=$VERSION\"></script>";
 } else if (strpos($_SERVER['REQUEST_URI'], '/statistieken') === 0) {
   $mainHTML = <<<HTML
 <div class="pageInner">
@@ -105,8 +105,43 @@ HTML;
 </div>
 HTML;
 
-  $head = "<script src=\"/js/main.js?v=$VERSION\"></script>";
+} else if (containsText($_SERVER['REQUEST_URI'], '/exporteren')) {
+  $mainHTML = <<<HTML
+<div id="main" class="pageInner">
+  <div class="pageSubTitle">Exporteren</div>
+  <div id="export">
 
+    <div class="sectionTitle">Download</div>
+
+    <div>Alle ongeluk data met artikelen en inclusief meta data kan gedownload worden in gzip JSON formaat. Het bestand wordt elke 24 uur ververst.
+    Wegens copyright rechten bevat dit export bestand niet de volledige artikel teksten in. Voor onderzoekers zijn deze wel beschikbaar. 
+    Email ons (<a href="mailto:info@hetongeluk.nl">info@hetongeluk.nl</a>) voor meer informatie als u daarvoor belangstelling heeft.
+    </div> 
+    <div class="buttonBar">
+      <button class="button" style="margin-left: 0;" onclick="downloadData();">Download data</button>
+    </div>  
+    <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+    
+    <div class="sectionTitle">Data uitleg</div>
+    <div class="tableHeader">Persons > transportationmode</div>
+    
+    <table class="dataTable" style="width: auto; margin: 0 0 20px 0;">
+      <thead>
+      <tr><th>id</th><th>naam</th></tr>
+      </thead>
+      <tbody id="tbodyTransportationMode"></tbody>
+    </table>        
+
+    <div class="tableHeader">Persons > health</div>
+    <table class="dataTable" style="width: auto; margin: 0 0 20px 0;">
+      <thead>
+      <tr><th>id</th><th>naam</th></tr>
+      </thead>
+      <tbody id="tbodyHealth"></tbody>
+    </table>        
+  </div>
+</div>
+HTML;
 } else {
   $showCrashMenu  = true;
   $generalMessage = $database->fetchSingleValue("SELECT value FROM options WHERE name='globalMessage';");
@@ -126,12 +161,8 @@ HTML;
 </div>
 HTML;
 
-  $head = <<<HTML
-<script src="/scripts/mark.es6.js"></script>
-<script src="/js/main.js?v=$VERSION"></script>
-HTML;
+  $head .= '<script src="/scripts/mark.es6.js"></script>';
 }
-
 
 $html =
   getHTMLBeginMain('', $head, 'initMain', $showCrashMenu) .

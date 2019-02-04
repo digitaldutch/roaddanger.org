@@ -449,6 +449,7 @@ SQL;
       }
 
       if ($searchSiteName !== ''){
+        $SQLJoin .= ' JOIN articles ar ON ac.id = ar.accidentid ';
         addSQLWhere($SQLWhere, " LOWER(ar.sitename) LIKE :sitename ");
         $params[':sitename'] = "%$searchSiteName%";
       }
@@ -933,7 +934,7 @@ else if ($function === 'getStatistics'){
 } //==========
 else if ($function === 'downloadData'){
   try{
-    $count = (int)getRequest('count', 100);
+    $maxCount = 1;
 
     $sql = <<<SQL
 SELECT
@@ -959,7 +960,7 @@ SELECT DISTINCT
   ac.trafficjam 
 FROM accidents ac
 ORDER BY date DESC 
-LIMIT 10
+LIMIT $maxCount
 SQL;
 
     $DBResults = $database->fetchAll($sql);

@@ -196,39 +196,7 @@ async function adminDeleteUser() {
 function afterLoginAction(){
   window.location.reload();
 }
-
-
-function downloadData() {
-
-  function download(uri, filename) {
-    var element = document.createElement('a');
-    element.setAttribute('href', uri);
-    element.setAttribute('download', filename);
-    element.style.display = 'none';
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  }
-
-  async function doDownload(){
-    const spinner = document.getElementById('spinnerLoad');
-    spinner.style.display = 'block';
-    try {
-      let url          = '/beheer/exportdata.php?function=downloadData';
-      const response   = await fetch(url, fetchOptions);
-      const text       = await response.text();
-      const data       = JSON.parse(text);
-
-      url = '/beheer/' + data.filename;
-      download(url, data.filename);
-    } finally {
-      spinner.style.display = 'none';
-    }
-  }
-
-  confirmMessage('Data van alle ongelukken exporteren?', doDownload, 'Download');
-}
-
+m
 async function saveOptions() {
   const url = '/beheer/ajax.php?function=saveOptions';
   const options = {

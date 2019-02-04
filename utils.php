@@ -10,6 +10,7 @@ abstract class TPageType {
   const recent                        = 6;
   const deCorrespondent               = 7;
   const mosaic                        = 8;
+  const export                        = 9;
 }
 
 function getCallerIP(){

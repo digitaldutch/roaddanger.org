@@ -12,11 +12,13 @@ $function = $_REQUEST['function'];
 if ($function === 'downloadData'){
   try{
 
-    $filename = 'hetongeluk_nl_crashes_latest.json.gz';
+    $includeAllText = $user->isModerator();
+
+    $filename = $includeAllText? 'hetongeluk_nl_crashes_all_text_latest.json.gz' : 'hetongeluk_nl_crashes_latest.json.gz';
 
     // Recreate backup if existing backup file older than 24 hours
     if ((!file_exists($filename)) || (time()-filemtime($filename) > 24 * 3600)) {
-      $count = 10000;
+      $maxRows = 10000;
 
       $sql = <<<SQL
 SELECT
@@ -32,6 +34,7 @@ WHERE accidentid=:accidentid
 SQL;
       $DBStatementPersons = $database->prepare($sql);
 
+      $allText = $includeAllText? 'alltext,' : '';
       $sql = <<<SQL
 SELECT
   id,
@@ -40,8 +43,8 @@ SELECT
   url,
   urlimage,
   title,
-  text,
-  alltext       
+  $allText       
+  text AS summary
 FROM articles
 WHERE accidentid=:accidentid
 SQL;
@@ -57,7 +60,7 @@ SELECT DISTINCT
   ac.trafficjam 
 FROM accidents ac
 ORDER BY date DESC 
-LIMIT 0, $count
+LIMIT 0, $maxRows
 SQL;
 
       $DBResults = $database->fetchAll($sql);

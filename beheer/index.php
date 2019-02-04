@@ -49,19 +49,6 @@ if (containsText($_SERVER['REQUEST_URI'], '/mensen')) {
 </div>
 HTML;
   }
-} else if (containsText($_SERVER['REQUEST_URI'], '/beheer/exporteren')) {
-  $mainHTML = <<<HTML
-<div id="main" class="pageInner bgWhite">
-  <div class="pageSubTitle">Beheer - Exporteren</div>
-  <div id="export">
-    <label>Download laatste 10000 ongelukken met artikelen in gzip JSON formaat. Bestand wordt elke 24 uur ververst.<br>
-    <div class="buttonBar">
-      <button class="button" style="margin-left: 0;" onclick="downloadData();">Download data</button></label>
-    </div>  
-    <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
-  </div>
-</div>
-HTML;
 } else if (containsText($_SERVER['REQUEST_URI'], '/beheer/opties')) {
 
   $sql = "SELECT value FROM options WHERE name=:name;";

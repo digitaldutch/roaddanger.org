@@ -6,7 +6,18 @@ let editCrashPersons = [];
 let watchEndOfPage = false;
 let spinnerLoadCard;
 let pageType;
-let TpageType = Object.freeze({stream:0, crash:1, moderations:2, statisticsTransportationModes:3, statisticsGeneral: 4, statisticsCrashPartners: 5, recent: 6, deCorrespondent: 7, mosaic: 8});
+let TpageType = Object.freeze({
+  stream:                        0,
+  crash:                         1,
+  moderations:                   2,
+  statisticsTransportationModes: 3,
+  statisticsGeneral:             4,
+  statisticsCrashPartners:       5,
+  recent:                        6,
+  deCorrespondent:               7,
+  mosaic:                        8,
+  export:                        9,
+});
 
 function initMain() {
   initPage();
@@ -29,6 +40,7 @@ function initMain() {
   else if (pathName.startsWith('/statistieken/andere_partij')) pageType = TpageType.statisticsCrashPartners;
   else if (pathName.startsWith('/statistieken/vervoertypes'))  pageType = TpageType.statisticsTransportationModes;
   else if (pathName.startsWith('/statistieken'))               pageType = TpageType.statisticsGeneral;
+  else if (pathName.startsWith('/exporteren'))                 pageType = TpageType.export;
   else if (crashID)                                            pageType = TpageType.crash;
   else                                                         pageType = TpageType.recent;
 
@@ -43,7 +55,6 @@ function initMain() {
 
   if (title) document.getElementById('pageSubTitle').innerHTML = title;
 
-
   if (searchText || searchSiteName || searchHealthDead) {
     document.body.classList.add('searchBody');
     document.getElementById('searchText').value     = searchText;
@@ -53,13 +64,22 @@ function initMain() {
 
   addEditPersonButtons();
 
-  if ((pageType === TpageType.statisticsTransportationModes) || (pageType === TpageType.statisticsGeneral) || (pageType === TpageType.statisticsCrashPartners)) {
+  if ((pageType === TpageType.statisticsTransportationModes) ||
+      (pageType === TpageType.statisticsGeneral) ||
+      (pageType === TpageType.statisticsCrashPartners)) {
     initStatistics();
     loadStatistics();
+  } else if (pageType === TpageType.export){
+    initPageUser();
+    initExport();
   } else if (pageType === TpageType.crash){
     // Single crash details page
     loadCrashes(crashID, articleID);
-  } else {
+  } else if ((pageType === TpageType.recent) ||
+             (pageType === TpageType.stream) ||
+             (pageType === TpageType.mosaic) ||
+             (pageType === TpageType.deCorrespondent) ||
+             (pageType === TpageType.crash)) {
     // Infinity scroll event
     // In the future switch to IntersectionObserver. At this moment Safari does not support it yet :(
     document.addEventListener("scroll", (event) => {
@@ -100,6 +120,24 @@ function initStatistics(){
     transportationMode = parseInt(document.getElementById('filterVictimTransportationMode').value);
     document.getElementById('crashPartnerTransportationMode').innerText = transportationModeText(transportationMode);
   }
+}
+
+function initExport(){
+  let html = '';
+  for (const key of Object.keys(TTransportationMode)){
+    const transportationMode =  TTransportationMode[key];
+    const text               = transportationModeText(transportationMode);
+    html += `<tr><td>${transportationMode}</td><td>${text}</td></tr>`;
+  }
+  document.getElementById('tbodyTransportationMode').innerHTML = html;
+
+  html = '';
+  for (const key of Object.keys(THealth)){
+    const health = THealth[key];
+    const text   = healthText(health);
+    html += `<tr><td>${health}</td><td>${text}</td></tr>`;
+  }
+  document.getElementById('tbodyHealth').innerHTML = html;
 }
 
 async function loadStatistics(){
@@ -159,7 +197,7 @@ async function loadStatistics(){
       </tbody>
     </table>  
 
-    <div class="tableHeader" style="margin-top: 20px;">Vandaag</div>
+    <div class="tableHeader">Vandaag</div>
     <table id="tableStats" class="dataTable">
       <tbody>
         <tr>
@@ -189,7 +227,7 @@ async function loadStatistics(){
       </tbody>
     </table>  
 
-    <div class="tableHeader" style="margin-top: 20px;">7 dagen</div>
+    <div class="tableHeader">7 dagen</div>
     <table id="tableStats" class="dataTable">
       <tbody>
         <tr>
@@ -219,7 +257,7 @@ async function loadStatistics(){
       </tbody>
     </table>  
 
-    <div class="tableHeader" style="margin-top: 20px;">Totaal in database</div>
+    <div class="tableHeader">Totaal in database</div>
     <table id="tableStats" class="dataTable">
       <tbody>
         <tr>
@@ -1484,4 +1522,35 @@ function startSearch() {
   if (searchHealthDead) url += '&hd=1';
   window.history.pushState(null, null, url);
   reloadCrashes();
+}
+
+function downloadData() {
+
+  function download(uri, filename) {
+    var element = document.createElement('a');
+    element.setAttribute('href', uri);
+    element.setAttribute('download', filename);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  }
+
+  async function doDownload(){
+    const spinner = document.getElementById('spinnerLoad');
+    spinner.style.display = 'block';
+    try {
+      let url          = '/beheer/exportdata.php?function=downloadData';
+      const response   = await fetch(url, fetchOptions);
+      const text       = await response.text();
+      const data       = JSON.parse(text);
+
+      url = '/beheer/' + data.filename;
+      download(url, data.filename);
+    } finally {
+      spinner.style.display = 'none';
+    }
+  }
+
+  confirmMessage('Data van alle ongelukken exporteren?', doDownload, 'Download');
 }
