@@ -115,7 +115,7 @@ HTML;
 
     <div>Alle ongeluk data met artikelen en inclusief meta data kan gedownload worden in gzip JSON formaat. Het bestand wordt elke 24 uur ververst.
     Dit export bestand bevat niet de volledige artikel teksten. Voor onderzoekers zijn deze wel beschikbaar. 
-    Email ons (<a href="mailto:info@hetongeluk.nl">info@hetongeluk.nl</a>) voor meer informatie als u daarvoor belangstelling heeft.
+    Email ons (<a href="mailto:info@hetongeluk.nl">info@hetongeluk.nl</a>) als u daar belangstelling voor heeft.
     </div> 
     <div class="buttonBar">
       <button class="button" style="margin-left: 0;" onclick="downloadData();">Download data</button>
