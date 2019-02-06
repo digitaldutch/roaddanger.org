@@ -1,6 +1,5 @@
 let crashes          = [];
 let crashesFound     = [];
-let selectedCrashId;
 let articles         = [];
 let articlesFound    = [];
 let editCrashPersons = [];
@@ -295,7 +294,6 @@ async function loadStatistics(){
   }
 
   function showStatisticsCrashPartners(dbStats, victimTransportationMode) {
-
     let total = 0;
     dbStats.crashPartners.forEach(partner => total += partner.deathCount);
 
@@ -334,13 +332,13 @@ async function loadStatistics(){
         const victimTransportationMode = parseInt(document.getElementById('filterVictimTransportationMode').value);
 
         let url = window.location.origin + '/statistieken/andere_partij?transportationMode=' + document.getElementById('filterVictimTransportationMode').value;
-        window.history.pushState(null, null, url);
+        window.history.replaceState(null, null, url);
 
         showStatisticsCrashPartners(data.statistics, victimTransportationMode);
       }
       else {
         let url = window.location.origin + '/statistieken/vervoertypes?period=' + document.getElementById('filterStatsPeriod').value;
-        window.history.pushState(null, null, url);
+        window.history.replaceState(null, null, url);
 
         showStatisticsTransportation(data.statistics);
       }
@@ -1684,15 +1682,14 @@ function crashDetailsVisible(){
 }
 
 function showCrashDetails(crashId, addToHistory=true){
-  selectedCrashId = crashId;
-  const crash = crashByID(selectedCrashId);
+  const crash = crashByID(crashId);
 
   // Show crash overlay
   const divCrash = document.getElementById('formCrash');
   divCrash.style.display = 'flex';
   divCrash.scrollTop = 0;
 
-  document.getElementById('crashDetails').innerHTML = getCrashDetailsHTML(selectedCrashId);
+  document.getElementById('crashDetails').innerHTML = getCrashDetailsHTML(crashId);
 
   document.body.style.overflow = 'hidden';
 
@@ -1704,7 +1701,6 @@ function showCrashDetails(crashId, addToHistory=true){
 function closeCrashDetails(popHistory=true) {
   document.body.style.overflow = 'auto';
   document.getElementById('crashDetails').innerHTML = '';
-  selectedCrashId = null;
   document.getElementById('formCrash').style.display = 'none';
   if (popHistory) window.history.back();
 }
