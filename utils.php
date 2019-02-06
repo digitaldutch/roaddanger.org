@@ -1,6 +1,6 @@
 <?php
 
-abstract class TPageType {
+abstract class PageType {
   const stream                        = 0;
   const crash                         = 1;
   const moderations                   = 2;

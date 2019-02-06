@@ -88,12 +88,12 @@ function userTableClick(event){
 }
 
 function showUserMenu(target) {
-  let menu = document.getElementById('menuArticleUser');
+  let menu = document.getElementById('menuUser');
   if (menu) menu.remove();
 
   let td = target.closest('td');
   td.innerHTML += `
-<div id="menuArticleUser" class="buttonPopupMenu" style="display: block !important;" onclick="event.preventDefault();">
+<div id="menuUser" class="buttonPopupMenu" style="display: block !important;" onclick="event.preventDefault();">
   <div onclick="adminEditUser();">Aanpassen</div>
   <div onclick="adminDeleteUser()">Verwijderen</div>
 </div>            

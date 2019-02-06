@@ -431,7 +431,8 @@ SQL;
     } else {
 
       $SQLJoin = '';
-      if ($searchText !== ''){
+      // Only do full text search if text has 3 characters or more
+      if (strlen($searchText) > 2){
         addSQLWhere($SQLWhere, "(MATCH(ac.title, ac.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))");
         $SQLJoin .= ' LEFT JOIN articles ar on ac.id = ar.accidentid ';
         $params[':search']  = $searchText;

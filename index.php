@@ -6,15 +6,15 @@ global $VERSION;
 global $user;
 
 $uri = urldecode($_SERVER['REQUEST_URI']);
-if      (strpos($uri, '/stream')                     === 0) $pageType = TPageType::stream;
-else if (strpos($uri, '/decorrespondent')            === 0) $pageType = TPageType::deCorrespondent;
-else if (strpos($uri, '/moderaties')                 === 0) $pageType = TPageType::moderations;
-else if (strpos($uri, '/mozaiek')                    === 0) $pageType = TPageType::mosaic;
-else if (strpos($uri, '/statistieken/algemeen')      === 0) $pageType = TPageType::statisticsGeneral;
-else if (strpos($uri, '/statistieken/andere_partij') === 0) $pageType = TPageType::statisticsCrashPartners;
-else if (strpos($uri, '/statistieken/vervoertypes')  === 0) $pageType = TPageType::statisticsTransportationModes;
-else if (strpos($uri, '/exporteren')                 === 0) $pageType = TPageType::export;
-else                                                               $pageType = TPageType::recent;
+if      (strpos($uri, '/stream')                     === 0) $pageType = PageType::stream;
+else if (strpos($uri, '/decorrespondent')            === 0) $pageType = PageType::deCorrespondent;
+else if (strpos($uri, '/moderaties')                 === 0) $pageType = PageType::moderations;
+else if (strpos($uri, '/mozaiek')                    === 0) $pageType = PageType::mosaic;
+else if (strpos($uri, '/statistieken/algemeen')      === 0) $pageType = PageType::statisticsGeneral;
+else if (strpos($uri, '/statistieken/andere_partij') === 0) $pageType = PageType::statisticsCrashPartners;
+else if (strpos($uri, '/statistieken/vervoertypes')  === 0) $pageType = PageType::statisticsTransportationModes;
+else if (strpos($uri, '/exporteren')                 === 0) $pageType = PageType::export;
+else                                                               $pageType = PageType::recent;
 
 $showCrashMenu = false;
 $head = "<script src=\"/js/main.js?v=$VERSION\"></script>";
@@ -149,7 +149,7 @@ HTML;
 
   $introText = "<div id='pageSubTitle' class='pageSubTitle'>$title</div>";
 
-  if (isset($generalMessage) && in_array($pageType, [TPageType::recent, TPageType::stream, TPageType::deCorrespondent, TPageType::crash])) {
+  if (isset($generalMessage) && in_array($pageType, [PageType::recent, PageType::stream, PageType::deCorrespondent, PageType::crash])) {
     $introText .= "<div class='sectionIntro'>$messageHTML</div>";
   }
 

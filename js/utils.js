@@ -229,6 +229,7 @@ function closeAllPopups() {
   document.querySelectorAll('.buttonPopupMenu').forEach(
       popup => {if (popup.style.display === 'block') popup.style.display = 'none';}
     );
+  document.body.style.overflow = 'auto';
 }
 
 function validateEmail(email) {

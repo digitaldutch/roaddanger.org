@@ -85,7 +85,7 @@ HTML;
 
 function getHTMLEnd($htmlEnd='', $flexFullPage=false){
   $htmlFlex = $flexFullPage? '</div>' : '';
-  $forms    = getHTMLConfirm() . getLoginForm() . getFormEditCrash() . getFormMergeCrash() . getFormEditPerson();
+  $forms    = getHTMLConfirm() . getLoginForm() . getFormCrash() . getFormEditCrash() . getFormMergeCrash() . getFormEditPerson();
   return <<<HTML
     $htmlEnd 
     <div id="floatingMessage" class="floatingMessage" onclick="hideMessage();">
@@ -162,6 +162,7 @@ function getNavigation(){
         <a href="/beheer/mensen" class="navItem" data-admin>Mensen</a>
         <a href="/moderaties/" class="navItem">Moderaties</a>
         <a href="/beheer/opties/" class="navItem">Opties</a>
+        <a href="/mozaiek" class="navItem" data-admin>Mozaïek (beta)</a>
       </div>      
     </div>
     
@@ -318,6 +319,24 @@ function getFormEditCrash(){
       <input type="button" class="button buttonGray" value="Annuleren" onclick="closePopupForm();">
     </div>    
   </form>
+  
+</div>
+HTML;
+}
+
+function getFormCrash(){
+  return <<<HTML
+<div id="formCrash" class="popupOuterNoClose" onclick="closeCrashDetails();">
+    <div class="popupCloseCrossWhite hideOnMobile" onclick="closeCrashDetails();"></div>
+
+  <div class="formFullPage" onclick="event.stopPropagation();">    
+    <div class="showOnMobile" style="height: 15px"></div>
+    <div class="popupCloseCross showOnMobile" onclick="closeCrashDetails();"></div>
+
+    <div id="crashDetails" class="flexColumn">
+    </div>
+            
+  </div>
   
 </div>
 HTML;

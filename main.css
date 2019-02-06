@@ -105,7 +105,7 @@ a {
   padding:   5px 10px;
 }
 
-.cardCrash {
+.cardCrashList {
   position:         relative;
   background-color: #ffffff;
   color:            #000;
@@ -115,8 +115,17 @@ a {
   margin-top:       10px;
 }
 
-.cardCrash:hover {
+.cardCrashList:hover {
   background-color: #e3e3e3;
+}
+
+.cardCrashDetails {
+  position:         relative;
+  background-color: #ffffff;
+  color:            #000;
+  padding:          10px;
+  border-bottom:    1px solid #eee;
+  margin-top:       10px;
 }
 
 .cardTop {
@@ -214,7 +223,7 @@ a {
   border-color: #999999;
 }
 
-.cardArticle a, .cardCrash a {
+.cardArticle a, .cardCrashList a {
   color: #000;
   text-decoration: none;
 }
@@ -547,7 +556,7 @@ a {
   background-color: #eee !important;
 }
 
-.popupOuter {
+.popupOuter, .popupOuterNoClose {
   display:          none;
   position:         fixed;
   justify-content:  center;
@@ -663,6 +672,23 @@ a {
   opacity:         0.6;
   cursor:          pointer;
   transition:      all .25s;
+}
+
+.popupCloseCrossWhite {
+  position:        fixed;
+  right:           23px;
+  top:             4px;
+  background:      url("/images/closewhite.svg") no-repeat center;
+  background-size: 28px;
+  height:          25px;
+  width:           25px;
+  border-radius:   50%;
+  padding:         5px;
+  cursor:          pointer;
+}
+
+.popupCloseCrossWhite:hover{
+  background-color: #999999;
 }
 
 .closeButton {
@@ -1105,9 +1131,17 @@ a {
   overflow:   hidden;
 }
 
+.showOnMobile {
+  display: none;
+}
+
 @media (max-width: 750px) {
   .hideOnMobile {
     display: none !important;
+  }
+
+  .showOnMobile {
+    display: flex !important;
   }
 
   #searchBar input {

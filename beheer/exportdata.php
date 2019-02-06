@@ -12,7 +12,8 @@ $function = $_REQUEST['function'];
 if ($function === 'downloadData'){
   try{
 
-    $includeAllText = $user->isModerator();
+    // Only admins can download the crashes with full text.
+    $includeAllText = $user->admin;
 
     $filename = $includeAllText? 'hetongeluk_nl_crashes_all_text_latest.json.gz' : 'hetongeluk_nl_crashes_latest.json.gz';
 

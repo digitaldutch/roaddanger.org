@@ -1,12 +1,13 @@
-let crashes = [];
-let crashesFound = [];
-let articles = [];
-let articlesFound = [];
+let crashes          = [];
+let crashesFound     = [];
+let selectedCrashId;
+let articles         = [];
+let articlesFound    = [];
 let editCrashPersons = [];
-let watchEndOfPage = false;
+let watchEndOfPage   = false;
 let spinnerLoadCard;
 let pageType;
-let TpageType = Object.freeze({
+let PageType = Object.freeze({
   stream:                        0,
   crash:                         1,
   moderations:                   2,
@@ -18,6 +19,7 @@ let TpageType = Object.freeze({
   mosaic:                        8,
   export:                        9,
 });
+
 
 function initMain() {
   initPage();
@@ -32,24 +34,24 @@ function initMain() {
   const searchHealthDead = url.searchParams.get('hd');
   const pathName         = decodeURIComponent(url.pathname);
 
-  if      (pathName.startsWith('/moderaties'))                 pageType = TpageType.moderations;
-  else if (pathName.startsWith('/stream'))                     pageType = TpageType.stream;
-  else if (pathName.startsWith('/decorrespondent'))            pageType = TpageType.deCorrespondent;
-  else if (pathName.startsWith('/mozaiek'))                    pageType = TpageType.mosaic;
-  else if (pathName.startsWith('/statistieken/algemeen'))      pageType = TpageType.statisticsGeneral;
-  else if (pathName.startsWith('/statistieken/andere_partij')) pageType = TpageType.statisticsCrashPartners;
-  else if (pathName.startsWith('/statistieken/vervoertypes'))  pageType = TpageType.statisticsTransportationModes;
-  else if (pathName.startsWith('/statistieken'))               pageType = TpageType.statisticsGeneral;
-  else if (pathName.startsWith('/exporteren'))                 pageType = TpageType.export;
-  else if (crashID)                                            pageType = TpageType.crash;
-  else                                                         pageType = TpageType.recent;
+  if      (pathName.startsWith('/moderaties'))                 pageType = PageType.moderations;
+  else if (pathName.startsWith('/stream'))                     pageType = PageType.stream;
+  else if (pathName.startsWith('/decorrespondent'))            pageType = PageType.deCorrespondent;
+  else if (pathName.startsWith('/mozaiek'))                    pageType = PageType.mosaic;
+  else if (pathName.startsWith('/statistieken/algemeen'))      pageType = PageType.statisticsGeneral;
+  else if (pathName.startsWith('/statistieken/andere_partij')) pageType = PageType.statisticsCrashPartners;
+  else if (pathName.startsWith('/statistieken/vervoertypes'))  pageType = PageType.statisticsTransportationModes;
+  else if (pathName.startsWith('/statistieken'))               pageType = PageType.statisticsGeneral;
+  else if (pathName.startsWith('/exporteren'))                 pageType = PageType.export;
+  else if (crashID)                                            pageType = PageType.crash;
+  else                                                         pageType = PageType.recent;
 
   let title = '';
   switch (pageType){
-    case TpageType.stream:          title = 'Laatst gewijzigde ongelukken'; break;
-    case TpageType.deCorrespondent: title = 'De Correspondent week<br>14 t/m 20 januari 2019'; break;
-    case TpageType.moderations:     title = 'Moderaties'; break;
-    case TpageType.recent:          title = 'Recente ongelukken'; break;
+    case PageType.stream:          title = 'Laatst gewijzigde ongelukken'; break;
+    case PageType.deCorrespondent: title = 'De Correspondent week<br>14 t/m 20 januari 2019'; break;
+    case PageType.moderations:     title = 'Moderaties'; break;
+    case PageType.recent:          title = 'Recente ongelukken'; break;
     default:                        title = '';
   }
 
@@ -64,22 +66,29 @@ function initMain() {
 
   addEditPersonButtons();
 
-  if ((pageType === TpageType.statisticsTransportationModes) ||
-      (pageType === TpageType.statisticsGeneral) ||
-      (pageType === TpageType.statisticsCrashPartners)) {
+  // We watch browser for back button
+  window.onpopstate = function(event) {
+    const crashId = (event.state && event.state.lastCrashId)? event.state.lastCrashId : null;
+
+    if (crashId) showCrashDetails(crashId, false);
+    else {
+      if (pageIsCrashList()) closeCrashDetails(false);
+      else window.location.reload();
+    }
+  };
+
+  if ((pageType === PageType.statisticsTransportationModes) ||
+      (pageType === PageType.statisticsGeneral) ||
+      (pageType === PageType.statisticsCrashPartners)) {
     initStatistics();
     loadStatistics();
-  } else if (pageType === TpageType.export){
+  } else if (pageType === PageType.export){
     initPageUser();
     initExport();
-  } else if (pageType === TpageType.crash){
+  } else if (pageType === PageType.crash){
     // Single crash details page
     loadCrashes(crashID, articleID);
-  } else if ((pageType === TpageType.recent) ||
-             (pageType === TpageType.stream) ||
-             (pageType === TpageType.mosaic) ||
-             (pageType === TpageType.deCorrespondent) ||
-             (pageType === TpageType.crash)) {
+  } else if (pageIsCrashList() || (pageType === PageType.crash)) {
     // Infinity scroll event
     // In the future switch to IntersectionObserver. At this moment Safari does not support it yet :(
     document.addEventListener("scroll", (event) => {
@@ -91,17 +100,17 @@ function initMain() {
       }
     });
 
-    if (pageType === TpageType.mosaic) document.getElementById('cards').classList.add('mosaic');
+    if (pageType === PageType.mosaic) document.getElementById('cards').classList.add('mosaic');
     loadCrashes();
   }
 }
 
 function initStatistics(){
   const url = new URL(location.href);
-  if (pageType === TpageType.statisticsTransportationModes){
+  if (pageType === PageType.statisticsTransportationModes){
     const period = url.searchParams.get('period');
     if (period) document.getElementById('filterStatsPeriod').value = period;
-  } else if (pageType === TpageType.statisticsCrashPartners){
+  } else if (pageType === PageType.statisticsCrashPartners){
     let html = '';
     for (const key of Object.keys(TTransportationMode)){
       const transportationMode =  TTransportationMode[key];
@@ -310,9 +319,9 @@ async function loadStatistics(){
     spinnerLoadCard.style.display = 'block';
 
     let url      = '/ajax.php?function=getStatistics';
-    if      (pageType === TpageType.statisticsTransportationModes) url += '&period=' + document.getElementById('filterStatsPeriod').value;
-    else if (pageType === TpageType.statisticsGeneral)            url += '&type=general';
-    else if (pageType === TpageType.statisticsCrashPartners)      url += '&type=crashPartners&transportationMode='  + document.getElementById('filterVictimTransportationMode').value;
+    if      (pageType === PageType.statisticsTransportationModes) url += '&period=' + document.getElementById('filterStatsPeriod').value;
+    else if (pageType === PageType.statisticsGeneral)            url += '&type=general';
+    else if (pageType === PageType.statisticsCrashPartners)      url += '&type=crashPartners&transportationMode='  + document.getElementById('filterVictimTransportationMode').value;
 
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
@@ -320,8 +329,8 @@ async function loadStatistics(){
     if (data.user) updateLoginGUI(data.user);
     if (data.error) showError(data.error);
     else {
-      if      (pageType === TpageType.statisticsGeneral) showStatisticsGeneral(data.statistics);
-      else if (pageType === TpageType.statisticsCrashPartners) {
+      if      (pageType === PageType.statisticsGeneral) showStatisticsGeneral(data.statistics);
+      else if (pageType === PageType.statisticsCrashPartners) {
         const victimTransportationMode = parseInt(document.getElementById('filterVictimTransportationMode').value);
 
         let url = window.location.origin + '/statistieken/andere_partij?transportationMode=' + document.getElementById('filterVictimTransportationMode').value;
@@ -354,11 +363,11 @@ async function loadCrashes(crashID=null, articleID=null){
     let html = '';
     if (crashes.length === 0) {
       let text = '';
-      if (pageType === TpageType.moderations) text = 'Geen moderaties gevonden';
+      if (pageType === PageType.moderations) text = 'Geen moderaties gevonden';
       else text = 'Geen ongelukken gevonden';
 
       html = `<div style="text-align: center;">${text}</div>`;
-    } else if (pageType === TpageType.mosaic) {
+    } else if (pageType === PageType.mosaic) {
       for (let crash of crashes) {
         const crashArticles = getCrashArticles(crash.id, articles);
         for (let article of crashArticles) {
@@ -366,7 +375,8 @@ async function loadCrashes(crashID=null, articleID=null){
         }
       }
     } else {
-      for (let crash of crashes) html += getCrashHTML(crash.id);
+      if (pageType === PageType.crash) html = getCrashDetailsHTML(crashes[0].id);
+      else for (let crash of crashes) html += getCrashListHTML(crash.id);
     }
 
     document.getElementById('cards').innerHTML += html;
@@ -374,7 +384,7 @@ async function loadCrashes(crashID=null, articleID=null){
   }
 
   let data;
-  let maxLoadCount = (pageType === TpageType.mosaic)? 60 : 20;
+  let maxLoadCount = (pageType === PageType.mosaic)? 60 : 20;
   try {
     spinnerLoadCard.style.display = 'block';
     const searchText       = searchVisible()? document.getElementById('searchText').value.trim().toLowerCase() : '';
@@ -386,10 +396,10 @@ async function loadCrashes(crashID=null, articleID=null){
     if (searchText)                             url += '&search=' + encodeURIComponent(searchText);
     if (searchSiteName)                         url += '&sitename=' + encodeURIComponent(searchSiteName);
     if (searchHealthDead)                       url += '&healthdead=1';
-    if (pageType === TpageType.moderations)     url += '&moderations=1';
-    if ((pageType === TpageType.recent) || (pageType === TpageType.mosaic)) url += '&sort=crashDate';
-    if (pageType === TpageType.deCorrespondent) url += '&sort=crashDate&searchDateFrom=2019-01-14&searchDateTo=2019-01-20';
-    if (pageType === TpageType.mosaic)          url += '&imageUrlsOnly=1';
+    if (pageType === PageType.moderations)     url += '&moderations=1';
+    if ((pageType === PageType.recent) || (pageType === PageType.mosaic)) url += '&sort=crashDate';
+    if (pageType === PageType.deCorrespondent) url += '&sort=crashDate&searchDateFrom=2019-01-14&searchDateTo=2019-01-20';
+    if (pageType === PageType.mosaic)          url += '&imageUrlsOnly=1';
 
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
@@ -463,7 +473,7 @@ function getCrashGUIButtons(crash){
   return buttons;
 }
 
-function getCrashHTML(crashID){
+function getCrashListHTML(crashID){
   const crash         = getCrashFromID(crashID);
   const crashArticles = getCrashArticles(crash.id, articles);
   const canEditCrash  = user.moderator || (crash.userid === user.id);
@@ -487,7 +497,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
     }
 
     let htmlButtonAllText = '';
-    if (user.moderator && article.hasalltext) htmlButtonAllText = `<span class="buttonSelectionSmall bgArticle" data-userid="${article.userid}" data-tippy-content="Toon alle tekst" onclick="toggleAllText(this, event, ${article.id});"></span>`;
+    if (user.moderator && article.hasalltext) htmlButtonAllText = `<span class="buttonSelectionSmall bgArticle" data-userid="${article.userid}" data-tippy-content="Toon alle tekst" onclick="toggleAllText(this, event, ${article.id}, ${article.id});"></span>`;
 
     htmlArticles +=`
 <div class="cardArticle" id="article${article.id}" onclick="closeAllPopups(); event.stopPropagation();">
@@ -578,10 +588,153 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
   if (user.moderator) htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>Plaats bovenaan stream</div>`;
 
   return `
-<div id="crash${crash.id}" class="cardCrash" onclick="showCrashDetails(${crash.id})">
+<div id="crash${crash.id}" class="cardCrashList" onclick="showCrashDetails(${crash.id}); event.stopPropagation();">
   <span class="postButtonArea" onclick="event.stopPropagation();">
     <span style="position: relative;"><span class="buttonEditPost buttonDetails"  data-userid="${crash.userid}" onclick="showCrashMenu(event, ${crash.id});"></span></span>
     <div id="menuCrash${crash.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
+      <div onclick="addArticleToCrash(${crash.id});">Artikel toevoegen</div>
+      ${htmlMenuEditItems}
+    </div>            
+  </span>        
+
+  ${htmlModeration}
+   
+  <div class="cardTop">
+    <div style="width: 100%;">
+      <div class="smallFont cardTitleSmall">${dateToAge(crash.date)} | ${titleSmall}</div>
+      <div class="cardTitle">${escapeHtml(crash.title)}</div>
+      <div>${htmlPersons}</div>
+    </div>
+    ${htmlInvolved}
+  </div>
+
+  <div class="postText">${escapeHtml(crash.text)}</div>    
+  
+  ${htmlArticles}
+</div>`;
+}
+
+function getCrashDetailsHTML(crashID){
+  const crash         = getCrashFromID(crashID);
+  const crashArticles = getCrashArticles(crash.id, articles);
+  const canEditCrash  = user.moderator || (crash.userid === user.id);
+
+  let htmlArticles = '';
+  for (let article of crashArticles) {
+    const articleDivID = 'details' + article.id;
+    let htmlModeration = '';
+    if (article.awaitingmoderation){
+      let modHTML = '';
+      if (user.moderator) modHTML = `
+Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
+<div style="margin: 10px;">
+  <button class="button" onclick="articleModerateOK(${article.id})">Keur artikel goed</button>
+  <button class="button buttonGray" onclick="deleteArticle(${article.id})">Verwijder artikel</button>
+</div>
+`;
+      else if (article.userid === user.id) modHTML = 'Bedankt voor het toevoegen van dit artikel. Je bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet voor iedereen zichtbaar.';
+      else modHTML = 'Dit artikel wordt spoedig gemodereerd en is tot die tijd nog niet zichtbaar op de voorpagina.';
+
+      htmlModeration = `<div id="articleModeration${articleDivID}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
+    }
+
+    let htmlButtonAllText = '';
+    if (user.moderator && article.hasalltext) htmlButtonAllText = `<span class="buttonSelectionSmall bgArticle" data-userid="${article.userid}" data-tippy-content="Toon alle tekst" onclick="toggleAllText(this, event, '${articleDivID}', ${article.id});"></span>`;
+
+    htmlArticles +=`
+<div class="cardArticle" id="article${articleDivID}" onclick="closeAllPopups(); event.stopPropagation();">
+  <a href="${article.url}" target="article">
+    <div class="articleImageWrapper"><img class="articleImage" src="${article.urlimage}" onerror="this.style.display='none';"></div>
+  </a>
+  <div class="articleBody">
+    <span class="postButtonArea" onclick="event.stopPropagation();">
+      <span style="position: relative;">
+        ${htmlButtonAllText}
+        <span class="buttonEditPost buttonDetails" data-userid="${article.userid}" onclick="showArticleMenu(event, '${articleDivID}');"></span>
+      </span>
+      <div id="menuArticle${articleDivID}" class="buttonPopupMenu" onclick="event.preventDefault();">
+        <div onclick="editArticle(${crash.id},  ${article.id});">Bewerken</div>
+        <div onclick="deleteArticle(${article.id})">Verwijderen</div>
+      </div>            
+    </span>   
+    
+    ${htmlModeration}     
+  
+    <div class="smallFont articleTitleSmall">
+      <a href="${article.url}" target="article"><span class="cardSitename">${escapeHtml(article.sitename)}</span></a> 
+      | ${dateToAge(article.publishedtime)} | toegevoegd door ${article.user}
+    </div>
+  
+    <div class="articleTitle">${escapeHtml(article.title)}</div>
+    <div id="articleText${articleDivID}" class="postText">${escapeHtml(article.text)}</div>
+  </div>
+</div>`;
+  }
+
+  let htmlInvolved = '';
+  if (crash.pet)         htmlInvolved += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
+  if (crash.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam"  data-tippy-content="File/Hinder"></div>';
+  // if (crash.tree)        htmlInvolved += '<div class="iconSmall bgTree"  data-tippy-content="Boom/Paal"></div>';
+
+  if (htmlInvolved){
+    htmlInvolved = `
+    <div data-info="preventFullBorder">
+      <div class="cardIcons" onclick="event.stopPropagation();">
+        <div class="flexRow" style="justify-content: flex-end">${htmlInvolved}</div>
+      </div>
+    </div>`;
+  }
+
+  let titleSmall    = 'aangemaakt door ' + crash.user;
+  let titleModified = '';
+  if (crash.streamtopuser) {
+    switch (crash.streamtoptype) {
+      case TStreamTopType.edited:       titleModified = ' | aangepast door '                + crash.streamtopuser; break;
+      case TStreamTopType.articleAdded: titleModified = ' | nieuw artikel toegevoegd door ' + crash.streamtopuser; break;
+      case TStreamTopType.placedOnTop:  titleModified = ' | omhoog geplaatst door '         + crash.streamtopuser; break;
+    }
+    if (titleModified) titleModified += ' ' + datetimeToAge(crash.streamdatetime);
+  }
+
+  // Created date is only added if no modified title
+  if (titleModified) titleSmall += titleModified;
+  else titleSmall += ' ' + datetimeToAge(crash.createtime);
+
+  const htmlPersons = getCrashButtonsHTML(crash, false);
+
+  const crashDivId = 'details' + crash.id;
+  let htmlModeration = '';
+  if (crash.awaitingmoderation){
+    let modHTML = '';
+    if (user.moderator) modHTML = `
+Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
+<div style="margin: 10px;">
+  <button class="button" onclick="crashModerateOK(${crash.id})">Keur bijdrage goed</button>
+  <button class="button buttonGray" onclick="deleteCrash(${crash.id})">Verwijder bijdrage</button>
+</div>
+`;
+    else if (crash.userid === user.id) modHTML = 'Bedankt voor het toevoegen van onderstaand bericht. Je bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet voor iedereen zichtbaar.';
+    else modHTML = 'Deze bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet zichtbaar op de voorpagina.';
+
+    htmlModeration = `<div id="crashModeration${crashDivId}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
+  }
+
+  let htmlMenuEditItems = '';
+  if (canEditCrash) {
+    htmlMenuEditItems = `
+      <div onclick="editCrash(${crash.id});">Bewerken</div>
+      <div onclick="showMergeCrashForm(${crash.id});">Samenvoegen</div>
+      <div onclick="deleteCrash(${crash.id});">Verwijderen</div>
+`;
+  }
+
+  if (user.moderator) htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>Plaats bovenaan stream</div>`;
+
+  return `
+<div id="crash${crashDivId}" class="cardCrashDetails">
+  <span class="postButtonArea" onclick="event.stopPropagation();">
+    <span style="position: relative;"><span class="buttonEditPost buttonDetails"  data-userid="${crash.userid}" onclick="showCrashMenu(event, '${crashDivId}');"></span></span>
+    <div id="menuCrash${crashDivId}" class="buttonPopupMenu" onclick="event.preventDefault();">
       <div onclick="addArticleToCrash(${crash.id});">Artikel toevoegen</div>
       ${htmlMenuEditItems}
     </div>            
@@ -718,10 +871,9 @@ function showEditCrashForm(event) {
 
   document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'inline-block';});
 
-  document.getElementById('editCrashSection').style.display = 'flex';
-  document.getElementById('editArticleSection').style.display  = 'flex';
-
-  document.getElementById('formEditCrash').style.display    = 'flex';
+  document.getElementById('editCrashSection').style.display   = 'flex';
+  document.getElementById('editArticleSection').style.display = 'flex';
+  document.getElementById('formEditCrash').style.display      = 'flex';
 
   document.getElementById('editArticleUrl').focus();
 
@@ -910,14 +1062,14 @@ function openArticleLink(event, articleID) {
   window.open(article.url,"article");
 }
 
-function toggleAllText(element, event, articleId){
+function toggleAllText(element, event, articleDivId, articleId){
   event.preventDefault();
   event.stopPropagation();
 
   toggleSelectionButton(element);
 
   const article = getArticleFromID(articleId);
-  const textElement = document.getElementById('articleText' + articleId);
+  const textElement = document.getElementById('articleText' + articleDivId);
   if (element.classList.contains('buttonSelected')) {
     textElement.innerHTML = '⌛';
     getArticleText(articleId).then(text => textElement.innerHTML = formatText(text));
@@ -973,8 +1125,8 @@ function editCrash(crashID) {
   showEditCrashForm();
   setNewArticleCrashFields(crashID);
 
-  document.getElementById('editHeader').innerText                 = 'Ongeluk bewerken';
-  document.getElementById('editArticleSection').style.display     = 'none';
+  document.getElementById('editHeader').innerText             = 'Ongeluk bewerken';
+  document.getElementById('editArticleSection').style.display = 'none';
 
   document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'none';});
 }
@@ -1010,8 +1162,12 @@ async function crashModerateOK(crash) {
   else if (data.ok){
     // Remove moderation div
     getCrashFromID(crash).awaitingmoderation = false;
-    const divModeration = document.getElementById('crashModeration' + crash);
-    divModeration.remove();
+
+    let divModeration = document.getElementById('crashModeration' + crash);
+    if (divModeration) divModeration.remove();
+
+    divModeration = document.getElementById('crashModerationdetails' + crash);
+    if (divModeration) divModeration.remove();
   }
 }
 
@@ -1026,8 +1182,11 @@ async function articleModerateOK(articleID) {
   else if (data.ok){
     // Remove moderation div
     getArticleFromID(articleID).awaitingmoderation = false;
-    const divModeration = document.getElementById('articleModeration' + articleID);
-    divModeration.remove();
+
+    let divModeration = document.getElementById('articleModeration' + articleID);
+    if (divModeration) divModeration.remove();
+    divModeration = document.getElementById('articleModerationdetails' + articleID);
+    if (divModeration) divModeration.remove();
   }
 }
 
@@ -1186,7 +1345,7 @@ async function saveArticleCrash(){
     const editingCrash = crashEdited.id !== '';
 
     // No reload only if editing crash. Other cases for now give problems and require a full page reload.
-    const isCrashPage = ((pageType === TpageType.crash) || (pageType === TpageType.recent) || (pageType === TpageType.deCorrespondent) || (pageType === TpageType.deCorrespondent));
+    const isCrashPage = ((pageType === PageType.crash) || pageIsCrashList());
     if (editingCrash && isCrashPage) {
       if (saveCrash){
         // Save changes in crashes cache
@@ -1213,7 +1372,11 @@ async function saveArticleCrash(){
           articles.push(data.article);
         }
       }
-      document.getElementById('crash' + crashEdited.id).outerHTML = getCrashHTML(crashEdited.id);
+
+      const div = document.getElementById('crash' + crashEdited.id);
+      if (div) div.outerHTML = getCrashListHTML(crashEdited.id);
+      const divDetails = document.getElementById('crashdetails' + crashEdited.id);
+      if (divDetails) divDetails.outerHTML = getCrashDetailsHTML(crashEdited.id);
     } else {
       window.location.href = createCrashURL(data.crashId, crashEdited.title);
       let text = '';
@@ -1226,21 +1389,41 @@ async function saveArticleCrash(){
   }
 }
 
-function showArticleMenu(event, articlepostid) {
+function showArticleMenu(event, articleDivId) {
   event.preventDefault();
   event.stopPropagation();
 
-  const div = document.getElementById(`menuArticle${articlepostid}`);
+  const div = document.getElementById(`menuArticle${articleDivId}`);
   const menuVisible = div.style.display === 'block';
   closeAllPopups();
   if (! menuVisible) div.style.display = 'block';
 }
 
-function showCrashMenu(event, crashID) {
+function pageIsCrashList(){
+  return [PageType.recent, PageType.stream, PageType.mosaic, PageType.deCorrespondent, PageType.moderations].indexOf(pageType) >= 0;
+}
+
+function crashClick(event, crashID) {
+
+  if (event.target.classList.contains('crashMenu')) showCrashMenu(event.target);
+}
+
+// let menu = document.getElementById('menuUser');
+// if (menu) menu.remove();
+//
+// let td = target.closest('td');
+// td.innerHTML += `
+// <div id="menuUser" class="buttonPopupMenu" style="display: block !important;" onclick="event.preventDefault();">
+//   <div onclick="adminEditUser();">Aanpassen</div>
+//   <div onclick="adminDeleteUser()">Verwijderen</div>
+// </div>
+//   `;
+
+function showCrashMenu(event, crashDivID) {
   event.preventDefault();
   event.stopPropagation();
 
-  const div = document.getElementById(`menuCrash${crashID}`);
+  const div = document.getElementById(`menuCrash${crashDivID}`);
   const menuVisible = div.style.display === 'block';
   closeAllPopups();
   if (! menuVisible) div.style.display = 'block';
@@ -1276,8 +1459,12 @@ async function deleteArticleDirect(articleID) {
     else {
       // Remove article from articles array
       articles = articles.filter(a => a.id !== articleID);
-      // Delete the GUI element
+
+      // Delete the GUI element from list
       document.getElementById('article' + articleID).remove();
+
+      if (crashDetailsVisible()) document.getElementById('articledetails' + articleID).remove();
+
       showMessage('Artikel verwijderd');
     }
   } catch (error) {
@@ -1368,6 +1555,9 @@ function showMergeCrashForm(id) {
   document.getElementById('mergeSearchResults').style.display = 'none';
   document.getElementById('mergeCrashFrom').innerHTML         = crashRowHTML(crash);
   document.getElementById('formMergeCrash').style.display     = 'flex';
+  document.getElementById('spinnerMerge').style.display       = 'block';
+
+  searchMergeCrash();
 }
 
 function searchMergeCrashDelayed() {
@@ -1385,11 +1575,9 @@ function searchMergeCrashDelayed() {
 async function searchMergeCrash() {
   try {
     const searchText = document.getElementById('mergeCrashSearch').value.trim().toLowerCase();
-    if (searchText.length < 2) return;
-
-    const crashID = parseInt(document.getElementById('mergeFromCrashIDHidden').value);
-    const crash   = getCrashFromID(crashID);
-    let url       = '/ajax.php?function=loadCrashes&count=10&search=' + encodeURIComponent(searchText);
+    const crashID    = parseInt(document.getElementById('mergeFromCrashIDHidden').value);
+    const crash      = getCrashFromID(crashID);
+    let url          = '/ajax.php?function=loadCrashes&count=10&search=' + encodeURIComponent(searchText);
 
     const dateSearch = document.getElementById('mergeCrashSearchDay').value;
     let dateFrom;
@@ -1466,7 +1654,7 @@ function mergeCrash() {
       // Update to crash
       const toElement = document.getElementById('crash' + toID);
       if (toElement) {
-        toElement.outerHTML = getCrashHTML(toID);
+        toElement.outerHTML = getCrashListHTML(toID);
         selectCrash(toID, true);
       }
     }
@@ -1491,10 +1679,36 @@ function crashByID(id) {
   return crashes.find(a => a.id === id);
 }
 
-function showCrashDetails(id){
-  const crash = crashByID(id);
-  window.location.href = createCrashURL(crash.id, crash.title);
+function crashDetailsVisible(){
+  return document.getElementById('formCrash').style.display === 'flex';
 }
+
+function showCrashDetails(crashId, addToHistory=true){
+  selectedCrashId = crashId;
+  const crash = crashByID(selectedCrashId);
+
+  // Show crash overlay
+  const divCrash = document.getElementById('formCrash');
+  divCrash.style.display = 'flex';
+  divCrash.scrollTop = 0;
+
+  document.getElementById('crashDetails').innerHTML = getCrashDetailsHTML(selectedCrashId);
+
+  document.body.style.overflow = 'hidden';
+
+  // Change url
+  const url = createCrashURL(crash.id, crash.title);
+  if (addToHistory) window.history.pushState({lastCrashId: crash.id}, crash.title, url);
+}
+
+function closeCrashDetails(popHistory=true) {
+  document.body.style.overflow = 'auto';
+  document.getElementById('crashDetails').innerHTML = '';
+  selectedCrashId = null;
+  document.getElementById('formCrash').style.display = 'none';
+  if (popHistory) window.history.back();
+}
+
 
 function searchVisible(){
   return document.body.classList.contains('searchBody');
@@ -1515,8 +1729,8 @@ function startSearch() {
   const searchHealthDead = document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue');
 
   let url = window.location.origin;
-  if      (pageType === TpageType.deCorrespondent) url += '/decorrespondent';
-  else if (pageType === TpageType.stream)          url += '/stream';
+  if      (pageType === PageType.deCorrespondent) url += '/decorrespondent';
+  else if (pageType === PageType.stream)          url += '/stream';
   url += '?search=' + encodeURIComponent(searchText);
   if (searchSiteName)   url += '&sitename=' + encodeURIComponent(searchSiteName);
   if (searchHealthDead) url += '&hd=1';
@@ -1554,3 +1768,4 @@ function downloadData() {
 
   confirmMessage('Data van alle ongelukken exporteren?', doDownload, 'Download');
 }
+
