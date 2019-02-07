@@ -27,6 +27,16 @@ if (!Date.prototype.addDays) {
   }
 }
 
+async function fetchFromServer(url, data={}){
+  const optionsFetch = {
+    method: 'POST',
+    body:   JSON.stringify(data),
+    headers:{'Content-Type': 'application/json', 'Cache': 'no-cache'}
+  };
+
+  return await fetch(url, optionsFetch);
+}
+
 function isInt(value) {
   var x;
   if (isNaN(value)) {
@@ -229,7 +239,10 @@ function closeAllPopups() {
   document.querySelectorAll('.buttonPopupMenu').forEach(
       popup => {if (popup.style.display === 'block') popup.style.display = 'none';}
     );
+  document.querySelectorAll('.buttonPopupMenuTemp').forEach(menu => menu.remove());
   document.body.style.overflow = 'auto';
+
+  if (document.getElementById('searchTransportationTypes').style.display  === 'block') toggleTransportTypesOptions();
 }
 
 function validateEmail(email) {

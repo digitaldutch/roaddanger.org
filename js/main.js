@@ -22,6 +22,7 @@ let PageType = Object.freeze({
 
 function initMain() {
   initPage();
+  initSearchBar();
 
   spinnerLoadCard = document.getElementById('spinnerLoad');
 
@@ -385,21 +386,31 @@ async function loadCrashes(crashID=null, articleID=null){
   let maxLoadCount = (pageType === PageType.mosaic)? 60 : 20;
   try {
     spinnerLoadCard.style.display = 'block';
-    const searchText       = searchVisible()? document.getElementById('searchText').value.trim().toLowerCase() : '';
-    const searchSiteName   = searchVisible()? document.getElementById('searchSiteName').value.trim().toLowerCase() : '';
-    const searchHealthDead = searchVisible()? document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue') : '';
 
-    let url = '/ajax.php?function=loadCrashes&count=' + maxLoadCount + '&offset=' + crashes.length;
-    if (crashID)                                url += '&id=' + crashID;
-    if (searchText)                             url += '&search=' + encodeURIComponent(searchText);
-    if (searchSiteName)                         url += '&sitename=' + encodeURIComponent(searchSiteName);
-    if (searchHealthDead)                       url += '&healthdead=1';
-    if (pageType === PageType.moderations)     url += '&moderations=1';
-    if ((pageType === PageType.recent) || (pageType === PageType.mosaic)) url += '&sort=crashDate';
-    if (pageType === PageType.deCorrespondent) url += '&sort=crashDate&searchDateFrom=2019-01-14&searchDateTo=2019-01-20';
-    if (pageType === PageType.mosaic)          url += '&imageUrlsOnly=1';
+    let url = '/ajax.php?function=loadCrashes';
+    const dataIn = {
+      function: 'loadCrashes',
+      count:    maxLoadCount,
+      offset:   crashes.length,
+    };
+    if (searchVisible()) {
+      dataIn.search                    = document.getElementById('searchText').value.trim().toLowerCase();
+      dataIn.searchTransportationModes = getTransportationModesFromFilter();
+      dataIn.sitename                  = document.getElementById('searchSiteName').value.trim().toLowerCase();
+      dataIn.healthdead                = (document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue'))? 1 : 0;
+    }
 
-    const response = await fetch(url, fetchOptions);
+    if (crashID)                                dataIn.id = crashID;
+    if (pageType === PageType.moderations)      dataIn.moderations=1;
+    if (pageType === PageType.mosaic)           dataIn.imageUrlsOnly=1;
+    if ((pageType === PageType.recent) || (pageType === PageType.mosaic)) dataIn.sort = 'crashDate';
+    if (pageType === PageType.deCorrespondent) {
+      dataIn.sort           = 'crashDate';
+      dataIn.searchDateFrom = '2019-01-14';
+      dataIn.searchDateTo   = '2019-01-20';
+    }
+
+    const response = await fetchFromServer(url, dataIn);
     const text     = await response.text();
     data           = JSON.parse(text);
     if (data.user) updateLoginGUI(data.user);
@@ -1236,17 +1247,12 @@ async function getArticleMetaData() {
   }
 
   const isNewArticle = document.getElementById('articleIDHidden').value === '';
-  const url = '/ajax.php?function=getPageMetaData';
-  const optionsFetch = {
-    method: 'POST',
-    body:   JSON.stringify({url: urlArticle, newArticle: isNewArticle}),
-    headers:{'Content-Type': 'application/json'}
-  };
+  const url          = '/ajax.php?function=getPageMetaData';
 
   document.getElementById('spinnerMeta').style.display = 'flex';
   document.getElementById('tarantulaResults').innerHTML = '<img src="/images/spinner.svg" style="height: 30px;">';
   try {
-    const response = await fetch(url, optionsFetch);
+    const response = await fetchFromServer(url, {url: urlArticle, newArticle: isNewArticle});
     const text     = await response.text();
     if (! text) showError('No response from server');
     const data     = JSON.parse(text);
@@ -1400,22 +1406,6 @@ function showArticleMenu(event, articleDivId) {
 function pageIsCrashList(){
   return [PageType.recent, PageType.stream, PageType.mosaic, PageType.deCorrespondent, PageType.moderations].indexOf(pageType) >= 0;
 }
-
-function crashClick(event, crashID) {
-
-  if (event.target.classList.contains('crashMenu')) showCrashMenu(event.target);
-}
-
-// let menu = document.getElementById('menuUser');
-// if (menu) menu.remove();
-//
-// let td = target.closest('td');
-// td.innerHTML += `
-// <div id="menuUser" class="buttonPopupMenu" style="display: block !important;" onclick="event.preventDefault();">
-//   <div onclick="adminEditUser();">Aanpassen</div>
-//   <div onclick="adminDeleteUser()">Verwijderen</div>
-// </div>
-//   `;
 
 function showCrashMenu(event, crashDivID) {
   event.preventDefault();
@@ -1717,6 +1707,70 @@ function toggleSearchBar() {
 
 function startSearchKey(event) {
   if (event.key === 'Enter') startSearch();
+}
+
+function toggleCheckOptions(event, id) {
+  if (event) event.stopPropagation();
+  let divOptions = document.getElementById('search' + id);
+  let divArrow   = document.getElementById('arrow' + id);
+  if (divOptions.style.display === 'block'){
+    divOptions.style.display = 'none';
+    divArrow.classList.remove('inputArrowDownOpen');
+  } else {
+    divOptions.style.display = 'block';
+    divArrow.classList.add('inputArrowDownOpen');
+  }
+}
+
+function initSearchBar(){
+  let html = '';
+  for (const key of Object.keys(TTransportationMode)){
+    const transportationMode =  TTransportationMode[key];
+    const text               = transportationModeText(transportationMode);
+    const id                 = 'tm' + transportationMode;
+    const image              = transportationModeImage(transportationMode);
+    html += `<div id="${id}" class="optionCheckImage" onclick="transportationModeClick(this);"><span class="checkbox"></span><div class="iconMedium ${image}"></div></div>`;
+  }
+
+  document.getElementById('searchTransportationTypes').innerHTML = html;
+}
+
+function toggleTransportTypesOptions(event) {
+  toggleCheckOptions(event, 'TransportationTypes');
+}
+
+function transportationModeClick(element) {
+  element.classList.toggle('itemSelected');
+  updateTransportationModeFilterInput();
+}
+
+function updateTransportationModeFilterInput(){
+  let html = '';
+
+  for (const key of Object.keys(TTransportationMode)){
+    const transportationMode =  TTransportationMode[key];
+    const elementId          = 'tm' + transportationMode;
+    const element            = document.getElementById(elementId);
+    if (element.classList.contains('itemSelected')) {
+      let icon = transportationModeImage(transportationMode);
+      html += `<span class="iconSmall ${icon}"></span>`;
+    }
+  }
+
+  document.getElementById('inputTransportationTypes').innerHTML = html;
+}
+
+function getTransportationModesFromFilter(){
+  let transportationModes = [];
+
+  for (const key of Object.keys(TTransportationMode)){
+    const transportationMode =  TTransportationMode[key];
+    const elementId          = 'tm' + transportationMode;
+    const element            = document.getElementById(elementId);
+    if (element.classList.contains('itemSelected')) transportationModes.push(transportationMode);
+  }
+
+  return transportationModes;
 }
 
 function startSearch() {

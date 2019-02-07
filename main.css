@@ -357,6 +357,7 @@ a {
 
 #searchBar {
   display:       none;
+  position:      relative;
   flex-wrap:     wrap;
   align-items:   center;
   padding:       10px 20px 10px 10px;
@@ -368,10 +369,77 @@ a {
 }
 
 .searchInput {
-  margin-left:   5px;
+  border:        1px solid #ccc;
   height:        30px;
+  box-sizing:    border-box;
   border-radius: 3px;
-  padding:       0 5px;
+  padding-left:  5px;
+}
+
+
+.dropInputWrapper {
+  position:   relative;
+  text-align: left;
+}
+
+.dropInput {
+  display:       flex;
+  width:         100px;
+  align-items:   center;
+  overflow:      hidden;
+  padding-right: 20px;
+  user-select:   text;
+}
+
+.inputIcons {
+  display:     flex;
+  align-items: center;
+  flex-wrap:   wrap;
+}
+
+.inputArrowDown {
+  position:   absolute;
+  right:      2px;
+  top:        3px;
+  width:      20px;
+  height:     calc(100% - 6px);
+  background: url("/images/arrow_dropdown.svg") no-repeat center/15px;
+  transition: transform 0.5s;
+}
+
+.inputArrowDownOpen{
+  transform: rotate(180deg);
+}
+
+.searchResultsPopup {
+  display:          none;
+  position:         absolute;
+  width:            100%;
+  max-height:       500px;
+  overflow-x:       hidden;
+  overflow-y:       auto;
+  top:              24px;
+  left:             0;
+  margin-top:       1px;
+  z-index:          1001;
+  font-size:        12px;
+  color:            #000000;
+  border:           #dddddd 1px solid;
+  background-color: #ffffff;
+  white-space:      nowrap;
+  text-align:       left;
+  user-select:      none;
+}
+
+.optionCheckImage {
+  display:         flex;
+  align-items:     center;
+  justify-content: flex-end;
+  padding:         2px 2px 2px 16px;
+}
+
+ .toolbarItem {
+  margin-right: 5px;
 }
 
 .headerMain{
@@ -522,7 +590,7 @@ a {
 .bgTrafficJam {            background-image: url(/images/trafficjam.svg);}
 .bgTree {                  background-image: url(/images/tree.svg);}
 
-.buttonPopupMenu {
+.buttonPopupMenu, .buttonPopupMenuTemp {
   display:          none;
   position:         absolute;
   right:            0;
@@ -536,14 +604,14 @@ a {
   text-decoration:  none;
 }
 
-.buttonPopupMenu > div {
+.buttonPopupMenu > div, .buttonPopupMenuTemp > div {
   display:         block;
   white-space:     nowrap;
   padding:         10px;
   cursor:          pointer;
 }
 
-.buttonPopupMenu > div:hover {
+.buttonPopupMenu > div:hover, .buttonPopupMenuTemp div:hover {
   background-color: #ddd;
 }
 
@@ -691,19 +759,7 @@ a {
   background-color: #999999;
 }
 
-.closeButton {
-  position:        absolute;
-  right:           5px;
-  background:      url("/images/close.svg") no-repeat center;
-  background-size: 25px;
-  height:          20px;
-  width:           20px;
-  opacity:         0.6;
-  cursor:          pointer;
-  transition:      all .25s;
-}
-
-.popupCloseCross:hover, .closeButton:hover {
+.popupCloseCross:hover {
   opacity: 1;
 }
 
@@ -972,7 +1028,7 @@ a {
   text-decoration: none;
 }
 
-.navItem:hover {
+.navItem:hover, .itemSelected {
   color:            #ffffff;
   background-color: #4D90FE;
 }
@@ -1006,7 +1062,7 @@ a {
   margin: 0 2px;
 }
 
-.trSelected td {
+.trSelected td, .optionCheckImage:hover {
   color:            #ffffff;
   background-color: #4D90FE;
 }
@@ -1019,6 +1075,10 @@ a {
 
 .editDetails:hover {
   color: #df5b57;
+}
+
+.filterIcon{
+  height: 16px;
 }
 
 .scrolltable {
@@ -1131,6 +1191,18 @@ a {
   overflow:   hidden;
 }
 
+.checkbox {
+  position:   absolute;
+  left:       0;
+  width:      16px;
+  height:     16px;
+  background: url(/images/checkbox_empty.svg) no-repeat center/16px;
+}
+
+.itemSelected .checkbox{
+  background-image: url("/images/checkbox_checked.svg");
+}
+
 .showOnMobile {
   display: none;
 }
@@ -1144,7 +1216,7 @@ a {
     display: flex !important;
   }
 
-  #searchBar input {
+  #searchBar input, .dropInput {
     max-width: 100px;
   }
 

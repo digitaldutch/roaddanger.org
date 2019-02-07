@@ -358,18 +358,20 @@ SQL;
 } // ====================
 else if ($function === 'loadCrashes') {
   try {
-    $offset           = (int)getRequest('offset',0);
-    $count            = (int)getRequest('count', 20);
-    $crashId          = isset($_REQUEST['id'])? (int)$_REQUEST['id'] : null;
-    $searchText       = isset($_REQUEST['search'])? $_REQUEST['search'] : '';
-    $searchDateFrom   = getRequest('searchDateFrom', '');
-    $searchDateTo     = getRequest('searchDateTo', '');
-    $searchSiteName   = isset($_REQUEST['sitename'])? $_REQUEST['sitename'] : '';
-    $searchHealthDead = (int)getRequest('healthdead', 0);
-    $moderations      = (int)getRequest('moderations', 0);
-    $sort             = getRequest('sort');
-    $export           = (int)getRequest('export', 0);
-    $imageUrlsOnly    = (int)getRequest('imageUrlsOnly', 0) === 1;
+    $data = json_decode(file_get_contents('php://input'), true);
+    $offset                    = isset($data['offset'])? (int)$data['offset'] : 0;
+    $count                     = isset($data['count'])? (int)$data['count'] : 20;
+    $crashId                   = isset($data['id'])? (int)$data['id'] : null;
+    $searchText                = isset($data['search'])? $data['search'] : '';
+    $searchDateFrom            = isset($data['searchDateFrom'])? $data['searchDateFrom'] : '';
+    $searchTransportationModes = isset($data['searchTransportationModes'])? $data['searchTransportationModes'] : [];
+    $searchDateTo              = isset($data['searchDateTo'])? $data['searchDateTo'] : '';
+    $searchSiteName            = isset($data['sitename'])? $data['sitename'] : '';
+    $searchHealthDead          = isset($data['healthdead'])? (int)$data['healthdead'] : 0;
+    $moderations               = isset($data['moderations'])? (int)$data['moderations'] : 0;
+    $sort                      = isset($data['sort'])? $data['sort'] : '';
+    $export                    = isset($data['export'])? (int)$data['export'] : 0;
+    $imageUrlsOnly             = ($data['imageUrlsOnly'] === 1)? (int)$data['imageUrlsOnly'] : 0;
 
     if ($count > 1000) throw new Exception('Internal error: Count to high.');
     if ($moderations && (! $user->isModerator())) throw new Exception('Moderaties zijn alleen zichtbaar voor moderators.');
@@ -430,11 +432,13 @@ SQL;
       $SQLWhere = " WHERE ac.id=:id ";
     } else {
 
+      $joinArticlesTable = false;
+      $joinPersonsTable  = false;
       $SQLJoin = '';
       // Only do full text search if text has 3 characters or more
       if (strlen($searchText) > 2){
         addSQLWhere($SQLWhere, "(MATCH(ac.title, ac.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))");
-        $SQLJoin .= ' LEFT JOIN articles ar on ac.id = ar.accidentid ';
+        $joinArticlesTable = true;
         $params[':search']  = $searchText;
         $params[':search2'] = $searchText;
       }
@@ -450,16 +454,25 @@ SQL;
       }
 
       if ($searchSiteName !== ''){
-        $SQLJoin .= ' JOIN articles ar ON ac.id = ar.accidentid ';
+        $joinArticlesTable = true;
         addSQLWhere($SQLWhere, " LOWER(ar.sitename) LIKE :sitename ");
         $params[':sitename'] = "%$searchSiteName%";
       }
 
       if ($searchHealthDead === 1){
-        $SQLJoin .= ' JOIN accidentpersons ap on ac.id = ap.accidentid ';
+        $joinPersonsTable = true;
         addSQLWhere($SQLWhere, " ap.health=3 ");
       }
+
+      if (count($searchTransportationModes) > 0){
+        $joinPersonsTable = true;
+        addSQLWhere($SQLWhere, " ap.transportationmode IN (" . implode (", ", $searchTransportationModes) . ') ');
+      }
+
       if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);
+
+      if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON ac.id = ar.accidentid ';
+      if ($joinPersonsTable)  $SQLJoin .= ' JOIN accidentpersons ap on ac.id = ap.accidentid ';
 
       $orderField = ($sort === 'crashDate')? 'ac.date DESC, ac.streamdatetime DESC' : 'ac.streamdatetime DESC';
 
