@@ -73,35 +73,29 @@ $navigation
     <div class="popupCloseCross" onclick="toggleSearchBar();"></div>
 
     <div class="toolbarItem">
-      <label>Zoek tekst<br>
-       <input id="searchText" class="searchInput"  type="search" placeholder="Zoek tekst" onkeyup="startSearchKey(event);" autocomplete="off"></label>  
+       <input id="searchText" class="searchInput"  type="search" placeholder="Zoek tekst" onkeyup="startSearchKey(event);" autocomplete="off">  
     </div>
 
     <div class="toolbarItem">
-      <label>Vervoertypes<br>
       <div class="dropInputWrapper">
         <div class="searchInput dropInput" tabindex="0" onclick="toggleTransportTypesOptions(event);">
-          <span id="inputTransportationTypes" class="inputIcons"></span>
+          <span id="inputTransportationTypes" class="inputIcons">Mensen</span>
           <div id="arrowTransportationTypes" class="inputArrowDown"></div>  
         </div>
         
         <div id="searchTransportationTypes" class="searchResultsPopup" onclick="event.stopPropagation();"></div>
       </div>      
-      </label>
     </div>
     
     <div class="toolbarItem">
-      <label>Bron<br>
-      <input id="searchSiteName" class="searchInput" type="search" placeholder="Bron" onkeyup="startSearchKey(event);" autocomplete="off"></label>
+      <input id="searchSiteName" class="searchInput" type="search" placeholder="Bron" onkeyup="startSearchKey(event);" autocomplete="off">
     </div>
     
     <div class="toolbarItem">
-      <br>
       <span id="searchPersonHealthDead" class="menuButton bgDeadBlack" style="margin-left: 5px;" data-tippy-content="Letsel: dood" onclick="selectSearchPersonDead();"></span>      
     </div>
     
     <div class="toolbarItem">
-      <br>
       <div class="button buttonMobileSmall" onclick="startSearch(event)">Zoek</div>
     </div>
   </div>      

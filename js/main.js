@@ -1757,6 +1757,8 @@ function updateTransportationModeFilterInput(){
     }
   }
 
+  // Show placeholder text if no persons selected
+  if (html === '') html = 'Mensen';
   document.getElementById('inputTransportationTypes').innerHTML = html;
 }
 
