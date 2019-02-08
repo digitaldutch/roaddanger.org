@@ -825,6 +825,10 @@ else if ($function === 'mergeCrashes'){
     $params = [':idFrom' => $idFrom];
     $database->execute($sql, $params);
 
+    $sql = "UPDATE accidents SET streamdatetime=current_timestamp, streamtoptype=1, streamtopuserid=:userId WHERE id=:id";
+    $params = array(':id' => $idTo, ':userId' => $user->id);
+    $database->execute($sql, $params);
+
     $result = ['ok' => true];
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
