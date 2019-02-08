@@ -199,6 +199,7 @@ function confirmMessage(text, okCallback, buttonOKText='OK', header='Bevestigen'
 }
 
 function escapeHtml(text) {
+  if (! text) return '';
   let map = {
       '&': '&amp;',
       '<': '&lt;',

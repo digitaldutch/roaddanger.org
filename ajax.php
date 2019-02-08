@@ -359,19 +359,19 @@ SQL;
 else if ($function === 'loadCrashes') {
   try {
     $data = json_decode(file_get_contents('php://input'), true);
-    $offset                    = isset($data['offset'])? (int)$data['offset'] : 0;
-    $count                     = isset($data['count'])? (int)$data['count'] : 20;
-    $crashId                   = isset($data['id'])? (int)$data['id'] : null;
-    $searchText                = isset($data['search'])? $data['search'] : '';
-    $searchDateFrom            = isset($data['searchDateFrom'])? $data['searchDateFrom'] : '';
-    $searchTransportationModes = isset($data['searchTransportationModes'])? $data['searchTransportationModes'] : [];
-    $searchDateTo              = isset($data['searchDateTo'])? $data['searchDateTo'] : '';
-    $searchSiteName            = isset($data['sitename'])? $data['sitename'] : '';
-    $searchHealthDead          = isset($data['healthdead'])? (int)$data['healthdead'] : 0;
-    $moderations               = isset($data['moderations'])? (int)$data['moderations'] : 0;
-    $sort                      = isset($data['sort'])? $data['sort'] : '';
-    $export                    = isset($data['export'])? (int)$data['export'] : 0;
-    $imageUrlsOnly             = ($data['imageUrlsOnly'] === 1)? (int)$data['imageUrlsOnly'] : 0;
+    $offset            = isset($data['offset'])? (int)$data['offset'] : 0;
+    $count             = isset($data['count'])? (int)$data['count'] : 20;
+    $crashId           = isset($data['id'])? (int)$data['id'] : null;
+    $searchText        = isset($data['search'])? $data['search'] : '';
+    $searchDateFrom    = isset($data['searchDateFrom'])? $data['searchDateFrom'] : '';
+    $searchPersons     = isset($data['searchPersons'])? $data['searchPersons'] : [];
+    $searchDateTo      = isset($data['searchDateTo'])? $data['searchDateTo'] : '';
+    $searchSiteName    = isset($data['sitename'])? $data['sitename'] : '';
+    $searchHealthDead  = isset($data['healthdead'])? (int)$data['healthdead'] : 0;
+    $moderations       = isset($data['moderations'])? (int)$data['moderations'] : 0;
+    $sort              = isset($data['sort'])? $data['sort'] : '';
+    $export            = isset($data['export'])? (int)$data['export'] : 0;
+    $imageUrlsOnly     = ($data['imageUrlsOnly'] === 1)? (int)$data['imageUrlsOnly'] : 0;
 
     if ($count > 1000) throw new Exception('Internal error: Count to high.');
     if ($moderations && (! $user->isModerator())) throw new Exception('Moderaties zijn alleen zichtbaar voor moderators.');
@@ -464,15 +464,20 @@ SQL;
         addSQLWhere($SQLWhere, " ap.health=3 ");
       }
 
-      if (count($searchTransportationModes) > 0){
-        $joinPersonsTable = true;
-        addSQLWhere($SQLWhere, " ap.transportationmode IN (" . implode (", ", $searchTransportationModes) . ') ');
-      }
+      if (count($searchPersons) > 0) $joinPersonsTable = true;
 
       if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);
 
       if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON ac.id = ar.accidentid ';
       if ($joinPersonsTable)  $SQLJoin .= ' JOIN accidentpersons ap on ac.id = ap.accidentid ';
+
+      if (count($searchPersons) > 0){
+        foreach ($searchPersons as $person){
+          $tableName = 'p' . $person;
+          $SQLJoin .= " JOIN accidentpersons $tableName ON ac.id = $tableName.accidentid AND $tableName.transportationmode=" . (int)$person;
+        }
+      }
+
 
       $orderField = ($sort === 'crashDate')? 'ac.date DESC, ac.streamdatetime DESC' : 'ac.streamdatetime DESC';
 

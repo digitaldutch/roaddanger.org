@@ -86,15 +86,15 @@ $navigation
         <div id="searchTransportationTypes" class="searchResultsPopup" onclick="event.stopPropagation();"></div>
       </div>      
     </div>
+       
+    <div class="toolbarItem">
+      <span id="searchPersonHealthDead" class="menuButton bgDeadBlack" data-tippy-content="Letsel: dood" onclick="selectSearchPersonDead();"></span>      
+    </div>
     
     <div class="toolbarItem">
       <input id="searchSiteName" class="searchInput" type="search" placeholder="Bron" onkeyup="startSearchKey(event);" autocomplete="off">
     </div>
-    
-    <div class="toolbarItem">
-      <span id="searchPersonHealthDead" class="menuButton bgDeadBlack" style="margin-left: 5px;" data-tippy-content="Letsel: dood" onclick="selectSearchPersonDead();"></span>      
-    </div>
-    
+
     <div class="toolbarItem">
       <div class="button buttonMobileSmall" onclick="startSearch(event)">Zoek</div>
     </div>

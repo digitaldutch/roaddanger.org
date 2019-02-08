@@ -31,6 +31,7 @@ function initMain() {
   const articleID        = url.searchParams.get('articleid');
   const searchText       = url.searchParams.get('search');
   const searchSiteName   = url.searchParams.get('sitename');
+  const searchPersons    = url.searchParams.get('persons');
   const searchHealthDead = url.searchParams.get('hd');
   const pathName         = decodeURIComponent(url.pathname);
 
@@ -57,11 +58,12 @@ function initMain() {
 
   if (title) document.getElementById('pageSubTitle').innerHTML = title;
 
-  if (searchText || searchSiteName || searchHealthDead) {
+  if (searchText || searchSiteName || searchHealthDead || searchPersons) {
     document.body.classList.add('searchBody');
     document.getElementById('searchText').value     = searchText;
     document.getElementById('searchSiteName').value = searchSiteName;
     if (searchHealthDead) document.getElementById('searchPersonHealthDead').classList.add('buttonSelectedBlue');
+    if (searchPersons) setPersonsFilter(searchPersons);
   }
 
   addEditPersonButtons();
@@ -394,10 +396,10 @@ async function loadCrashes(crashID=null, articleID=null){
       offset:   crashes.length,
     };
     if (searchVisible()) {
-      dataIn.search                    = document.getElementById('searchText').value.trim().toLowerCase();
-      dataIn.searchTransportationModes = getTransportationModesFromFilter();
-      dataIn.sitename                  = document.getElementById('searchSiteName').value.trim().toLowerCase();
-      dataIn.healthdead                = (document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue'))? 1 : 0;
+      dataIn.search        = document.getElementById('searchText').value.trim().toLowerCase();
+      dataIn.searchPersons = getPersonsFromFilter();
+      dataIn.sitename      = document.getElementById('searchSiteName').value.trim().toLowerCase();
+      dataIn.healthdead    = (document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue'))? 1 : 0;
     }
 
     if (crashID)                                dataIn.id = crashID;
@@ -1762,7 +1764,7 @@ function updateTransportationModeFilterInput(){
   document.getElementById('inputTransportationTypes').innerHTML = html;
 }
 
-function getTransportationModesFromFilter(){
+function getPersonsFromFilter(){
   let transportationModes = [];
 
   for (const key of Object.keys(TTransportationMode)){
@@ -1775,10 +1777,23 @@ function getTransportationModesFromFilter(){
   return transportationModes;
 }
 
+function setPersonsFilter(persons){
+  for (const key of Object.keys(TTransportationMode)){
+    const transportationMode =  TTransportationMode[key];
+    const elementId          = 'tm' + transportationMode;
+    const element            = document.getElementById(elementId);
+
+    if (persons.indexOf(transportationMode) >= 0) element.classList.add('itemSelected');
+    else element.classList.remove('itemSelected');
+  }
+  updateTransportationModeFilterInput();
+}
+
 function startSearch() {
   const searchText       = document.getElementById('searchText').value.trim().toLowerCase()
   const searchSiteName   = document.getElementById('searchSiteName').value.trim().toLowerCase()
   const searchHealthDead = document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue');
+  const searchPersons    = getPersonsFromFilter();
 
   let url = window.location.origin;
   if      (pageType === PageType.deCorrespondent) url += '/decorrespondent';
@@ -1786,6 +1801,7 @@ function startSearch() {
   url += '?search=' + encodeURIComponent(searchText);
   if (searchSiteName)   url += '&sitename=' + encodeURIComponent(searchSiteName);
   if (searchHealthDead) url += '&hd=1';
+  if (searchPersons.length > 0) url += '&persons=' + searchPersons.join();
   window.history.pushState(null, null, url);
   reloadCrashes();
 }
