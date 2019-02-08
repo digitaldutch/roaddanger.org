@@ -164,6 +164,7 @@ function getNavigation(){
       <a href="/" class="navItem">Recente ongelukken</a>
       <a href="/stream" class="navItem">Laatst gewijzigde ongelukken</a>
       <a href="/decorrespondent" class="navItem">De Correspondent week</a>
+      <a href="/mozaiek" class="navItem">Mozaïek (beta)</a>
     </div>
 
     <div class="navigationSection">
@@ -186,7 +187,6 @@ function getNavigation(){
         <a href="/beheer/mensen" class="navItem" data-admin>Mensen</a>
         <a href="/moderaties/" class="navItem">Moderaties</a>
         <a href="/beheer/opties/" class="navItem">Opties</a>
-        <a href="/mozaiek" class="navItem" data-admin>Mozaïek (beta)</a>
       </div>      
     </div>
     
