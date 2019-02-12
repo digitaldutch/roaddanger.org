@@ -1777,7 +1777,8 @@ function getPersonsFromFilter(){
   return transportationModes;
 }
 
-function setPersonsFilter(persons){
+function setPersonsFilter(personsCommaString){
+  let persons = personsCommaString.split(',').map(p => parseInt(p));
   for (const key of Object.keys(TTransportationMode)){
     const transportationMode =  TTransportationMode[key];
     const elementId          = 'tm' + transportationMode;
