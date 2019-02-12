@@ -368,14 +368,8 @@ async function loadCrashes(crashID=null, articleID=null){
       else text = 'Geen ongelukken gevonden';
 
       html = `<div style="text-align: center;">${text}</div>`;
-    } else if (pageType === PageType.mosaic) {
-      for (let crash of crashes) {
-        const crashArticles = getCrashArticles(crash.id, articles);
-        for (let article of crashArticles) {
-          html +=`<div><img src="${article.urlimage}" onerror="this.style.visibility='hidden';"></div>`;
-        }
-      }
-    } else {
+    } else if (pageType === PageType.mosaic) html = getMosaicHTML();
+    else {
       if (pageType === PageType.crash) html = getCrashDetailsHTML(crashes[0].id);
       else for (let crash of crashes) html += getCrashListHTML(crash.id);
     }
@@ -622,6 +616,31 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
   
   ${htmlArticles}
 </div>`;
+}
+
+function getMosaicHTML(){
+  function getIconsHTML(crash){
+    let html = '';
+    crash.persons.forEach(person => {
+      if (healthVisible(person.health)) html += `<div class="iconSmall ${healthImage(person.health)}"></div>`;
+    });
+    return html;
+  }
+
+  let html = '';
+  for (let crash of crashes) {
+    const crashArticles = getCrashArticles(crash.id, articles);
+    const htmlPersons = getIconsHTML(crash);
+    for (let article of crashArticles) {
+      html +=`<div onclick="showCrashDetails(${crash.id}); event.stopPropagation();">
+<div class="thumbPersons">${htmlPersons}</div>
+<div class="thumbDetails">${dateToAge(article.publishedtime)}</div>
+<img src="${article.urlimage}" onerror="this.style.visibility='hidden';">
+</div>`;
+    }
+  }
+
+  return html;
 }
 
 function getCrashDetailsHTML(crashID){
@@ -1690,6 +1709,9 @@ function showCrashDetails(crashId, addToHistory=true){
   // Change url
   const url = createCrashURL(crash.id, crash.title);
   if (addToHistory) window.history.pushState({lastCrashId: crash.id}, crash.title, url);
+
+  // Firefox bug workaround: Firefox selects all text in the popup which is what we do not want.
+  window.getSelection().removeAllRanges();
 }
 
 function closeCrashDetails(popHistory=true) {
@@ -1801,6 +1823,7 @@ function startSearch() {
   let url = window.location.origin;
   if      (pageType === PageType.deCorrespondent) url += '/decorrespondent';
   else if (pageType === PageType.stream)          url += '/stream';
+  else if (pageType === PageType.mosaic)          url += '/mozaiek';
   url += '?search=' + encodeURIComponent(searchText);
   if (searchSiteName)   url += '&sitename=' + encodeURIComponent(searchSiteName);
   if (searchHealthDead) url += '&hd=1';

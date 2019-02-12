@@ -164,7 +164,7 @@ function getNavigation(){
       <a href="/" class="navItem">Recente ongelukken</a>
       <a href="/stream" class="navItem">Laatst gewijzigde ongelukken</a>
       <a href="/decorrespondent" class="navItem">De Correspondent week</a>
-      <a href="/mozaiek" class="navItem">Mozaïek (beta)</a>
+      <a href="/mozaiek" class="navItem">Mozaïek</a>
     </div>
 
     <div class="navigationSection">
