@@ -364,8 +364,8 @@ else if ($function === 'loadCrashes') {
     $crashId           = isset($data['id'])? (int)$data['id'] : null;
     $searchText        = isset($data['search'])? $data['search'] : '';
     $searchDateFrom    = isset($data['searchDateFrom'])? $data['searchDateFrom'] : '';
-    $searchPersons     = isset($data['searchPersons'])? $data['searchPersons'] : [];
     $searchDateTo      = isset($data['searchDateTo'])? $data['searchDateTo'] : '';
+    $searchPersons     = isset($data['searchPersons'])? $data['searchPersons'] : [];
     $searchSiteName    = isset($data['sitename'])? $data['sitename'] : '';
     $searchHealthDead  = isset($data['healthdead'])? (int)$data['healthdead'] : 0;
     $moderations       = isset($data['moderations'])? (int)$data['moderations'] : 0;

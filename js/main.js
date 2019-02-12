@@ -390,29 +390,28 @@ async function loadCrashes(crashID=null, articleID=null){
     spinnerLoadCard.style.display = 'block';
 
     let url = '/ajax.php?function=loadCrashes';
-    const dataIn = {
-      function: 'loadCrashes',
-      count:    maxLoadCount,
-      offset:   crashes.length,
+    const dataPost = {
+      count:  maxLoadCount,
+      offset: crashes.length,
     };
     if (searchVisible()) {
-      dataIn.search        = document.getElementById('searchText').value.trim().toLowerCase();
-      dataIn.searchPersons = getPersonsFromFilter();
-      dataIn.sitename      = document.getElementById('searchSiteName').value.trim().toLowerCase();
-      dataIn.healthdead    = (document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue'))? 1 : 0;
+      dataPost.search        = document.getElementById('searchText').value.trim().toLowerCase();
+      dataPost.searchPersons = getPersonsFromFilter();
+      dataPost.sitename      = document.getElementById('searchSiteName').value.trim().toLowerCase();
+      dataPost.healthdead    = (document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue'))? 1 : 0;
     }
 
-    if (crashID)                                dataIn.id = crashID;
-    if (pageType === PageType.moderations)      dataIn.moderations=1;
-    if (pageType === PageType.mosaic)           dataIn.imageUrlsOnly=1;
-    if ((pageType === PageType.recent) || (pageType === PageType.mosaic)) dataIn.sort = 'crashDate';
+    if (crashID)                                dataPost.id = crashID;
+    if (pageType === PageType.moderations)      dataPost.moderations=1;
+    if (pageType === PageType.mosaic)           dataPost.imageUrlsOnly=1;
+    if ((pageType === PageType.recent) || (pageType === PageType.mosaic)) dataPost.sort = 'crashDate';
     if (pageType === PageType.deCorrespondent) {
-      dataIn.sort           = 'crashDate';
-      dataIn.searchDateFrom = '2019-01-14';
-      dataIn.searchDateTo   = '2019-01-20';
+      dataPost.sort           = 'crashDate';
+      dataPost.searchDateFrom = '2019-01-14';
+      dataPost.searchDateTo   = '2019-01-20';
     }
 
-    const response = await fetchFromServer(url, dataIn);
+    const response = await fetchFromServer(url, dataPost);
     const text     = await response.text();
     data           = JSON.parse(text);
     if (data.user) updateLoginGUI(data.user);
@@ -1564,7 +1563,6 @@ function searchMergeCrashDelayed() {
 
 async function searchMergeCrash() {
   try {
-    const searchText = document.getElementById('mergeCrashSearch').value.trim().toLowerCase();
     const crashID    = parseInt(document.getElementById('mergeFromCrashIDHidden').value);
     const crash      = getCrashFromID(crashID);
     let url          = '/ajax.php?function=loadCrashes&count=10&search=' + encodeURIComponent(searchText);
@@ -1580,9 +1578,13 @@ async function searchMergeCrash() {
       dateTo   = crash.date.addDays(dateSearch);
     }
 
-    if (dateFrom) url += '&searchDateFrom=' + dateToISO(dateFrom) + '&searchDateTo=' + dateToISO(dateTo);
-
-    const response = await fetch(url, fetchOptions);
+    const dataPost = {
+      count:          10,
+      search:         document.getElementById('mergeCrashSearch').value.trim().toLowerCase(),
+      searchDateFrom: dateToISO(dateFrom),
+      searchDateTo:   dateToISO(dateTo),
+    };
+    const response = await fetchFromServer(url, dataPost);
     const text     = await response.text();
     const data     = JSON.parse(text);
     if (data.error) showError(data.error);
