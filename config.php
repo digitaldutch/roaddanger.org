@@ -1,7 +1,7 @@
 <?php
 
-$VERSION      = 242;
-$VERSION_DATE = '12 februari 2019';
+$VERSION      = 245;
+$VERSION_DATE = '16 februari 2019';
 
 require_once 'configsecret.php';
 

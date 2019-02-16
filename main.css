@@ -289,6 +289,11 @@ a {
   background-position: center;
 }
 
+.iconInput {
+  height: 100%;
+  width:  20px;
+}
+
 .iconMedium {
   display:             inline-block;
   height:              25px;
@@ -384,7 +389,7 @@ a {
 
 .dropInput {
   display:       flex;
-  width:         100px;
+  width:         150px;
   align-items:   center;
   overflow:      hidden;
   padding-right: 20px;
@@ -394,8 +399,7 @@ a {
 .inputIcons {
   display:     flex;
   align-items: center;
-  flex-wrap:   wrap;
-  white-space: nowrap;
+  flex-wrap:   nowrap;
   color:       #888;
 }
 
@@ -436,8 +440,8 @@ a {
 .optionCheckImage {
   display:         flex;
   align-items:     center;
-  justify-content: flex-end;
-  padding:         2px 2px 2px 16px;
+  justify-content: space-between;
+  padding:         0 0 0 16px;
 }
 
  .toolbarItem {
@@ -470,6 +474,21 @@ a {
   background-repeat:   no-repeat;
   background-position: center;
   border-radius:       5px;
+}
+
+.inputSelectButton {
+  opacity:             0.15;
+  height:              20px;
+  width:               20px;
+  border:              1px solid #fff;
+  margin:              0 2px;
+  background-size:     16px;
+  background-repeat:   no-repeat;
+  background-position: center;
+}
+
+.itemSelected .inputSelectButtonSelected {
+  opacity: 1;
 }
 
 .buttonSelectionSmall {
@@ -1062,6 +1081,11 @@ a {
 
 .dataTable input[type='checkbox']{
   margin: 0 2px;
+}
+
+.tableClickRows td {
+  cursor: pointer;
+  color:  #df5b57;
 }
 
 .trSelected td, .optionCheckImage:hover {

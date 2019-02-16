@@ -473,11 +473,20 @@ SQL;
 
       if (count($searchPersons) > 0){
         foreach ($searchPersons as $person){
-          $tableName = 'p' . $person;
-          $SQLJoin .= " JOIN accidentpersons $tableName ON ac.id = $tableName.accidentid AND $tableName.transportationmode=" . (int)$person;
+          $tableName          = 'p' . $person;
+          $transportationMode = (int)$person;
+          $personDead         = containsText($person, 'd');
+          $personInjured      = containsText($person, 'i');
+          $SQLJoin .= " JOIN accidentpersons $tableName ON ac.id = $tableName.accidentid AND $tableName.transportationmode=$transportationMode ";
+          if ($personDead || $personInjured ) {
+            $healthValues = [];
+            if ($personDead)    $healthValues[] = 3;
+            if ($personInjured) $healthValues[] = 2;
+            $healthValues = implode(',', $healthValues);
+            $SQLJoin .= " AND $tableName.health IN ($healthValues) ";
+          }
         }
       }
-
 
       $orderField = ($sort === 'crashDate')? 'ac.date DESC, ac.streamdatetime DESC' : 'ac.streamdatetime DESC';
 

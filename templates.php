@@ -79,11 +79,11 @@ $navigation
     <div class="toolbarItem">
       <div class="dropInputWrapper">
         <div class="searchInput dropInput" tabindex="0" onclick="toggleTransportTypesOptions(event);">
-          <span id="inputTransportationTypes" class="inputIcons">Mensen</span>
-          <div id="arrowTransportationTypes" class="inputArrowDown"></div>  
+          <span id="inputSearchPersons" class="inputIcons">Mensen</span>
+          <div id="arrowSearchPersons" class="inputArrowDown"></div>  
         </div>
         
-        <div id="searchTransportationTypes" class="searchResultsPopup" onclick="event.stopPropagation();"></div>
+        <div id="searchSearchPersons" class="searchResultsPopup" onclick="event.stopPropagation();"></div>
       </div>      
     </div>
        

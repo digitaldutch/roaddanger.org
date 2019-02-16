@@ -45,7 +45,7 @@ HTML;
       </div>
     </div>
 
-    <table id="tableStats" class="dataTable">
+    <table id="tableStats" class="dataTable tableClickRows">
       <thead>
         <tr>
           <th style="text-align: left;">Andere partij</th>

@@ -243,7 +243,7 @@ function closeAllPopups() {
   document.querySelectorAll('.buttonPopupMenuTemp').forEach(menu => menu.remove());
   document.body.style.overflow = 'auto';
 
-  if (document.getElementById('searchTransportationTypes').style.display  === 'block') toggleTransportTypesOptions();
+  if (document.getElementById('searchSearchPersons').style.display  === 'block') toggleTransportTypesOptions();
 }
 
 function validateEmail(email) {
