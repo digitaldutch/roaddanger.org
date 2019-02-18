@@ -67,34 +67,15 @@ create table accidents
   streamdatetime timestamp default CURRENT_TIMESTAMP not null,
   streamtopuserid int null,
   streamtoptype smallint(6) null,
-  date date null,
+  title varchar(500) not null,
   text varchar(500) null,
+  date date null,
   website varchar(1000) null,
-  personsdead int null,
-  personsinjured int null,
-  pedestrian tinyint(1) default 0 null,
-  wheelchair tinyint(1) default 0 null,
-  mopedcar tinyint(1) default 0 null,
-  motorcycle tinyint(1) default 0 null,
-  scooter tinyint(1) default 0 null,
-  bicycle tinyint(1) default 0 null,
-  tractor tinyint(1) default 0 null,
-  taxi tinyint(1) default 0 null,
-  emergencyvehicle tinyint(1) default 0 null,
-  car tinyint(1) default 0 null,
-  truck tinyint(1) default 0 null,
-  bus tinyint(1) default 0 null,
-  tram tinyint(1) default 0 null,
-  deliveryvan tinyint(1) default 0 null,
-  train tinyint(1) default 0 null,
-  transportationunknown tinyint(1) default 0 null,
-  child tinyint(1) default 0 null,
   pet tinyint(1) default 0 null,
-  alcohol tinyint(1) default 0 null,
-  hitrun tinyint(1) default 0 null,
   tree tinyint(1) default 0 null,
   trafficjam tinyint(1) default 0 null,
-  title varchar(500) not null,
+  unilateral tinyint(1) null,
+  hitrun tinyint(1) default 0 null,
   constraint posts_id_uindex
     unique (id),
   constraint posts___fk_user
@@ -135,7 +116,8 @@ create table accidentpersons
   constraint accidentpersons___fkaccident
     foreign key (accidentid) references accidents (id)
       on update cascade on delete cascade
-);
+)
+  comment 'health: unknown: 0, unharmed: 1, injured: 2, dead: 3 | transportationmode: unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15';
 
 create index accidentpersons___fkgroup
   on accidentpersons (groupid);

@@ -78,7 +78,7 @@ $navigation
 
     <div class="toolbarItem">
       <div class="dropInputWrapper">
-        <div class="searchInput dropInput" tabindex="0" onclick="toggleTransportTypesOptions(event);">
+        <div class="searchInput dropInput" tabindex="0" onclick="toggleSearchPersons(event);">
           <span id="inputSearchPersons" class="inputIcons">Mensen</span>
           <div id="arrowSearchPersons" class="inputArrowDown"></div>  
         </div>
@@ -324,13 +324,14 @@ function getFormEditCrash(){
       </div>
           
       <div style="margin-top: 5px;">
-        <div>Betrokken personen <span class="button buttonGray buttonLine" onclick="showEditPersonForm();">Persoon toevoegen</span></div>   
+        <div>Betrokken mensen <span class="button buttonGray buttonLine" onclick="showEditPersonForm();">Mensen toevoegen</span></div>   
         <div id="editCrashPersons"></div>
       </div>
 
       <div style="margin-top: 5px;">
         <div>Kenmerken van ongeluk</div>
         <div>
+          <span id="editCrashUnilateral" class="menuButton bgUnilateral" data-tippy-content="Eenzijdig ongeluk" onclick="toggleSelectionButton(this);"></span>      
           <span id="editCrashPet" class="menuButton bgPet" data-tippy-content="Dier(en)" onclick="toggleSelectionButton(this);"></span>      
           <span id="editCrashTrafficJam" class="menuButton bgTrafficJam" data-tippy-content="File/Hinder" onclick="toggleSelectionButton(this);"></span>      
           <span id="editCrashTree" style="display: none;" class="menuButton bgTree" data-tippy-content="Boom/Paal" onclick="toggleSelectionButton(this);"></span>
@@ -429,7 +430,7 @@ function getFormEditPerson(){
 
   <div class="formFullPage" onclick="event.stopPropagation();">
     
-    <div id="editPersonHeader" class="popupHeader">Nieuw persoon toevoegen</div>
+    <div id="editPersonHeader" class="popupHeader">Nieuw mens toevoegen</div>
     <div class="popupCloseCross" onclick="closeEditPersonForm();"></div>
 
     <input id="personIDHidden" type="hidden">

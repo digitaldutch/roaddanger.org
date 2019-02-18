@@ -87,8 +87,8 @@ SQL;
 
   $allCrashPartners = [];
   $crashes = $database->fetchAllGroup($sql);
-  foreach ($crashes as $id => $persons) {
-    $deathCount    = 0;
+  foreach ($crashes as $persons) {
+    $deathCount         = 0;
     $crashPartnersModes = [];
     foreach ($persons as $person){
       $person['transportationmode'] = (int)$person['transportationmode'];
@@ -98,7 +98,7 @@ SQL;
       else if (! in_array($person['transportationmode'], $crashPartnersModes)) $crashPartnersModes[] = $person['transportationmode'];
     }
 
-    if (count($crashPartnersModes) ===0) $allCrashPartners[-1] += $deathCount; // Unilateral crash
+    if (count($crashPartnersModes) === 0) $allCrashPartners[-1] += $deathCount; // Unilateral crash are counted separately
     else {
       $partnersAdded = 0;
       foreach ($crashPartnersModes as $crashPartnerMode){
@@ -415,9 +415,10 @@ SELECT DISTINCT
   ac.title,
   ac.text,
   ac.date,
+  ac.unilateral,
   ac.pet, 
   ac.trafficjam, 
-  ac.tree, 
+  ac.tree,
   CONCAT(u.firstname, ' ', u.lastname) AS user, 
   CONCAT(tu.firstname, ' ', tu.lastname) AS streamtopuser 
 FROM accidents ac
@@ -477,6 +478,7 @@ SQL;
           $transportationMode = (int)$person;
           $personDead         = containsText($person, 'd');
           $personInjured      = containsText($person, 'i');
+          $restricted         = containsText($person, 'r');
           $SQLJoin .= " JOIN accidentpersons $tableName ON ac.id = $tableName.accidentid AND $tableName.transportationmode=$transportationMode ";
           if ($personDead || $personInjured ) {
             $healthValues = [];
@@ -485,6 +487,7 @@ SQL;
             $healthValues = implode(',', $healthValues);
             $SQLJoin .= " AND $tableName.health IN ($healthValues) ";
           }
+          if ($restricted)addSQLWhere($SQLWhere, "ac.id not in (select au.id from accidents au LEFT JOIN accidentpersons apu ON au.id = apu.accidentid WHERE apu.transportationmode != $transportationMode)");
         }
       }
 
@@ -510,6 +513,7 @@ SQL;
       $crash['streamdatetime']        = datetimeDBToISO8601($crash['streamdatetime']);
       $crash['awaitingmoderation']    = $crash['awaitingmoderation'] == 1;
 
+      $crash['unilateral']            = $crash['unilateral'] == 1;
       $crash['pet']                   = $crash['pet'] == 1;
       $crash['trafficjam']            = $crash['trafficjam'] == 1;
       $crash['tree']                  = $crash['tree'] == 1;
@@ -665,16 +669,16 @@ else if ($function === 'saveArticleCrash'){
         $sqlANDOwnOnly = (! $user->isModerator())? ' AND userid=:useridwhere ' : '';
         $sql = <<<SQL
     UPDATE accidents SET
-      updatetime            = current_timestamp,
-      streamdatetime        = current_timestamp,
-      streamtoptype         = 1, 
-      streamtopuserid       = :userid,
-      title                 = :title,
-      text                  = :text,
-      date                  = :date,
-      pet                   = :pet,
-      trafficjam            = :trafficjam,
-      tree                  = :tree
+      streamdatetime  = current_timestamp,
+      streamtoptype   = 1, 
+      streamtopuserid = :userid,
+      title           = :title,
+      text            = :text,
+      date            = :date,
+      unilateral      = :unilateral,
+      pet             = :pet,
+      trafficjam      = :trafficjam,
+      tree            = :tree
     WHERE id=:id $sqlANDOwnOnly
 SQL;
         $params = array(
@@ -683,6 +687,7 @@ SQL;
           ':title'                 => $crash['title'],
           ':text'                  => $crash['text'],
           ':date'                  => $crash['date'],
+          ':unilateral'            => $crash['unilateral'],
           ':pet'                   => $crash['pet'],
           ':trafficjam'            => $crash['trafficjam'],
           ':tree'                  => $crash['tree'],
@@ -695,8 +700,8 @@ SQL;
         // New crash
 
         $sql = <<<SQL
-    INSERT INTO accidents (userid, awaitingmoderation, title, text, date, pet, trafficjam, tree)
-    VALUES (:userid, :awaitingmoderation, :title, :text, :date, :pet, :trafficjam, :tree);
+    INSERT INTO accidents (userid, awaitingmoderation, title, text, date, unilateral, pet, trafficjam, tree)
+    VALUES (:userid, :awaitingmoderation, :title, :text, :date, :unilateral, :pet, :trafficjam, :tree);
 SQL;
 
         $params = array(
@@ -705,6 +710,7 @@ SQL;
           ':title'                 => $crash['title'],
           ':text'                  => $crash['text'],
           ':date'                  => $crash['date'],
+          ':unilateral'            => $crash['unilateral'],
           ':pet'                   => $crash['pet'],
           ':trafficjam'            => $crash['trafficjam'],
           ':tree'                  => $crash['tree'],
@@ -988,6 +994,7 @@ SELECT DISTINCT
   ac.title,
   ac.text,
   ac.date,
+  ac.unilateral, 
   ac.pet, 
   ac.trafficjam 
 FROM accidents ac
@@ -997,9 +1004,10 @@ SQL;
 
     $DBResults = $database->fetchAll($sql);
     foreach ($DBResults as $crash) {
-      $crash['id']                    = (int)$crash['id'];
-      $crash['pet']                   = (int)$crash['pet'];
-      $crash['trafficjam']            = (int)$crash['trafficjam'];
+      $crash['id']         = (int)$crash['id'];
+      $crash['unilateral'] = (int)$crash['unilateral'];
+      $crash['pet']        = (int)$crash['pet'];
+      $crash['trafficjam'] = (int)$crash['trafficjam'];
 
       // Load persons
       $crash['persons'] = [];

@@ -1,0 +1,6 @@
+<svg version="1.1" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+ <path d="M0 0h48v48H0z" fill="none"/>
+ <path d="m24 4c-11.05 0-20 8.95-20 20s8.95 20 20 20 20-8.95 20-20-8.95-20-20-20zm0 36c-8.82 0-16-7.18-16-16s7.18-16 16-16 16 7.18 16 16-7.18 16-16 16z"/>
+ <text x="13.794007" y="35.379795" fill="#000000" font-family="Sans" font-size="31.22px" letter-spacing="-.023415px" stroke-width=".7805px" word-spacing="0px" style="line-height:125%" xml:space="preserve"><tspan x="13.794007" y="63.002289" stroke-width=".7805px"/></text>
+ <text x="14.004463" y="34.964268" fill="#000000" font-family="Verdana" font-size="30.06px" letter-spacing="-.022545px" stroke-width=".75151px" word-spacing="0px" style="font-feature-settings:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:125%" xml:space="preserve"><tspan x="14.004463" y="34.964268" font-family="Verdana" font-size="30.06px" stroke-width=".75151px" style="font-feature-settings:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-variant-numeric:normal">1</tspan></text>
+</svg>

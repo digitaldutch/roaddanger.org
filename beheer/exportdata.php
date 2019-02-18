@@ -57,6 +57,7 @@ SELECT DISTINCT
   ac.title,
   ac.text,
   ac.date,
+  ac.unilateral, 
   ac.pet, 
   ac.trafficjam 
 FROM accidents ac
@@ -67,6 +68,7 @@ SQL;
       $DBResults = $database->fetchAll($sql);
       foreach ($DBResults as $crash) {
         $crash['id']         = (int)$crash['id'];
+        $crash['unilateral'] = (int)$crash['unilateral'];
         $crash['pet']        = (int)$crash['pet'];
         $crash['trafficjam'] = (int)$crash['trafficjam'];
         $crash['date']       = datetimeDBToISO8601($crash['date']);
