@@ -1271,7 +1271,6 @@ a {
   right:            0;
   top:              0;
   text-align:       center;
-  visibility: ;
 }
 
 .thumbDetails {
@@ -1299,6 +1298,10 @@ a {
 
 .showOnMobile {
   display: none;
+}
+
+.mirrorHorizontally {
+  transform: scaleX(-1);
 }
 
 @media (max-width: 750px) {

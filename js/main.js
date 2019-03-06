@@ -356,7 +356,7 @@ async function loadStatistics(){
 function showPartnerCrashes(victimTransportationMode, partnerTransportationMode) {
   let url = `/?search=&persons=${victimTransportationMode}d`;
   if (victimTransportationMode === partnerTransportationMode) url += 'r'; // Restricted
-  else if (partnerTransportationMode === -1) url += 'r'; // Restricted
+  else if (partnerTransportationMode === -1) url += 'u'; // Unilateral
   else url += `,${partnerTransportationMode}`;
   window.location.href = url;
 }
@@ -709,7 +709,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   }
 
   let htmlInvolved = '';
-  if (crash.unilateral)  htmlInvolved += '<div class="iconSmall bgUnilateral" data-tippy-content="Eenzijdig ongeval"></div>';
+  if (crash.unilateral)  htmlInvolved += '<div class="iconSmall bgUnilateral" data-tippy-content="Eenzijdig ongeluk"></div>';
   if (crash.pet)         htmlInvolved += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
   if (crash.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam"  data-tippy-content="File/Hinder"></div>';
 
@@ -1767,12 +1767,14 @@ function initSearchBar(){
     const id                     = 'tm' + transportationMode;
     const text                   = transportationModeText(transportationMode);
     const iconTransportationMode = transportationModeImage(transportationMode);
-    html += `<div id="${id}" class="optionCheckImage" onclick="searchPersonClick(${transportationMode});">
-<span class="checkbox"></span>
-<div class="iconMedium ${iconTransportationMode}" data-tippy-content="${text}"></div>
-<span id="searchDeadTm${transportationMode}" class="searchIcon bgDead" data-tippy-content="Dood" onclick="searchPersonOptionClick(event, 'Dead', ${transportationMode});"></span>      
-<span id="searchInjuredTm${transportationMode}" class="searchIcon bgInjured" data-tippy-content="Gewond" onclick="searchPersonOptionClick(event, 'Injured', ${transportationMode});"></span>      
-<span id="searchRestrictedTm${transportationMode}" class="searchIcon bgRestricted" data-tippy-content="Alleen dit vervoertype betrokken" onclick="searchPersonOptionClick(event, 'Restricted', ${transportationMode});"></span>      
+    html +=
+`<div id="${id}" class="optionCheckImage" onclick="searchPersonClick(${transportationMode});">
+  <span class="checkbox"></span>
+  <div class="iconMedium ${iconTransportationMode}" data-tippy-content="${text}"></div>
+  <span id="searchDeadTm${transportationMode}" class="searchIcon bgDead" data-tippy-content="Dood" onclick="searchPersonOptionClick(event, 'Dead', ${transportationMode});"></span>      
+  <span id="searchInjuredTm${transportationMode}" class="searchIcon bgInjured" data-tippy-content="Gewond" onclick="searchPersonOptionClick(event, 'Injured', ${transportationMode});"></span>      
+  <span id="searchRestrictedTm${transportationMode}" data-personRestricted class="searchIcon ${iconTransportationMode} mirrorHorizontally" data-tippy-content="Andere partij was ook ${text}" onclick="searchPersonOptionClick(event, 'Restricted', ${transportationMode});"></span>      
+  <span id="searchUnilateralTm${transportationMode}" data-personUnilateral class="searchIcon bgUnilateral" data-tippy-content="Eenzijdig ongeluk" onclick="searchPersonOptionClick(event, 'Unilateral', ${transportationMode});"></span>      
 </div>`;
   }
 
@@ -1785,37 +1787,43 @@ function toggleSearchPersons(event) {
 
 function searchPersonClick(transportationMode) {
   document.getElementById('tm' + transportationMode).classList.toggle('itemSelected');
-  unselectRestrictedIfMultiplePersonsSelected();
+  unselectSingleOnlyOptionsIfMultiplePersonsSelected();
   updateTransportationModeFilterInput();
 }
 
 function searchPersonSelect(transportationMode) {
   document.getElementById('tm' + transportationMode).classList.add('itemSelected');
-  unselectRestrictedIfMultiplePersonsSelected();
+  unselectSingleOnlyOptionsIfMultiplePersonsSelected();
   updateTransportationModeFilterInput();
 }
 
-function unselectRestrictedIfMultiplePersonsSelected(){
-  const restrictedIcons = document.querySelectorAll('#searchSearchPersons .bgRestricted');
+function unselectSingleOnlyOptionsIfMultiplePersonsSelected(){
   if (document.querySelectorAll('#searchSearchPersons .itemSelected').length > 1) {
-    restrictedIcons.forEach(e => e.classList.remove('inputSelectButtonSelected'));
+    const singleOnlyButtons = document.querySelectorAll('[data-personRestricted], [data-personUnilateral]');
+    singleOnlyButtons.forEach(e => e.classList.remove('inputSelectButtonSelected'));
   }
 }
 
-function searchPersonOptionClick(event, label, transportationMode) {
+function searchPersonOptionClick(event, buttonType, transportationMode) {
   event.stopPropagation();
 
-  const option = document.getElementById(`search${label}Tm` + transportationMode);
-  option.classList.toggle('inputSelectButtonSelected');
+  const optionButton = document.getElementById(`search${buttonType}Tm` + transportationMode);
+  optionButton.classList.toggle('inputSelectButtonSelected');
 
-  if (label === 'Restricted'){
-    if (option.classList.contains('inputSelectButtonSelected')){
-      const buttonPerson = document.getElementById('tm' + transportationMode);
-      const selectedPersons = document.querySelectorAll('#searchSearchPersons .itemSelected');
-      if (selectedPersons.length > 1) {
-        selectedPersons.forEach(p => {if (p !== buttonPerson) p.classList.remove('itemSelected');});
-      }
+  const optionSelected = optionButton.classList.contains('inputSelectButtonSelected');
+  if (optionSelected){
+    // Unselect other person selects if restricted or unilateral option is selected.
+    if ((buttonType === 'Restricted') || (buttonType === 'Unilateral')){
+      const thisPersonSelect = document.getElementById('tm' + transportationMode);
+      const allPersonSelects = document.querySelectorAll('#searchSearchPersons .itemSelected');
+      if (allPersonSelects.length > 1) allPersonSelects.forEach(p => {if (p !== thisPersonSelect) p.classList.remove('itemSelected');});
     }
+
+    // Unselect unilateral if restricted selected
+    if (buttonType === 'Restricted') document.querySelectorAll('[data-personUnilateral]').forEach(e => e.classList.remove('inputSelectButtonSelected'));
+
+    // Unselect restricted if unilateral selected
+    if (buttonType === 'Unilateral') document.querySelectorAll('[data-personRestricted]').forEach(e => e.classList.remove('inputSelectButtonSelected'));
   }
 
   searchPersonSelect(transportationMode);
@@ -1846,9 +1854,14 @@ function updateTransportationModeFilterInput(){
         html += `<span class="searchDisplayIcon ${icon}" data-tippy-content="Gewond"></span>`;
       }
 
-      const unilateralSelected = document.getElementById('searchRestrictedTm' + transportationMode).classList.contains('inputSelectButtonSelected');
+      const restrictedSelected = document.getElementById('searchRestrictedTm' + transportationMode).classList.contains('inputSelectButtonSelected');
+      if (restrictedSelected){
+        html += `<span class="searchDisplayIcon  ${icon} mirrorHorizontally" data-tippy-content="Andere partij was ook ${transportationText}"></span>`;
+      }
+
+      const unilateralSelected = document.getElementById('searchUnilateralTm' + transportationMode).classList.contains('inputSelectButtonSelected');
       if (unilateralSelected){
-        html += `<span class="searchDisplayIcon bgRestricted" data-tippy-content="Alleen dit vervoertype betrokken"></span>`;
+        html += `<span class="searchDisplayIcon bgUnilateral" data-tippy-content="Eenzijdig ongeluk"></span>`;
       }
 
       html += '</span>';
@@ -1876,8 +1889,11 @@ function getPersonsFromFilter(){
       const injuredSelected = document.getElementById('searchInjuredTm' + transportationMode).classList.contains('inputSelectButtonSelected');
       if (injuredSelected) person += 'i';
 
-      const unilateralSelected = document.getElementById('searchRestrictedTm' + transportationMode).classList.contains('inputSelectButtonSelected');
-      if (unilateralSelected) person += 'r';
+      const restrictedSelected = document.getElementById('searchRestrictedTm' + transportationMode).classList.contains('inputSelectButtonSelected');
+      if (restrictedSelected) person += 'r';
+
+      const unilateralSelected = document.getElementById('searchUnilateralTm' + transportationMode).classList.contains('inputSelectButtonSelected');
+      if (unilateralSelected) person += 'u';
 
       persons.push(person);
     }
@@ -1893,6 +1909,7 @@ function setPersonsFilter(personsCommaString){
       dead:               p.includes('d'),
       injured:            p.includes('i'),
       restricted:         p.includes('r'),
+      unilateral:         p.includes('u'),
     };
   });
 
@@ -1902,6 +1919,7 @@ function setPersonsFilter(personsCommaString){
     const buttonDead         = document.getElementById('searchDeadTm'       + transportationMode);
     const buttonInjured      = document.getElementById('searchInjuredTm'    + transportationMode);
     const buttonRestricted   = document.getElementById('searchRestrictedTm' + transportationMode);
+    const buttonUnilateral   = document.getElementById('searchUnilateralTm' + transportationMode);
 
     const person = persons.find(p => p.transportationMode === transportationMode);
     if (person){
@@ -1909,6 +1927,7 @@ function setPersonsFilter(personsCommaString){
       if (person.dead)       buttonDead.classList.add('inputSelectButtonSelected');
       if (person.injured)    buttonInjured.classList.add('inputSelectButtonSelected');
       if (person.restricted) buttonRestricted.classList.add('inputSelectButtonSelected');
+      if (person.unilateral) buttonUnilateral.classList.add('inputSelectButtonSelected');
     } else element.classList.remove('itemSelected');
   }
   updateTransportationModeFilterInput();

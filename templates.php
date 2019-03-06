@@ -112,7 +112,7 @@ function getHTMLEnd($htmlEnd='', $flexFullPage=false){
   $forms    = getHTMLConfirm() . getLoginForm() . getFormCrash() . getFormEditCrash() . getFormMergeCrash() . getFormEditPerson();
   return <<<HTML
     $htmlEnd 
-    <div id="floatingMessage" class="floatingMessage" onclick="hideMessage();">
+    <div id="floatingMessage" onclick="hideMessage();">
       <div id="messageCloseCross" class="popupCloseCross crossWhite"></div>
       <div id="messageText"></div>
     </div>

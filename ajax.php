@@ -76,6 +76,7 @@ SQL;
   $sql = <<<SQL
 select
   a.id AS accidentid,
+  a.unilateral,
   transportationmode,
   health
 from accidentpersons ap
@@ -86,8 +87,8 @@ SQL;
 
 
   $allCrashPartners = [];
-  $crashes = $database->fetchAllGroup($sql);
-  foreach ($crashes as $persons) {
+  $crashPersons = $database->fetchAllGroup($sql);
+  foreach ($crashPersons as $persons) {
     $deathCount         = 0;
     $crashPartnersModes = [];
     foreach ($persons as $person){
@@ -98,7 +99,7 @@ SQL;
       else if (! in_array($person['transportationmode'], $crashPartnersModes)) $crashPartnersModes[] = $person['transportationmode'];
     }
 
-    if (count($crashPartnersModes) === 0) $allCrashPartners[-1] += $deathCount; // Unilateral crash are counted separately
+    if ($person['unilateral'] == 1) $allCrashPartners[-1] += $deathCount; // Unilateral crash are counted separately
     else {
       $partnersAdded = 0;
       foreach ($crashPartnersModes as $crashPartnerMode){
@@ -479,6 +480,7 @@ SQL;
           $personDead         = containsText($person, 'd');
           $personInjured      = containsText($person, 'i');
           $restricted         = containsText($person, 'r');
+          $unilateral         = containsText($person, 'u');
           $SQLJoin .= " JOIN accidentpersons $tableName ON ac.id = $tableName.accidentid AND $tableName.transportationmode=$transportationMode ";
           if ($personDead || $personInjured ) {
             $healthValues = [];
@@ -487,7 +489,8 @@ SQL;
             $healthValues = implode(',', $healthValues);
             $SQLJoin .= " AND $tableName.health IN ($healthValues) ";
           }
-          if ($restricted)addSQLWhere($SQLWhere, "ac.id not in (select au.id from accidents au LEFT JOIN accidentpersons apu ON au.id = apu.accidentid WHERE apu.transportationmode != $transportationMode)");
+          if ($restricted) addSQLWhere($SQLWhere, "(ac.unilateral is null OR ac.unilateral != 1) AND (ac.id not in (select au.id from accidents au LEFT JOIN accidentpersons apu ON au.id = apu.accidentid WHERE apu.transportationmode != $transportationMode))");
+          if ($unilateral) addSQLWhere($SQLWhere, "ac.unilateral = 1");
         }
       }
 
