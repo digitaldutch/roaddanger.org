@@ -6,6 +6,7 @@ let editCrashPersons = [];
 let watchEndOfPage   = false;
 let spinnerLoadCard;
 let pageType;
+let graph;
 let PageType = Object.freeze({
   stream:                        0,
   crash:                         1,
@@ -149,6 +150,79 @@ function initExport(){
     html += `<tr><td>${health}</td><td>${text}</td></tr>`;
   }
   document.getElementById('tbodyHealth').innerHTML = html;
+}
+
+function showCrashVictimsGraph(crashVictims){
+
+  function getCrashPartnerVictims(victimMode, partnerMode){
+    const victim  = crashVictims.find(v => v.transportationMode === victimMode);
+    if (! victim) return 0;
+    const partner = victim.crashPartners.find(p => p.transportationMode === partnerMode);
+    return partner? partner.victimCount : 0;
+  }
+
+  // Put data in heatmap points layout
+  let victimModes = [];
+  let partnerModes = [];
+  for (const key of Object.keys(TTransportationMode)) {
+    victimModes.push(TTransportationMode[key]);
+    partnerModes.push(TTransportationMode[key]);
+  }
+
+  // Add unilateral
+  partnerModes.push(-1);
+
+  let points = [];
+  victimModes.forEach(victimMode => {
+    partnerModes.forEach(partnerMode => {
+      points.push({
+        victimMode:  victimMode,
+        partnerMode: partnerMode,
+        value:       getCrashPartnerVictims(victimMode, partnerMode),
+      });
+    });
+  });
+
+  const options = {
+    xLabel: 'Andere partij',
+    yLabel: 'Slachtoffers (doden)',
+  };
+
+  graph = new CircleGraph('graphPartners', points, options,
+    data => showPartnerCrashes(data.victimMode, data.partnerMode)
+    );
+}
+
+function updateStatisticsCrashPartnersGUI(dbStats=null) {
+  if (!dbStats) dbStats = updateStatisticsCrashPartnersGUI.dbStats;
+  else {
+    updateStatisticsCrashPartnersGUI.dbStats = dbStats;
+    showCrashVictimsGraph(dbStats.crashVictims);
+  }
+
+  const victimTransportationMode = parseInt(document.getElementById('filterVictimTransportationMode').value);
+  const crashVictim              = dbStats.crashVictims.find(v => v.transportationMode === victimTransportationMode);
+
+  let html = '';
+  if (crashVictim && crashVictim.crashPartners){
+    let total = 0;
+    crashVictim.crashPartners.forEach(partner => total += partner.victimCount);
+
+    for (const crashPartner of crashVictim.crashPartners){
+      const iconMode   = crashPartner.transportationMode === -1? victimTransportationMode : crashPartner.transportationMode;
+      const icon       = transportationModeIcon(iconMode, true);
+      const tmText     = crashPartner.transportationMode === -1? 'Eenzijdig ongeluk' : transportationModeText(crashPartner.transportationMode);
+      const percentage = total === 0? 0 : 100 * crashPartner.victimCount / total;
+      html += `<tr onclick="showPartnerCrashes(${victimTransportationMode}, ${crashPartner.transportationMode});">
+<td><div class="flexRow">${icon}<span style="margin-left: 5px;">${tmText}</span></div></td>
+<td style="text-align: right;">${crashPartner.victimCount}</td>
+<td style="text-align: right;">${percentage.toFixed(1)}%</td>
+</tr>`;
+    }
+  }
+
+  document.getElementById('tableStatsBody').innerHTML = html;
+  tippy('#tableStatsBody [data-tippy-content]');
 }
 
 async function loadStatistics(){
@@ -296,26 +370,6 @@ async function loadStatistics(){
 `;
   }
 
-  function showStatisticsCrashPartners(dbStats, victimTransportationMode) {
-    let total = 0;
-    dbStats.crashPartners.forEach(partner => total += partner.deathCount);
-
-    let html = '';
-    for (const crashPartner of dbStats.crashPartners){
-      const iconMode   = crashPartner.transportationMode === -1? victimTransportationMode : crashPartner.transportationMode;
-      const icon       = transportationModeIcon(iconMode, true);
-      const tmText     = crashPartner.transportationMode === -1? 'Eenzijdig ongeluk' : transportationModeText(crashPartner.transportationMode);
-      const percentage = 100 * crashPartner.deathCount / total;
-      html += `<tr onclick="showPartnerCrashes(${victimTransportationMode}, ${crashPartner.transportationMode});">
-<td><div class="flexRow">${icon}<span style="margin-left: 5px;">${tmText}</span></div></td>
-<td style="text-align: right;">${crashPartner.deathCount}</td>
-<td style="text-align: right;">${percentage.toFixed(1)}%</td>
-</tr>`;
-    }
-    document.getElementById('tableStatsBody').innerHTML = html;
-    tippy('#tableStatsBody [data-tippy-content]');
-  }
-
   try {
     spinnerLoadCard.style.display = 'block';
 
@@ -337,7 +391,7 @@ async function loadStatistics(){
         let url = window.location.origin + '/statistieken/andere_partij?transportationMode=' + document.getElementById('filterVictimTransportationMode').value;
         window.history.replaceState(null, null, url);
 
-        showStatisticsCrashPartners(data.statistics, victimTransportationMode);
+        updateStatisticsCrashPartnersGUI(data.statistics);
       }
       else {
         let url = window.location.origin + '/statistieken/vervoertypes?period=' + document.getElementById('filterStatsPeriod').value;
@@ -364,7 +418,7 @@ function showPartnerCrashes(victimTransportationMode, partnerTransportationMode)
 function statsCrashPartnersTransportationModeChange(){
   const transportationMode = parseInt(document.getElementById('filterVictimTransportationMode').value);
   document.getElementById('crashPartnerTransportationMode').innerText = transportationModeText(transportationMode);
-  loadStatistics();
+  updateStatisticsCrashPartnersGUI();
 }
 
 async function loadCrashes(crashID=null, articleID=null){

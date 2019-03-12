@@ -69,7 +69,7 @@ function getStatsCrashPartners($database){
     a.id
   FROM accidentpersons ap
   JOIN accidents a ON ap.accidentid = a.id
-  WHERE (ap.transportationmode=$victimTransportationMode AND ap.health=3)
+  WHERE ap.health=3
 SQL;
 
   // Get all persons from accidents with dead
@@ -77,6 +77,7 @@ SQL;
 select
   a.id AS accidentid,
   a.unilateral,
+  ap.id,
   transportationmode,
   health
 from accidentpersons ap
@@ -86,45 +87,62 @@ where
 SQL;
 
 
-  $allCrashPartners = [];
-  $crashPersons = $database->fetchAllGroup($sql);
-  foreach ($crashPersons as $persons) {
-    $deathCount         = 0;
-    $crashPartnersModes = [];
-    foreach ($persons as $person){
+  $crashVictims = [];
+  $crashPartners  = [];
+  $crashes = $database->fetchAllGroup($sql);
+  foreach ($crashes as $crashPersons) {
+    $victimCount          = 0;
+    $crashDeaths              = [];
+    $crashTransportationModes = [];
+    $crashPartnersModes       = [];
+    $unilateralCrash          = false;
+
+    // get crash dead persons
+    foreach ($crashPersons as $person){
+      $person['id']                 = (int)$person['id'];
       $person['transportationmode'] = (int)$person['transportationmode'];
       $person['health']             = (int)$person['health'];
+      $person['unilateral']         = (int)$person['unilateral'] === 1;
+      if ($person['unilateral'] === true) $unilateralCrash = true;
 
-      if (($person['transportationmode'] === $victimTransportationMode) && ($person['health'] === 3)) $deathCount += 1;
-      else if (! in_array($person['transportationmode'], $crashPartnersModes)) $crashPartnersModes[] = $person['transportationmode'];
+      if ($person['health'] === 3) $crashDeaths[] = $person;
+      if (! in_array($person['transportationmode'], $crashTransportationModes)) $crashTransportationModes[] = $person['transportationmode'];
     }
 
-    if ($person['unilateral'] == 1) $allCrashPartners[-1] += $deathCount; // Unilateral crash are counted separately
-    else {
-      $partnersAdded = 0;
-      foreach ($crashPartnersModes as $crashPartnerMode){
-        if ($victimTransportationMode !== $crashPartnerMode) {
-          $allCrashPartners[$crashPartnerMode] += $deathCount;
-          $partnersAdded += 1;
-        }
-      }
-      if (! $partnersAdded){
-        foreach ($crashPartnersModes as $crashPartnerMode){
-          if ($victimTransportationMode === $crashPartnerMode) {
-            $allCrashPartners[$crashPartnerMode] += $deathCount;
+    foreach ($crashDeaths as $personDead){
+      if (! isset($crashVictims[$personDead['transportationmode']])) $crashVictims[$personDead['transportationmode']] = [];
+
+      // Add crash partner
+      if ($unilateralCrash){
+        // Unilateral transportationMode = -1
+        if (! isset($crashVictims[$personDead['transportationmode']][-1])) $crashVictims[$personDead['transportationmode']][-1] = 0;
+        $crashVictims[$personDead['transportationmode']][-1] += 1;
+      } else if (count($crashTransportationModes) === 1){
+        if (! isset($crashVictims[$personDead['transportationmode']][$personDead['transportationmode']])) $crashVictims[$personDead['transportationmode']][$personDead['transportationmode']] = 0;
+        $crashVictims[$personDead['transportationmode']][$personDead['transportationmode']] += 1;
+      } else {
+        foreach ($crashTransportationModes as $transportationMode){
+          if ($transportationMode !== $personDead['transportationmode']) {
+            if (! isset($crashVictims[$personDead['transportationmode']][$transportationMode])) $crashVictims[$personDead['transportationmode']][$transportationMode] = 0;
+            $crashVictims[$personDead['transportationmode']][$transportationMode] += 1;
           }
         }
       }
     }
   }
 
-  arsort($allCrashPartners);
-  $stats = [];
-  foreach ($allCrashPartners as $victimTransportationMode => $deathCount){
-    $stats[] = ['transportationMode' => $victimTransportationMode, 'deathCount' => $deathCount];
+  $crashVictims2Out = [];
+  foreach ($crashVictims as $victimTransportationMode => $partners){
+    arsort($partners);
+    $partnersOut = [];
+    foreach ($partners as $partnerTransportationMode => $victimCount){
+      $partnersOut[] = ['transportationMode' => $partnerTransportationMode, 'victimCount' => $victimCount];
+    }
+
+    $crashVictims2Out[] = ['transportationMode' => $victimTransportationMode, 'crashPartners' => $partnersOut];
   }
 
-  return ['crashPartners' => $stats];
+  return ['crashVictims' => $crashVictims2Out];
 }
 
 

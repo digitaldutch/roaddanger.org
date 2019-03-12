@@ -17,7 +17,11 @@ else if (strpos($uri, '/exporteren')                 === 0) $pageType = PageType
 else                                                               $pageType = PageType::recent;
 
 $showCrashMenu = false;
-$head = "<script src=\"/js/main.js?v=$VERSION\"></script>";
+$head = "<script src='/js/main.js?v=$VERSION'></script>";
+if ($pageType === PageType::statisticsCrashPartners){
+  $head .= "<script src='/scripts/d3.v5.js?v=$VERSION'></script><script src='/js/d3CirclePlot.js?v=$VERSION'></script>";
+}
+
 
 if (strpos($_SERVER['REQUEST_URI'], '/statistieken/algemeen') === 0) {
   $mainHTML = <<<HTML
@@ -34,8 +38,10 @@ HTML;
 } else if (strpos($_SERVER['REQUEST_URI'], '/statistieken/andere_partij') === 0) {
   $mainHTML = <<<HTML
 <div class="pageInner">
-  <div class="pageSubTitle">Statistieken - Doden, andere partij<span class="iconTooltip" data-tippy-content="Dit zijn de cijfers over de ongelukken tot nog toe in de database."></span></div>
+  <div class="pageSubTitle">Statistieken - Andere partij bij doden<span class="iconTooltip" data-tippy-content="Dit zijn de cijfers over de ongelukken tot nog toe in de database."></span></div>
   <div id="statistics">
+  
+    <div id="graphPartners" style="position: relative; width: 500px; height: 400px;"></div>
   
     <div style="margin: 5px 0;">
       <div class="filterElement">
