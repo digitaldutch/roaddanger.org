@@ -127,8 +127,10 @@ function CrashPartnerGraph(divID, data, optionsUser=[], onClickPoint=null) {
 
   let mouseover = function(data) {
     tooltip.style('display', 'flex');
+
     d3.select(this)
       .style('cursor', data => data.value===0? 'default' : 'pointer')
+      .select('.data-circle')
       .style('stroke', '#000000')
       .transition()
       .duration(500)
@@ -139,16 +141,18 @@ function CrashPartnerGraph(divID, data, optionsUser=[], onClickPoint=null) {
     const pointMouse = d3.mouse(this);
     const svgWidth = d3.select('#' + divID).node().getBoundingClientRect().width;
     const scaleFactor = svgWidth / widthContainer;
-    pointMouse[0] = pointMouse[0] * scaleFactor;
-    pointMouse[1] = pointMouse[1] * scaleFactor;
+    let xMouse = xScale(data.partnerMode) + pointMouse[0];
+    let yMouse = yScale(data.victimMode) + pointMouse[1];
+    xMouse = xMouse * scaleFactor + 25;
+    yMouse = yMouse * scaleFactor - 25;
 
     const modeText = data.partnerMode === -1? 'Eenzijdig ongeluk' : 'Tegenpartij: ' + transportationModeText(data.partnerMode);
     let html = modeText + '<br>';
     html += `${data.value} ${transportationModeText(data.victimMode)}`;
     html += data.value === 1? ' dode' : ' doden';
     tooltip.html(html)
-      .style('left', (pointMouse[0] + 10) + 'px')
-      .style('top',  (pointMouse[1] - 30) + 'px');
+      .style('left', xMouse + 'px')
+      .style('top',  yMouse + 'px');
   };
 
   let mouseleave = function(data) {
@@ -157,7 +161,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], onClickPoint=null) {
 
     d3.select(this)
       .style('cursor', 'default')
-      .style('opacity', 0.8)
+      .select('.data-circle')
       .style('stroke', 'none')
       .transition()
       .duration(500)
@@ -168,23 +172,40 @@ function CrashPartnerGraph(divID, data, optionsUser=[], onClickPoint=null) {
     if (onClickPoint && (data.value > 0)) onClickPoint(data);
   };
 
-  // add the circles
-  svg.selectAll()
+  // Data item
+  var dataElement = svg.selectAll()
     .data(data)
     .enter()
-    .append('circle')
-      .attr('cx',       d => xScale(d.partnerMode) + xScale.bandwidth()/2)
-      .attr('cy',       d => yScale(d.victimMode)  + yScale.bandwidth()/2)
-      .attr('r',        0)
-      .style('fill',    d => d.value > 0? '#df3b34' : '#999999')
-      .style('opacity', 0.8)
+    .append("g")
+    .attr("transform", d => `translate(${xScale(d.partnerMode) + xScale.bandwidth()/2}, ${yScale(d.victimMode) + yScale.bandwidth()/2})`)
     .on('mouseover',  mouseover)
     .on('mousemove',  mousemove)
     .on('mouseleave', mouseleave)
-    .on('click',      pointClick)
+    .on('click',      pointClick);
+
+  // Data circles
+  dataElement.append('circle')
+    .attr('class', 'data-circle')
+    .attr('r',        0)
+    .style('fill',    d => d.value > 0? '#df3b34' : '#999999')
+    .style('opacity', 0.8)
     .transition()
     .ease(d3.easeSin)
     .duration(2000)
     .attr('r', d => d.value > 0? rScale(d.value) : 1);
+
+  // Data text
+  dataElement.filter(d => d.value > 0)
+    .append("text")
+    .attr('class', 'data-text')
+    .attr('dx', 0)
+    .attr('text-anchor', 'middle')
+    .attr('alignment-baseline', 'central')
+    // Smaller font if it does not fit the circle
+    .style('font-size', d => rScale(d.value) > 6? '10px' : '8px')
+    .style('fill', '#ffffff')
+    .transition()
+    .delay(2000)
+    .text(d => d.value);
 
 }

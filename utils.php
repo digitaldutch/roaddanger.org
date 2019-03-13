@@ -207,6 +207,7 @@ function cookiesApproved(){
 }
 
 function addSQLWhere(&$whereSql, $wherePart){
+  if ($wherePart === '') return;
   $whereSql .= ($whereSql === '')? ' WHERE ' : ' AND ';
   $whereSql .= ' ' . $wherePart . ' ';
 }

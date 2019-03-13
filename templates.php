@@ -75,7 +75,19 @@ $navigation
     <div class="toolbarItem">
        <input id="searchText" class="searchInput"  type="search" placeholder="Zoek tekst" onkeyup="startSearchKey(event);" autocomplete="off">  
     </div>
-
+    
+    <div class="toolbarItem">
+      <select id="searchPeriod" class="searchInput">
+        <option value="today">Vandaag</option> 
+        <option value="yesterday">Gisteren</option> 
+        <option value="7days">7 dagen</option> 
+        <option value="30days">30 dagen</option> 
+        <option value="decorrespondent">De Correspondent week</option> 
+        <option value="2019">2019</option> 
+        <option value="all" selected>Alles</option> 
+      </select>
+    </div>
+    
     <div class="toolbarItem">
       <div class="dropInputWrapper">
         <div class="searchInput dropInput" tabindex="0" onclick="toggleSearchPersons(event);">

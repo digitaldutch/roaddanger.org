@@ -31,6 +31,7 @@ function initMain() {
   const crashID          = getCrashNumberFromPath(url.pathname);
   const articleID        = url.searchParams.get('articleid');
   const searchText       = url.searchParams.get('search');
+  const searchPeriod     = url.searchParams.get('period');
   const searchSiteName   = url.searchParams.get('sitename');
   const searchPersons    = url.searchParams.get('persons');
   const searchHealthDead = url.searchParams.get('hd');
@@ -59,9 +60,10 @@ function initMain() {
 
   if (title) document.getElementById('pageSubTitle').innerHTML = title;
 
-  if (searchText || searchSiteName || searchHealthDead || searchPersons) {
+  if (searchText || searchPeriod || searchSiteName || searchHealthDead || searchPersons) {
     document.body.classList.add('searchBody');
     document.getElementById('searchText').value     = searchText;
+    if (searchPeriod) document.getElementById('searchPeriod').value   = searchPeriod;
     document.getElementById('searchSiteName').value = searchSiteName;
     if (searchHealthDead) document.getElementById('searchPersonHealthDead').classList.add('buttonSelectedBlue');
     if (searchPersons) setPersonsFilter(searchPersons);
@@ -171,7 +173,7 @@ function showCrashVictimsGraph(crashVictims){
   };
 
   graph = new CrashPartnerGraph('graphPartners', points, options,
-    data => showPartnerCrashes(data.victimMode, data.partnerMode)
+    data => showPartnerCrashes(data.victimMode, data.partnerMode, document.getElementById('filterStatsPeriod').value)
     );
 }
 
@@ -354,11 +356,12 @@ async function loadStatistics(){
   }
 }
 
-function showPartnerCrashes(victimTransportationMode, partnerTransportationMode) {
+function showPartnerCrashes(victimTransportationMode, partnerTransportationMode, period=null) {
   let url = `/?search=&persons=${victimTransportationMode}d`;
   if (victimTransportationMode === partnerTransportationMode) url += 'r'; // Restricted
   else if (partnerTransportationMode === -1) url += 'u'; // Unilateral
   else url += `,${partnerTransportationMode}`;
+  if (period) url += '&period=' + period;
   window.location.href = url;
 }
 
@@ -393,6 +396,7 @@ async function loadCrashes(crashID=null, articleID=null){
     };
     if (searchVisible()) {
       dataPost.search        = document.getElementById('searchText').value.trim().toLowerCase();
+      dataPost.searchPeriod  = document.getElementById('searchPeriod').value;
       dataPost.searchPersons = getPersonsFromFilter();
       dataPost.sitename      = document.getElementById('searchSiteName').value.trim().toLowerCase();
       dataPost.healthdead    = (document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue'))? 1 : 0;
@@ -403,9 +407,8 @@ async function loadCrashes(crashID=null, articleID=null){
     if (pageType === PageType.mosaic)           dataPost.imageUrlsOnly=1;
     if ((pageType === PageType.recent) || (pageType === PageType.mosaic)) dataPost.sort = 'crashDate';
     if (pageType === PageType.deCorrespondent) {
-      dataPost.sort           = 'crashDate';
-      dataPost.searchDateFrom = '2019-01-14';
-      dataPost.searchDateTo   = '2019-01-20';
+      dataPost.sort         = 'crashDate';
+      dataPost.searchPeriod = 'decorrespondent';
     }
 
     const response = await fetchFromServer(url, dataPost);
@@ -1929,8 +1932,9 @@ function setPersonsFilter(personsCommaString){
 }
 
 function startSearch() {
-  const searchText       = document.getElementById('searchText').value.trim().toLowerCase()
-  const searchSiteName   = document.getElementById('searchSiteName').value.trim().toLowerCase()
+  const searchText       = document.getElementById('searchText').value.trim().toLowerCase();
+  const searchPeriod     = document.getElementById('searchPeriod').value;
+  const searchSiteName   = document.getElementById('searchSiteName').value.trim().toLowerCase();
   const searchHealthDead = document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue');
   const searchPersons    = getPersonsFromFilter();
 
@@ -1939,8 +1943,9 @@ function startSearch() {
   else if (pageType === PageType.stream)          url += '/stream';
   else if (pageType === PageType.mosaic)          url += '/mozaiek';
   url += '?search=' + encodeURIComponent(searchText);
-  if (searchSiteName)   url += '&sitename=' + encodeURIComponent(searchSiteName);
-  if (searchHealthDead) url += '&hd=1';
+  if (searchSiteName)           url += '&sitename=' + encodeURIComponent(searchSiteName);
+  if (searchPeriod)             url += '&period=' + searchPersons.join();
+  if (searchHealthDead)         url += '&hd=1';
   if (searchPersons.length > 0) url += '&persons=' + searchPersons.join();
   window.history.pushState(null, null, url);
   reloadCrashes();

@@ -21,7 +21,7 @@ function getStatsTransportation($database, $period='all'){
     case '7days':           $SQLWhere = ' WHERE DATE (`date`) > SUBDATE(CURDATE(), 7) '; break;
     case 'decorrespondent': $SQLWhere = " WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' "; break;
     case '30days':          $SQLWhere = ' WHERE DATE (`date`) > SUBDATE(CURDATE(), 30) '; break;
-    case '2019':            $SQLWhere = ' AND YEAR (`date`) = 2019 '; break;
+    case '2019':            $SQLWhere = ' WHERE YEAR (`date`) = 2019 '; break;
     default:                $SQLWhere = '';
   }
 
@@ -393,8 +393,7 @@ else if ($function === 'loadCrashes') {
     $count             = isset($data['count'])? (int)$data['count'] : 20;
     $crashId           = isset($data['id'])? (int)$data['id'] : null;
     $searchText        = isset($data['search'])? $data['search'] : '';
-    $searchDateFrom    = isset($data['searchDateFrom'])? $data['searchDateFrom'] : '';
-    $searchDateTo      = isset($data['searchDateTo'])? $data['searchDateTo'] : '';
+    $searchPeriod      = isset($data['searchPeriod'])? $data['searchPeriod'] : '';
     $searchPersons     = isset($data['searchPersons'])? $data['searchPersons'] : [];
     $searchSiteName    = isset($data['sitename'])? $data['sitename'] : '';
     $searchHealthDead  = isset($data['healthdead'])? (int)$data['healthdead'] : 0;
@@ -474,14 +473,17 @@ SQL;
         $params[':search2'] = $searchText;
       }
 
-      if ($searchDateFrom !== ''){
-        addSQLWhere($SQLWhere, " ac.date >= :searchDateFrom ");
-        $params[':searchDateFrom'] = $searchDateFrom;
-      }
-
-      if ($searchDateTo !== ''){
-        addSQLWhere($SQLWhere, " ac.date <= :searchDateTo ");
-        $params[':searchDateTo'] = $searchDateTo;
+      if ($searchPeriod !== ''){
+        switch ($searchPeriod) {
+          case 'today':           $SQLPeriod = ' DATE (ac.date) = CURDATE() '; break;
+          case 'yesterday':       $SQLPeriod = ' DATE (ac.date) = SUBDATE(CURDATE(), 1) '; break;
+          case '7days':           $SQLPeriod = ' DATE (ac.date) > SUBDATE(CURDATE(), 7) '; break;
+          case 'decorrespondent': $SQLPeriod = " DATE (ac.date) >= '2019-01-14' AND DATE (ac.date) <= '2019-01-20' "; break;
+          case '30days':          $SQLPeriod = ' DATE (ac.date) > SUBDATE(CURDATE(), 30) '; break;
+          case '2019':            $SQLPeriod = ' YEAR (ac.date) = 2019 '; break;
+          default:                $SQLPeriod = '';
+        }
+        addSQLWhere($SQLWhere, $SQLPeriod);
       }
 
       if ($searchSiteName !== ''){
