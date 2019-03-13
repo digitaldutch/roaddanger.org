@@ -38,32 +38,14 @@ HTML;
 } else if (strpos($_SERVER['REQUEST_URI'], '/statistieken/andere_partij') === 0) {
   $mainHTML = <<<HTML
 <div class="pageInner">
-  <div class="pageSubTitle">Statistieken - tegenpartij bij doden<span class="iconTooltip" data-tippy-content="Dit zijn de cijfers over de ongelukken tot nog toe in de database."></span></div>
+  <div class="pageSubTitle">Doden in het verkeer en hun tegenpartij<span class="iconTooltip" data-tippy-content="Dit zijn de cijfers over de ongelukken tot nog toe in de database."></span></div>
+
   <div id="statistics">
   
     <div id="graphPartners" style="position: relative;"></div>
-  
-    <div style="margin: 5px 0;">
-      <div class="filterElement">
-        Vervoertype doden<br>
-        <select id="filterVictimTransportationMode" oninput="statsCrashPartnersTransportationModeChange();">
-        </select>
-      </div>
-    </div>
-
-    <table id="tableStats" class="dataTable tableClickRows">
-      <thead>
-        <tr>
-          <th style="text-align: left;">Tegenpartij</th>
-          <th style="text-align: right;">Aantal doden (<span id="crashPartnerTransportationMode"></span>)</th>
-          <th style="text-align: right;">Percentage</th>
-        </tr>
-      </thead>  
-      <tbody id="tableStatsBody">
-        
-      </tbody>
-    </table>  
+   
   </div>
+  
   <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
 </div>
 HTML;

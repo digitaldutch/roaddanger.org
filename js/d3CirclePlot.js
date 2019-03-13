@@ -129,7 +129,10 @@ function CrashPartnerGraph(divID, data, optionsUser=[], onClickPoint=null) {
     tooltip.style('display', 'flex');
     d3.select(this)
       .style('cursor', data => data.value===0? 'default' : 'pointer')
-      .style('stroke', 'black');
+      .style('stroke', '#000000')
+      .transition()
+      .duration(500)
+      .attr('r', d => d.value > 0? 1.4 * rScale(d.value) : 1);
   };
 
   let mousemove = function(data) {
@@ -154,7 +157,11 @@ function CrashPartnerGraph(divID, data, optionsUser=[], onClickPoint=null) {
 
     d3.select(this)
       .style('cursor', 'default')
-      .style('stroke', 'none');
+      .style('opacity', 0.8)
+      .style('stroke', 'none')
+      .transition()
+      .duration(500)
+      .attr('r', d => d.value > 0? rScale(d.value) : 1);
   };
 
   let pointClick = function(data){
@@ -170,14 +177,14 @@ function CrashPartnerGraph(divID, data, optionsUser=[], onClickPoint=null) {
       .attr('cy',       d => yScale(d.victimMode)  + yScale.bandwidth()/2)
       .attr('r',        0)
       .style('fill',    d => d.value > 0? '#df3b34' : '#999999')
-      .style('opacity', '0.8')
+      .style('opacity', 0.8)
     .on('mouseover',  mouseover)
     .on('mousemove',  mousemove)
     .on('mouseleave', mouseleave)
     .on('click',      pointClick)
     .transition()
-      .ease(d3.easeSin)
-      .duration(2000)
-      .attr('r',        d => d.value > 0? rScale(d.value) : 1);
+    .ease(d3.easeSin)
+    .duration(2000)
+    .attr('r', d => d.value > 0? rScale(d.value) : 1);
 
 }
