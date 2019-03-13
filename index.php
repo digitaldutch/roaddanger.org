@@ -42,6 +42,19 @@ HTML;
 
   <div id="statistics">
   
+    <div style="margin: 5px 10px;">
+      <div class="filterElement">
+        Periode<br>
+        <select id="filterStatsPeriod" oninput="loadStatistics();">
+          <option value="7days">7 dagen</option> 
+          <option value="30days">30 dagen</option> 
+          <option value="decorrespondent">De Correspondent week</option> 
+          <option value="2019">2019</option> 
+          <option value="all" selected>Alles</option> 
+        </select>
+      </div>
+    </div>
+
     <div id="graphPartners" style="position: relative;"></div>
    
   </div>
@@ -64,8 +77,9 @@ HTML;
           <option value="today">Vandaag</option> 
           <option value="yesterday">Gisteren</option> 
           <option value="7days">7 dagen</option> 
-          <option value="decorrespondent">De Correspondent week</option> 
           <option value="30days">30 dagen</option> 
+          <option value="decorrespondent">De Correspondent week</option> 
+          <option value="2019">2019</option> 
           <option value="all" selected>Alles</option> 
         </select>
       </div>

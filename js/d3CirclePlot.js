@@ -1,12 +1,12 @@
 
 
 function CrashPartnerGraph(divID, data, optionsUser=[], onClickPoint=null) {
-  let widthContainer   = 600;
-  let heightContainer  = 400;
-  let margin           = {top: 40, right: 10, bottom: 10, left: 40};
+  let widthContainer   = 700;
+  let heightContainer  = 500;
+  let margin           = {top: 50, left: 50, right: 10, bottom: 10};
   let xLabel           = '';
   let yLabel           = '';
-  const iconWidth      = 20;
+  const iconWidth      = 30;
 
   if (optionsUser) {
     if (optionsUser.width       !== undefined) widthContainer  = optionsUser.width;

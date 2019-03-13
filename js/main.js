@@ -110,7 +110,7 @@ function initMain() {
 
 function initStatistics(){
   const url = new URL(location.href);
-  if (pageType === PageType.statisticsTransportationModes){
+  if ((pageType === PageType.statisticsTransportationModes) || (pageType === PageType.statisticsCrashPartners)){
     const period = url.searchParams.get('period');
     if (period) document.getElementById('filterStatsPeriod').value = period;
   }
@@ -323,10 +323,10 @@ async function loadStatistics(){
   try {
     spinnerLoadCard.style.display = 'block';
 
-    let url      = '/ajax.php?function=getStatistics';
+    let url = '/ajax.php?function=getStatistics';
     if      (pageType === PageType.statisticsTransportationModes) url += '&period=' + document.getElementById('filterStatsPeriod').value;
     else if (pageType === PageType.statisticsGeneral)             url += '&type=general';
-    else if (pageType === PageType.statisticsCrashPartners)       url += '&type=crashPartners';
+    else if (pageType === PageType.statisticsCrashPartners)       url += '&type=crashPartners&period=' + document.getElementById('filterStatsPeriod').value;
 
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
@@ -335,8 +335,12 @@ async function loadStatistics(){
     if (data.error) showError(data.error);
     else {
       if      (pageType === PageType.statisticsGeneral)       showStatisticsGeneral(data.statistics);
-      else if (pageType === PageType.statisticsCrashPartners) showCrashVictimsGraph(data.statistics.crashVictims);
-      else {
+      else if (pageType === PageType.statisticsCrashPartners) {
+        let url = window.location.origin + '/statistieken/andere_partij?period=' + document.getElementById('filterStatsPeriod').value;
+        window.history.replaceState(null, null, url);
+
+        showCrashVictimsGraph(data.statistics.crashVictims);
+      } else {
         let url = window.location.origin + '/statistieken/vervoertypes?period=' + document.getElementById('filterStatsPeriod').value;
         window.history.replaceState(null, null, url);
 

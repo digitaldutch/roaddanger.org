@@ -21,6 +21,7 @@ function getStatsTransportation($database, $period='all'){
     case '7days':           $SQLWhere = ' WHERE DATE (`date`) > SUBDATE(CURDATE(), 7) '; break;
     case 'decorrespondent': $SQLWhere = " WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' "; break;
     case '30days':          $SQLWhere = ' WHERE DATE (`date`) > SUBDATE(CURDATE(), 30) '; break;
+    case '2019':            $SQLWhere = ' AND YEAR (`date`) = 2019 '; break;
     default:                $SQLWhere = '';
   }
 
@@ -61,8 +62,17 @@ SQL;
  * @param TDatabase $database
  * @return array
  */
-function getStatsCrashPartners($database){
-  $victimTransportationMode = (int)getRequest('transportationMode',2);
+function getStatsCrashPartners($database, $period='all'){
+
+  switch ($period) {
+    case 'today':           $SQLWhere = ' AND DATE (`date`) = CURDATE() '; break;
+    case 'yesterday':       $SQLWhere = ' AND DATE (`date`) = SUBDATE(CURDATE(), 1) '; break;
+    case '7days':           $SQLWhere = ' AND DATE (`date`) > SUBDATE(CURDATE(), 7) '; break;
+    case 'decorrespondent': $SQLWhere = " AND DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' "; break;
+    case '30days':          $SQLWhere = ' AND DATE (`date`) > SUBDATE(CURDATE(), 30) '; break;
+    case '2019':            $SQLWhere = ' AND YEAR (`date`) = 2019 '; break;
+    default:                $SQLWhere = '';
+  }
 
   $sqlCrashesWithDeath = <<<SQL
   SELECT
@@ -70,6 +80,7 @@ function getStatsCrashPartners($database){
   FROM accidentpersons ap
   JOIN accidents a ON ap.accidentid = a.id
   WHERE ap.health=3
+    $SQLWhere
 SQL;
 
   // Get all persons from accidents with dead
@@ -979,7 +990,7 @@ else if ($function === 'getStatistics'){
     $type   = getRequest('type','');
 
     if      ($type === 'general')       $stats = getStatsDatabase($database);
-    else if ($type === 'crashPartners') $stats = getStatsCrashPartners($database);
+    else if ($type === 'crashPartners') $stats = getStatsCrashPartners($database, $period);
     else                                $stats = getStatsTransportation($database, $period);
 
     $result = ['ok' => true,
