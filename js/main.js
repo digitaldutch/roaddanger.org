@@ -184,11 +184,11 @@ function showCrashVictimsGraph(crashVictims){
   });
 
   const options = {
-    xLabel: 'Andere partij',
+    xLabel: 'Tegenpartij',
     yLabel: 'Slachtoffers (doden)',
   };
 
-  graph = new CircleGraph('graphPartners', points, options,
+  graph = new CrashPartnerGraph('graphPartners', points, options,
     data => showPartnerCrashes(data.victimMode, data.partnerMode)
     );
 }
@@ -1827,7 +1827,7 @@ function initSearchBar(){
   <div class="iconMedium ${iconTransportationMode}" data-tippy-content="${text}"></div>
   <span id="searchDeadTm${transportationMode}" class="searchIcon bgDead" data-tippy-content="Dood" onclick="searchPersonOptionClick(event, 'Dead', ${transportationMode});"></span>      
   <span id="searchInjuredTm${transportationMode}" class="searchIcon bgInjured" data-tippy-content="Gewond" onclick="searchPersonOptionClick(event, 'Injured', ${transportationMode});"></span>      
-  <span id="searchRestrictedTm${transportationMode}" data-personRestricted class="searchIcon ${iconTransportationMode} mirrorHorizontally" data-tippy-content="Andere partij was ook ${text}" onclick="searchPersonOptionClick(event, 'Restricted', ${transportationMode});"></span>      
+  <span id="searchRestrictedTm${transportationMode}" data-personRestricted class="searchIcon ${iconTransportationMode} mirrorHorizontally" data-tippy-content="Tegenpartij was ook ${text}" onclick="searchPersonOptionClick(event, 'Restricted', ${transportationMode});"></span>      
   <span id="searchUnilateralTm${transportationMode}" data-personUnilateral class="searchIcon bgUnilateral" data-tippy-content="Eenzijdig ongeluk" onclick="searchPersonOptionClick(event, 'Unilateral', ${transportationMode});"></span>      
 </div>`;
   }
@@ -1910,7 +1910,7 @@ function updateTransportationModeFilterInput(){
 
       const restrictedSelected = document.getElementById('searchRestrictedTm' + transportationMode).classList.contains('inputSelectButtonSelected');
       if (restrictedSelected){
-        html += `<span class="searchDisplayIcon  ${icon} mirrorHorizontally" data-tippy-content="Andere partij was ook ${transportationText}"></span>`;
+        html += `<span class="searchDisplayIcon  ${icon} mirrorHorizontally" data-tippy-content="Tegenpartij was ook ${transportationText}"></span>`;
       }
 
       const unilateralSelected = document.getElementById('searchUnilateralTm' + transportationMode).classList.contains('inputSelectButtonSelected');

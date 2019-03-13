@@ -1,6 +1,6 @@
 
 
-function CircleGraph(divID, data, optionsUser=[], onClickPoint=null) {
+function CrashPartnerGraph(divID, data, optionsUser=[], onClickPoint=null) {
   let widthContainer   = 600;
   let heightContainer  = 400;
   let margin           = {top: 40, right: 10, bottom: 10, left: 40};
@@ -11,7 +11,6 @@ function CircleGraph(divID, data, optionsUser=[], onClickPoint=null) {
   if (optionsUser) {
     if (optionsUser.width       !== undefined) widthContainer  = optionsUser.width;
     if (optionsUser.height      !== undefined) heightContainer = optionsUser.height;
-    if (optionsUser.margin      !== undefined) margin          = optionsUser.margin;
     if (optionsUser.xLabel      !== undefined) xLabel          = optionsUser.xLabel;
     if (optionsUser.yLabel      !== undefined) yLabel          = optionsUser.yLabel;
   }
@@ -25,8 +24,10 @@ function CircleGraph(divID, data, optionsUser=[], onClickPoint=null) {
   // Create new graph
   let svg = d3.select('#' + divID)
     .append('svg')
-    .attr('width',  widthContainer)
-    .attr('height', heightContainer);
+    .attr('id', 'svgGraph')
+    // Make SVG responsive by preserving aspect ratio,  adding viewbox and omitting width and height attributes
+    .attr("preserveAspectRatio", "xMinYMin meet")
+    .attr("viewBox", `0 0 ${widthContainer} ${heightContainer}`)
 
   let layerGraph = svg.append('svg')
     .attr('x', margin.left)
@@ -66,22 +67,22 @@ function CircleGraph(divID, data, optionsUser=[], onClickPoint=null) {
   // x-axis image ticks
   svg.select('.x-axis').selectAll('text').remove();
   svg.selectAll('.x-axis .tick').data(partnerModes)
-      .append('image')
-      .attr('xlink:href', d => '/images/' + getModeImage(parseInt(d)))
-      .attr('x', -10 + 'px')
-      .attr('y', (-iconWidth + 5) + 'px')
-      .attr('width', iconWidth)
-      .attr('height',iconWidth);
+    .append('image')
+    .attr('xlink:href', d => '/images/' + getModeImage(parseInt(d)))
+    .attr('x',          -10 + 'px')
+    .attr('y',          (-iconWidth + 5) + 'px')
+    .attr('width',      iconWidth)
+    .attr('height',     iconWidth);
 
   // y-axis image ticks
   svg.select('.y-axis').selectAll('text').remove();
   svg.selectAll('.y-axis .tick').data(victimModes)
-      .append('image')
-      .attr('xlink:href', d => '/images/' + getModeImage(parseInt(d)))
-      .attr('x', (-iconWidth + 5) + 'px')
-      .attr('y', -10 + 'px')
-      .attr('width', iconWidth)
-      .attr('height',iconWidth);
+    .append('image')
+    .attr('xlink:href', d => '/images/' + getModeImage(parseInt(d)))
+    .attr('x', (-iconWidth + 5) + 'px')
+    .attr('y', -10 + 'px')
+    .attr('width', iconWidth)
+    .attr('height',iconWidth);
 
   // Square root scale, because value = area πr2
   let rScale = d3.scaleSqrt()
@@ -132,8 +133,13 @@ function CircleGraph(divID, data, optionsUser=[], onClickPoint=null) {
   };
 
   let mousemove = function(data) {
-    let pointMouse = d3.mouse(this);
-    const modeText = data.partnerMode === -1? 'Eenzijdig ongeluk' : transportationModeText(data.partnerMode);
+    const pointMouse = d3.mouse(this);
+    const svgWidth = d3.select('#' + divID).node().getBoundingClientRect().width;
+    const scaleFactor = svgWidth / widthContainer;
+    pointMouse[0] = pointMouse[0] * scaleFactor;
+    pointMouse[1] = pointMouse[1] * scaleFactor;
+
+    const modeText = data.partnerMode === -1? 'Eenzijdig ongeluk' : 'Tegenpartij: ' + transportationModeText(data.partnerMode);
     let html = modeText + '<br>';
     html += `${data.value} ${transportationModeText(data.victimMode)}`;
     html += data.value === 1? ' dode' : ' doden';
@@ -162,11 +168,16 @@ function CircleGraph(divID, data, optionsUser=[], onClickPoint=null) {
     .append('circle')
       .attr('cx',       d => xScale(d.partnerMode) + xScale.bandwidth()/2)
       .attr('cy',       d => yScale(d.victimMode)  + yScale.bandwidth()/2)
-      .attr('r',        d => d.value > 0? rScale(d.value) : 1)
+      .attr('r',        0)
       .style('fill',    d => d.value > 0? '#df3b34' : '#999999')
       .style('opacity', '0.8')
     .on('mouseover',  mouseover)
     .on('mousemove',  mousemove)
     .on('mouseleave', mouseleave)
-    .on('click',      pointClick);
+    .on('click',      pointClick)
+    .transition()
+      .ease(d3.easeSin)
+      .duration(2000)
+      .attr('r',        d => d.value > 0? rScale(d.value) : 1);
+
 }

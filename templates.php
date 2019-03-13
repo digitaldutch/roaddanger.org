@@ -171,7 +171,7 @@ function getNavigation(){
       <div class="navigationSectionHeader">Statistieken</div>
       <a href="/statistieken/algemeen" class="navItem">Algemeen</a>
       <a href="/statistieken/vervoertypes" class="navItem">Vervoertypes</a>
-      <a href="/statistieken/andere_partij" class="navItem">Andere partij bij doden</a>
+      <a href="/statistieken/andere_partij" class="navItem">Tegenpartij bij doden</a>
     </div>
 
     <div class="navigationSection">
