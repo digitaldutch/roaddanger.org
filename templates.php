@@ -53,7 +53,7 @@ $navigation
   
     <div class="headerMain pageTitle"><a href="/">Het Ongeluk</a></div>
    
-    <div class="topButtons">
+    <div>
       $mainMenuItems
       <div id="loginButton" onclick="loginClick(event);">
         <div id="buttonPerson" class="menuButton bgPerson"></div>

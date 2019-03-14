@@ -60,7 +60,8 @@ function initMain() {
 
   if (title) document.getElementById('pageSubTitle').innerHTML = title;
 
-  if (searchText || searchPeriod || searchSiteName || searchHealthDead || searchPersons) {
+  const searchButtonExists = document.getElementById('buttonSearch');
+  if (searchButtonExists && (searchText || searchPeriod || searchSiteName || searchHealthDead || searchPersons)) {
     document.body.classList.add('searchBody');
     document.getElementById('searchText').value     = searchText;
     if (searchPeriod) document.getElementById('searchPeriod').value   = searchPeriod;
@@ -172,9 +173,7 @@ function showCrashVictimsGraph(crashVictims){
     yLabel: 'Verkeersdoden',
   };
 
-  graph = new CrashPartnerGraph('graphPartners', points, options,
-    data => showPartnerCrashes(data.victimMode, data.partnerMode, document.getElementById('filterStatsPeriod').value)
-    );
+  graph = new CrashPartnerGraph('graphPartners', points, options, document.getElementById('filterStatsPeriod').value);
 }
 
 async function loadStatistics(){
@@ -354,15 +353,6 @@ async function loadStatistics(){
   } finally {
     spinnerLoadCard.style.display = 'none';
   }
-}
-
-function showPartnerCrashes(victimTransportationMode, partnerTransportationMode, period=null) {
-  let url = `/?search=&persons=${victimTransportationMode}d`;
-  if (victimTransportationMode === partnerTransportationMode) url += 'r'; // Restricted
-  else if (partnerTransportationMode === -1) url += 'u'; // Unilateral
-  else url += `,${partnerTransportationMode}`;
-  if (period) url += '&period=' + period;
-  window.location.href = url;
 }
 
 async function loadCrashes(crashID=null, articleID=null){

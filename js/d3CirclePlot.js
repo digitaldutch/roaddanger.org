@@ -1,6 +1,6 @@
 
 
-function CrashPartnerGraph(divID, data, optionsUser=[], onClickPoint=null) {
+function CrashPartnerGraph(divID, data, optionsUser=[], period=null) {
   let widthContainer   = 700;
   let heightContainer  = 500;
   let margin           = {top: 50, left: 50, right: 10, bottom: 10};
@@ -168,20 +168,25 @@ function CrashPartnerGraph(divID, data, optionsUser=[], onClickPoint=null) {
       .attr('r', d => d.value > 0? rScale(d.value) : 1);
   };
 
-  let pointClick = function(data){
-    if (onClickPoint && (data.value > 0)) onClickPoint(data);
-  };
+  const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
   // Data item
   var dataElement = svg.selectAll()
     .data(data)
     .enter()
+    .append("a")
+    .attr("xlink:href", d => {
+      let url = '/?search=&persons=' + d.victimMode + 'd';
+      if (d.victimMode === d.partnerMode) url += 'r'; // Restricted
+      else if (d.partnerMode === -1) url += 'u'; // Unilateral
+      else url += `,${d.partnerMode}`;
+      if (period) url += '&period=' + period;
+      return url;})
     .append("g")
     .attr("transform", d => `translate(${xScale(d.partnerMode) + xScale.bandwidth()/2}, ${yScale(d.victimMode) + yScale.bandwidth()/2})`)
     .on('mouseover',  mouseover)
-    .on('mousemove',  mousemove)
-    .on('mouseleave', mouseleave)
-    .on('click',      pointClick);
+    .on('mousemove',  iOS? null : mousemove)
+    .on('mouseleave', mouseleave);
 
   // Data circles
   dataElement.append('circle')
@@ -201,6 +206,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], onClickPoint=null) {
     .attr('dx', 0)
     .attr('text-anchor', 'middle')
     .attr('alignment-baseline', 'central')
+    .attr('dominant-baseline', 'middle')
     // Smaller font if it does not fit the circle
     .style('font-size', d => rScale(d.value) > 6? '10px' : '8px')
     .style('fill', '#ffffff')
