@@ -63,7 +63,7 @@ function initMain() {
   const searchButtonExists = document.getElementById('buttonSearch');
   if (searchButtonExists && (searchText || searchPeriod || searchSiteName || searchHealthDead || searchPersons)) {
     document.body.classList.add('searchBody');
-    document.getElementById('searchText').value     = searchText;
+    document.getElementById('searchText').value = searchText;
     if (searchPeriod) document.getElementById('searchPeriod').value   = searchPeriod;
     document.getElementById('searchSiteName').value = searchSiteName;
     if (searchHealthDead) document.getElementById('searchPersonHealthDead').classList.add('buttonSelectedBlue');
