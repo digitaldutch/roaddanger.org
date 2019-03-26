@@ -48,6 +48,10 @@ function CrashPartnerGraph(divID, data, optionsUser=[], period=null) {
     .domain(victimModes.reverse())
     .range([heightContainer - margin.bottom, margin.top]);
 
+  let colorScale = d3.scaleLinear()
+    .domain(valueExtent)
+    .range(["#f5977b", "#ff0000"]);
+
   // x-axis
   svg.append('g')
     .attr('class', 'x-axis')
@@ -69,7 +73,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], period=null) {
   svg.selectAll('.x-axis .tick').data(partnerModes)
     .append('image')
     .attr('xlink:href', d => '/images/' + getModeImage(parseInt(d)))
-    .attr('x',          -10 + 'px')
+    .attr('x',          (-iconWidth / 2) + 'px')
     .attr('y',          (-iconWidth + 5) + 'px')
     .attr('width',      iconWidth)
     .attr('height',     iconWidth);
@@ -79,8 +83,8 @@ function CrashPartnerGraph(divID, data, optionsUser=[], period=null) {
   svg.selectAll('.y-axis .tick').data(victimModes)
     .append('image')
     .attr('xlink:href', d => '/images/' + getModeImage(parseInt(d)))
-    .attr('x', (-iconWidth + 5) + 'px')
-    .attr('y', -10 + 'px')
+    .attr('x', (-iconWidth / 2 - 10) + 'px')
+    .attr('y', (-iconWidth / 2) + 'px')
     .attr('width', iconWidth)
     .attr('height',iconWidth);
 
@@ -192,7 +196,8 @@ function CrashPartnerGraph(divID, data, optionsUser=[], period=null) {
   dataElement.append('circle')
     .attr('class', 'data-circle')
     .attr('r',        0)
-    .style('fill',    d => d.value > 0? '#df3b34' : '#999999')
+    // .style('fill',    d => d.value > 0? '#df3b34' : '#999999')
+    .style('fill',    d => d.value > 0? colorScale(d.value) : '#999999')
     .style('opacity', 0.8)
     .transition()
     .ease(d3.easeSin)
