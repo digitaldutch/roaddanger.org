@@ -196,7 +196,7 @@ async function adminDeleteUser() {
 function afterLoginAction(){
   window.location.reload();
 }
-m
+
 async function saveOptions() {
   const url = '/beheer/ajax.php?function=saveOptions';
   const options = {

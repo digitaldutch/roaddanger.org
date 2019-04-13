@@ -12,7 +12,8 @@ const TTransportationMode = Object.freeze({
 const THealth             = Object.freeze({unknown: 0, unharmed: 1, injured: 2, dead: 3});
 const TStreamTopType      = Object.freeze({unknown: 0, edited: 1, articleAdded: 2, placedOnTop: 3});
 
-const fetchOptions = { // Required for Safari. Safari sets the credentials by default to none, resulting in no cookies being sent and login failure in the AJAX script :(
+// Required for Safari. Safari sets the credentials by default to none, resulting in no cookies being sent and login failure in the AJAX script :(
+const fetchOptions = {
   method:      'GET',
   headers:     {'Content-Type': 'application/json', 'Cache': 'no-cache'},
   credentials: 'same-origin',
@@ -805,4 +806,14 @@ function formatText(text) {
   text = escapeHtml(text);
   text = text.replace(/(?:\r\n{2,}|\r{2,}|\n{2,})/g, '<br><br>');
   return text;
+}
+
+function download(uri, filename) {
+  var element = document.createElement('a');
+  element.setAttribute('href', uri);
+  element.setAttribute('download', filename);
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
 }

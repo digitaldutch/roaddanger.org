@@ -119,8 +119,8 @@ HTML;
     Dit export bestand bevat niet de volledige artikel teksten. Voor onderzoekers zijn deze wel beschikbaar. 
     Email ons (<a href="mailto:info@hetongeluk.nl">info@hetongeluk.nl</a>) als u daar belangstelling voor heeft.
     </div> 
-    <div class="buttonBar">
-      <button class="button" style="margin-left: 0;" onclick="downloadData();">Download data</button>
+    <div class="buttonBar" style="justify-content: flex-start; margin-bottom: 30px;">
+      <button class="button" style="margin-left: 0;" onclick="downloadData();">Download alle data in gzip JSON formaat</button>
     </div>  
     <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
     
@@ -140,7 +140,16 @@ HTML;
       <tr><th>id</th><th>naam</th></tr>
       </thead>
       <tbody id="tbodyHealth"></tbody>
-    </table>        
+    </table>
+    
+    <div id="dataCorrespondent" class="sectionTitle">De Correspondent week</div>
+    <div>Dit is een *.csv bestand van alle ongelukken in De Correspondent week.
+    </div> 
+    <div class="buttonBar" style="justify-content: flex-start; margin-bottom: 30px;">
+      <button class="button" style="margin-left: 0;" onclick="downloadCorrespondentData();">Download De Correspondent week data in *.csv formaat</button>
+    </div>  
+    <div id="spinnerDownloadDeCorrespondentData" class="spinnerLine"><img src="/images/spinner.svg"></div>
+        
   </div>
 </div>
 HTML;
