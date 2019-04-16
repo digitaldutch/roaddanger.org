@@ -1304,6 +1304,11 @@ a {
   transform: scaleX(-1);
 }
 
+#map {
+  height: 250px;
+  margin-top: 10px;
+}
+
 @media (max-width: 750px) {
   .hideOnMobile {
     display: none !important;

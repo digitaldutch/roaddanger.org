@@ -22,6 +22,13 @@ function datetimeDBToISO8601($datetimeDB){
   return $datetime->format('c'); // ISO 8601
 }
 
+function editableCrashPage($pageType){
+  return in_array($pageType, [PageType::recent, PageType::stream, PageType::deCorrespondent, PageType::crash, PageType::moderations]);
+}
+
+function showIntroMessagePage($pageType){
+  return in_array($pageType, [PageType::recent, PageType::stream, PageType::deCorrespondent]);
+}
 
 function headerContainsGZIP($headersRaw){
   function parseHeaders($headers) {

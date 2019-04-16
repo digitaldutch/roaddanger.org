@@ -260,7 +260,7 @@ HTML;
 
 function getFormEditCrash(){
   return <<<HTML
-<div id="formEditCrash" class="popupOuter" onclick="closePopupForm();">
+<div id="formEditCrash" class="popupOuter">
 
   <form class="formFullPage" onclick="event.stopPropagation();">
     
@@ -349,6 +349,16 @@ function getFormEditCrash(){
           <span id="editCrashTree" style="display: none;" class="menuButton bgTree" data-tippy-content="Boom/Paal" onclick="toggleSelectionButton(this);"></span>
         </div>
       </div>
+      
+      <div style="margin-top: 5px;">
+        <div>Locatie <span class="iconTooltip" data-tippy-content="Niet verplicht. Klik op de kaart om de locatie te selecteren. Klik marker om locatie te verwijderen."></span></div>
+            
+        <label for="editArticleDate">Breedtegraad: <input id="editCrashLatitude" class="popupInput" type="number" style="width: 85px;"></label>        
+        <label for="editArticleDate">Lengtegraad: <input id="editCrashLongitude" class="popupInput" type="number" style="width: 85px;"></label>
+        
+        <div id="map" class="block_img"></div>
+      </div>      
+      
     </div>
             
     <div class="popupFooter">

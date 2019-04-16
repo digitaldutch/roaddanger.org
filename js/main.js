@@ -7,6 +7,8 @@ let watchEndOfPage   = false;
 let spinnerLoadCard;
 let pageType;
 let graph;
+let map;
+let mapMarker;
 let PageType = Object.freeze({
   stream:                        0,
   crash:                         1,
@@ -886,6 +888,8 @@ function showEditCrashForm(event) {
   document.getElementById('editCrashTitle').value       = '';
   document.getElementById('editCrashText').value        = '';
   document.getElementById('editCrashDate').value        = '';
+  document.getElementById('editCrashLatitude').value    = '';
+  document.getElementById('editCrashLongitude').value   = '';
 
   document.getElementById('editCrashUnilateral').classList.remove('buttonSelected');
   document.getElementById('editCrashPet').classList.remove('buttonSelected');
@@ -905,6 +909,8 @@ function showEditCrashForm(event) {
 
   document.querySelectorAll('[data-readonlyhelper]').forEach(d => {d.readOnly = ! user.moderator;});
   document.querySelectorAll('[data-hidehelper]').forEach(d => {d.style.display = ! user.moderator? 'none' : 'flex';});
+
+  showMap();
 }
 
 function addEditPersonButtons(){
@@ -1069,11 +1075,13 @@ function setNewArticleCrashFields(crashID){
   // Shallow copy
   editCrashPersons = clone(crash.persons);
 
-  document.getElementById('crashIDHidden').value           = crash.id;
+  document.getElementById('crashIDHidden').value      = crash.id;
 
-  document.getElementById('editCrashTitle').value          = crash.title;
-  document.getElementById('editCrashText').value           = crash.text;
-  document.getElementById('editCrashDate').value           = dateToISO(crashDatetime);
+  document.getElementById('editCrashTitle').value     = crash.title;
+  document.getElementById('editCrashText').value      = crash.text;
+  document.getElementById('editCrashDate').value      = dateToISO(crashDatetime);
+  document.getElementById('editCrashLatitude').value  = crash.latitude;
+  document.getElementById('editCrashLongitude').value = crash.longitude;
 
   selectButton('editCrashUnilateral',  crash.unilateral);
   selectButton('editCrashPet',         crash.pet);
@@ -1081,6 +1089,8 @@ function setNewArticleCrashFields(crashID){
   selectButton('editCrashTree',        crash.tree);
 
   refreshCrashPersonsGUI(crash.persons);
+
+  showMap(crash.latitude, crash.longitude);
 }
 
 function openArticleLink(event, articleID) {
@@ -1142,7 +1152,7 @@ function addArticleToCrash(crashID) {
   showEditCrashForm();
   setNewArticleCrashFields(crashID);
 
-  document.getElementById('editHeader').innerText              = 'Artikel toevoegen';
+  document.getElementById('editHeader').innerText           = 'Artikel toevoegen';
   document.getElementById('editCrashSection').style.display = 'none';
 }
 
@@ -1326,11 +1336,21 @@ async function saveArticleCrash(){
     if (! articleEdited.date)                         {showError('Geen artikel datum ingevuld'); return;}
   }
 
+  let latitude  = document.getElementById('editCrashLatitude').value;
+  let longitude = document.getElementById('editCrashLongitude').value;
+  latitude  = latitude?  parseFloat(latitude)  : null;
+  longitude = longitude? parseFloat(longitude) : null;
+
+  // Both latitude and longitude need to be defined or they both are set to null
+  if (! latitude)  longitude = null;
+  if (! longitude) latitude  = null;
   crashEdited = {
     id:         document.getElementById('crashIDHidden').value,
     title:      document.getElementById('editCrashTitle').value,
     text:       document.getElementById('editCrashText').value,
     date:       document.getElementById('editCrashDate').value,
+    latitude:   latitude,
+    longitude:  longitude,
     persons:    editCrashPersons,
     unilateral: document.getElementById('editCrashUnilateral').classList.contains('buttonSelected'),
     pet:        document.getElementById('editCrashPet').classList.contains('buttonSelected'),
@@ -1368,8 +1388,7 @@ async function saveArticleCrash(){
     const editingCrash = crashEdited.id !== '';
 
     // No reload only if editing crash. Other cases for now give problems and require a full page reload.
-    const isCrashPage = ((pageType === PageType.crash) || pageIsCrashList());
-    if (editingCrash && isCrashPage) {
+    if (editingCrash && pageIsCrashPage(pageType)) {
       if (saveCrash){
         // Save changes in crashes cache
         let i = crashes.findIndex(crash => {return crash.id === crashEdited.id});
@@ -1377,6 +1396,8 @@ async function saveArticleCrash(){
         crashes[i].text       = crashEdited.text;
         crashes[i].persons    = crashEdited.persons;
         crashes[i].date       = new Date(crashEdited.date);
+        crashes[i].latitude   = crashEdited.latitude;
+        crashes[i].longitude  = crashEdited.longitude;
         crashes[i].unilateral = crashEdited.unilateral;
         crashes[i].pet        = crashEdited.pet;
         crashes[i].tree       = crashEdited.tree;
@@ -1425,6 +1446,10 @@ function showArticleMenu(event, articleDivId) {
 
 function pageIsCrashList(){
   return [PageType.recent, PageType.stream, PageType.mosaic, PageType.deCorrespondent, PageType.moderations].indexOf(pageType) >= 0;
+}
+
+function pageIsCrashPage(){
+  return (pageType === PageType.crash) || pageIsCrashList();
 }
 
 function showCrashMenu(event, crashDivID) {
@@ -1979,4 +2004,66 @@ function downloadCorrespondentData() {
   }
 
   confirmMessage('Ongelukken uit De Correspondent week exporteren in *.csv formaat?', doDownload, 'Download');
+}
+
+function showMap(latitude, longitude) {
+
+  function saveMarkerPosition(latlng){
+    document.getElementById('editCrashLatitude').value  = latlng.lat.toFixed(6);
+    document.getElementById('editCrashLongitude').value = latlng.lng.toFixed(6);
+  }
+
+  function setMarker(latitude, longitude){
+    if (mapMarker) mapMarker.setLatLng(new L.LatLng(latitude, longitude));
+    else mapMarker = L.marker([latitude, longitude], {draggable:true}).addTo(map)
+      .on('click', () => {
+        confirmMessage(`Locatie verwijderen?`, () => {
+          document.getElementById('editCrashLatitude').value  = '';
+          document.getElementById('editCrashLongitude').value = '';
+
+          deleteMarker();
+        })
+      }
+    )
+    .on('dragend', function(e) {
+      saveMarkerPosition(e.target._latlng);
+    });
+  }
+
+  function deleteMarker(){
+    if (mapMarker){
+      map.removeLayer(mapMarker);
+      mapMarker = null;
+    }
+  }
+
+  let latitudeNL  = 52.16;
+  let longitudeNL = 5.41;
+  let zoomLevel   = 6;
+  let showMarker = true;
+  if (! latitude || ! longitude) {
+    latitude   = latitudeNL;
+    longitude  = longitudeNL;
+    showMarker = false;
+    deleteMarker();
+  }
+
+  if (! map){
+    map = L.map('map').setView([latitudeNL, longitudeNL], zoomLevel);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',  {
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom:     18,
+      crossOrigin: true
+    }).addTo(map);
+
+    map.on('click', function(e){
+      saveMarkerPosition(e.latlng);
+      setMarker(e.latlng.lat, e.latlng.lng);
+    });
+
+  } else {
+    map.setView([latitude, longitude], zoomLevel);
+  }
+
+  if (showMarker) setMarker(latitude, longitude);
 }

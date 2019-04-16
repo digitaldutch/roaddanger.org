@@ -83,7 +83,7 @@ function getStatsCrashPartners($database, $period='all'){
     $SQLWhere
 SQL;
 
-  // Get all persons from accidents with dead
+  // Get all persons from crashes with dead
   $sql = <<<SQL
 select
   a.id AS accidentid,
@@ -446,6 +446,8 @@ SELECT DISTINCT
   ac.title,
   ac.text,
   ac.date,
+  ac.latitude,
+  ac.longitude,
   ac.unilateral,
   ac.pet, 
   ac.trafficjam, 
@@ -722,6 +724,8 @@ else if ($function === 'saveArticleCrash'){
       title           = :title,
       text            = :text,
       date            = :date,
+      latitude        = :latitude,
+      longitude       = :longitude,
       unilateral      = :unilateral,
       pet             = :pet,
       trafficjam      = :trafficjam,
@@ -734,6 +738,8 @@ SQL;
           ':title'                 => $crash['title'],
           ':text'                  => $crash['text'],
           ':date'                  => $crash['date'],
+          ':latitude'              => empty($crash['latitude'])?  null : $crash['latitude'],
+          ':longitude'             => empty($crash['longitude'])? null : $crash['longitude'],
           ':unilateral'            => $crash['unilateral'],
           ':pet'                   => $crash['pet'],
           ':trafficjam'            => $crash['trafficjam'],
@@ -747,8 +753,8 @@ SQL;
         // New crash
 
         $sql = <<<SQL
-    INSERT INTO accidents (userid, awaitingmoderation, title, text, date, unilateral, pet, trafficjam, tree)
-    VALUES (:userid, :awaitingmoderation, :title, :text, :date, :unilateral, :pet, :trafficjam, :tree);
+    INSERT INTO accidents (userid, awaitingmoderation, title, text, date, latitude, longitude, unilateral, pet, trafficjam, tree)
+    VALUES (:userid, :awaitingmoderation, :title, :text, :date, :latitude, :longitude, :unilateral, :pet, :trafficjam, :tree);
 SQL;
 
         $params = array(
@@ -757,6 +763,8 @@ SQL;
           ':title'                 => $crash['title'],
           ':text'                  => $crash['text'],
           ':date'                  => $crash['date'],
+          ':latitude'              => $crash['latitude'],
+          ':longitude'             => $crash['longitude'],
           ':unilateral'            => $crash['unilateral'],
           ':pet'                   => $crash['pet'],
           ':trafficjam'            => $crash['trafficjam'],
@@ -1011,70 +1019,6 @@ else if ($function === 'getStatistics'){
     $result = ['ok' => true,
       'statistics' => $stats,
       'user'       => $user->info()
-    ];
-  } catch (Exception $e){
-    $result = ['ok' => false, 'error' => $e->getMessage()];
-  }
-  echo json_encode($result);
-} //==========
-else if ($function === 'downloadData'){
-  try{
-    $maxCount = 1;
-
-    $sql = <<<SQL
-SELECT
-  id,
-  groupid,
-  transportationmode,
-  health,
-  child,
-  underinfluence,
-  hitrun
-FROM accidentpersons
-WHERE accidentid=:accidentid
-SQL;
-    $DBStatementPersons = $database->prepare($sql);
-
-    $sql = <<<SQL
-SELECT DISTINCT 
-  ac.id,
-  ac.title,
-  ac.text,
-  ac.date,
-  ac.unilateral, 
-  ac.pet, 
-  ac.trafficjam 
-FROM accidents ac
-ORDER BY date DESC 
-LIMIT $maxCount
-SQL;
-
-    $DBResults = $database->fetchAll($sql);
-    foreach ($DBResults as $crash) {
-      $crash['id']         = (int)$crash['id'];
-      $crash['unilateral'] = (int)$crash['unilateral'];
-      $crash['pet']        = (int)$crash['pet'];
-      $crash['trafficjam'] = (int)$crash['trafficjam'];
-
-      // Load persons
-      $crash['persons'] = [];
-      $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['accidentid' => $crash['id']]);
-      foreach ($DBPersons as $person) {
-        $person['groupid']            = isset($person['groupid'])? (int)$person['groupid'] : null;
-        $person['transportationmode'] = (int)$person['transportationmode'];
-        $person['health']             = isset($person['health'])? (int)$person['health'] : null;
-        $person['child']              = (int)$person['child'];
-        $person['underinfluence']     = (int)$person['underinfluence'];
-        $person['hitrun']             = (int)$person['hitrun'];
-
-        $crash['persons'][] = $person;
-      }
-
-      $ids[] = $crash['id'];
-      $crashes[] = $crash;
-    }
-
-    $result = ['ok' => true, 'data' => $crashes
     ];
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];

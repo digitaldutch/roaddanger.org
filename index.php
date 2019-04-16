@@ -22,6 +22,10 @@ if ($pageType === PageType::statisticsCrashPartners){
   $head .= "<script src='/scripts/d3.v5.js?v=$VERSION'></script><script src='/js/d3CirclePlot.js?v=$VERSION'></script>";
 }
 
+if (editableCrashPage($pageType)) {
+  $head .= "<link rel='stylesheet' href='https://unpkg.com/leaflet@1.3.1/dist/leaflet.css' integrity='sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ==' crossorigin=''/>";
+  $head .= "<script src='https://unpkg.com/leaflet@1.3.1/dist/leaflet.js' integrity='sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw==' crossorigin=''></script>";
+}
 
 if (strpos($_SERVER['REQUEST_URI'], '/statistieken/algemeen') === 0) {
   $mainHTML = <<<HTML
@@ -158,7 +162,7 @@ HTML;
   $generalMessage = $database->fetchSingleValue("SELECT value FROM options WHERE name='globalMessage';");
   $messageHTML    = formatMessage($generalMessage);
 
-  $introText = "<div id='pageSubTitle' class='pageSubTitle'>$title</div>";
+  $introText = "<div id='pageSubTitle' class='pageSubTitle'></div>";
 
   if (isset($generalMessage) && in_array($pageType, [PageType::recent, PageType::stream, PageType::deCorrespondent, PageType::crash])) {
     $introText .= "<div class='sectionIntro'>$messageHTML</div>";

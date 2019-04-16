@@ -817,3 +817,4 @@ function download(uri, filename) {
   element.click();
   document.body.removeChild(element);
 }
+
