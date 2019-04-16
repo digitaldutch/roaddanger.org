@@ -351,7 +351,7 @@ function getFormEditCrash(){
       </div>
       
       <div style="margin-top: 5px;">
-        <div>Locatie <span class="iconTooltip" data-tippy-content="Niet verplicht. Klik op de kaart om de locatie te selecteren. Klik marker om locatie te verwijderen."></span></div>
+        <div>Locatie <span class="smallFont">(Optioneel)</span> <span class="iconTooltip" data-tippy-content="Optioneel, omdat het lastig is om deze uit tekst of foto's te halen. Klik op kaart om een locatie te selecteren. Klik marker om locatie te verwijderen. Sleep marker om locatie aan te passen."></span></div>
             
         <label for="editArticleDate">Breedtegraad: <input id="editCrashLatitude" class="popupInput" type="number" style="width: 85px;"></label>        
         <label for="editArticleDate">Lengtegraad: <input id="editCrashLongitude" class="popupInput" type="number" style="width: 85px;"></label>
