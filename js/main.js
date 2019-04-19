@@ -2069,5 +2069,7 @@ function showMap(latitude, longitude) {
 }
 
 function showCrashPartnerInfo(){
-  document.getElementById('crashPartnerInfo').style.display = 'block';
+  let element = document.getElementById('crashPartnerInfo');
+
+  element.style.display = (element.style.display === 'block')? 'none' : 'block';
 }
