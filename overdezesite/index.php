@@ -43,7 +43,7 @@ We tellen iemand als gewond als die als "gewond" wordt benoemd in een bericht of
 We tellen de doden zoals die benoemd worden in de berichten. 
 </p>
 
-<div class="sectionTitle">Kloppen de cijfers met de werkelijkheid?</div>
+<a name="numbers"></a><div class="sectionTitle">Kloppen de cijfers met de werkelijkheid?</div>
 <p>
 Deze website is nadrukkelijk in aanbouw en op allerlei manieren onvolledig. De aandacht ligt bij de berichtgeving rondom verkeersongevallen en de taal die daarin gebruikt wordt.
 </p>

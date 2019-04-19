@@ -42,7 +42,9 @@ HTML;
 } else if (strpos($_SERVER['REQUEST_URI'], '/statistieken/andere_partij') === 0) {
   $mainHTML = <<<HTML
 <div class="pageInner">
-  <div class="pageSubTitle">Doden in het verkeer en hun tegenpartij<span class="iconTooltip" data-tippy-content="Dit zijn de cijfers over de ongelukken tot nog toe in de database."></span></div>
+  <div class="pageSubTitle">Doden in het verkeer en hun tegenpartij
+    <span id="tippyCrashPartner" class="iconTooltip"></span>
+  </div>
 
   <div id="statistics">
   

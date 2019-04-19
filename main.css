@@ -585,6 +585,11 @@ a {
   background-image:    url(/images/info.svg);
 }
 
+.tooltipLink {
+  color:           #FFFFFF;
+  text-decoration: underline;
+}
+
 .buttonSelected {
   opacity:          1;
   background-color: #bbbbbb;
