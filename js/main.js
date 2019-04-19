@@ -90,17 +90,6 @@ function initMain() {
       (pageType === PageType.statisticsCrashPartners)) {
     initStatistics();
     loadStatistics();
-    const textTooltip = `
-In deze live-tabel zie je welke partijen en tegenpartijen betrokken zijn bij verkeersongevallen die het nieuws haalden en op <a href="/" class="tooltipLink">deze website</a> zijn toegevoegd. 
-Je kunt op de cijfers doorklikken om naar de nieuwsberichten te gaan.<br><br>
-
-Dit is een onvolledige live grafiek die representatiever wordt naarmate er meer berichten worden toegevoegd. <a href="/overdezesite" class="tooltipLink">Zo help je mee</a>. 
-Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar 2017 vind je <a href="https://twitter.com/tverka/status/1118898388039348225" class="tooltipLink">hier</a>. Bron: swov/de Correspondent.`;
-
-    tippy('#tippyCrashPartner', {
-      interactive: true,
-      content: textTooltip
-    });
   } else if (pageType === PageType.export){
     initPageUser();
     initExport();
@@ -2077,4 +2066,8 @@ function showMap(latitude, longitude) {
   }
 
   if (showMarker) setMarker(latitude, longitude);
+}
+
+function showCrashPartnerInfo(){
+  document.getElementById('crashPartnerInfo').style.display = 'block';
 }

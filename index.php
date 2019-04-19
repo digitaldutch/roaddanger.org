@@ -42,9 +42,21 @@ HTML;
 } else if (strpos($_SERVER['REQUEST_URI'], '/statistieken/andere_partij') === 0) {
   $mainHTML = <<<HTML
 <div class="pageInner">
-  <div class="pageSubTitle">Doden in het verkeer en hun tegenpartij
-    <span id="tippyCrashPartner" class="iconTooltip"></span>
+
+  <div style="display: flex; flex-direction: column; align-items: center">
+    <div style="text-align: left;">
+      <div class="pageSubTitleFont">Doden in het verkeer en hun tegenpartij</div>
+      <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="showCrashPartnerInfo();">Zo help je de representativiteit van deze tabel te verbeteren.</div>
+    </div>
   </div>
+  
+  <div id="crashPartnerInfo" style="display: none; margin: 10px 0;">
+In deze live-tabel zie je welke partijen en tegenpartijen betrokken zijn bij verkeersongevallen die het nieuws haalden en op <a href="/">deze website</a> zijn toegevoegd. 
+Je kunt op de cijfers doorklikken om naar de nieuwsberichten te gaan.<br><br>
+
+Dit is een onvolledige live grafiek die representatiever wordt naarmate er meer berichten worden toegevoegd. <a href="/overdezesite">Zo help je mee</a>. 
+Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar 2017 vind je <a href="https://twitter.com/tverka/status/1118898388039348225">hier</a>. Bron: swov/de Correspondent.  
+</div>
 
   <div id="statistics">
   
