@@ -99,13 +99,10 @@ SQL;
 
 
   $crashVictims = [];
-  $crashPartners  = [];
   $crashes = $database->fetchAllGroup($sql);
   foreach ($crashes as $crashPersons) {
-    $victimCount          = 0;
     $crashDeaths              = [];
     $crashTransportationModes = [];
-    $crashPartnersModes       = [];
     $unilateralCrash          = false;
 
     // get crash dead persons
