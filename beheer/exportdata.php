@@ -58,6 +58,8 @@ SELECT DISTINCT
   ac.title,
   ac.text,
   ac.date,
+  ac.latitude,
+  ac.longitude,
   ac.unilateral, 
   ac.pet, 
   ac.trafficjam 
@@ -69,6 +71,8 @@ SQL;
       $DBResults = $database->fetchAll($sql);
       foreach ($DBResults as $crash) {
         $crash['id']         = (int)$crash['id'];
+        $crash['latitude']   = isset($crash['latitude'])? floatval($crash['latitude']) : null;
+        $crash['longitude']  = isset($crash['longitude'])? floatval($crash['longitude']) : null;
         $crash['unilateral'] = (int)$crash['unilateral'];
         $crash['pet']        = (int)$crash['pet'];
         $crash['trafficjam'] = (int)$crash['trafficjam'];

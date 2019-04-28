@@ -70,12 +70,14 @@ create table accidents
   title varchar(500) not null,
   text varchar(500) null,
   date date null,
-  website varchar(1000) null,
-  pet tinyint(1) default 0 null,
+  latitude decimal(9,6) null,
+  longitude decimal(9,6) null,
   tree tinyint(1) default 0 null,
   trafficjam tinyint(1) default 0 null,
   unilateral tinyint(1) null,
   hitrun tinyint(1) default 0 null,
+  website varchar(1000) null,
+  pet tinyint(1) default 0 null,
   constraint posts_id_uindex
     unique (id),
   constraint posts___fk_user
