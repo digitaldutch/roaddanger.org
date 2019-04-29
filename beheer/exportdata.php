@@ -124,8 +124,7 @@ SQL;
     $filename = 'hetongeluk_nl_crashes_correspondent_week.csv';
 
     // Recreate backup if existing backup file older than 24 hours
-    if (true) {
-//    if ((!file_exists($filename)) || (time()-filemtime($filename) > 24 * 3600)) {
+    if ((!file_exists($filename)) || (time()-filemtime($filename) > 24 * 3600)) {
       $maxRows = 10000;
 
       $sql = <<<SQL
@@ -155,6 +154,7 @@ ORDER BY date DESC
 LIMIT 0, $maxRows
 SQL;
 
+      $crashes = [];
       $DBResults = $database->fetchAll($sql);
       foreach ($DBResults as $crash) {
         $crash['id']         = (int)$crash['id'];
@@ -252,6 +252,61 @@ SQL;
            $crash['wheelchair']                . ',' .
            $crash['mopedCar']                  . ',' .
            "\r\n";
+      }
+      file_put_contents($filename, $csv);
+    }
+
+    $result = ['ok' => true, 'filename' => $filename];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} else if ($function === 'downloadCorrespondentWeekArticles'){
+  try{
+
+    $filename = 'hetongeluk_nl_articles_correspondent_week.csv';
+
+    // Recreate backup if existing backup file older than 24 hours
+    if (true) {
+//    if ((!file_exists($filename)) || (time()-filemtime($filename) > 24 * 3600)) {
+      $maxRows = 10000;
+
+      $sql = <<<SQL
+SELECT DISTINCT 
+  a.id,
+  a.accidentid,
+  a.publishedtime,
+  a.title,
+  a.sitename, 
+  a.url, 
+  a.urlimage 
+FROM articles a
+WHERE DATE (`publishedtime`) >= '2019-01-14' AND DATE (`publishedtime`) <= '2019-01-20'
+ORDER BY publishedtime DESC 
+LIMIT 0, $maxRows
+SQL;
+
+      $articles = [];
+      $DBResults = $database->fetchAll($sql);
+      foreach ($DBResults as $article) {
+        $article['id']         = (int)$article['id'];
+        $article['accidentid'] = (int)$article['accidentid'];
+        $article['publishedtime'] = datetimeDBToISO8601($article['publishedtime']);
+
+        $articles[] = $article;
+      }
+
+      $csv = 'id,accidentid,publishedtime,title,sitename,url,urlimage' . "\r\n";
+      foreach ($articles as $article){
+        $csv .=
+          $article['id']                        . ',' .
+          $article['accidentid']                . ',' .
+          $article['publishedtime']             . ',' .
+          '"' . removeCommas($article['title']) . '",' .
+          removeCommas($article['sitename'])    . ',' .
+          removeCommas($article['url'])         . ',' .
+          removeCommas($article['urlimage'])    .
+          "\r\n";
       }
       file_put_contents($filename, $csv);
     }

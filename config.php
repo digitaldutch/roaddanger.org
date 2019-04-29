@@ -1,7 +1,7 @@
 <?php
 
-$VERSION      = 285;
-$VERSION_DATE = '28 april 2019';
+$VERSION      = 287;
+$VERSION_DATE = '29 april 2019';
 
 require_once 'configsecret.php';
 
@@ -12,7 +12,13 @@ require_once 'configsecret.php';
 //define('DB_USER',     '');
 //define('DB_PASSWORD', '');
 
-// Other stuff
+// Other settings
 define('DOMAIN_NAME',   'hetongeluk.nl');
 define('DOMAIN_EMAIL',  'info@hetongeluk.nl');
 define('SERVER_DOMAIN', 'https://www.' . DOMAIN_NAME);
+
+// Default interface language
+//   en: English
+//   nl: Dutch
+define('DEFAULT_LANGUAGE', 'nl');
+

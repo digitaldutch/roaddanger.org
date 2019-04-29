@@ -2006,6 +2006,26 @@ function downloadCorrespondentData() {
   confirmMessage('Ongelukken uit De Correspondent week exporteren in *.csv formaat?', doDownload, 'Download');
 }
 
+function downloadCorrespondentDataArticles() {
+  async function doDownload(){
+    const spinner = document.getElementById('spinnerDownloadDeCorrespondentData');
+    spinner.style.display = 'block';
+    try {
+      let url          = '/beheer/exportdata.php?function=downloadCorrespondentWeekArticles';
+      const response   = await fetch(url, fetchOptions);
+      const text       = await response.text();
+      const data       = JSON.parse(text);
+
+      url = '/beheer/' + data.filename;
+      download(url, data.filename);
+    } finally {
+      spinner.style.display = 'none';
+    }
+  }
+
+  confirmMessage('Artikels uit De Correspondent week exporteren in *.csv formaat?', doDownload, 'Download');
+}
+
 function showMap(latitude, longitude) {
 
   function saveMarkerPosition(latlng){

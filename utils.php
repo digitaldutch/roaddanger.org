@@ -22,6 +22,27 @@ function datetimeDBToISO8601($datetimeDB){
   return $datetime->format('c'); // ISO 8601
 }
 
+/**
+ * @param string $key
+ * @return string
+ */
+function translate($key) {
+  $lowerKey = strtolower($key);
+
+  if      (isset($GLOBALS['language'][$lowerKey]))        $text = $GLOBALS['language'][$lowerKey];
+  else if (isset($GLOBALS['defaultLanguage'][$lowerKey])) $text = $GLOBALS['defaultLanguage'][$lowerKey] . '¹'; // Untranslated text gets an superscript 1 to make them stand out;
+  else $text = '[Undefined text: ' . $key . ']';
+  return $lowerKey === $key? $text : ucfirst($text);
+}
+
+function translateArray($keys){
+  $texts = [];
+  foreach ($keys as $key){
+    $texts[$key] = translate($key);
+  }
+  return $texts;
+}
+
 function editableCrashPage($pageType){
   return in_array($pageType, [PageType::recent, PageType::stream, PageType::deCorrespondent, PageType::crash, PageType::moderations]);
 }

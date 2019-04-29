@@ -2,6 +2,7 @@
 
 function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $showCrashMenu=false){
   global $VERSION;
+  $defaultLanguage = DEFAULT_LANGUAGE;
 
   $title = 'Het Ongeluk';
   if ($pageTitle !== '') $title = $pageTitle . ' | ' . $title;
@@ -28,7 +29,7 @@ HTML;
 
   return <<<HTML
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="$defaultLanguage"">
 <head>
 <link href="https://fonts.googleapis.com/css?family=Lora|Montserrat" rel="stylesheet">
 <link href="/main.css?v=$VERSION" rel="stylesheet" type="text/css">
@@ -162,6 +163,8 @@ function getNavigation(){
   global $VERSION;
   global $VERSION_DATE;
 
+  $texts = translateArray(['Crashes', 'Statistics']);
+
   return <<<HTML
 <div id="navShadow" class="navShadow" onclick="closeNavigation()"></div>
 <div id="navigation" onclick="closeNavigation();">
@@ -172,7 +175,7 @@ function getNavigation(){
   <div style="overflow-y: auto;">
   
     <div class="navigationSection">
-      <div class="navigationSectionHeader">Ongelukken</div>
+      <div class="navigationSectionHeader">{$texts['Crashes']}</div>
       <a href="/" class="navItem">Recente ongelukken</a>
       <a href="/stream" class="navItem">Laatst gewijzigde ongelukken</a>
       <a href="/decorrespondent" class="navItem">De Correspondent week</a>
@@ -180,7 +183,7 @@ function getNavigation(){
     </div>
 
     <div class="navigationSection">
-      <div class="navigationSectionHeader">Statistieken</div>
+      <div class="navigationSectionHeader">{$texts['Statistics']}</div>
       <a href="/statistieken/andere_partij" class="navItem">Tegenpartij bij verkeersdoden</a>
       <a href="/statistieken/vervoertypes" class="navItem">Vervoertypes</a>
       <a href="/statistieken/algemeen" class="navItem">Algemeen</a>
