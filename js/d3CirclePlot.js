@@ -114,7 +114,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], period=null) {
   }
 
   // create a tooltip
-  var tooltip = d3.select('#' + divID)
+  let tooltip = d3.select('#' + divID)
     .append('div')
     .attr('class',             'tooltip')
     .style('display',          'none')
@@ -160,8 +160,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], period=null) {
   };
 
   let mouseleave = function(data) {
-    tooltip
-      .style('display', 'none');
+    tooltip.style('display', 'none');
 
     d3.select(this)
       .style('cursor', 'default')

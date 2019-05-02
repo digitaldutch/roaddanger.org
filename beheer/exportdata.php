@@ -267,8 +267,7 @@ SQL;
     $filename = 'hetongeluk_nl_articles_correspondent_week.csv';
 
     // Recreate backup if existing backup file older than 24 hours
-    if (true) {
-//    if ((!file_exists($filename)) || (time()-filemtime($filename) > 24 * 3600)) {
+    if ((!file_exists($filename)) || (time()-filemtime($filename) > 24 * 3600)) {
       $maxRows = 10000;
 
       $sql = <<<SQL
@@ -281,7 +280,8 @@ SELECT DISTINCT
   a.url, 
   a.urlimage 
 FROM articles a
-WHERE DATE (`publishedtime`) >= '2019-01-14' AND DATE (`publishedtime`) <= '2019-01-20'
+JOIN accidents ac on a.accidentid = ac.id
+WHERE DATE (ac.date) >= '2019-01-14' AND DATE (ac.date) <= '2019-01-20'
 ORDER BY publishedtime DESC 
 LIMIT 0, $maxRows
 SQL;
