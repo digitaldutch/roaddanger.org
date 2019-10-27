@@ -23,7 +23,7 @@ HTML;
 
   $mainMenuItems = '';
   if ($showCrashMenu) $mainMenuItems = <<<HTML
-  <div id="buttonSearch" class="menuButton buttonSearch" onclick="toggleSearchBar(event);"></div>
+  <div id="buttonSearch" class="menuButton bgSearch" onclick="toggleSearchBar(event);"></div>
   <div id="buttonNewArticle" class="menuButton buttonAdd" onclick="showEditCrashForm();"></div>
 HTML;
 

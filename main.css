@@ -487,6 +487,19 @@ a {
   border-radius:       5px;
 }
 
+.menuIcon {
+  position:            relative;
+  display:             inline-block;
+  outline:             none;
+  height:              20px;
+  width:               20px;
+  padding:             3px;
+  opacity:             0.5;
+  background-size:     20px;
+  background-repeat:   no-repeat;
+  background-position: center;
+}
+
 .searchDisplayIcon {
   display:             flex;
   align-items:         center;
@@ -608,10 +621,11 @@ a {
   background-image: url(/images/person.svg);
 }
 
-.buttonSearch {  background-image: url(/images/search.svg);}
-.bgMenu {        background-image: url(/images/menu.svg);}
-.bgArticle {     background-image: url(/images/article.svg);}
-.buttonDetails { background-image: url(/images/tripledots.svg);}
+.bgSearch      {background-image: url(/images/search.svg);}
+.bgMenu        {background-image: url(/images/menu.svg);}
+.bgArticle     {background-image: url(/images/article.svg);}
+.bgGeo         {background-image: url(/images/geo.svg);}
+.bgTripleDots  {background-image: url(/images/tripledots.svg);}
 
 .bgPersonLoggedIn {
   background-image: url(/images/person_loggedin.svg);
@@ -1312,6 +1326,12 @@ a {
 #map {
   height: 250px;
   margin-top: 10px;
+}
+
+.mapMarker {
+  height: 30px;
+  width:  30px;
+  cursor: pointer;
 }
 
 @media (max-width: 750px) {

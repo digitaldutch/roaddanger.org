@@ -510,7 +510,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
     <span class="postButtonArea" onclick="event.stopPropagation();">
       <span style="position: relative;">
         ${htmlButtonAllText}
-        <span class="buttonEditPost buttonDetails" data-userid="${article.userid}" onclick="showArticleMenu(event, ${article.id});"></span>
+        <span class="buttonEditPost bgTripleDots" data-userid="${article.userid}" onclick="showArticleMenu(event, ${article.id});"></span>
       </span>
       <div id="menuArticle${article.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
         <div onclick="editArticle(${crash.id},  ${article.id});">Bewerken</div>
@@ -533,8 +533,11 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
 
   let htmlInvolved = '';
   if (crash.unilateral)  htmlInvolved += '<div class="iconSmall bgUnilateral" data-tippy-content="Eenzijdig ongeluk"></div>';
-  if (crash.pet)         htmlInvolved += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
-  if (crash.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam"  data-tippy-content="File/Hinder"></div>';
+  if (crash.pet)         htmlInvolved += '<div class="iconSmall bgPet" data-tippy-content="Dier(en)"></div>';
+  if (crash.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam" data-tippy-content="File/Hinder"></div>';
+  if (crash.longitude && crash.latitude) htmlInvolved += '<div class="iconSmall bgGeo" data-tippy-content="Locatie bekend"></div>';
+
+
 
   if (htmlInvolved){
     htmlInvolved = `
@@ -592,7 +595,9 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
   return `
 <div id="crash${crash.id}" class="cardCrashList" onclick="showCrashDetails(${crash.id}); event.stopPropagation();">
   <span class="postButtonArea" onclick="event.stopPropagation();">
-    <span style="position: relative;"><span class="buttonEditPost buttonDetails"  data-userid="${crash.userid}" onclick="showCrashMenu(event, ${crash.id});"></span></span>
+    <span style="position: relative;">
+      <span class="buttonEditPost bgTripleDots"  data-userid="${crash.userid}" onclick="showCrashMenu(event, ${crash.id});"></span>
+    </span>
     <div id="menuCrash${crash.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
       <div onclick="addArticleToCrash(${crash.id});">Artikel toevoegen</div>
       ${htmlMenuEditItems}
@@ -677,7 +682,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
     <span class="postButtonArea" onclick="event.stopPropagation();">
       <span style="position: relative;">
         ${htmlButtonAllText}
-        <span class="buttonEditPost buttonDetails" data-userid="${article.userid}" onclick="showArticleMenu(event, '${articleDivID}');"></span>
+        <span class="buttonEditPost bgTripleDots" data-userid="${article.userid}" onclick="showArticleMenu(event, '${articleDivID}');"></span>
       </span>
       <div id="menuArticle${articleDivID}" class="buttonPopupMenu" onclick="event.preventDefault();">
         <div onclick="editArticle(${crash.id},  ${article.id});">Bewerken</div>
@@ -760,7 +765,7 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
   return `
 <div id="crash${crashDivId}" class="cardCrashDetails">
   <span class="postButtonArea" onclick="event.stopPropagation();">
-    <span style="position: relative;"><span class="buttonEditPost buttonDetails"  data-userid="${crash.userid}" onclick="showCrashMenu(event, '${crashDivId}');"></span></span>
+    <span style="position: relative;"><span class="buttonEditPost bgTripleDots"  data-userid="${crash.userid}" onclick="showCrashMenu(event, '${crashDivId}');"></span></span>
     <div id="menuCrash${crashDivId}" class="buttonPopupMenu" onclick="event.preventDefault();">
       <div onclick="addArticleToCrash(${crash.id});">Artikel toevoegen</div>
       ${htmlMenuEditItems}
@@ -2028,31 +2033,39 @@ function downloadCorrespondentDataArticles() {
 
 function showMap(latitude, longitude) {
 
-  function saveMarkerPosition(latlng){
-    document.getElementById('editCrashLatitude').value  = latlng.lat.toFixed(6);
-    document.getElementById('editCrashLongitude').value = latlng.lng.toFixed(6);
+  function saveMarkerPosition(lngLat){
+    document.getElementById('editCrashLatitude').value  = lngLat.lat.toFixed(6);
+    document.getElementById('editCrashLongitude').value = lngLat.lng.toFixed(6);
   }
 
   function setMarker(latitude, longitude){
-    if (mapMarker) mapMarker.setLatLng(new L.LatLng(latitude, longitude));
-    else mapMarker = L.marker([latitude, longitude], {draggable:true}).addTo(map)
-      .on('click', () => {
+    if (mapMarker) mapMarker.setLngLat(new mapboxgl.LngLat(longitude, latitude));
+    else {
+      const markerElement = document.createElement('div');
+      markerElement.innerHTML = `<img class="mapMarker" src="/images/pin.svg">`;
+      markerElement.id = 'marker';
+      markerElement.addEventListener('click', (e) => {
+        e.stopPropagation();
         confirmMessage(`Locatie verwijderen?`, () => {
           document.getElementById('editCrashLatitude').value  = '';
           document.getElementById('editCrashLongitude').value = '';
-
           deleteMarker();
+        });
+       });
+
+      mapMarker = new mapboxgl.Marker(markerElement, {anchor: 'bottom', draggable: true})
+        .setLngLat([longitude, latitude])
+        .addTo(map)
+        .on('dragend', function(e) {
+          const lngLat = mapMarker.getLngLat();
+          saveMarkerPosition(lngLat);
         })
-      }
-    )
-    .on('dragend', function(e) {
-      saveMarkerPosition(e.target._latlng);
-    });
+    }
   }
 
   function deleteMarker(){
     if (mapMarker){
-      map.removeLayer(mapMarker);
+      mapMarker.remove();
       mapMarker = null;
     }
   }
@@ -2069,20 +2082,32 @@ function showMap(latitude, longitude) {
   }
 
   if (! map){
-    map = L.map('map').setView([latitudeNL, longitudeNL], zoomLevel);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',  {
-      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom:     18,
-      crossOrigin: true
-    }).addTo(map);
-
-    map.on('click', function(e){
-      saveMarkerPosition(e.latlng);
-      setMarker(e.latlng.lat, e.latlng.lng);
+    mapboxgl.accessToken = 'pk.eyJ1IjoiamFuZGVyayIsImEiOiJjazI4dTVzNW8zOWw4M2NtdnRhMGs4dDc1In0.Cxw10toXdLoC1eqVaTn1RQ';
+    map = new mapboxgl.Map({
+      container: 'map',
+      style:     'mapbox://styles/mapbox/streets-v9',
+      center:    [longitude, latitude],
+      zoom:      5,
+    }).on('click', (e) => {
+      saveMarkerPosition(e.lngLat);
+      setMarker(e.lngLat.lat, e.lngLat.lng);
     });
 
+    // map = L.map('map').setView([latitudeNL, longitudeNL], zoomLevel);
+    // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',  {
+    //   attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    //   maxZoom:     18,
+    //   crossOrigin: true
+    // }).addTo(map);
+    //
+    // map.on('click', function(e){
+    //   saveMarkerPosition(e.latlng);
+    //   setMarker(e.latlng.lat, e.latlng.lng);
+    // });
+
   } else {
-    map.setView([latitude, longitude], zoomLevel);
+    map.setCenter([longitude, latitude]);
+    map.setZoom(zoomLevel);
   }
 
   if (showMarker) setMarker(latitude, longitude);

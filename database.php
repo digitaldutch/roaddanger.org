@@ -24,6 +24,8 @@ class TDatabase {
    * @throws Exception
    */
   public function open(){
+    // To debug on localhost with remote database use port forwarding:
+    // ssh -L 3306:localhost:3306 loginname@databaseserver.com
     try {
       $options = array(
         PDO::ATTR_EMULATE_PREPARES   => false,              // Forces native MySQL prepares. Required to return native fields (integer & float instead of strings) See: https://stackoverflow.com/questions/10113562/pdo-mysql-use-pdoattr-emulate-prepares-or-not
