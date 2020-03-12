@@ -1324,8 +1324,15 @@ a {
 }
 
 #map {
-  height: 250px;
+  height:     250px;
   margin-top: 10px;
+}
+
+#mapCrash {
+  height:        350px;
+  margin:        10px 20px;
+  border:        1px solid #eee;
+  border-radius: 10px;
 }
 
 .mapMarker {

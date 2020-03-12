@@ -7,7 +7,7 @@ let watchEndOfPage   = false;
 let spinnerLoadCard;
 let pageType;
 let graph;
-let map;
+let mapEdit;
 let mapMarker;
 let PageType = Object.freeze({
   stream:                        0,
@@ -57,7 +57,7 @@ function initMain() {
     case PageType.deCorrespondent: title = 'De Correspondent week<br>14 t/m 20 januari 2019'; break;
     case PageType.moderations:     title = 'Moderaties'; break;
     case PageType.recent:          title = 'Recente ongelukken'; break;
-    default:                        title = '';
+    default:                       title = '';
   }
 
   if (title) document.getElementById('pageSubTitle').innerHTML = title;
@@ -368,11 +368,14 @@ async function loadCrashes(crashID=null, articleID=null){
       html = `<div style="text-align: center;">${text}</div>`;
     } else if (pageType === PageType.mosaic) html = getMosaicHTML(newCrashes);
     else {
-      if (pageType === PageType.crash) html = getCrashDetailsHTML(newCrashes[0].id);
+      if (pageType === PageType.crash) {
+        html = getCrashDetailsHTML(newCrashes[0].id);
+      }
       else for (let crash of newCrashes) html += getCrashListHTML(crash.id);
     }
 
     document.getElementById('cards').innerHTML += html;
+    if (pageType === PageType.crash) showMapCrash(newCrashes[0].latitude, newCrashes[0].longitude);
     tippy('[data-tippy-content]');
   }
 
@@ -536,8 +539,6 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   if (crash.pet)         htmlInvolved += '<div class="iconSmall bgPet" data-tippy-content="Dier(en)"></div>';
   if (crash.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam" data-tippy-content="File/Hinder"></div>';
   if (crash.longitude && crash.latitude) htmlInvolved += '<div class="iconSmall bgGeo" data-tippy-content="Locatie bekend"></div>';
-
-
 
   if (htmlInvolved){
     htmlInvolved = `
@@ -762,6 +763,11 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
 
   if (user.moderator) htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>Plaats bovenaan stream</div>`;
 
+  let htmlMap = '';
+  if (crash.latitude && crash.longitude){
+    htmlMap = '<div id="mapCrash"></div>';
+  }
+
   return `
 <div id="crash${crashDivId}" class="cardCrashDetails">
   <span class="postButtonArea" onclick="event.stopPropagation();">
@@ -786,6 +792,7 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
   <div class="postText">${escapeHtml(crash.text)}</div>    
   
   ${htmlArticles}
+  ${htmlMap}
 </div>`;
 }
 
@@ -871,7 +878,14 @@ function selectCrash(crashID, smooth=false) {
   } else scrollIntoViewIfNeeded(div);
 }
 
-function showEditCrashForm(event) {
+function showNewCrashForm() {
+  showEditCrashForm();
+  showMapEdit();
+}
+
+function showEditCrashForm() {
+  closeAllPopups();
+
   if (! user.loggedin){
      showLoginForm();
      return;
@@ -914,8 +928,6 @@ function showEditCrashForm(event) {
 
   document.querySelectorAll('[data-readonlyhelper]').forEach(d => {d.readOnly = ! user.moderator;});
   document.querySelectorAll('[data-hidehelper]').forEach(d => {d.style.display = ! user.moderator? 'none' : 'flex';});
-
-  showMap();
 }
 
 function addEditPersonButtons(){
@@ -1095,7 +1107,7 @@ function setNewArticleCrashFields(crashID){
 
   refreshCrashPersonsGUI(crash.persons);
 
-  showMap(crash.latitude, crash.longitude);
+  showMapEdit(crash.latitude, crash.longitude);
 }
 
 function openArticleLink(event, articleID) {
@@ -1119,8 +1131,7 @@ function toggleAllText(element, event, articleDivId, articleId){
 }
 
 function editArticle(crashID, articleID) {
-  closeAllPopups();
-  showEditCrashForm();
+  showEditCrashForm(crashID);
   setNewArticleCrashFields(crashID);
 
   const article = getArticleFromID(articleID);
@@ -1152,9 +1163,7 @@ function editArticle(crashID, articleID) {
 }
 
 function addArticleToCrash(crashID) {
-  closeAllPopups();
-
-  showEditCrashForm();
+  showEditCrashForm(crashID);
   setNewArticleCrashFields(crashID);
 
   document.getElementById('editHeader').innerText           = 'Artikel toevoegen';
@@ -1162,9 +1171,7 @@ function addArticleToCrash(crashID) {
 }
 
 function editCrash(crashID) {
-  closeAllPopups();
-
-  showEditCrashForm();
+  showEditCrashForm(crashID);
   setNewArticleCrashFields(crashID);
 
   document.getElementById('editHeader').innerText             = 'Ongeluk bewerken';
@@ -1736,7 +1743,9 @@ function showCrashDetails(crashId, addToHistory=true){
 
   document.body.style.overflow = 'hidden';
 
-  // Change url
+  showMapCrash(crash.latitude, crash.longitude);
+
+  // Change browser url
   const url = createCrashURL(crash.id, crash.title);
   if (addToHistory) window.history.pushState({lastCrashId: crash.id}, crash.title, url);
 
@@ -1745,6 +1754,8 @@ function showCrashDetails(crashId, addToHistory=true){
 }
 
 function closeCrashDetails(popHistory=true) {
+  if (event) event.stopPropagation();
+
   document.body.style.overflow = 'auto';
   document.getElementById('crashDetails').innerHTML = '';
   document.getElementById('formCrash').style.display = 'none';
@@ -2031,7 +2042,7 @@ function downloadCorrespondentDataArticles() {
   confirmMessage('Artikels uit De Correspondent week exporteren in *.csv formaat?', doDownload, 'Download');
 }
 
-function showMap(latitude, longitude) {
+function showMapEdit(latitude, longitude) {
 
   function saveMarkerPosition(lngLat){
     document.getElementById('editCrashLatitude').value  = lngLat.lat.toFixed(6);
@@ -2042,7 +2053,7 @@ function showMap(latitude, longitude) {
     if (mapMarker) mapMarker.setLngLat(new mapboxgl.LngLat(longitude, latitude));
     else {
       const markerElement = document.createElement('div');
-      markerElement.innerHTML = `<img class="mapMarker" src="/images/pin.svg">`;
+      markerElement.innerHTML = `<img class="mapMarker" src="/images/pin.svg" alt="marker">`;
       markerElement.id = 'marker';
       markerElement.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -2055,7 +2066,7 @@ function showMap(latitude, longitude) {
 
       mapMarker = new mapboxgl.Marker(markerElement, {anchor: 'bottom', draggable: true})
         .setLngLat([longitude, latitude])
-        .addTo(map)
+        .addTo(mapEdit)
         .on('dragend', function(e) {
           const lngLat = mapMarker.getLngLat();
           saveMarkerPosition(lngLat);
@@ -2081,36 +2092,50 @@ function showMap(latitude, longitude) {
     deleteMarker();
   }
 
-  if (! map){
-    mapboxgl.accessToken = 'pk.eyJ1IjoiamFuZGVyayIsImEiOiJjazI4dTVzNW8zOWw4M2NtdnRhMGs4dDc1In0.Cxw10toXdLoC1eqVaTn1RQ';
-    map = new mapboxgl.Map({
+  if (! mapEdit){
+    mapboxgl.accessToken = mapboxKey;
+    mapEdit = new mapboxgl.Map({
       container: 'map',
       style:     'mapbox://styles/mapbox/streets-v9',
       center:    [longitude, latitude],
-      zoom:      5,
+      zoom:      zoomLevel,
     }).on('click', (e) => {
       saveMarkerPosition(e.lngLat);
       setMarker(e.lngLat.lat, e.lngLat.lng);
     });
 
-    // map = L.map('map').setView([latitudeNL, longitudeNL], zoomLevel);
-    // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',  {
-    //   attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    //   maxZoom:     18,
-    //   crossOrigin: true
-    // }).addTo(map);
-    //
-    // map.on('click', function(e){
-    //   saveMarkerPosition(e.latlng);
-    //   setMarker(e.latlng.lat, e.latlng.lng);
-    // });
-
   } else {
-    map.setCenter([longitude, latitude]);
-    map.setZoom(zoomLevel);
+    mapEdit.setCenter([longitude, latitude]);
+    mapEdit.setZoom(zoomLevel);
   }
 
   if (showMarker) setMarker(latitude, longitude);
+}
+
+function showMapCrash(latitude, longitude) {
+  if (! latitude || ! longitude) {
+    document.getElementById('mapCrash').style.display = 'none';
+    return;
+  }
+
+  let zoomLevel = 6;
+
+  mapboxgl.accessToken = mapboxKey;
+  const mapCrash = new mapboxgl.Map({
+    container: 'mapCrash',
+    style:     'mapbox://styles/mapbox/streets-v9',
+    center:    [longitude, latitude],
+    zoom:      zoomLevel,
+  });
+
+  const markerElement = document.createElement('div');
+  markerElement.innerHTML = `<img class="mapMarker" src="/images/pin.svg" alt="marker">`;
+
+  const mapMarker = new mapboxgl.Marker(markerElement, {anchor: 'bottom'})
+    .setLngLat([longitude, latitude])
+    .addTo(mapCrash);
+
+  document.getElementById('mapCrash').style.display = 'block';
 }
 
 function showCrashPartnerInfo(){

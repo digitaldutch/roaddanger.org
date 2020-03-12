@@ -24,7 +24,7 @@ HTML;
   $mainMenuItems = '';
   if ($showCrashMenu) $mainMenuItems = <<<HTML
   <div id="buttonSearch" class="menuButton bgSearch" onclick="toggleSearchBar(event);"></div>
-  <div id="buttonNewArticle" class="menuButton buttonAdd" onclick="showEditCrashForm();"></div>
+  <div id="buttonNewArticle" class="menuButton buttonAdd" onclick="showNewCrashForm();"></div>
 HTML;
 
   return <<<HTML
@@ -359,7 +359,7 @@ function getFormEditCrash(){
         <label for="editArticleDate">Breedtegraad: <input id="editCrashLatitude" class="popupInput" type="number" style="width: 85px;"></label>        
         <label for="editArticleDate">Lengtegraad: <input id="editCrashLongitude" class="popupInput" type="number" style="width: 85px;"></label>
         
-        <div id="map" class="block_img"></div>
+        <div id="map"></div>
       </div>      
       
     </div>

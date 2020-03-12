@@ -3,6 +3,7 @@ let xTouchDown      = null;
 let yTouchDown      = null;
 let TTouchDown      = Object.freeze({none:0, openNavigation:1, closeNavigation:2});
 let touchDownAction = TTouchDown.none;
+const mapboxKey     = 'pk.eyJ1IjoiamFuZGVyayIsImEiOiJjazI4dTVzNW8zOWw4M2NtdnRhMGs4dDc1In0.Cxw10toXdLoC1eqVaTn1RQ';
 
 // Enumerated types
 const TUserPermission     = Object.freeze({newuser: 0, admin: 1, moderator: 2});
