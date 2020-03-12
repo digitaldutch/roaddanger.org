@@ -534,23 +534,9 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
 </div>`;
   }
 
-  let htmlInvolved = '';
-  if (crash.unilateral)  htmlInvolved += '<div class="iconSmall bgUnilateral" data-tippy-content="Eenzijdig ongeluk"></div>';
-  if (crash.pet)         htmlInvolved += '<div class="iconSmall bgPet" data-tippy-content="Dier(en)"></div>';
-  if (crash.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam" data-tippy-content="File/Hinder"></div>';
-  if (crash.longitude && crash.latitude) htmlInvolved += '<div class="iconSmall bgGeo" data-tippy-content="Locatie bekend"></div>';
-
-  if (htmlInvolved){
-    htmlInvolved = `
-    <div data-info="preventFullBorder">
-      <div class="cardIcons" onclick="event.stopPropagation();">
-        <div class="flexRow" style="justify-content: flex-end">${htmlInvolved}</div>
-      </div>
-    </div>`;
-  }
-
-  let titleSmall    = 'aangemaakt door ' + crash.user;
-  let titleModified = '';
+  const htmlTopIcons = getCrashTopIcons(crash, true);
+  let titleSmall     = 'aangemaakt door ' + crash.user;
+  let titleModified  = '';
   if (crash.streamtopuser) {
     switch (crash.streamtoptype) {
       case TStreamTopType.edited:       titleModified = ' | aangepast door '                + crash.streamtopuser; break;
@@ -564,7 +550,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   if (titleModified) titleSmall += titleModified;
   else titleSmall += ' ' + datetimeToAge(crash.createtime);
 
-  const htmlPersons = getCrashButtonsHTML(crash, false);
+  const htmlPersons = getCrashButtonsHTML(crash, false, true);
 
   let htmlModeration = '';
   if (crash.awaitingmoderation){
@@ -613,7 +599,7 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
       <div class="cardTitle">${escapeHtml(crash.title)}</div>
       <div>${htmlPersons}</div>
     </div>
-    ${htmlInvolved}
+    ${htmlTopIcons}
   </div>
 
   <div class="postText">${escapeHtml(crash.text)}</div>    
@@ -647,8 +633,8 @@ function getMosaicHTML(newCrashes){
   return html;
 }
 
-function getCrashDetailsHTML(crashID){
-  const crash         = getCrashFromID(crashID);
+function getCrashDetailsHTML(crashId){
+  const crash         = getCrashFromID(crashId);
   const crashArticles = getCrashArticles(crash.id, articles);
   const canEditCrash  = user.moderator || (crash.userid === user.id);
 
@@ -704,22 +690,9 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
 </div>`;
   }
 
-  let htmlInvolved = '';
-  if (crash.unilateral)  htmlInvolved += '<div class="iconSmall bgUnilateral" data-tippy-content="Eenzijdig ongeluk"></div>';
-  if (crash.pet)         htmlInvolved += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
-  if (crash.trafficjam)  htmlInvolved += '<div class="iconSmall bgTrafficJam"  data-tippy-content="File/Hinder"></div>';
-
-  if (htmlInvolved){
-    htmlInvolved = `
-    <div data-info="preventFullBorder">
-      <div class="cardIcons" onclick="event.stopPropagation();">
-        <div class="flexRow" style="justify-content: flex-end">${htmlInvolved}</div>
-      </div>
-    </div>`;
-  }
-
-  let titleSmall    = 'aangemaakt door ' + crash.user;
-  let titleModified = '';
+  const htmlTopIcons = getCrashTopIcons(crash);
+  let titleSmall     = 'aangemaakt door ' + crash.user;
+  let titleModified  = '';
   if (crash.streamtopuser) {
     switch (crash.streamtoptype) {
       case TStreamTopType.edited:       titleModified = ' | aangepast door '                + crash.streamtopuser; break;
@@ -763,11 +736,6 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
 
   if (user.moderator) htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>Plaats bovenaan stream</div>`;
 
-  let htmlMap = '';
-  if (crash.latitude && crash.longitude){
-    htmlMap = '<div id="mapCrash"></div>';
-  }
-
   return `
 <div id="crash${crashDivId}" class="cardCrashDetails">
   <span class="postButtonArea" onclick="event.stopPropagation();">
@@ -786,16 +754,34 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
       <div class="cardTitle">${escapeHtml(crash.title)}</div>
       <div>${htmlPersons}</div>
     </div>
-    ${htmlInvolved}
+    ${htmlTopIcons}
   </div>
 
   <div class="postText">${escapeHtml(crash.text)}</div>    
   
   ${htmlArticles}
-  ${htmlMap}
+  <div id="mapCrash"></div>
 </div>`;
 }
 
+function getCrashTopIcons(crash, allowClick=false){
+  let html = '';
+  if (crash.unilateral)                  html += '<div class="iconSmall bgUnilateral" data-tippy-content="Eenzijdig ongeluk"></div>';
+  if (crash.pet)                         html += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
+  if (crash.trafficjam)                  html += '<div class="iconSmall bgTrafficJam"  data-tippy-content="File/Hinder"></div>';
+  if (crash.longitude && crash.latitude) html += '<div class="iconSmall bgGeo" data-tippy-content="Locatie bekend"></div>';
+
+  if (html){
+    const htmlClick   = allowClick? '' : 'onclick="stopPropagation();"';
+    html = `
+    <div data-info="preventFullBorder">
+      <div class="cardIcons" ${htmlClick}>
+        <div class="flexRow" style="justify-content: flex-end">${html}</div>
+      </div>
+    </div>`;
+  }
+  return html;
+}
 
 function healthVisible(health){
   return [THealth.dead, THealth.injured].includes(health);
@@ -828,7 +814,7 @@ function getCrashButtonsHTML(crash, showAllHealth=true, allowClick=false) {
     }
 
     const clickClass = allowClick? '' : 'defaultCursor';
-    return `<div class="crashButton ${ clickClass}" onclick="event.stopPropagation();">
+    return `<div class="crashButton ${ clickClass}">
   ${iconsGroup}
   ${htmlPersons}
 </div>`;
@@ -1744,6 +1730,7 @@ function showCrashDetails(crashId, addToHistory=true){
   document.body.style.overflow = 'hidden';
 
   showMapCrash(crash.latitude, crash.longitude);
+  tippy('#crashDetails [data-tippy-content]');
 
   // Change browser url
   const url = createCrashURL(crash.id, crash.title);

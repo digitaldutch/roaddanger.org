@@ -124,7 +124,6 @@ a {
   background-color: #ffffff;
   color:            #000;
   padding:          10px;
-  border-bottom:    1px solid #eee;
   margin-top:       10px;
 }
 
@@ -165,7 +164,6 @@ a {
   border:           1px solid #eeeeee;
   border-radius:    5px;
   padding:          2px;
-  cursor:           default;
 }
 
 .crashButton {
@@ -188,7 +186,6 @@ a {
   flex-direction:   row;
   margin:           0 3px;
   border-radius:    5px;
-  background-color: #eeeeee;
   padding:          2px;
 }
 
@@ -785,7 +782,7 @@ a {
   padding:          5px 15px 10px 15px;
   border-radius:    3px;
   box-shadow:       0 2px 4px rgba(0,0,0,0.2);
-  background-color: #eeeeee;
+  background-color: #ffffff;
   box-sizing:       border-box;
 }
 
