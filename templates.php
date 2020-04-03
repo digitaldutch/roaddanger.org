@@ -85,6 +85,7 @@ $navigation
         <option value="30days">30 dagen</option> 
         <option value="decorrespondent">De Correspondent week</option> 
         <option value="2019">2019</option> 
+        <option value="2020">2020</option> 
         <option value="all" selected>Alles</option> 
       </select>
     </div>

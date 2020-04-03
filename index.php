@@ -8,6 +8,7 @@ global $user;
 $uri = urldecode($_SERVER['REQUEST_URI']);
 if      (strpos($uri, '/stream')                     === 0) $pageType = PageType::stream;
 else if (strpos($uri, '/decorrespondent')            === 0) $pageType = PageType::deCorrespondent;
+else if (strpos($uri, '/kaart')                      === 0) $pageType = PageType::kaart;
 else if (strpos($uri, '/moderaties')                 === 0) $pageType = PageType::moderations;
 else if (strpos($uri, '/mozaiek')                    === 0) $pageType = PageType::mosaic;
 else if (strpos($uri, '/statistieken/algemeen')      === 0) $pageType = PageType::statisticsGeneral;
@@ -37,8 +38,10 @@ if ($pageType === PageType::statisticsCrashPartners){
 
 if (editableCrashPage($pageType)) {
   $head .= <<<HTML
-<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.css' rel='stylesheet'>
-<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.css' rel='stylesheet'>
+<script src='https://api.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.js'></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.min.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.css" type="text/css" rel="stylesheet">
 HTML;
 }
 
@@ -83,6 +86,7 @@ Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar
           <option value="30days">30 dagen</option> 
           <option value="decorrespondent">De Correspondent week</option> 
           <option value="2019">2019</option> 
+          <option value="2020">2020</option> 
           <option value="all" selected>Alles</option> 
         </select>
       </div>
@@ -113,6 +117,7 @@ HTML;
           <option value="30days">30 dagen</option> 
           <option value="decorrespondent">De Correspondent week</option> 
           <option value="2019">2019</option> 
+          <option value="2020">2020</option> 
           <option value="all" selected>Alles</option> 
         </select>
       </div>

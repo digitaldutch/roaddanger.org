@@ -22,6 +22,7 @@ function getStatsTransportation($database, $period='all'){
     case 'decorrespondent': $SQLWhere = " WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' "; break;
     case '30days':          $SQLWhere = ' WHERE DATE (`date`) > SUBDATE(CURDATE(), 30) '; break;
     case '2019':            $SQLWhere = ' WHERE YEAR (`date`) = 2019 '; break;
+    case '2020':            $SQLWhere = ' WHERE YEAR (`date`) = 2020 '; break;
     default:                $SQLWhere = '';
   }
 
@@ -71,6 +72,7 @@ function getStatsCrashPartners($database, $period='all'){
     case 'decorrespondent': $SQLWhere = " AND DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' "; break;
     case '30days':          $SQLWhere = ' AND DATE (`date`) > SUBDATE(CURDATE(), 30) '; break;
     case '2019':            $SQLWhere = ' AND YEAR (`date`) = 2019 '; break;
+    case '2020':            $SQLWhere = ' AND YEAR (`date`) = 2020 '; break;
     default:                $SQLWhere = '';
   }
 
@@ -482,6 +484,7 @@ SQL;
           case 'decorrespondent': $SQLPeriod = " DATE(ac.date) >= '2019-01-14' AND DATE (ac.date) <= '2019-01-20' "; break;
           case '30days':          $SQLPeriod = ' DATE(ac.date) > SUBDATE(CURDATE(), 30) '; break;
           case '2019':            $SQLPeriod = ' YEAR(ac.date) = 2019 '; break;
+          case '2020':            $SQLPeriod = ' YEAR(ac.date) = 2020 '; break;
           default:                $SQLPeriod = '';
         }
         addSQLWhere($SQLWhere, $SQLPeriod);

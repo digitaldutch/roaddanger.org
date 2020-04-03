@@ -776,7 +776,7 @@ a {
   top:              30px;
   left:             50%;
   transform:        translateX(-50%);
-  width:            600px;
+  width:            700px;
   max-width:        Calc(100% - 10px);
   min-height:       100px;
   padding:          5px 15px 10px 15px;
@@ -1321,7 +1321,7 @@ a {
 }
 
 #map {
-  height:     250px;
+  height:     350px;
   margin-top: 10px;
 }
 

@@ -11,6 +11,7 @@ abstract class PageType {
   const deCorrespondent               = 7;
   const mosaic                        = 8;
   const export                        = 9;
+  const kaart                         = 10;
 }
 
 function getCallerIP(){

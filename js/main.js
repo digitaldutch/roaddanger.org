@@ -2086,7 +2086,13 @@ function showMapEdit(latitude, longitude) {
       style:     'mapbox://styles/mapbox/streets-v9',
       center:    [longitude, latitude],
       zoom:      zoomLevel,
-    }).on('click', (e) => {
+    }).addControl(
+      new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl:    mapboxgl,
+        clearOnBlur: true,
+      })
+    ).on('click', (e) => {
       saveMarkerPosition(e.lngLat);
       setMarker(e.lngLat.lat, e.lngLat.lng);
     });
