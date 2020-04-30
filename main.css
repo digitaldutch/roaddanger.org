@@ -1320,7 +1320,7 @@ a {
   transform: scaleX(-1);
 }
 
-#map {
+#mapEdit {
   height:     350px;
   margin-top: 10px;
 }
@@ -1330,6 +1330,13 @@ a {
   margin:        10px 20px;
   border:        1px solid #eee;
   border-radius: 10px;
+}
+
+#mapMain {
+  display:        flex;
+  flex-direction: column;
+  flex-grow:      1;
+  background-color: red;
 }
 
 .mapMarker {

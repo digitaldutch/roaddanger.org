@@ -398,6 +398,7 @@ else if ($function === 'loadCrashes') {
     $searchPersons     = isset($data['searchPersons'])? $data['searchPersons'] : [];
     $searchSiteName    = isset($data['sitename'])? $data['sitename'] : '';
     $searchHealthDead  = isset($data['healthdead'])? (int)$data['healthdead'] : 0;
+    $searchChild       = isset($data['child'])? (int)$data['child'] : 0;
     $moderations       = isset($data['moderations'])? (int)$data['moderations'] : 0;
     $sort              = isset($data['sort'])? $data['sort'] : '';
     $export            = isset($data['export'])? (int)$data['export'] : 0;
@@ -510,6 +511,11 @@ SQL;
       if ($searchHealthDead === 1){
         $joinPersonsTable = true;
         addSQLWhere($SQLWhere, " ap.health=3 ");
+      }
+
+      if ($searchChild === 1){
+        $joinPersonsTable = true;
+        addSQLWhere($SQLWhere, " ap.child=1 ");
       }
 
       if (count($searchPersons) > 0) $joinPersonsTable = true;

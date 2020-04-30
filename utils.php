@@ -11,7 +11,7 @@ abstract class PageType {
   const deCorrespondent               = 7;
   const mosaic                        = 8;
   const export                        = 9;
-  const kaart                         = 10;
+  const map                           = 10;
 }
 
 function getCallerIP(){
@@ -44,8 +44,12 @@ function translateArray($keys){
   return $texts;
 }
 
-function editableCrashPage($pageType){
+function pageWithEditMap($pageType){
   return in_array($pageType, [PageType::recent, PageType::stream, PageType::deCorrespondent, PageType::crash, PageType::moderations]);
+}
+
+function pageWithMap($pageType){
+  return pageWithEditMap($pageType) || in_array($pageType, [PageType::map]);
 }
 
 function showIntroMessagePage($pageType){

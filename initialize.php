@@ -24,9 +24,7 @@ session_start();
 date_default_timezone_set('Europe/Amsterdam');
 setlocale(LC_MONETARY, 'nl_NL');
 
-$root = realpath($_SERVER["DOCUMENT_ROOT"]);
-
-require_once $root . '/config.php';
+require_once __DIR__ . '/config.php';
 require_once 'templates.php';
 require_once 'database.php';
 require_once 'users.php';

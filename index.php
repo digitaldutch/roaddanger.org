@@ -8,7 +8,7 @@ global $user;
 $uri = urldecode($_SERVER['REQUEST_URI']);
 if      (strpos($uri, '/stream')                     === 0) $pageType = PageType::stream;
 else if (strpos($uri, '/decorrespondent')            === 0) $pageType = PageType::deCorrespondent;
-else if (strpos($uri, '/kaart')                      === 0) $pageType = PageType::kaart;
+else if (strpos($uri, '/kaart')                      === 0) $pageType = PageType::map;
 else if (strpos($uri, '/moderaties')                 === 0) $pageType = PageType::moderations;
 else if (strpos($uri, '/mozaiek')                    === 0) $pageType = PageType::mosaic;
 else if (strpos($uri, '/statistieken/algemeen')      === 0) $pageType = PageType::statisticsGeneral;
@@ -17,6 +17,7 @@ else if (strpos($uri, '/statistieken/vervoertypes')  === 0) $pageType = PageType
 else if (strpos($uri, '/exporteren')                 === 0) $pageType = PageType::export;
 else                                                               $pageType = PageType::recent;
 
+$fullWindow    = false;
 $showCrashMenu = false;
 $head = "<script src='/js/main.js?v=$VERSION'></script>";
 if ($pageType === PageType::statisticsCrashPartners){
@@ -36,16 +37,22 @@ if ($pageType === PageType::statisticsCrashPartners){
 //<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.css' rel='stylesheet'>
 //<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.js'></script>
 
-if (editableCrashPage($pageType)) {
+if (pageWithMap($pageType)) {
   $head .= <<<HTML
 <link href='https://api.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.css' rel='stylesheet'>
 <script src='https://api.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.js'></script>
+HTML;
+}
+
+if (pageWithEditMap($pageType)) {
+  $head .= <<<HTML
 <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.min.js"></script>
 <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.css" type="text/css" rel="stylesheet">
 HTML;
 }
 
-if (strpos($_SERVER['REQUEST_URI'], '/statistieken/algemeen') === 0) {
+
+if ($pageType === PageType::statisticsGeneral) {
   $mainHTML = <<<HTML
 <div class="pageInner">
   <div class="pageSubTitle">Statistieken - algemeen</div>
@@ -57,7 +64,18 @@ if (strpos($_SERVER['REQUEST_URI'], '/statistieken/algemeen') === 0) {
 </div>
 HTML;
 
-} else if (strpos($_SERVER['REQUEST_URI'], '/statistieken/andere_partij') === 0) {
+} else if ($pageType === PageType::map) {
+  $fullWindow = true;
+
+  $mainHTML = <<<HTML
+<div style="display: flex; height: 100%;">
+  <div class="pageSubTitle">Kaart</div>
+
+  <div id="mapMain"></div>
+</div>
+HTML;
+
+} else if ($pageType === PageType::statisticsCrashPartners) {
   $mainHTML = <<<HTML
 <div class="pageInner">
 
@@ -100,7 +118,7 @@ Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar
 </div>
 HTML;
 
-} else if (strpos($_SERVER['REQUEST_URI'], '/statistieken') === 0) {
+} else if ($pageType === PageType::statisticsTransportationModes) {
   $mainHTML = <<<HTML
 <div class="pageInner">
   <div class="pageSubTitle">Statistieken - vervoertypes<span class="iconTooltip" data-tippy-content="Dit zijn de cijfers over de ongelukken tot nog toe in de database."></span></div>
@@ -145,7 +163,7 @@ HTML;
 </div>
 HTML;
 
-} else if (containsText($_SERVER['REQUEST_URI'], '/exporteren')) {
+} else if ($pageType === PageType::export) {
   $mainHTML = <<<HTML
 <div id="main" class="pageInner">
   <div class="pageSubTitle">Exporteren</div>
@@ -214,7 +232,7 @@ HTML;
 }
 
 $html =
-  getHTMLBeginMain('', $head, 'initMain', $showCrashMenu) .
+  getHTMLBeginMain('', $head, 'initMain', $showCrashMenu, $fullWindow) .
   $mainHTML .
   getHTMLEnd();
 

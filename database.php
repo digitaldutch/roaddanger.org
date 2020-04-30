@@ -12,9 +12,6 @@ class TDatabase {
   /** @var  PDO */
   private $pdo;
   public  $rowCount;
-  public  $queryTime = 0;
-
-  public $inTransaction = false;
 
   public function databaseHandle(){
     return $this->pdo;

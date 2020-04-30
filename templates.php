@@ -1,6 +1,6 @@
 <?php
 
-function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $showCrashMenu=false){
+function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $showCrashMenu=false, $fullWindow=false){
   global $VERSION;
   $defaultLanguage = DEFAULT_LANGUAGE;
 
@@ -20,6 +20,7 @@ function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $showCrashM
 HTML;
   } else $cookieWarning = '';
 
+  $htmlClass = $fullWindow? ' class="fullWindow"' : '';
 
   $mainMenuItems = '';
   if ($showCrashMenu) $mainMenuItems = <<<HTML
@@ -29,7 +30,7 @@ HTML;
 
   return <<<HTML
 <!DOCTYPE html>
-<html lang="$defaultLanguage"">
+<html lang="$defaultLanguage" $htmlClass>
 <head>
 <link href="https://fonts.googleapis.com/css?family=Lora|Montserrat" rel="stylesheet">
 <link href="/main.css?v=$VERSION" rel="stylesheet" type="text/css">
@@ -103,6 +104,7 @@ $navigation
        
     <div class="toolbarItem">
       <span id="searchPersonHealthDead" class="menuButton bgDeadBlack" data-tippy-content="Letsel: dood" onclick="selectSearchPersonDead();"></span>      
+      <span id="searchPersonChild" class="menuButton bgChild" data-tippy-content="Kind" onclick="selectSearchPersonChild();"></span>      
     </div>
     
     <div class="toolbarItem">
@@ -181,6 +183,7 @@ function getNavigation(){
       <a href="/stream" class="navItem">Laatst gewijzigde ongelukken</a>
       <a href="/decorrespondent" class="navItem">De Correspondent week</a>
       <a href="/mozaiek" class="navItem">Mozaïek</a>
+<!--      <a href="/kaart" class="navItem">Kaart</a>-->
     </div>
 
     <div class="navigationSection">
@@ -360,7 +363,7 @@ function getFormEditCrash(){
         <label for="editArticleDate">Breedtegraad: <input id="editCrashLatitude" class="popupInput" type="number" style="width: 85px;"></label>        
         <label for="editArticleDate">Lengtegraad: <input id="editCrashLongitude" class="popupInput" type="number" style="width: 85px;"></label>
         
-        <div id="map"></div>
+        <div id="mapEdit"></div>
       </div>      
       
     </div>

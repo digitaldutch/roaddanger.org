@@ -20,6 +20,7 @@ let PageType = Object.freeze({
   deCorrespondent:               7,
   mosaic:                        8,
   export:                        9,
+  kaart:                         10,
 });
 
 
@@ -37,12 +38,14 @@ function initMain() {
   const searchSiteName   = url.searchParams.get('sitename');
   const searchPersons    = url.searchParams.get('persons');
   const searchHealthDead = url.searchParams.get('hd');
+  const searchChild      = url.searchParams.get('child');
   const pathName         = decodeURIComponent(url.pathname);
 
   if      (pathName.startsWith('/moderaties'))                 pageType = PageType.moderations;
   else if (pathName.startsWith('/stream'))                     pageType = PageType.stream;
   else if (pathName.startsWith('/decorrespondent'))            pageType = PageType.deCorrespondent;
   else if (pathName.startsWith('/mozaiek'))                    pageType = PageType.mosaic;
+  else if (pathName.startsWith('/kaart'))                      pageType = PageType.kaart;
   else if (pathName.startsWith('/statistieken/algemeen'))      pageType = PageType.statisticsGeneral;
   else if (pathName.startsWith('/statistieken/andere_partij')) pageType = PageType.statisticsCrashPartners;
   else if (pathName.startsWith('/statistieken/vervoertypes'))  pageType = PageType.statisticsTransportationModes;
@@ -63,12 +66,13 @@ function initMain() {
   if (title) document.getElementById('pageSubTitle').innerHTML = title;
 
   const searchButtonExists = document.getElementById('buttonSearch');
-  if (searchButtonExists && (searchText || searchPeriod || searchSiteName || searchHealthDead || searchPersons)) {
+  if (searchButtonExists && (searchText || searchPeriod || searchSiteName || searchHealthDead || searchChild || searchPersons)) {
     document.body.classList.add('searchBody');
     document.getElementById('searchText').value = searchText;
     if (searchPeriod) document.getElementById('searchPeriod').value   = searchPeriod;
     document.getElementById('searchSiteName').value = searchSiteName;
     if (searchHealthDead) document.getElementById('searchPersonHealthDead').classList.add('buttonSelectedBlue');
+    if (searchChild) document.getElementById('searchPersonChild').classList.add('buttonSelectedBlue');
     if (searchPersons) setPersonsFilter(searchPersons);
   }
 
@@ -395,6 +399,7 @@ async function loadCrashes(crashID=null, articleID=null){
       dataPost.searchPersons = getPersonsFromFilter();
       dataPost.sitename      = document.getElementById('searchSiteName').value.trim().toLowerCase();
       dataPost.healthdead    = (document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue'))? 1 : 0;
+      dataPost.child         = (document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue'))? 1 : 0;
     }
 
     if (crashID)                                dataPost.id = crashID;
@@ -992,6 +997,10 @@ function selectPersonHealth(health, toggle=false) {
 
 function selectSearchPersonDead() {
   document.getElementById('searchPersonHealthDead').classList.toggle('buttonSelectedBlue');
+}
+
+function selectSearchPersonChild() {
+  document.getElementById('searchPersonChild').classList.toggle('buttonSelectedBlue');
 }
 
 function getSelectedPersonHealth(){
@@ -1954,16 +1963,19 @@ function startSearch() {
   const searchPeriod     = document.getElementById('searchPeriod').value;
   const searchSiteName   = document.getElementById('searchSiteName').value.trim().toLowerCase();
   const searchHealthDead = document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue');
+  const searchChild      = document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue');
   const searchPersons    = getPersonsFromFilter();
 
   let url = window.location.origin;
   if      (pageType === PageType.deCorrespondent) url += '/decorrespondent';
   else if (pageType === PageType.stream)          url += '/stream';
   else if (pageType === PageType.mosaic)          url += '/mozaiek';
+  else if (pageType === PageType.kaart)           url += '/kaart';
   url += '?search=' + encodeURIComponent(searchText);
   if (searchSiteName)           url += '&sitename=' + encodeURIComponent(searchSiteName);
   if (searchPeriod)             url += '&period=' + searchPersons.join();
   if (searchHealthDead)         url += '&hd=1';
+  if (searchChild)              url += '&child=1';
   if (searchPersons.length > 0) url += '&persons=' + searchPersons.join();
   window.history.pushState(null, null, url);
   reloadCrashes();

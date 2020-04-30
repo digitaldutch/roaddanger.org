@@ -23,7 +23,7 @@ const fetchOptions = {
 if (!Date.prototype.addDays) {
   Date.prototype.addDays = function(days) {
     if (days === 0) return this;
-    var newDate = new Date(this.valueOf());
+    let newDate = new Date(this.valueOf());
     newDate.setDate(newDate.getDate() + parseInt(days));
     return newDate;
   }
@@ -40,7 +40,7 @@ async function fetchFromServer(url, data={}){
 }
 
 function isInt(value) {
-  var x;
+  let x;
   if (isNaN(value)) {
     return false;
   }
@@ -64,7 +64,7 @@ function dateToISO(date) {   // ISO 8601 date format
 
 function timeToISO(date, addSeconds=false, addMilliSeconds=false) {
   // ISO 8601 datetime format
-  var time = addLeadingZero(date.getHours(), 2) + ':' + addLeadingZero(date.getMinutes(), 2);
+  let time = addLeadingZero(date.getHours(), 2) + ':' + addLeadingZero(date.getMinutes(), 2);
 
   if (addSeconds)      time += ':' + addLeadingZero(date.getSeconds(), 2);
   if (addMilliSeconds) time += '.' + addLeadingZero(date.getMilliseconds(), 3);
@@ -74,17 +74,17 @@ function timeToISO(date, addSeconds=false, addMilliSeconds=false) {
 
 function datetimeToAge(datetime) {
   if (! datetime) return '';
-  // var ApproxDaysPerYear     = 365.25;
-  var ApproxDaysPerMonth    = 30.4375;
-  var minutesPerDay         = 60 * 24;
-  var secondsPerDay         = 60 * minutesPerDay;
-  var ApproxSecondsPerMonth = ApproxDaysPerMonth * secondsPerDay;
-  var ApproxSecondsPerYear  = ApproxSecondsPerMonth * 12;
+  // let ApproxDaysPerYear     = 365.25;
+  let ApproxDaysPerMonth    = 30.4375;
+  let minutesPerDay         = 60 * 24;
+  let secondsPerDay         = 60 * minutesPerDay;
+  let ApproxSecondsPerMonth = ApproxDaysPerMonth * secondsPerDay;
+  let ApproxSecondsPerYear  = ApproxSecondsPerMonth * 12;
 
-  var text;
-  var age = (Date.now() - datetime.getTime()) / 1000;
+  let text;
+  let age = (Date.now() - datetime.getTime()) / 1000;
 
-  var unborn = age < 0;
+  let unborn = age < 0;
   if (unborn) age = -age;
 
   if (age > (100 * ApproxSecondsPerYear)) {
@@ -113,17 +113,17 @@ function datetimeToAge(datetime) {
 
 function dateToAge(date) {
   if (! date) return '';
-  // var ApproxDaysPerYear     = 365.25;
-  var ApproxDaysPerMonth    = 30.4375;
-  var minutesPerDay         = 60 * 24;
-  var secondsPerDay         = 60 * minutesPerDay;
-  var ApproxSecondsPerMonth = ApproxDaysPerMonth * secondsPerDay;
-  var ApproxSecondsPerYear  = ApproxSecondsPerMonth * 12;
+  // let ApproxDaysPerYear     = 365.25;
+  let ApproxDaysPerMonth    = 30.4375;
+  let minutesPerDay         = 60 * 24;
+  let secondsPerDay         = 60 * minutesPerDay;
+  let ApproxSecondsPerMonth = ApproxDaysPerMonth * secondsPerDay;
+  let ApproxSecondsPerYear  = ApproxSecondsPerMonth * 12;
 
-  var text;
-  var age = (Date.now() - date.getTime()) / 1000;
+  let text;
+  let age = (Date.now() - date.getTime()) / 1000;
 
-  var unborn = age < 0;
+  let unborn = age < 0;
   if (unborn) age = -age;
 
   if (age > (100 * ApproxSecondsPerYear)) {
@@ -213,22 +213,22 @@ function escapeHtml(text) {
 }
 
 function inputDateTimeToISO8601(dateISO, timeISO){
-  var year    = dateISO.substr(0, 4);
-  var month   = dateISO.substr(5, 2) - 1; // Month is zero based
-  var day     = dateISO.substr(8, 2);
-  var hours   = timeISO.substr(0, 2);
-  var minutes = timeISO.substr(3, 2);
+  let year    = dateISO.substr(0, 4);
+  let month   = dateISO.substr(5, 2) - 1; // Month is zero based
+  let day     = dateISO.substr(8, 2);
+  let hours   = timeISO.substr(0, 2);
+  let minutes = timeISO.substr(3, 2);
 
-  var date = new Date(year, month, day, hours, minutes);
+  let date = new Date(year, month, day, hours, minutes);
   return date.toISOString();
 }
 
 function inputDateToISO8601(inputDate){
-  var year    = inputDate.substr(0, 4);
-  var month   = inputDate.substr(5, 2) - 1; // Month is zero based
-  var day     = inputDate.substr(8, 2);
+  let year    = inputDate.substr(0, 4);
+  let month   = inputDate.substr(5, 2) - 1; // Month is zero based
+  let day     = inputDate.substr(8, 2);
 
-  var date = new Date(year, month, day);
+  let date = new Date(year, month, day);
   return date.toISOString();
 }
 
@@ -249,12 +249,12 @@ function closeAllPopups() {
 }
 
 function validateEmail(email) {
-  var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  let re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(email);
 }
 
 function is_valid_url(url) {
-  var re = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/;
+  let re = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/;
   return re.test(url);
 }
 
@@ -342,7 +342,7 @@ function checkLogin() {
 
   let email        = document.getElementById('loginEmail').value;
   let password     = document.getElementById('loginPassword').value;
-  var stayLoggedIn = (document.getElementById('stayLoggedIn').checked)? 1 : 0;
+  let stayLoggedIn = (document.getElementById('stayLoggedIn').checked)? 1 : 0;
 
   if (! validateEmail(email))     showLoginError('Geen geldig email ingevuld');
   else if (password.length === 0) showLoginError('Geen wachtwoord ingevuld');
@@ -430,7 +430,7 @@ async function checkRegistration(){
 }
 
 function loginForgotPassword() {
-  var email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  let email = document.getElementById('loginEmail').value.trim().toLowerCase();
 
   if (! email)                     showLoginError('Geen email adres ingevuld');
   else if (! validateEmail(email)) showLoginError('Geen geldig email adres ingevuld');
@@ -761,15 +761,15 @@ function clone(obj) {
 
   // Handle Date
   if (obj instanceof Date) {
-    var lDate = new Date();
+    let lDate = new Date();
     lDate.setTime(obj.getTime());
     return lDate;
   }
 
   // Handle Array
   if (obj instanceof Array) {
-    var lArray = [];
-    for (var i = 0, len = obj.length; i < len; i++) {
+    let lArray = [];
+    for (let i = 0, len = obj.length; i < len; i++) {
       lArray[i] = clone(obj[i]);
     }
     return lArray;
@@ -777,14 +777,14 @@ function clone(obj) {
 
   // Handle Object
   if (obj instanceof Object) {
-    var lObject = {};
-    for (var attr in obj) {
-      if (obj.hasOwnProperty(attr)) lObject[attr] = clone(obj[attr]);
+    let objectClone = {};
+    for (let attr in obj) {
+      if (obj.hasOwnProperty(attr)) objectClone[attr] = clone(obj[attr]);
     }
-    return lObject;
+    return objectClone;
   }
 
-  throw new Error("Unable to copy obj! Its type isn't supported.");
+  throw new Error("Unable to copy object. Type not supported.");
 }
 
 function acceptCookies() {
@@ -794,9 +794,9 @@ function acceptCookies() {
 
 function createCookie(name,value,days) {
   // https://www.quirksmode.org/js/cookies.html
-  var expires = "";
+  let expires = "";
   if (days) {
-    var date = new Date();
+    let date = new Date();
     date.setTime(date.getTime()+(days*24*60*60*1000));
     expires = "; expires="+date.toGMTString();
   }
@@ -810,7 +810,7 @@ function formatText(text) {
 }
 
 function download(uri, filename) {
-  var element = document.createElement('a');
+  let element = document.createElement('a');
   element.setAttribute('href', uri);
   element.setAttribute('download', filename);
   element.style.display = 'none';
