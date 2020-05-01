@@ -169,9 +169,13 @@ SQL;
 
     $NowPlus10Years = time() + 60*60*24*3650; // 3650 dagen cookie expiration time
     // Use path bug to set samesite. PHP 7.3: Samesite is an extra parameter
-    setcookie('user_id',     $this->id, $NowPlus10Years, '/; samesite=Lax', '', true, true);
-    setcookie('login_id',    $id,       $NowPlus10Years, '/; samesite=Lax', '', true, true);
-    setcookie('login_token', $token,    $NowPlus10Years, '/; samesite=Lax', '', true, true);
+    setcookie('user_id', $this->id,  ['expires' => $NowPlus10Years, 'path' => '/', 'secure' => true, 'samesite' => 'Lax']);
+    setcookie('login_id', $id,       ['expires' => $NowPlus10Years, 'path' => '/', 'secure' => true, 'samesite' => 'Lax']);
+    setcookie('login_token', $token, ['expires' => $NowPlus10Years, 'path' => '/', 'secure' => true, 'samesite' => 'Lax']);
+
+//    setcookie('user_id',     $this->id, $NowPlus10Years, '/; samesite=Lax', '', true, true);
+//    setcookie('login_id',    $id,       $NowPlus10Years, '/; samesite=Lax', '', true, true);
+//    setcookie('login_token', $token,    $NowPlus10Years, '/; samesite=Lax', '', true, true);
   }
 
   public function login($email, $password, $stayLoggedIn=false){
