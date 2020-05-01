@@ -961,6 +961,10 @@ function showEditPersonForm(personID=null) {
 
 function selectPersonTransportationMode(transportationMode, toggle=false){
   selectPersonHealth(null);
+  setMenuButton('editPersonChild', false);
+  setMenuButton('editPersonUnderInfluence', false);
+  setMenuButton('editPersonHitRun', false);
+
   for (const key of Object.keys(TTransportationMode)) {
     const buttonTransportationMode = TTransportationMode[key];
     const button = document.getElementById('editPersonTransportationMode' + key);
@@ -1428,7 +1432,11 @@ async function saveArticleCrash(){
       const div = document.getElementById('crash' + crashEdited.id);
       if (div) div.outerHTML = getCrashListHTML(crashEdited.id);
       const divDetails = document.getElementById('crashdetails' + crashEdited.id);
-      if (divDetails) divDetails.outerHTML = getCrashDetailsHTML(crashEdited.id);
+      if (divDetails) {
+        divDetails.outerHTML = getCrashDetailsHTML(crashEdited.id);
+        showMapCrash(crashEdited.latitude, crashEdited.longitude);
+
+      }
     } else {
       window.location.href = createCrashURL(data.crashId, crashEdited.title);
       let text = '';
