@@ -2094,7 +2094,7 @@ function showMapEdit(latitude, longitude) {
   if (! mapEdit){
     mapboxgl.accessToken = mapboxKey;
     mapEdit = new mapboxgl.Map({
-      container: 'map',
+      container: 'mapEdit',
       style:     'mapbox://styles/mapbox/streets-v9',
       center:    [longitude, latitude],
       zoom:      zoomLevel,
