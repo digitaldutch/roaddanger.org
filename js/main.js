@@ -35,6 +35,8 @@ function initMain() {
   const articleID        = url.searchParams.get('articleid');
   const searchText       = url.searchParams.get('search');
   const searchPeriod     = url.searchParams.get('period');
+  const searchPeriodFrom = url.searchParams.get('period_from');
+  const searchPeriodTo   = url.searchParams.get('period_to');
   const searchSiteName   = url.searchParams.get('sitename');
   const searchPersons    = url.searchParams.get('persons');
   const searchHealthDead = url.searchParams.get('hd');
@@ -69,12 +71,17 @@ function initMain() {
   if (searchButtonExists && (searchText || searchPeriod || searchSiteName || searchHealthDead || searchChild || searchPersons)) {
     document.body.classList.add('searchBody');
     document.getElementById('searchText').value = searchText;
-    if (searchPeriod) document.getElementById('searchPeriod').value   = searchPeriod;
+
+    if (searchPeriod)     document.getElementById('searchPeriod').value     = searchPeriod;
+    if (searchPeriodFrom) document.getElementById('searchPeriodFrom').value = searchPeriodFrom;
+    if (searchPeriodTo)   document.getElementById('searchPeriodTo').value   = searchPeriodTo;
+
     document.getElementById('searchSiteName').value = searchSiteName;
     if (searchHealthDead) document.getElementById('searchPersonHealthDead').classList.add('buttonSelectedBlue');
     if (searchChild) document.getElementById('searchPersonChild').classList.add('buttonSelectedBlue');
     if (searchPersons) setPersonsFilter(searchPersons);
   }
+  setCustomRangeVisibility();
 
   addEditPersonButtons();
 
@@ -394,12 +401,14 @@ async function loadCrashes(crashID=null, articleID=null){
       offset: crashes.length,
     };
     if (searchVisible()) {
-      dataPost.search        = document.getElementById('searchText').value.trim().toLowerCase();
-      dataPost.searchPeriod  = document.getElementById('searchPeriod').value;
-      dataPost.searchPersons = getPersonsFromFilter();
-      dataPost.sitename      = document.getElementById('searchSiteName').value.trim().toLowerCase();
-      dataPost.healthdead    = (document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue'))? 1 : 0;
-      dataPost.child         = (document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue'))? 1 : 0;
+      dataPost.search           = document.getElementById('searchText').value.trim().toLowerCase();
+      dataPost.searchPeriod     = document.getElementById('searchPeriod').value;
+      dataPost.searchPeriodFrom = document.getElementById('searchPeriodFrom').value;
+      dataPost.searchPeriodTo   = document.getElementById('searchPeriodTo').value;
+      dataPost.searchPersons    = getPersonsFromFilter();
+      dataPost.sitename         = document.getElementById('searchSiteName').value.trim().toLowerCase();
+      dataPost.healthdead       = (document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue'))? 1 : 0;
+      dataPost.child            = (document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue'))? 1 : 0;
     }
 
     if (crashID)                                dataPost.id = crashID;
@@ -1814,6 +1823,12 @@ function initSearchBar(){
   document.getElementById('searchSearchPersons').innerHTML = html;
 }
 
+function setCustomRangeVisibility() {
+  const custom = document.getElementById('searchPeriod').value === 'custom';
+  document.getElementById('searchPeriodFrom').style.display = custom? 'block' : 'none';
+  document.getElementById('searchPeriodTo').style.display   = custom? 'block' : 'none';
+}
+
 function toggleSearchPersons(event) {
   toggleCheckOptions(event, 'SearchPersons');
 }
@@ -1969,6 +1984,8 @@ function setPersonsFilter(personsCommaString){
 function startSearch() {
   const searchText       = document.getElementById('searchText').value.trim().toLowerCase();
   const searchPeriod     = document.getElementById('searchPeriod').value;
+  const searchPeriodFrom = document.getElementById('searchPeriodFrom').value;
+  const searchPeriodTo   = document.getElementById('searchPeriodTo').value;
   const searchSiteName   = document.getElementById('searchSiteName').value.trim().toLowerCase();
   const searchHealthDead = document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue');
   const searchChild      = document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue');
@@ -1981,7 +1998,9 @@ function startSearch() {
   else if (pageType === PageType.kaart)           url += '/kaart';
   url += '?search=' + encodeURIComponent(searchText);
   if (searchSiteName)           url += '&sitename=' + encodeURIComponent(searchSiteName);
-  if (searchPeriod)             url += '&period=' + searchPersons.join();
+  if (searchPeriod)             url += '&period=' + searchPeriod;
+  if (searchPeriodFrom)         url += '&period_from=' + searchPeriodFrom;
+  if (searchPeriodTo)           url += '&period_to=' + searchPeriodTo;
   if (searchHealthDead)         url += '&hd=1';
   if (searchChild)              url += '&child=1';
   if (searchPersons.length > 0) url += '&persons=' + searchPersons.join();

@@ -100,12 +100,12 @@ Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar
       <div class="filterElement">
         Periode<br>
         <select id="filterStatsPeriod" oninput="loadStatistics();">
+          <option value="all" selected>Altijd</option> 
           <option value="7days">7 dagen</option> 
           <option value="30days">30 dagen</option> 
           <option value="decorrespondent">De Correspondent week</option> 
           <option value="2019">2019</option> 
           <option value="2020">2020</option> 
-          <option value="all" selected>Alles</option> 
         </select>
       </div>
     </div>
@@ -129,6 +129,7 @@ HTML;
       <div class="filterElement">
         Periode<br>
         <select id="filterStatsPeriod" oninput="loadStatistics();">
+          <option value="all" selected>Altijd</option> 
           <option value="today">Vandaag</option> 
           <option value="yesterday">Gisteren</option> 
           <option value="7days">7 dagen</option> 
@@ -136,7 +137,6 @@ HTML;
           <option value="decorrespondent">De Correspondent week</option> 
           <option value="2019">2019</option> 
           <option value="2020">2020</option> 
-          <option value="all" selected>Alles</option> 
         </select>
       </div>
     </div>

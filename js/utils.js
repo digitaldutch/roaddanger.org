@@ -792,15 +792,17 @@ function acceptCookies() {
   document.getElementById('cookieWarning').style.display = 'none';
 }
 
-function createCookie(name,value,days) {
+function createCookie(name, value, days) {
   // https://www.quirksmode.org/js/cookies.html
   let expires = "";
+
   if (days) {
     let date = new Date();
     date.setTime(date.getTime()+(days*24*60*60*1000));
     expires = "; expires="+date.toGMTString();
   }
-  document.cookie = name+"="+value+expires+"; path=/";
+
+  document.cookie = name + "=" + value + expires + "; path=/; SameSite=Lax; Secure";
 }
 
 function formatText(text) {

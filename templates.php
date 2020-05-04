@@ -79,7 +79,8 @@ $navigation
     </div>
     
     <div class="toolbarItem">
-      <select id="searchPeriod" class="searchInput">
+      <select id="searchPeriod" class="searchInput" oninput="setCustomRangeVisibility();" data-tippy-content="Periode">
+        <option value="all" selected>Altijd</option> 
         <option value="today">Vandaag</option> 
         <option value="yesterday">Gisteren</option> 
         <option value="7days">7 dagen</option> 
@@ -87,9 +88,13 @@ $navigation
         <option value="decorrespondent">De Correspondent week</option> 
         <option value="2019">2019</option> 
         <option value="2020">2020</option> 
-        <option value="all" selected>Alles</option> 
+        <option value="custom">Handmatig</option> 
       </select>
     </div>
+    
+    <input id="searchPeriodFrom" class="searchInput toolbarItem" type="date" data-tippy-content="Vanaf">
+
+    <input id="searchPeriodTo" class="searchInput toolbarItem" type="date" data-tippy-content="Tot en met">
     
     <div class="toolbarItem">
       <div class="dropInputWrapper">

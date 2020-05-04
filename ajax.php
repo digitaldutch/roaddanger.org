@@ -388,20 +388,23 @@ SQL;
 else if ($function === 'loadCrashes') {
   try {
     $data = json_decode(file_get_contents('php://input'), true);
-    $offset            = isset($data['offset'])? (int)$data['offset'] : 0;
-    $count             = isset($data['count'])? (int)$data['count'] : 20;
-    $crashId           = isset($data['id'])? (int)$data['id'] : null;
-    $searchText        = isset($data['search'])? $data['search'] : '';
-    $searchDateFrom    = isset($data['searchDateFrom'])? $data['searchDateFrom'] : '';
-    $searchDateTo      = isset($data['searchDateTo'])? $data['searchDateTo'] : '';
-    $searchPeriod      = isset($data['searchPeriod'])? $data['searchPeriod'] : '';
-    $searchPersons     = isset($data['searchPersons'])? $data['searchPersons'] : [];
-    $searchSiteName    = isset($data['sitename'])? $data['sitename'] : '';
-    $searchHealthDead  = isset($data['healthdead'])? (int)$data['healthdead'] : 0;
-    $searchChild       = isset($data['child'])? (int)$data['child'] : 0;
-    $moderations       = isset($data['moderations'])? (int)$data['moderations'] : 0;
-    $sort              = isset($data['sort'])? $data['sort'] : '';
-    $export            = isset($data['export'])? (int)$data['export'] : 0;
+
+    $offset            = (int)$data['offset']?? 0;
+    $count             = (int)$data['count']?? 20;
+    $crashId           = $data['id']?? null;
+    $searchText        = $data['search']?? '';
+    $searchDateFrom    = $data['searchDateFrom']?? '';
+    $searchDateTo      = $data['searchDateTo']?? '';
+    $searchPeriod      = $data['searchPeriod']?? '';
+    $searchPeriodFrom  = $data['searchPeriodFrom']?? '';
+    $searchPeriodTo    = $data['searchPeriodTo']?? '';
+    $searchPersons     = $data['searchPersons']?? [];
+    $searchSiteName    = $data['sitename']?? '';
+    $searchHealthDead  = (int)$data['healthdead']?? 0;
+    $searchChild       = (int)$data['child']?? 0;
+    $moderations       = (int)$data['moderations']?? 0;
+    $sort              = $data['sort']?? '';
+    $export            = (int)$data['export']?? 0;
     $imageUrlsOnly     = ($data['imageUrlsOnly'] === 1)? (int)$data['imageUrlsOnly'] : 0;
 
     if ($count > 1000) throw new Exception('Internal error: Count to high.');
@@ -479,16 +482,26 @@ SQL;
 
       if ($searchPeriod !== ''){
         switch ($searchPeriod) {
-          case 'today':           $SQLPeriod = ' DATE(ac.date) = CURDATE() '; break;
-          case 'yesterday':       $SQLPeriod = ' DATE(ac.date) = SUBDATE(CURDATE(), 1) '; break;
-          case '7days':           $SQLPeriod = ' DATE(ac.date) > SUBDATE(CURDATE(), 7) '; break;
-          case 'decorrespondent': $SQLPeriod = " DATE(ac.date) >= '2019-01-14' AND DATE (ac.date) <= '2019-01-20' "; break;
-          case '30days':          $SQLPeriod = ' DATE(ac.date) > SUBDATE(CURDATE(), 30) '; break;
-          case '2019':            $SQLPeriod = ' YEAR(ac.date) = 2019 '; break;
-          case '2020':            $SQLPeriod = ' YEAR(ac.date) = 2020 '; break;
-          default:                $SQLPeriod = '';
+          case 'today':           addSQLWhere($SQLWhere, ' DATE(ac.date) = CURDATE() '); break;
+          case 'yesterday':       addSQLWhere($SQLWhere, ' DATE(ac.date) = SUBDATE(CURDATE(), 1) '); break;
+          case '7days':           addSQLWhere($SQLWhere, ' DATE(ac.date) > SUBDATE(CURDATE(), 7) '); break;
+          case 'decorrespondent': addSQLWhere($SQLWhere, " DATE(ac.date) >= '2019-01-14' AND DATE (ac.date) <= '2019-01-20' "); break;
+          case '30days':          addSQLWhere($SQLWhere, ' DATE(ac.date) > SUBDATE(CURDATE(), 30) '); break;
+          case '2019':            addSQLWhere($SQLWhere, ' YEAR(ac.date) = 2019 '); break;
+          case '2020':            addSQLWhere($SQLWhere, ' YEAR(ac.date) = 2020 '); break;
+          case 'custom': {
+            if ($searchPeriodFrom !== '') {
+              addSQLWhere($SQLWhere, " DATE(ac.date) >= :searchPeriodFrom ");
+              $params[':searchPeriodFrom'] = date($searchPeriodFrom);
+            }
+
+            if ($searchPeriodTo !== '') {
+              addSQLWhere($SQLWhere, " DATE(ac.date) <= :searchPeriodTo ");
+              $params[':searchPeriodTo'] = date($searchPeriodTo);
+            }
+            break;
+          }
         }
-        addSQLWhere($SQLWhere, $SQLPeriod);
       } else {
         // searchDateFrom and searchDateTo are only used if there is no searchPeriod specified
         if ($searchDateFrom !== ''){

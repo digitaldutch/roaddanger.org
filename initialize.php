@@ -36,7 +36,13 @@ try {
 
   /** @var TDatabase $database */
   $database = new TDatabase();
-  $database->open();
+
+  try {
+    $database->open();
+  } catch (Exception $e){
+    die('Internal error: Database connection failed');
+  }
+
   $user = new TUser($database);
 } catch (Exception $e){
   die('Internal error: Initialization failed');
