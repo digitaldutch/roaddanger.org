@@ -92,9 +92,8 @@ $navigation
       </select>
     </div>
     
-    <input id="searchPeriodFrom" class="searchInput toolbarItem" type="date" data-tippy-content="Vanaf">
-
-    <input id="searchPeriodTo" class="searchInput toolbarItem" type="date" data-tippy-content="Tot en met">
+    <input id="searchDateFrom" class="searchInput toolbarItem" type="date" data-tippy-content="Vanaf">
+    <input id="searchDateTo" class="searchInput toolbarItem" type="date" data-tippy-content="Tot en met">
     
     <div class="toolbarItem">
       <div class="dropInputWrapper">

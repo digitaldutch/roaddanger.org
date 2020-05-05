@@ -99,15 +99,19 @@ Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar
     <div style="margin: 5px 10px;">
       <div class="filterElement">
         Periode<br>
-        <select id="filterStatsPeriod" oninput="loadStatistics();">
+        <select id="filterStatsPeriod" class="searchInput" oninput="loadStatistics();">
           <option value="all" selected>Altijd</option> 
           <option value="7days">7 dagen</option> 
           <option value="30days">30 dagen</option> 
           <option value="decorrespondent">De Correspondent week</option> 
           <option value="2019">2019</option> 
-          <option value="2020">2020</option> 
+          <option value="2020">2020</option>
+          <option value="custom">Handmatig</option>          
         </select>
       </div>
+      
+      <input id="filterStatsDateFrom" oninput="loadStatistics();" class="searchInput toolbarItem" type="date" data-tippy-content="Vanaf">
+      <input id="filterStatsDateTo" oninput="loadStatistics();"  class="searchInput toolbarItem" type="date" data-tippy-content="Tot en met">  
     </div>
 
     <div id="graphPartners" style="position: relative;"></div>
@@ -128,7 +132,7 @@ HTML;
     <div style="margin: 5px 10px;">
       <div class="filterElement">
         Periode<br>
-        <select id="filterStatsPeriod" oninput="loadStatistics();">
+        <select id="filterStatsPeriod" class="searchInput" oninput="loadStatistics();">
           <option value="all" selected>Altijd</option> 
           <option value="today">Vandaag</option> 
           <option value="yesterday">Gisteren</option> 
@@ -137,8 +141,13 @@ HTML;
           <option value="decorrespondent">De Correspondent week</option> 
           <option value="2019">2019</option> 
           <option value="2020">2020</option> 
+          <option value="custom">Handmatig</option> 
         </select>
       </div>
+      
+      <input id="filterStatsDateFrom" oninput="loadStatistics();" class="searchInput toolbarItem" type="date" data-tippy-content="Vanaf">
+      <input id="filterStatsDateTo" oninput="loadStatistics();" class="searchInput toolbarItem" type="date" data-tippy-content="Tot en met">  
+     
     </div>
 
     <table id="tableStats" class="dataTable">

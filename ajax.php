@@ -4,27 +4,59 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once 'initialize.php';
 
-global $user;
-
 $function = $_REQUEST['function'];
+
+function addPeriodWhereSql(&$sqlWhere, &$params, $searchPeriod, $searchDateFrom, $searchDateTo){
+  if ($searchPeriod === '') return;
+
+  switch ($searchPeriod) {
+    case 'today':
+      addSQLWhere($sqlWhere, ' DATE(ac.date) = CURDATE() ');
+      break;
+    case 'yesterday':
+      addSQLWhere($sqlWhere, ' DATE(ac.date) = SUBDATE(CURDATE(), 1) ');
+      break;
+    case '7days':
+      addSQLWhere($sqlWhere, ' DATE(ac.date) > SUBDATE(CURDATE(), 7) ');
+      break;
+    case 'decorrespondent':
+      addSQLWhere($sqlWhere, " DATE(ac.date) >= '2019-01-14' AND DATE (ac.date) <= '2019-01-20' ");
+      break;
+    case '30days':
+      addSQLWhere($sqlWhere, ' DATE(ac.date) > SUBDATE(CURDATE(), 30) ');
+      break;
+    case '2019':
+      addSQLWhere($sqlWhere, ' YEAR(ac.date) = 2019 ');
+      break;
+    case '2020':
+      addSQLWhere($sqlWhere, ' YEAR(ac.date) = 2020 ');
+      break;
+    case 'custom': {
+      if ($searchDateFrom !== '') {
+        addSQLWhere($sqlWhere, " DATE(ac.date) >= :searchDateFrom ");
+        $params[':searchDateFrom'] = date($searchDateFrom);
+      }
+
+      if ($searchDateTo !== '') {
+        addSQLWhere($sqlWhere, " DATE(ac.date) <= :searchDateTo ");
+        $params[':searchDateTo'] = date($searchDateTo);
+      }
+
+      break;
+    }
+  }
+}
+
 
 /**
  * @param TDatabase $database
  * @return array
  */
-function getStatsTransportation($database, $period='all'){
-  $stats = [];
-
-  switch ($period) {
-    case 'today':           $SQLWhere = ' WHERE DATE (`date`) = CURDATE() '; break;
-    case 'yesterday':       $SQLWhere = ' WHERE DATE (`date`) = SUBDATE(CURDATE(), 1) '; break;
-    case '7days':           $SQLWhere = ' WHERE DATE (`date`) > SUBDATE(CURDATE(), 7) '; break;
-    case 'decorrespondent': $SQLWhere = " WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' "; break;
-    case '30days':          $SQLWhere = ' WHERE DATE (`date`) > SUBDATE(CURDATE(), 30) '; break;
-    case '2019':            $SQLWhere = ' WHERE YEAR (`date`) = 2019 '; break;
-    case '2020':            $SQLWhere = ' WHERE YEAR (`date`) = 2020 '; break;
-    default:                $SQLWhere = '';
-  }
+function getStatsTransportation($database, $searchPeriod='all', $searchDateFrom=null, $searchDateTo=null){
+  $stats    = [];
+  $params   = [];
+  $SQLWhere = '';
+  addPeriodWhereSql($SQLWhere, $params, $searchPeriod, $searchDateFrom, $searchDateTo);
 
   $sql = <<<SQL
 SELECT
@@ -38,13 +70,13 @@ SELECT
   sum(ap.health=0)         AS healthunknown,
   COUNT(*) AS total
 FROM accidentpersons ap
-JOIN accidents a ON ap.accidentid = a.id
+JOIN accidents ac ON ap.accidentid = ac.id
   $SQLWhere
 GROUP BY transportationmode
 ORDER BY dead DESC, injured DESC
 SQL;
 
-  $stats['total'] = $database->fetchAll($sql);
+  $stats['total'] = $database->fetchAll($sql, $params);
   foreach ($stats['total'] as &$stat) {
     $stat['transportationmode'] = (int)$stat['transportationmode'];
     $stat['underinfluence']     = (int)$stat['underinfluence'];
@@ -63,26 +95,18 @@ SQL;
  * @param TDatabase $database
  * @return array
  */
-function getStatsCrashPartners($database, $period='all'){
+function getStatsCrashPartners($database, $searchPeriod='all', $searchDateFrom=null, $searchDateTo=null){
 
-  switch ($period) {
-    case 'today':           $SQLWhere = ' AND DATE (`date`) = CURDATE() '; break;
-    case 'yesterday':       $SQLWhere = ' AND DATE (`date`) = SUBDATE(CURDATE(), 1) '; break;
-    case '7days':           $SQLWhere = ' AND DATE (`date`) > SUBDATE(CURDATE(), 7) '; break;
-    case 'decorrespondent': $SQLWhere = " AND DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' "; break;
-    case '30days':          $SQLWhere = ' AND DATE (`date`) > SUBDATE(CURDATE(), 30) '; break;
-    case '2019':            $SQLWhere = ' AND YEAR (`date`) = 2019 '; break;
-    case '2020':            $SQLWhere = ' AND YEAR (`date`) = 2020 '; break;
-    default:                $SQLWhere = '';
-  }
+  $SQLWhere = ' WHERE ap.health=3 ';
+  $params   = [];
+  addPeriodWhereSql($SQLWhere, $params, $searchPeriod, $searchDateFrom, $searchDateTo);
 
   $sqlCrashesWithDeath = <<<SQL
   SELECT
-    a.id
+    ac.id
   FROM accidentpersons ap
-  JOIN accidents a ON ap.accidentid = a.id
-  WHERE ap.health=3
-    $SQLWhere
+  JOIN accidents ac ON ap.accidentid = ac.id
+  $SQLWhere
 SQL;
 
   // Get all persons from crashes with dead
@@ -101,7 +125,7 @@ SQL;
 
 
   $crashVictims = [];
-  $crashes = $database->fetchAllGroup($sql);
+  $crashes = $database->fetchAllGroup($sql, $params);
   foreach ($crashes as $crashPersons) {
     $crashDeaths              = [];
     $crashTransportationModes = [];
@@ -299,6 +323,8 @@ function cleanArticleDBRow($article){
   return $article;
 }
 
+
+// ***** Main loop *****
 if ($function == 'login') {
   if (is_null($_REQUEST['email']) || is_null($_REQUEST['password'])) dieWithJSONErrorMessage('Invalid AJAX login call.');
 
@@ -306,12 +332,16 @@ if ($function == 'login') {
   $password     = $_REQUEST['password'];
   $stayLoggedIn = (int)getRequest('stayLoggedIn', 0) === 1;
 
+  global $user;
+
   $user->login($email, $password, $stayLoggedIn);
   echo json_encode($user->info());
 } // ====================
 else if ($function == 'register') {
   try {
     $data = json_decode(file_get_contents('php://input'), true);
+
+    global $user;
 
     $user->register($data['firstname'], $data['lastname'], $data['email'], $data['password']);
     $result = array('ok' => true);
@@ -322,6 +352,8 @@ else if ($function == 'register') {
   echo json_encode($result);
 } // ====================
 else if ($function == 'logout') {
+  global $user;
+
   $user->logout();
   echo json_encode($user->info());
 } // ====================
@@ -396,8 +428,8 @@ else if ($function === 'loadCrashes') {
     $searchDateFrom    = $data['searchDateFrom']?? '';
     $searchDateTo      = $data['searchDateTo']?? '';
     $searchPeriod      = $data['searchPeriod']?? '';
-    $searchPeriodFrom  = $data['searchPeriodFrom']?? '';
-    $searchPeriodTo    = $data['searchPeriodTo']?? '';
+    $searchDateFrom    = $data['searchDateFrom']?? '';
+    $searchDateTo      = $data['searchDateTo']?? '';
     $searchPersons     = $data['searchPersons']?? [];
     $searchSiteName    = $data['sitename']?? '';
     $searchHealthDead  = (int)$data['healthdead']?? 0;
@@ -480,40 +512,7 @@ SQL;
         $params[':search2'] = $searchText;
       }
 
-      if ($searchPeriod !== ''){
-        switch ($searchPeriod) {
-          case 'today':           addSQLWhere($SQLWhere, ' DATE(ac.date) = CURDATE() '); break;
-          case 'yesterday':       addSQLWhere($SQLWhere, ' DATE(ac.date) = SUBDATE(CURDATE(), 1) '); break;
-          case '7days':           addSQLWhere($SQLWhere, ' DATE(ac.date) > SUBDATE(CURDATE(), 7) '); break;
-          case 'decorrespondent': addSQLWhere($SQLWhere, " DATE(ac.date) >= '2019-01-14' AND DATE (ac.date) <= '2019-01-20' "); break;
-          case '30days':          addSQLWhere($SQLWhere, ' DATE(ac.date) > SUBDATE(CURDATE(), 30) '); break;
-          case '2019':            addSQLWhere($SQLWhere, ' YEAR(ac.date) = 2019 '); break;
-          case '2020':            addSQLWhere($SQLWhere, ' YEAR(ac.date) = 2020 '); break;
-          case 'custom': {
-            if ($searchPeriodFrom !== '') {
-              addSQLWhere($SQLWhere, " DATE(ac.date) >= :searchPeriodFrom ");
-              $params[':searchPeriodFrom'] = date($searchPeriodFrom);
-            }
-
-            if ($searchPeriodTo !== '') {
-              addSQLWhere($SQLWhere, " DATE(ac.date) <= :searchPeriodTo ");
-              $params[':searchPeriodTo'] = date($searchPeriodTo);
-            }
-            break;
-          }
-        }
-      } else {
-        // searchDateFrom and searchDateTo are only used if there is no searchPeriod specified
-        if ($searchDateFrom !== ''){
-          addSQLWhere($SQLWhere, " ac.date >= :searchDateFrom ");
-          $params[':searchDateFrom'] = $searchDateFrom;
-        }
-
-        if ($searchDateTo !== ''){
-          addSQLWhere($SQLWhere, " ac.date <= :searchDateTo ");
-          $params[':searchDateTo'] = $searchDateTo;
-        }
-      }
+      addPeriodWhereSql($SQLWhere, $params, $searchPeriod, $searchDateFrom, $searchDateTo);
 
       if ($searchSiteName !== ''){
         $joinArticlesTable = true;
@@ -1028,12 +1027,16 @@ else if ($function === 'getArticleText'){
 } //==========
 else if ($function === 'getStatistics'){
   try{
-    $period = getRequest('period','all');
-    $type   = getRequest('type','');
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    $type              = $data['type']?? '';
+    $searchPeriod      = $data['searchPeriod']?? '';
+    $searchDateFrom    = $data['searchDateFrom']?? '';
+    $searchDateTo      = $data['searchDateTo']?? '';
 
     if      ($type === 'general')       $stats = getStatsDatabase($database);
-    else if ($type === 'crashPartners') $stats = getStatsCrashPartners($database, $period);
-    else                                $stats = getStatsTransportation($database, $period);
+    else if ($type === 'crashPartners') $stats = getStatsCrashPartners($database, $searchPeriod, $searchDateFrom, $searchDateTo);
+    else                                $stats = getStatsTransportation($database, $searchPeriod, $searchDateFrom, $searchDateTo);
 
     $result = ['ok' => true,
       'statistics' => $stats,

@@ -1,6 +1,6 @@
 
 
-function CrashPartnerGraph(divID, data, optionsUser=[], period=null) {
+function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   let widthContainer   = 700;
   let heightContainer  = 500;
   let margin           = {top: 50, left: 50, right: 10, bottom: 10};
@@ -183,7 +183,11 @@ function CrashPartnerGraph(divID, data, optionsUser=[], period=null) {
       if (d.victimMode === d.partnerMode) url += 'r'; // Restricted
       else if (d.partnerMode === -1) url += 'u'; // Unilateral
       else url += `,${d.partnerMode}`;
-      if (period) url += '&period=' + period;
+      if (filter.period) {
+        url += '&period=' + filter.period;
+        if (filter.dateFrom) url += '&date_from=' + filter.dateFrom;
+        if (filter.dateTo)   url += '&date_to=' + filter.dateTo;
+      }
       return url;})
     .append("g")
     .attr("transform", d => `translate(${xScale(d.partnerMode) + xScale.bandwidth()/2}, ${yScale(d.victimMode) + yScale.bandwidth()/2})`)
