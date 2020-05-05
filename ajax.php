@@ -59,6 +59,10 @@ function getStatsTransportation($database, $filter){
 
   addPeriodWhereSql($SQLWhere, $params, $filter['period'], $filter['dateFrom'], $filter['dateTo']);
 
+  if ($filter['child'] === 1){
+    addSQLWhere($SQLWhere, " ap.child=1 ");
+  }
+
   $sql = <<<SQL
 SELECT
   transportationmode,

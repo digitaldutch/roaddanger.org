@@ -382,7 +382,7 @@ async function loadStatistics(){
     const url      = '/ajax.php?function=getStatistics';
     const response = await fetchFromServer(url, serverData);
     const text     = await response.text();
-    data           = JSON.parse(text);
+    const data     = JSON.parse(text);
     if (data.user) updateLoginGUI(data.user);
     if (data.error) showError(data.error);
     else {

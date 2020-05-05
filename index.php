@@ -133,10 +133,14 @@ HTML;
   
   <div id="statistics">
   
-    <div style="margin: 5px 10px;">
-      <div class="filterElement">
-        Periode<br>
-        <select id="filterStatsPeriod" class="searchInput" oninput="loadStatistics();">
+    <div class="searchBar" style="display: flex;">
+
+      <div class="toolbarItem">
+        <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="Kind" onclick="selectFilterChild();"></span>      
+      </div>
+
+      <div class="toolbarItem">
+        <select id="filterStatsPeriod" class="searchInput" oninput="loadStatistics();" data-tippy-content="Periode">
           <option value="all" selected>Altijd</option> 
           <option value="today">Vandaag</option> 
           <option value="yesterday">Gisteren</option> 
