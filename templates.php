@@ -75,6 +75,12 @@ $navigation
     <div class="popupCloseCross" onclick="toggleSearchBar();"></div>
 
     <div class="toolbarItem">
+      <span id="searchPersonHealthDead" class="menuButton bgDeadBlack" data-tippy-content="Letsel: dood" onclick="selectSearchPersonDead();"></span>      
+      <span id="searchPersonHealthInjured" class="menuButton bgInjuredBlack" data-tippy-content="Letsel: gewond" onclick="selectSearchPersonInjured();"></span>      
+      <span id="searchPersonChild" class="menuButton bgChild" data-tippy-content="Kind" onclick="selectSearchPersonChild();"></span>      
+    </div>
+
+    <div class="toolbarItem">
        <input id="searchText" class="searchInput"  type="search" placeholder="Zoek tekst" onkeyup="startSearchKey(event);" autocomplete="off">  
     </div>
     
@@ -105,12 +111,7 @@ $navigation
         <div id="searchSearchPersons" class="searchResultsPopup" onclick="event.stopPropagation();"></div>
       </div>      
     </div>
-       
-    <div class="toolbarItem">
-      <span id="searchPersonHealthDead" class="menuButton bgDeadBlack" data-tippy-content="Letsel: dood" onclick="selectSearchPersonDead();"></span>      
-      <span id="searchPersonChild" class="menuButton bgChild" data-tippy-content="Kind" onclick="selectSearchPersonChild();"></span>      
-    </div>
-    
+           
     <div class="toolbarItem">
       <input id="searchSiteName" class="searchInput" type="search" placeholder="Bron" onkeyup="startSearchKey(event);" autocomplete="off">
     </div>

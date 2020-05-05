@@ -421,23 +421,24 @@ else if ($function === 'loadCrashes') {
   try {
     $data = json_decode(file_get_contents('php://input'), true);
 
-    $offset            = (int)$data['offset']?? 0;
-    $count             = (int)$data['count']?? 20;
-    $crashId           = $data['id']?? null;
-    $searchText        = $data['search']?? '';
-    $searchDateFrom    = $data['searchDateFrom']?? '';
-    $searchDateTo      = $data['searchDateTo']?? '';
-    $searchPeriod      = $data['searchPeriod']?? '';
-    $searchDateFrom    = $data['searchDateFrom']?? '';
-    $searchDateTo      = $data['searchDateTo']?? '';
-    $searchPersons     = $data['searchPersons']?? [];
-    $searchSiteName    = $data['sitename']?? '';
-    $searchHealthDead  = (int)$data['healthdead']?? 0;
-    $searchChild       = (int)$data['child']?? 0;
-    $moderations       = (int)$data['moderations']?? 0;
-    $sort              = $data['sort']?? '';
-    $export            = (int)$data['export']?? 0;
-    $imageUrlsOnly     = ($data['imageUrlsOnly'] === 1)? (int)$data['imageUrlsOnly'] : 0;
+    $offset              = (int)$data['offset']?? 0;
+    $count               = (int)$data['count']?? 20;
+    $crashId             = $data['id']?? null;
+    $searchText          = $data['search']?? '';
+    $searchDateFrom      = $data['searchDateFrom']?? '';
+    $searchDateTo        = $data['searchDateTo']?? '';
+    $searchPeriod        = $data['searchPeriod']?? '';
+    $searchDateFrom      = $data['searchDateFrom']?? '';
+    $searchDateTo        = $data['searchDateTo']?? '';
+    $searchPersons       = $data['searchPersons']?? [];
+    $searchSiteName      = $data['sitename']?? '';
+    $searchHealthDead    = (int)$data['healthDead']?? 0;
+    $searchHealthInjured = (int)$data['healthInjured']?? 0;
+    $searchChild         = (int)$data['child']?? 0;
+    $moderations         = (int)$data['moderations']?? 0;
+    $sort                = $data['sort']?? '';
+    $export              = (int)$data['export']?? 0;
+    $imageUrlsOnly       = ($data['imageUrlsOnly'] === 1)? (int)$data['imageUrlsOnly'] : 0;
 
     if ($count > 1000) throw new Exception('Internal error: Count to high.');
     if ($moderations && (! $user->isModerator())) throw new Exception('Moderaties zijn alleen zichtbaar voor moderators.');
@@ -520,9 +521,13 @@ SQL;
         $params[':sitename'] = "%$searchSiteName%";
       }
 
-      if ($searchHealthDead === 1){
+      if (($searchHealthDead === 1) || ($searchHealthInjured === 1)){
         $joinPersonsTable = true;
-        addSQLWhere($SQLWhere, " ap.health=3 ");
+        $values = [];
+        if ($searchHealthDead    === 1) $values[] = 3;
+        if ($searchHealthInjured === 1) $values[] = 2;
+        $valuesText = implode(", ", $values);
+        addSQLWhere($SQLWhere, " ap.health IN ($valuesText) ");
       }
 
       if ($searchChild === 1){

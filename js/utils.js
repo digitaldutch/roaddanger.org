@@ -22,10 +22,16 @@ const fetchOptions = {
 
 if (!Date.prototype.addDays) {
   Date.prototype.addDays = function(days) {
-    if (days === 0) return this;
+    if (days === 0) return thisthis;
     let newDate = new Date(this.valueOf());
     newDate.setDate(newDate.getDate() + parseInt(days));
     return newDate;
+  }
+}
+
+if (!Date.prototype.pretty) {
+  Date.prototype.pretty = function() {
+    return this.toLocaleDateString(undefined, {year: 'numeric', month: 'long', day: 'numeric' });
   }
 }
 

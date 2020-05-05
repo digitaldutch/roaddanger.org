@@ -631,6 +631,7 @@ a {
 .bgDead {                  background-image: url(/images/persondead.svg);}
 .bgDeadBlack {             background-image: url(/images/persondead_black.svg);}
 .bgInjured {               background-image: url(/images/person_injured.svg);}
+.bgInjuredBlack {          background-image: url(/images/person_injured_black.svg);}
 .bgUnharmed {              background-image: url(/images/unharmed.svg);}
 .bgRestricted {            background-image: url(/images/restricted.svg);}
 

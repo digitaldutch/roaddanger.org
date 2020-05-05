@@ -30,18 +30,19 @@ function initMain() {
 
   spinnerLoadCard = document.getElementById('spinnerLoad');
 
-  const url              = new URL(location.href);
-  const crashID          = getCrashNumberFromPath(url.pathname);
-  const articleID        = url.searchParams.get('articleid');
-  const searchText       = url.searchParams.get('search');
-  const searchPeriod     = url.searchParams.get('period');
-  const searchDateFrom   = url.searchParams.get('date_from');
-  const searchDateTo     = url.searchParams.get('date_to');
-  const searchSiteName   = url.searchParams.get('sitename');
-  const searchPersons    = url.searchParams.get('persons');
-  const searchHealthDead = url.searchParams.get('hd');
-  const searchChild      = url.searchParams.get('child');
-  const pathName         = decodeURIComponent(url.pathname);
+  const url                 = new URL(location.href);
+  const crashID             = getCrashNumberFromPath(url.pathname);
+  const articleID           = url.searchParams.get('articleid');
+  const searchText          = url.searchParams.get('search');
+  const searchPeriod        = url.searchParams.get('period');
+  const searchDateFrom      = url.searchParams.get('date_from');
+  const searchDateTo        = url.searchParams.get('date_to');
+  const searchSiteName      = url.searchParams.get('sitename');
+  const searchPersons       = url.searchParams.get('persons');
+  const searchHealthDead    = url.searchParams.get('hd');
+  const searchHealthInjured = url.searchParams.get('hi');
+  const searchChild         = url.searchParams.get('child');
+  const pathName            = decodeURIComponent(url.pathname);
 
   if      (pathName.startsWith('/moderaties'))                 pageType = PageType.moderations;
   else if (pathName.startsWith('/stream'))                     pageType = PageType.stream;
@@ -78,9 +79,10 @@ function initMain() {
 
     document.getElementById('searchSiteName').value = searchSiteName;
 
-    if (searchHealthDead) document.getElementById('searchPersonHealthDead').classList.add('buttonSelectedBlue');
-    if (searchChild)      document.getElementById('searchPersonChild').classList.add('buttonSelectedBlue');
-    if (searchPersons)    setPersonsFilter(searchPersons);
+    if (searchHealthDead)    document.getElementById('searchPersonHealthDead').classList.add('buttonSelectedBlue');
+    if (searchHealthInjured) document.getElementById('searchPersonHealthInjured').classList.add('buttonSelectedBlue');
+    if (searchChild)         document.getElementById('searchPersonChild').classList.add('buttonSelectedBlue');
+    if (searchPersons)       setPersonsFilter(searchPersons);
   }
   setCustomRangeVisibility();
 
@@ -405,6 +407,7 @@ async function loadStatistics(){
 }
 
 async function loadCrashes(crashID=null, articleID=null){
+
   function showCrashes(newCrashes){
     let html = '';
     if (newCrashes.length === 0) {
@@ -443,7 +446,8 @@ async function loadCrashes(crashID=null, articleID=null){
       serverData.searchDateTo     = document.getElementById('searchDateTo').value;
       serverData.searchPersons    = getPersonsFromFilter();
       serverData.sitename         = document.getElementById('searchSiteName').value.trim().toLowerCase();
-      serverData.healthdead       = (document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue'))? 1 : 0;
+      serverData.healthDead       = (document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue'))? 1 : 0;
+      serverData.healthInjured    = (document.getElementById('searchPersonHealthInjured').classList.contains('buttonSelectedBlue'))? 1 : 0;
       serverData.child            = (document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue'))? 1 : 0;
     }
 
@@ -576,7 +580,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   
     <div class="smallFont articleTitleSmall">
       <a href="${article.url}" target="article"><span class="cardSitename">${escapeHtml(article.sitename)}</span></a> 
-      | ${dateToAge(article.publishedtime)} | toegevoegd door ${article.user}
+      | ${article.publishedtime.pretty()} | toegevoegd door ${article.user}
     </div>
   
     <div class="articleTitle">${escapeHtml(article.title)}</div>
@@ -594,12 +598,12 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
       case TStreamTopType.articleAdded: titleModified = ' | nieuw artikel toegevoegd door ' + crash.streamtopuser; break;
       case TStreamTopType.placedOnTop:  titleModified = ' | omhoog geplaatst door '         + crash.streamtopuser; break;
     }
-    if (titleModified) titleModified += ' ' + datetimeToAge(crash.streamdatetime);
+    if (titleModified) titleModified += ' ' + crash.streamdatetime.pretty();
   }
 
   // Created date is only added if no modified title
   if (titleModified) titleSmall += titleModified;
-  else titleSmall += ' ' + datetimeToAge(crash.createtime);
+  else titleSmall += ' ' + crash.createtime.pretty();
 
   const htmlPersons = getCrashButtonsHTML(crash, false, true);
 
@@ -646,7 +650,7 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
    
   <div class="cardTop">
     <div style="width: 100%;">
-      <div class="smallFont cardTitleSmall">${dateToAge(crash.date)} | ${titleSmall}</div>
+      <div class="smallFont cardTitleSmall">${crash.date.pretty()} | ${titleSmall}</div>
       <div class="cardTitle">${escapeHtml(crash.title)}</div>
       <div>${htmlPersons}</div>
     </div>
@@ -675,7 +679,7 @@ function getMosaicHTML(newCrashes){
     for (let article of crashArticles) {
       html +=`<div onclick="showCrashDetails(${crash.id}); event.stopPropagation();">
 <div class="thumbPersons">${htmlPersons}</div>
-<div class="thumbDetails">${dateToAge(article.publishedtime)}</div>
+<div class="thumbDetails">${article.publishedtime.pretty()}</div>
 <img src="${article.urlimage}" onerror="this.style.visibility='hidden';">
 </div>`;
     }
@@ -732,7 +736,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   
     <div class="smallFont articleTitleSmall">
       <a href="${article.url}" target="article"><span class="cardSitename">${escapeHtml(article.sitename)}</span></a> 
-      | ${dateToAge(article.publishedtime)} | toegevoegd door ${article.user}
+      | ${article.publishedtime.pretty()} | toegevoegd door ${article.user}
     </div>
   
     <div class="articleTitle">${escapeHtml(article.title)}</div>
@@ -750,12 +754,12 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
       case TStreamTopType.articleAdded: titleModified = ' | nieuw artikel toegevoegd door ' + crash.streamtopuser; break;
       case TStreamTopType.placedOnTop:  titleModified = ' | omhoog geplaatst door '         + crash.streamtopuser; break;
     }
-    if (titleModified) titleModified += ' ' + datetimeToAge(crash.streamdatetime);
+    if (titleModified) titleModified += ' ' + crash.streamdatetime.pretty();
   }
 
   // Created date is only added if no modified title
   if (titleModified) titleSmall += titleModified;
-  else titleSmall += ' ' + datetimeToAge(crash.createtime);
+  else titleSmall += ' ' + crash.createtime.pretty();
 
   const htmlPersons = getCrashButtonsHTML(crash, false);
 
@@ -801,7 +805,7 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
    
   <div class="cardTop">
     <div style="width: 100%;">
-      <div class="smallFont cardTitleSmall">${dateToAge(crash.date)} | ${titleSmall}</div>
+      <div class="smallFont cardTitleSmall">${crash.date.pretty()} | ${titleSmall}</div>
       <div class="cardTitle">${escapeHtml(crash.title)}</div>
       <div>${htmlPersons}</div>
     </div>
@@ -1047,6 +1051,10 @@ function selectPersonHealth(health, toggle=false) {
 
 function selectSearchPersonDead() {
   document.getElementById('searchPersonHealthDead').classList.toggle('buttonSelectedBlue');
+}
+
+function selectSearchPersonInjured() {
+  document.getElementById('searchPersonHealthInjured').classList.toggle('buttonSelectedBlue');
 }
 
 function selectSearchPersonChild() {
@@ -1622,7 +1630,7 @@ function crashRowHTML(crash, isSearch=false){
   <div class="flexRow" style="justify-content: space-between;">
     <div style="padding: 3px;">
       ${crash.title}
-      <div class="smallFont">#${crash.id} ${crash.date.toLocaleDateString()}</div>
+      <div class="smallFont">#${crash.id} ${crash.date.pretty()}</div>
       <div>${htmlPersons}</div>
     </div>
     <div class="thumbnailWrapper">${img}</div>
@@ -2030,14 +2038,15 @@ function setPersonsFilter(personsCommaString){
 }
 
 function startSearch() {
-  const searchText       = document.getElementById('searchText').value.trim().toLowerCase();
-  const searchPeriod     = document.getElementById('searchPeriod').value;
-  const searchDateFrom   = document.getElementById('searchDateFrom').value;
-  const searchDateTo     = document.getElementById('searchDateTo').value;
-  const searchSiteName   = document.getElementById('searchSiteName').value.trim().toLowerCase();
-  const searchHealthDead = document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue');
-  const searchChild      = document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue');
-  const searchPersons    = getPersonsFromFilter();
+  const searchText          = document.getElementById('searchText').value.trim().toLowerCase();
+  const searchPeriod        = document.getElementById('searchPeriod').value;
+  const searchDateFrom      = document.getElementById('searchDateFrom').value;
+  const searchDateTo        = document.getElementById('searchDateTo').value;
+  const searchSiteName      = document.getElementById('searchSiteName').value.trim().toLowerCase();
+  const searchHealthDead    = document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue');
+  const searchHealthInjured = document.getElementById('searchPersonHealthInjured').classList.contains('buttonSelectedBlue');
+  const searchChild         = document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue');
+  const searchPersons       = getPersonsFromFilter();
 
   let url = window.location.origin;
   if      (pageType === PageType.deCorrespondent) url += '/decorrespondent';
@@ -2053,6 +2062,7 @@ function startSearch() {
     if (searchDateTo)   url += '&date_to=' + searchDateTo;
   }
   if (searchHealthDead)         url += '&hd=1';
+  if (searchHealthInjured)      url += '&hi=1';
   if (searchChild)              url += '&child=1';
   if (searchPersons.length > 0) url += '&persons=' + searchPersons.join();
 
