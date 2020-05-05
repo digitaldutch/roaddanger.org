@@ -133,8 +133,10 @@ function initStatistics(){
     const period           = url.searchParams.get('period');
     const searchDateFrom   = url.searchParams.get('date_from');
     const searchDateTo     = url.searchParams.get('date_to');
+    const searchChild      = url.searchParams.get('child');
 
     if (period)         document.getElementById('filterStatsPeriod').value   = period;
+    if (searchChild)    document.getElementById('filterStatsChild').classList.add('buttonSelectedBlue');
     if (searchDateFrom) document.getElementById('filterStatsDateFrom').value = searchDateFrom;
     if (searchDateTo)   document.getElementById('filterStatsDateTo').value   = searchDateTo;
   }
@@ -200,8 +202,14 @@ function showCrashVictimsGraph(crashVictims){
     period:   document.getElementById('filterStatsPeriod').value,
     dateFrom: document.getElementById('filterStatsDateFrom').value,
     dateTo:   document.getElementById('filterStatsDateTo').value,
+    child:    document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue'),
   }
   graph = new CrashPartnerGraph('graphPartners', points, options, filter);
+}
+
+function selectFilterChild() {
+  document.getElementById('filterStatsChild').classList.toggle('buttonSelectedBlue');
+  loadStatistics();
 }
 
 async function loadStatistics(){
@@ -363,9 +371,12 @@ async function loadStatistics(){
     }
 
     if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
-      serverData.searchPeriod   = document.getElementById('filterStatsPeriod').value;
-      serverData.searchDateFrom = document.getElementById('filterStatsDateFrom').value;
-      serverData.searchDateTo   = document.getElementById('filterStatsDateTo').value;
+      serverData.filter = {
+        period:   document.getElementById('filterStatsPeriod').value,
+        dateFrom: document.getElementById('filterStatsDateFrom').value,
+        dateTo:   document.getElementById('filterStatsDateTo').value,
+        child:    document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue')? 1 : 0,
+      };
     }
 
     const url      = '/ajax.php?function=getStatistics';
@@ -384,10 +395,11 @@ async function loadStatistics(){
       }
 
       if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
-        url += '?period=' + serverData.searchPeriod;
-        if (serverData.searchPeriod === 'custom') {
-          if (serverData.searchDateFrom) url += '&date_from=' + serverData.searchDateFrom;
-          if (serverData.searchDateTo)   url += '&date_to='   + serverData.searchDateTo;
+        url += '?period=' + serverData.filter.period;
+        if (serverData.filter.child) url += '&child=1';
+        if (serverData.filter.period === 'custom') {
+          if (serverData.filter.dateFrom) url += '&date_from=' + serverData.filter.dateFrom;
+          if (serverData.filter.dateTo)   url += '&date_to='   + serverData.filter.dateTo;
         }
       }
 
@@ -1060,6 +1072,7 @@ function selectSearchPersonInjured() {
 function selectSearchPersonChild() {
   document.getElementById('searchPersonChild').classList.toggle('buttonSelectedBlue');
 }
+
 
 function getSelectedPersonHealth(){
   for (const key of Object.keys(THealth)) {

@@ -360,7 +360,7 @@ a {
   border-bottom: solid 1px #aaa;
 }
 
-#searchBar {
+.searchBar {
   display:       none;
   position:      relative;
   flex-wrap:     wrap;

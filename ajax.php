@@ -52,11 +52,12 @@ function addPeriodWhereSql(&$sqlWhere, &$params, $searchPeriod, $searchDateFrom,
  * @param TDatabase $database
  * @return array
  */
-function getStatsTransportation($database, $searchPeriod='all', $searchDateFrom=null, $searchDateTo=null){
+function getStatsTransportation($database, $filter){
   $stats    = [];
   $params   = [];
   $SQLWhere = '';
-  addPeriodWhereSql($SQLWhere, $params, $searchPeriod, $searchDateFrom, $searchDateTo);
+
+  addPeriodWhereSql($SQLWhere, $params, $filter['period'], $filter['dateFrom'], $filter['dateTo']);
 
   $sql = <<<SQL
 SELECT
@@ -95,11 +96,15 @@ SQL;
  * @param TDatabase $database
  * @return array
  */
-function getStatsCrashPartners($database, $searchPeriod='all', $searchDateFrom=null, $searchDateTo=null){
+function getStatsCrashPartners($database, $filter){
 
   $SQLWhere = ' WHERE ap.health=3 ';
   $params   = [];
-  addPeriodWhereSql($SQLWhere, $params, $searchPeriod, $searchDateFrom, $searchDateTo);
+  addPeriodWhereSql($SQLWhere, $params, $filter['period'], $filter['dateFrom'], $filter['dateTo']);
+
+  if ($filter['child'] === 1){
+    addSQLWhere($SQLWhere, " ap.child=1 ");
+  }
 
   $sqlCrashesWithDeath = <<<SQL
   SELECT
@@ -1034,14 +1039,12 @@ else if ($function === 'getStatistics'){
   try{
     $data = json_decode(file_get_contents('php://input'), true);
 
-    $type              = $data['type']?? '';
-    $searchPeriod      = $data['searchPeriod']?? '';
-    $searchDateFrom    = $data['searchDateFrom']?? '';
-    $searchDateTo      = $data['searchDateTo']?? '';
+    $type   = $data['type']?? '';
+    $filter = $data['filter']?? '';
 
     if      ($type === 'general')       $stats = getStatsDatabase($database);
-    else if ($type === 'crashPartners') $stats = getStatsCrashPartners($database, $searchPeriod, $searchDateFrom, $searchDateTo);
-    else                                $stats = getStatsTransportation($database, $searchPeriod, $searchDateFrom, $searchDateTo);
+    else if ($type === 'crashPartners') $stats = getStatsCrashPartners($database, $filter);
+    else                                $stats = getStatsTransportation($database, $filter);
 
     $result = ['ok' => true,
       'statistics' => $stats,

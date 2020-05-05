@@ -96,17 +96,21 @@ Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar
 
   <div id="statistics">
   
-    <div style="margin: 5px 10px;">
-      <div class="filterElement">
-        Periode<br>
-        <select id="filterStatsPeriod" class="searchInput" oninput="loadStatistics();">
+    <div class="searchBar" style="display: flex;">
+
+      <div class="toolbarItem">
+        <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="Kind" onclick="selectFilterChild();"></span>      
+      </div>
+
+      <div class="toolbarItem">
+        <select id="filterStatsPeriod" class="searchInput" oninput="loadStatistics();" data-tippy-content="Periode">
           <option value="all" selected>Altijd</option> 
           <option value="7days">7 dagen</option> 
           <option value="30days">30 dagen</option> 
           <option value="decorrespondent">De Correspondent week</option> 
           <option value="2019">2019</option> 
           <option value="2020">2020</option>
-          <option value="custom">Handmatig</option>          
+          <option value="custom">Handmatige periode</option>          
         </select>
       </div>
       
@@ -141,7 +145,7 @@ HTML;
           <option value="decorrespondent">De Correspondent week</option> 
           <option value="2019">2019</option> 
           <option value="2020">2020</option> 
-          <option value="custom">Handmatig</option> 
+          <option value="custom">Handmatige periode</option> 
         </select>
       </div>
       

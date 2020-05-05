@@ -71,7 +71,7 @@ $navigation
     </div>
   </div>
   
-  <div id="searchBar">
+  <div id="searchBar" class="searchBar">
     <div class="popupCloseCross" onclick="toggleSearchBar();"></div>
 
     <div class="toolbarItem">
@@ -94,7 +94,7 @@ $navigation
         <option value="decorrespondent">De Correspondent week</option> 
         <option value="2019">2019</option> 
         <option value="2020">2020</option> 
-        <option value="custom">Handmatig</option> 
+        <option value="custom">Handmatige periode</option> 
       </select>
     </div>
     
