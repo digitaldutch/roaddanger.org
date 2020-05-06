@@ -12,6 +12,7 @@ abstract class PageType {
   const mosaic                        = 8;
   const export                        = 9;
   const map                           = 10;
+  const childDeaths                   = 11;
 }
 
 function getCallerIP(){

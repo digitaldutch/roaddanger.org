@@ -20,7 +20,8 @@ let PageType = Object.freeze({
   deCorrespondent:               7,
   mosaic:                        8,
   export:                        9,
-  kaart:                         10,
+  map:                           10,
+  childDeaths:                   11,
 });
 
 
@@ -48,7 +49,8 @@ function initMain() {
   else if (pathName.startsWith('/stream'))                     pageType = PageType.stream;
   else if (pathName.startsWith('/decorrespondent'))            pageType = PageType.deCorrespondent;
   else if (pathName.startsWith('/mozaiek'))                    pageType = PageType.mosaic;
-  else if (pathName.startsWith('/kaart'))                      pageType = PageType.kaart;
+  else if (pathName.startsWith('/kinddoden'))                  pageType = PageType.childDeaths;
+  else if (pathName.startsWith('/kaart'))                      pageType = PageType.map;
   else if (pathName.startsWith('/statistieken/algemeen'))      pageType = PageType.statisticsGeneral;
   else if (pathName.startsWith('/statistieken/andere_partij')) pageType = PageType.statisticsCrashPartners;
   else if (pathName.startsWith('/statistieken/vervoertypes'))  pageType = PageType.statisticsTransportationModes;
@@ -123,6 +125,7 @@ function initMain() {
     });
 
     if (pageType === PageType.mosaic) document.getElementById('cards').classList.add('mosaic');
+
     loadCrashes();
   }
 }
@@ -1527,7 +1530,7 @@ function showArticleMenu(event, articleDivId) {
 }
 
 function pageIsCrashList(){
-  return [PageType.recent, PageType.stream, PageType.mosaic, PageType.deCorrespondent, PageType.moderations].indexOf(pageType) >= 0;
+  return [PageType.recent, PageType.stream, PageType.mosaic, PageType.deCorrespondent, PageType.moderations].includes(pageType);
 }
 
 function pageIsCrashPage(){
@@ -2065,7 +2068,7 @@ function startSearch() {
   if      (pageType === PageType.deCorrespondent) url += '/decorrespondent';
   else if (pageType === PageType.stream)          url += '/stream';
   else if (pageType === PageType.mosaic)          url += '/mozaiek';
-  else if (pageType === PageType.kaart)           url += '/kaart';
+  else if (pageType === PageType.map)           url += '/kaart';
 
   url += '?search=' + encodeURIComponent(searchText);
   if (searchSiteName) url += '&sitename=' + encodeURIComponent(searchSiteName);

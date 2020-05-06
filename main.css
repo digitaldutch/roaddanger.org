@@ -607,7 +607,7 @@ a {
 
 .buttonSelectedBlue {
   opacity:          1;
-  background-color: #4D90FE;
+  background-color: #4D90FE !important;
 }
 
 .buttonAdd {

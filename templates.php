@@ -185,9 +185,9 @@ function getNavigation(){
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Crashes']}</div>
       <a href="/" class="navItem">Recente ongelukken</a>
-      <a href="/stream" class="navItem">Laatst gewijzigde ongelukken</a>
-      <a href="/decorrespondent" class="navItem">De Correspondent week</a>
+<!--      <a href="/kinddoden" class="navItem">Kinddoden</a>-->
       <a href="/mozaiek" class="navItem">Mozaïek</a>
+      <a href="/decorrespondent" class="navItem">De Correspondent week</a>
 <!--      <a href="/kaart" class="navItem">Kaart</a>-->
     </div>
 
@@ -200,6 +200,7 @@ function getNavigation(){
 
     <div class="navigationSection">
       <div class="navigationSectionHeader">Overig</div>
+      <a href="/stream" class="navItem">Laatst gewijzigde ongelukken</a>
       <a href="/exporteren/" class="navItem">Exporteer data</a>
       <a href="/overdezesite/" class="navItem">Over deze site</a>
     </div>
