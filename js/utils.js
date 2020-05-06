@@ -31,7 +31,7 @@ if (!Date.prototype.addDays) {
 
 if (!Date.prototype.pretty) {
   Date.prototype.pretty = function() {
-    return this.toLocaleDateString(undefined, {year: 'numeric', month: 'long', day: 'numeric' });
+    return this.toLocaleDateString('nl', {year: 'numeric', month: 'long', day: 'numeric' });
   }
 }
 
@@ -606,6 +606,7 @@ function initPage(){
     arrowType: 'round',
     duration:  100,
   });
+
   tippy('[data-tippy-content]');
 }
 

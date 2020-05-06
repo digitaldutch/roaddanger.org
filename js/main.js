@@ -106,6 +106,8 @@ function initMain() {
       (pageType === PageType.statisticsCrashPartners)) {
     initStatistics();
     loadStatistics();
+  } else if (pageType === PageType.childDeaths){
+    loadChildDeaths();
   } else if (pageType === PageType.export){
     initPageUser();
     initExport();
@@ -237,9 +239,9 @@ async function loadStatistics(){
   }
 
   function showStatisticsGeneral(dbStats) {
-    document.getElementById('statisticsGeneral').innerHTML = `
+    document.getElementById('main').innerHTML = `
     <div class="tableHeader">De Correspondent week (14 t/m 20 januari 2019)</div>
-    <table id="tableStats" class="dataTable">
+    <table class="dataTable">
       <tbody>
         <tr>
           <td>Ongelukken</td>
@@ -273,7 +275,7 @@ async function loadStatistics(){
     </table>  
 
     <div class="tableHeader">Vandaag</div>
-    <table id="tableStats" class="dataTable">
+    <table class="dataTable">
       <tbody>
         <tr>
           <td>Ongelukken</td>
@@ -303,7 +305,7 @@ async function loadStatistics(){
     </table>  
 
     <div class="tableHeader">7 dagen</div>
-    <table id="tableStats" class="dataTable">
+    <table class="dataTable">
       <tbody>
         <tr>
           <td>Ongelukken</td>
@@ -333,7 +335,7 @@ async function loadStatistics(){
     </table>  
 
     <div class="tableHeader">Totaal in database</div>
-    <table id="tableStats" class="dataTable">
+    <table class="dataTable">
       <tbody>
         <tr>
           <td>Ongelukken</td>
@@ -421,6 +423,35 @@ async function loadStatistics(){
   }
 }
 
+async function loadChildDeaths(){
+
+  const url      = '/ajax.php?function=getChildDeaths';
+  const response = await fetchFromServer(url);
+  const text     = await response.text();
+  const data     = JSON.parse(text);
+  if (data.user) updateLoginGUI(data.user);
+  if (data.error) showError(data.error);
+  else {
+
+    data.crashes.forEach(c => c.date = new Date(c.date));
+
+    let html = '<table class="dataTable">';
+    for (const crash of data.crashes) {
+      html += `
+        <tr>
+          <td style="white-space: nowrap;">${crash.date.pretty()}</td>
+          <td class="td400">${crash.title}</td>
+        </tr>      
+      `;
+    }
+
+    html += '</table>';
+
+    document.getElementById('main').innerHTML = html;
+  }
+
+}
+
 async function loadCrashes(crashID=null, articleID=null){
 
   function showCrashes(newCrashes){
@@ -468,7 +499,6 @@ async function loadCrashes(crashID=null, articleID=null){
 
     if (crashID)                                serverData.id = crashID;
     if (pageType === PageType.moderations)      serverData.moderations=1;
-    if (pageType === PageType.mosaic)           serverData.imageUrlsOnly=1;
     if ((pageType === PageType.recent) || (pageType === PageType.mosaic)) serverData.sort = 'crashDate';
     if (pageType === PageType.deCorrespondent) {
       serverData.sort         = 'crashDate';

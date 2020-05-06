@@ -11,6 +11,7 @@ else if (strpos($uri, '/decorrespondent')            === 0) $pageType = PageType
 else if (strpos($uri, '/kaart')                      === 0) $pageType = PageType::map;
 else if (strpos($uri, '/moderaties')                 === 0) $pageType = PageType::moderations;
 else if (strpos($uri, '/mozaiek')                    === 0) $pageType = PageType::mosaic;
+else if (strpos($uri, '/kinddoden')                  === 0) $pageType = PageType::childDeaths;
 else if (strpos($uri, '/statistieken/algemeen')      === 0) $pageType = PageType::statisticsGeneral;
 else if (strpos($uri, '/statistieken/andere_partij') === 0) $pageType = PageType::statisticsCrashPartners;
 else if (strpos($uri, '/statistieken/vervoertypes')  === 0) $pageType = PageType::statisticsTransportationModes;
@@ -57,7 +58,18 @@ if ($pageType === PageType::statisticsGeneral) {
 <div class="pageInner">
   <div class="pageSubTitle">Statistieken - algemeen</div>
 
-  <div id="statisticsGeneral">
+  <div id="main">
+  </div>
+  
+  <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+</div>
+HTML;
+} else if ($pageType === PageType::childDeaths) {
+  $mainHTML = <<<HTML
+<div class="pageInner">
+  <div class="pageSubTitle">Kinddoden</div>
+
+  <div id="main">
   </div>
   
   <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
@@ -158,7 +170,7 @@ HTML;
      
     </div>
 
-    <table id="tableStats" class="dataTable">
+    <table class="dataTable">
       <thead>
         <tr>
           <th style="text-align: left;">Vervoertype</th>

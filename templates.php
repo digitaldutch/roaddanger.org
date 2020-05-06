@@ -185,7 +185,7 @@ function getNavigation(){
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Crashes']}</div>
       <a href="/" class="navItem">Recente ongelukken</a>
-<!--      <a href="/kinddoden" class="navItem">Kinddoden</a>-->
+      <a href="/kinddoden" class="navItem">Kinddoden</a>
       <a href="/mozaiek" class="navItem">Mozaïek</a>
       <a href="/decorrespondent" class="navItem">De Correspondent week</a>
 <!--      <a href="/kaart" class="navItem">Kaart</a>-->

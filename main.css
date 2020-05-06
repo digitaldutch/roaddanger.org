@@ -1132,6 +1132,13 @@ a {
   margin: 0 2px;
 }
 
+.td400 {
+  max-width:     400px;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
+}
+
 .tableClickRows td {
   cursor: pointer;
   color:  #df5b57;
