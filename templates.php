@@ -71,7 +71,7 @@ $navigation
     </div>
   </div>
   
-  <div id="searchBar" class="searchBar">
+  <div id="searchBar" class="searchBar" style="border-bottom: solid 1px #aaa;">
     <div class="popupCloseCross" onclick="toggleSearchBar();"></div>
 
     <div class="toolbarItem">

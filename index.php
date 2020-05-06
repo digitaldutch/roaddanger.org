@@ -67,7 +67,18 @@ HTML;
 } else if ($pageType === PageType::childDeaths) {
   $mainHTML = <<<HTML
 <div class="pageInner">
+
   <div class="pageSubTitle">Kinddoden</div>
+  <div style="display: flex; flex-direction: column; align-items: center">
+    <div style="text-align: left;">
+      <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">Zo help je de representativiteit van deze tabel te verbeteren.</div>
+    </div>
+  </div>
+  
+  <div id="pageInfo" style="display: none; margin: 10px 0;">
+In deze live-tabel zie je hoeveel kinderen er bij verkeersongevallen zijn omgekomen en op <a href="/">deze website</a> zijn toegevoegd.
+Dit is een onvolledige tabel die representatiever wordt naarmate er meer berichten worden toegevoegd. <a href="/overdezesite">Zo help je mee</a>.   
+</div>
 
   <div id="main">
   </div>
@@ -94,11 +105,11 @@ HTML;
   <div style="display: flex; flex-direction: column; align-items: center">
     <div style="text-align: left;">
       <div class="pageSubTitleFont">Doden in het verkeer en hun tegenpartij</div>
-      <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="showCrashPartnerInfo();">Zo help je de representativiteit van deze tabel te verbeteren.</div>
+      <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">Zo help je de representativiteit van deze tabel te verbeteren.</div>
     </div>
   </div>
   
-  <div id="crashPartnerInfo" style="display: none; margin: 10px 0;">
+  <div id="pageInfo" style="display: none; margin: 10px 0;">
 In deze live-tabel zie je welke partijen en tegenpartijen betrokken zijn bij verkeersongevallen die het nieuws haalden en op <a href="/">deze website</a> zijn toegevoegd. 
 Je kunt op de cijfers doorklikken om naar de nieuwsberichten te gaan.<br><br>
 
@@ -210,6 +221,7 @@ HTML;
     <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
     
     <div class="sectionTitle">Data uitleg</div>
+    
     <div class="tableHeader">Persons > transportationmode</div>
     
     <table class="dataTable" style="width: auto; margin: 0 0 20px 0;">

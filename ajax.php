@@ -6,10 +6,10 @@ require_once 'initialize.php';
 
 $function = $_REQUEST['function'];
 
-function addPeriodWhereSql(&$sqlWhere, &$params, $searchPeriod, $searchDateFrom, $searchDateTo){
-  if ($searchPeriod === '') return;
+function addPeriodWhereSql(&$sqlWhere, &$params, $filter){
+  if ($filter['period'] === '') return;
 
-  switch ($searchPeriod) {
+  switch ($filter['period']) {
     case 'today':
       addSQLWhere($sqlWhere, ' DATE(ac.date) = CURDATE() ');
       break;
@@ -32,19 +32,23 @@ function addPeriodWhereSql(&$sqlWhere, &$params, $searchPeriod, $searchDateFrom,
       addSQLWhere($sqlWhere, ' YEAR(ac.date) = 2020 ');
       break;
     case 'custom': {
-      if ($searchDateFrom !== '') {
+      if ($filter['dateFrom'] !== '') {
         addSQLWhere($sqlWhere, " DATE(ac.date) >= :searchDateFrom ");
-        $params[':searchDateFrom'] = date($searchDateFrom);
+        $params[':searchDateFrom'] = date($filter['dateFrom']);
       }
 
-      if ($searchDateTo !== '') {
+      if ($filter['dateTo'] !== '') {
         addSQLWhere($sqlWhere, " DATE(ac.date) <= :searchDateTo ");
-        $params[':searchDateTo'] = date($searchDateTo);
+        $params[':searchDateTo'] = date($filter['dateTo']);
       }
 
       break;
     }
   }
+}
+
+function getCrashes(){
+
 }
 
 
@@ -57,7 +61,7 @@ function getStatsTransportation($database, $filter){
   $params   = [];
   $SQLWhere = '';
 
-  addPeriodWhereSql($SQLWhere, $params, $filter['period'], $filter['dateFrom'], $filter['dateTo']);
+  addPeriodWhereSql($SQLWhere, $params, $filter);
 
   if ($filter['child'] === 1){
     addSQLWhere($SQLWhere, " ap.child=1 ");
@@ -104,7 +108,7 @@ function getStatsCrashPartners($database, $filter){
 
   $SQLWhere = ' WHERE ap.health=3 ';
   $params   = [];
-  addPeriodWhereSql($SQLWhere, $params, $filter['period'], $filter['dateFrom'], $filter['dateTo']);
+  addPeriodWhereSql($SQLWhere, $params, $filter);
 
   if ($filter['child'] === 1){
     addSQLWhere($SQLWhere, " ap.child=1 ");
@@ -429,28 +433,17 @@ else if ($function === 'loadCrashes') {
   try {
     $data = json_decode(file_get_contents('php://input'), true);
 
-    $offset              = (int)$data['offset']?? 0;
-    $count               = (int)$data['count']?? 20;
-    $crashId             = $data['id']?? null;
-    $searchText          = $data['search']?? '';
-    $searchDateFrom      = $data['searchDateFrom']?? '';
-    $searchDateTo        = $data['searchDateTo']?? '';
-    $searchPeriod        = $data['searchPeriod']?? '';
-    $searchDateFrom      = $data['searchDateFrom']?? '';
-    $searchDateTo        = $data['searchDateTo']?? '';
-    $searchPersons       = $data['searchPersons']?? [];
-    $searchSiteName      = $data['sitename']?? '';
-    $searchHealthDead    = (int)$data['healthDead']?? 0;
-    $searchHealthInjured = (int)$data['healthInjured']?? 0;
-    $searchChild         = (int)$data['child']?? 0;
-    $moderations         = (int)$data['moderations']?? 0;
-    $sort                = $data['sort']?? '';
-    $export              = (int)$data['export']?? 0;
+    $offset      = (int)$data['offset']?? 0;
+    $count       = (int)$data['count']?? 20;
+    $crashId     = $data['id']?? null;
+    $moderations = (int)$data['moderations']?? 0;
+    $sort        = $data['sort']?? '';
+    $filter      = $data['filter'];
 
     if ($count > 1000) throw new Exception('Internal error: Count to high.');
     if ($moderations && (! $user->isModerator())) throw new Exception('Moderaties zijn alleen zichtbaar voor moderators.');
 
-    $crashes    = [];
+    $crashes      = [];
     $articles     = [];
     $params       = [];
     $sqlModerated = '';
@@ -513,44 +506,44 @@ SQL;
       $joinPersonsTable  = false;
       $SQLJoin = '';
       // Only do full text search if text has 3 characters or more
-      if (strlen($searchText) > 2){
+      if (strlen($filter['text']) > 2){
         addSQLWhere($SQLWhere, "(MATCH(ac.title, ac.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))");
         $joinArticlesTable = true;
-        $params[':search']  = $searchText;
-        $params[':search2'] = $searchText;
+        $params[':search']  = $filter['text'];
+        $params[':search2'] = $filter['text'];
       }
 
-      addPeriodWhereSql($SQLWhere, $params, $searchPeriod, $searchDateFrom, $searchDateTo);
+      addPeriodWhereSql($SQLWhere, $params, $filter);
 
-      if ($searchSiteName !== ''){
+      if ($filter['siteName'] !== ''){
         $joinArticlesTable = true;
         addSQLWhere($SQLWhere, " LOWER(ar.sitename) LIKE :sitename ");
-        $params[':sitename'] = "%$searchSiteName%";
+        $params[':sitename'] = "%{$filter['siteName']}%";
       }
 
-      if (($searchHealthDead === 1) || ($searchHealthInjured === 1)){
+      if (($filter['healthDead'] === 1) || ($filter['healthInjured'] === 1)){
         $joinPersonsTable = true;
         $values = [];
-        if ($searchHealthDead    === 1) $values[] = 3;
-        if ($searchHealthInjured === 1) $values[] = 2;
+        if ($filter['healthDead']    === 1) $values[] = 3;
+        if ($filter['healthInjured'] === 1) $values[] = 2;
         $valuesText = implode(", ", $values);
         addSQLWhere($SQLWhere, " ap.health IN ($valuesText) ");
       }
 
-      if ($searchChild === 1){
+      if ($filter['child'] === 1){
         $joinPersonsTable = true;
         addSQLWhere($SQLWhere, " ap.child=1 ");
       }
 
-      if (count($searchPersons) > 0) $joinPersonsTable = true;
+      if (count($filter['persons']) > 0) $joinPersonsTable = true;
 
       if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);
 
       if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON ac.id = ar.accidentid ';
       if ($joinPersonsTable)  $SQLJoin .= ' JOIN accidentpersons ap on ac.id = ap.accidentid ';
 
-      if (count($searchPersons) > 0){
-        foreach ($searchPersons as $person){
+      if (count($filter['persons']) > 0){
+        foreach ($filter['persons'] as $person){
           $tableName          = 'p' . $person;
           $transportationMode = (int)$person;
           $personDead         = containsText($person, 'd');

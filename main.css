@@ -366,7 +366,6 @@ a {
   flex-wrap:     wrap;
   align-items:   center;
   padding:       10px 20px 10px 10px;
-  border-bottom: solid 1px #aaa;
 }
 
 .searchBody #searchBar {
@@ -1107,7 +1106,6 @@ a {
   width:          100%;
   border-spacing: 0;
   margin:         0 auto 20px auto;
-  border-top:     solid 1px #d1d1d1;
   user-select:    none;
 }
 
@@ -1139,6 +1137,14 @@ a {
   white-space:   nowrap;
 }
 
+.trHeader {
+  font-weight: bold;
+}
+
+.trHeader td {
+  padding-top: 15px;
+}
+
 .tableClickRows td {
   cursor: pointer;
   color:  #df5b57;
@@ -1163,10 +1169,10 @@ a {
   height: 16px;
 }
 
-.scrolltable {
-  display:   block;
-  overflow:  auto;
-  width:     100%;
+.scrollTableWrapper {
+  overflow: auto;
+  flex-grow: 1;
+  padding: 0 5px;
 }
 
 .bgWhite {

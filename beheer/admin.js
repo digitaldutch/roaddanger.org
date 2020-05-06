@@ -3,7 +3,7 @@ let selectedUser;
 let watchEndOfPage = false;
 
 function initAdmin(){
-  spinnerLoadCard = document.getElementById('spinnerLoad');
+  spinnerLoad = document.getElementById('spinnerLoad');
   initPage();
   loadUserData();
 
@@ -48,7 +48,7 @@ async function loadUsers(){
   }
 
   try {
-    spinnerLoadCard.style.display = 'block';
+    spinnerLoad.style.display = 'block';
     let url        = '/beheer/ajax.php?function=loadusers&count=' + count + '&offset=' + users.length;
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
@@ -66,7 +66,7 @@ async function loadUsers(){
   } catch (error) {
     showError(error.message);
   } finally {
-    if (data.error || (data.users.length < count)) spinnerLoadCard.style.display = 'none';
+    if (data.error || (data.users.length < count)) spinnerLoad.style.display = 'none';
   }
 
   setTimeout(()=>{

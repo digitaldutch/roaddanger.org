@@ -4,7 +4,7 @@ let articles         = [];
 let articlesFound    = [];
 let editCrashPersons = [];
 let watchEndOfPage   = false;
-let spinnerLoadCard;
+let spinnerLoad;
 let pageType;
 let graph;
 let mapEdit;
@@ -29,7 +29,7 @@ function initMain() {
   initPage();
   initSearchBar();
 
-  spinnerLoadCard = document.getElementById('spinnerLoad');
+  spinnerLoad = document.getElementById('spinnerLoad');
 
   const url                 = new URL(location.href);
   const crashID             = getCrashNumberFromPath(url.pathname);
@@ -119,7 +119,7 @@ function initMain() {
     // In the future switch to IntersectionObserver. At this moment Safari does not support it yet :(
     document.addEventListener("scroll", (event) => {
       if (watchEndOfPage) {
-        if ((spinnerLoadCard.style.display==='block') && isScrolledIntoView(spinnerLoadCard)) {
+        if ((spinnerLoad.style.display==='block') && isScrolledIntoView(spinnerLoad)) {
           watchEndOfPage = false;
           loadCrashes();
         }
@@ -240,130 +240,122 @@ async function loadStatistics(){
 
   function showStatisticsGeneral(dbStats) {
     document.getElementById('main').innerHTML = `
-    <div class="tableHeader">De Correspondent week (14 t/m 20 januari 2019)</div>
     <table class="dataTable">
-      <tbody>
-        <tr>
-          <td>Ongelukken</td>
-          <td style="text-align: right;">${dbStats.deCorrespondent.crashes}</td>
-        </tr>
-        <tr>
-          <td>Artikelen</td>
-          <td style="text-align: right;">${dbStats.deCorrespondent.articles}</td>
-        </tr>
-        <tr>
-          <td>Doden</td>
-          <td style="text-align: right;">${dbStats.deCorrespondent.dead}</td>
-        </tr>
-        <tr>
-          <td>Gewond</td>
-          <td style="text-align: right;">${dbStats.deCorrespondent.injured}</td>
-        </tr>
-        <tr>
-          <td>Toegevoegde ongelukken</td>
-          <td style="text-align: right;">${dbStats.deCorrespondent.crashesAdded}</td>
-        </tr>
-        <tr>
-          <td>Toegevoegde artikelen</td>
-          <td style="text-align: right;">${dbStats.deCorrespondent.articlesAdded}</td>
-        </tr>
-        <tr>
-          <td>Mensen die zich aangemeld hebben op deze site</td>
-          <td style="text-align: right;">${dbStats.deCorrespondent.users}</td>
-        </tr>
-      </tbody>
-    </table>  
+    
+      <tr class="trHeader"><td colspan="2">De Correspondent week (14 t/m 20 januari 2019)</td></tr>
+      
+      <tr>
+        <td>Ongelukken</td>
+        <td style="text-align: right;">${dbStats.deCorrespondent.crashes}</td>
+      </tr>
+      <tr>
+        <td>Artikelen</td>
+        <td style="text-align: right;">${dbStats.deCorrespondent.articles}</td>
+      </tr>
+      <tr>
+        <td>Doden</td>
+        <td style="text-align: right;">${dbStats.deCorrespondent.dead}</td>
+      </tr>
+      <tr>
+        <td>Gewond</td>
+        <td style="text-align: right;">${dbStats.deCorrespondent.injured}</td>
+      </tr>
+      <tr>
+        <td>Toegevoegde ongelukken</td>
+        <td style="text-align: right;">${dbStats.deCorrespondent.crashesAdded}</td>
+      </tr>
+      <tr>
+        <td>Toegevoegde artikelen</td>
+        <td style="text-align: right;">${dbStats.deCorrespondent.articlesAdded}</td>
+      </tr>
+      <tr>
+        <td>Mensen die zich aangemeld hebben op deze site</td>
+        <td style="text-align: right;">${dbStats.deCorrespondent.users}</td>
+      </tr>
 
-    <div class="tableHeader">Vandaag</div>
-    <table class="dataTable">
-      <tbody>
-        <tr>
-          <td>Ongelukken</td>
-          <td style="text-align: right;">${dbStats.today.crashes}</td>
-        </tr>
-        <tr>
-          <td>Artikelen</td>
-          <td style="text-align: right;">${dbStats.today.articles}</td>
-        </tr>
-        <tr>
-          <td>Doden</td>
-          <td style="text-align: right;">${dbStats.today.dead}</td>
-        </tr>
-        <tr>
-          <td>Gewond</td>
-          <td style="text-align: right;">${dbStats.today.injured}</td>
-        </tr>        
-        <tr>
-          <td>Toegevoegde Ongelukken</td>
-          <td style="text-align: right;">${dbStats.today.crashesAdded}</td>
-        </tr>
-        <tr>
-          <td>Toegevoegde Artikelen</td>
-          <td style="text-align: right;">${dbStats.today.articlesAdded}</td>
-        </tr>
-      </tbody>
-    </table>  
+      <tr class="trHeader"><td colspan="2">Vandaag</td></tr>
+      
+      <tr>
+        <td>Ongelukken</td>
+        <td style="text-align: right;">${dbStats.today.crashes}</td>
+      </tr>
+      <tr>
+        <td>Artikelen</td>
+        <td style="text-align: right;">${dbStats.today.articles}</td>
+      </tr>
+      <tr>
+        <td>Doden</td>
+        <td style="text-align: right;">${dbStats.today.dead}</td>
+      </tr>
+      <tr>
+        <td>Gewond</td>
+        <td style="text-align: right;">${dbStats.today.injured}</td>
+      </tr>        
+      <tr>
+        <td>Toegevoegde Ongelukken</td>
+        <td style="text-align: right;">${dbStats.today.crashesAdded}</td>
+      </tr>
+      <tr>
+        <td>Toegevoegde Artikelen</td>
+        <td style="text-align: right;">${dbStats.today.articlesAdded}</td>
+      </tr>
 
-    <div class="tableHeader">7 dagen</div>
-    <table class="dataTable">
-      <tbody>
-        <tr>
-          <td>Ongelukken</td>
-          <td style="text-align: right;">${dbStats.sevenDays.crashes}</td>
-        </tr>
-        <tr>
-          <td>Artikelen</td>
-          <td style="text-align: right;">${dbStats.sevenDays.articles}</td>
-        </tr>
-        <tr>
-          <td>Doden</td>
-          <td style="text-align: right;">${dbStats.sevenDays.dead}</td>
-        </tr>
-        <tr>
-          <td>Gewond</td>
-          <td style="text-align: right;">${dbStats.sevenDays.injured}</td>
-        </tr>        
-        <tr>
-          <td>Toegevoegde Ongelukken</td>
-          <td style="text-align: right;">${dbStats.sevenDays.crashesAdded}</td>
-        </tr>
-        <tr>
-          <td>Toegevoegde Artikelen</td>
-          <td style="text-align: right;">${dbStats.sevenDays.articlesAdded}</td>
-        </tr>
-      </tbody>
-    </table>  
+      <tr class="trHeader"><td colspan="2">7 dagen</td></tr>
 
-    <div class="tableHeader">Totaal in database</div>
-    <table class="dataTable">
-      <tbody>
-        <tr>
-          <td>Ongelukken</td>
-          <td style="text-align: right;">${dbStats.total.crashes}</td>
-        </tr>
-        <tr>
-          <td>Artikelen</td>
-          <td style="text-align: right;">${dbStats.total.articles}</td>
-        </tr>
-        <tr>
-          <td>Doden</td>
-          <td style="text-align: right;">${dbStats.total.dead}</td>
-        </tr>
-        <tr>
-          <td>Gewond</td>
-          <td style="text-align: right;">${dbStats.total.injured}</td>
-        </tr>                
-        <tr>
-          <td>Mensen die zich aangemeld hebben op deze site</td>
-          <td style="text-align: right;">${dbStats.total.users}</td>
-        </tr>
-      </tbody>
+      <tr>
+        <td>Ongelukken</td>
+        <td style="text-align: right;">${dbStats.sevenDays.crashes}</td>
+      </tr>
+      <tr>
+        <td>Artikelen</td>
+        <td style="text-align: right;">${dbStats.sevenDays.articles}</td>
+      </tr>
+      <tr>
+        <td>Doden</td>
+        <td style="text-align: right;">${dbStats.sevenDays.dead}</td>
+      </tr>
+      <tr>
+        <td>Gewond</td>
+        <td style="text-align: right;">${dbStats.sevenDays.injured}</td>
+      </tr>        
+      <tr>
+        <td>Toegevoegde Ongelukken</td>
+        <td style="text-align: right;">${dbStats.sevenDays.crashesAdded}</td>
+      </tr>
+      <tr>
+        <td>Toegevoegde Artikelen</td>
+        <td style="text-align: right;">${dbStats.sevenDays.articlesAdded}</td>
+      </tr>
+
+      <tr class="trHeader"><td colspan="2">Totaal in database</td></tr>
+
+      <tr>
+        <td>Ongelukken</td>
+        <td style="text-align: right;">${dbStats.total.crashes}</td>
+      </tr>
+      <tr>
+        <td>Artikelen</td>
+        <td style="text-align: right;">${dbStats.total.articles}</td>
+      </tr>
+      <tr>
+        <td>Doden</td>
+        <td style="text-align: right;">${dbStats.total.dead}</td>
+      </tr>
+      <tr>
+        <td>Gewond</td>
+        <td style="text-align: right;">${dbStats.total.injured}</td>
+      </tr>                
+      <tr>
+        <td>Mensen die zich aangemeld hebben op deze site</td>
+        <td style="text-align: right;">${dbStats.total.users}</td>
+      </tr>
+      
     </table>
 `;
   }
 
   try {
-    spinnerLoadCard.style.display = 'block';
+    spinnerLoad.style.display = 'block';
 
     setCustomFilterVisibility();
 
@@ -419,35 +411,56 @@ async function loadStatistics(){
   } catch (error) {
     showError(error.message);
   } finally {
-    spinnerLoadCard.style.display = 'none';
+    spinnerLoad.style.display = 'none';
   }
 }
 
 async function loadChildDeaths(){
 
-  const url      = '/ajax.php?function=getChildDeaths';
-  const response = await fetchFromServer(url);
-  const text     = await response.text();
-  const data     = JSON.parse(text);
-  if (data.user) updateLoginGUI(data.user);
-  if (data.error) showError(data.error);
-  else {
+  try {
+    spinnerLoad.style.display = 'block';
 
-    data.crashes.forEach(c => c.date = new Date(c.date));
+    const url      = '/ajax.php?function=getChildDeaths';
+    const response = await fetchFromServer(url);
+    const text     = await response.text();
+    const data     = JSON.parse(text);
+    if (data.user) updateLoginGUI(data.user);
+    if (data.error) showError(data.error);
+    else {
 
-    let html = '<table class="dataTable">';
-    for (const crash of data.crashes) {
-      html += `
+      data.crashes.forEach(c => c.date = new Date(c.date));
+
+      let iYear;
+      let html = '<div class="scrollTableWrapper"><table class="dataTable">';
+      for (const crash of data.crashes) {
+
+        const year = crash.date.getFullYear();
+        if (year !== iYear) {
+          iYear = year;
+          html += `<tr class="trHeader"><td colspan="3">${iYear}</td></tr>`;
+        }
+
+        let htmlIcons = '';
+        crash.persons.forEach(p => {
+          if ((p.child === 1) && (p.health === 3)) htmlIcons += '<img src="/images/persondead.svg" style="width: 10px;">';
+        });
+
+        html += `
         <tr>
           <td style="white-space: nowrap;">${crash.date.pretty()}</td>
+          <td style="white-space: nowrap;">${htmlIcons}</td>
           <td class="td400">${crash.title}</td>
         </tr>      
       `;
+      }
+
+      html += '</table></div>';
+
+      document.getElementById('main').innerHTML = html;
     }
 
-    html += '</table>';
-
-    document.getElementById('main').innerHTML = html;
+  } finally {
+    spinnerLoad.style.display = 'none';
   }
 
 }
@@ -478,23 +491,26 @@ async function loadCrashes(crashID=null, articleID=null){
   let data;
   let maxLoadCount = (pageType === PageType.mosaic)? 60 : 20;
   try {
-    spinnerLoadCard.style.display = 'block';
+    spinnerLoad.style.display = 'block';
 
     const serverData = {
       count:  maxLoadCount,
       offset: crashes.length,
+      filter: {},
     };
 
     if (searchVisible()) {
-      serverData.search           = document.getElementById('searchText').value.trim().toLowerCase();
-      serverData.searchPeriod     = document.getElementById('searchPeriod').value;
-      serverData.searchDateFrom   = document.getElementById('searchDateFrom').value;
-      serverData.searchDateTo     = document.getElementById('searchDateTo').value;
-      serverData.searchPersons    = getPersonsFromFilter();
-      serverData.sitename         = document.getElementById('searchSiteName').value.trim().toLowerCase();
-      serverData.healthDead       = (document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue'))? 1 : 0;
-      serverData.healthInjured    = (document.getElementById('searchPersonHealthInjured').classList.contains('buttonSelectedBlue'))? 1 : 0;
-      serverData.child            = (document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue'))? 1 : 0;
+      serverData.filter = {
+        text:          document.getElementById('searchText').value.trim().toLowerCase(),
+        period:        document.getElementById('searchPeriod').value,
+        dateFrom:      document.getElementById('searchDateFrom').value,
+        dateTo:        document.getElementById('searchDateTo').value,
+        persons:       getPersonsFromFilter(),
+        siteName:      document.getElementById('searchSiteName').value.trim().toLowerCase(),
+        healthDead:    document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue')? 1 : 0,
+        healthInjured: document.getElementById('searchPersonHealthInjured').classList.contains('buttonSelectedBlue')? 1 : 0,
+        child:         document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue')? 1 : 0,
+      };
     }
 
     if (crashID)                                serverData.id = crashID;
@@ -521,7 +537,7 @@ async function loadCrashes(crashID=null, articleID=null){
     showError(error.message);
   } finally {
     // Hide spinner if all data is loaded
-    if (data.crashes.length < maxLoadCount) spinnerLoadCard.style.display = 'none';
+    if (data.crashes.length < maxLoadCount) spinnerLoad.style.display = 'none';
   }
 
   if (crashID && (crashes.length === 1)) document.title = crashes[0].title + ' | Het Ongeluk';
@@ -1724,7 +1740,6 @@ async function searchMergeCrash() {
   try {
     const crashID    = parseInt(document.getElementById('mergeFromCrashIDHidden').value);
     const crash      = getCrashFromID(crashID);
-    let url          = '/ajax.php?function=loadCrashes&count=10&search=' + encodeURIComponent(searchText);
 
     const dateSearch = document.getElementById('mergeCrashSearchDay').value;
     let dateFrom;
@@ -1738,13 +1753,16 @@ async function searchMergeCrash() {
     }
 
     const serverData = {
-      count:          10,
-      search:         document.getElementById('mergeCrashSearch').value.trim().toLowerCase(),
-      searchPeriod:   'custom',
-      searchDateFrom: dateToISO(dateFrom),
-      searchDateTo:   dateToISO(dateTo),
+      count: 10,
+      filter: {
+        text:     document.getElementById('mergeCrashSearch').value.trim().toLowerCase(),
+        period:   'custom',
+        dateFrom: dateToISO(dateFrom),
+        dateTo:   dateToISO(dateTo),
+      },
     };
 
+    const url      = '/ajax.php?function=loadCrashes&count=10&search=' + encodeURIComponent(searchText);
     const response = await fetchFromServer(url, serverData);
     const text     = await response.text();
     const data     = JSON.parse(text);
@@ -2118,8 +2136,7 @@ function startSearch() {
 
 function downloadData() {
   async function doDownload(period=''){
-    const spinner = document.getElementById('spinnerLoad');
-    spinner.style.display = 'block';
+    spinnerLoad.style.display = 'block';
     try {
       let url          = '/beheer/exportdata.php?function=downloadData&period=all&format=zjson';
       const response   = await fetch(url, fetchOptions);
@@ -2129,7 +2146,7 @@ function downloadData() {
       url = '/beheer/' + data.filename;
       download(url, data.filename);
     } finally {
-      spinner.style.display = 'none';
+      spinnerLoad.style.display = 'none';
     }
   }
 
@@ -2278,8 +2295,8 @@ function showMapCrash(latitude, longitude) {
   document.getElementById('mapCrash').style.display = 'block';
 }
 
-function showCrashPartnerInfo(){
-  let element = document.getElementById('crashPartnerInfo');
+function togglePageInfo(){
+  const element = document.getElementById('pageInfo');
 
   element.style.display = (element.style.display === 'block')? 'none' : 'block';
 }
