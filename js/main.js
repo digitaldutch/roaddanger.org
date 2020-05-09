@@ -3,7 +3,7 @@ let crashesFound     = [];
 let articles         = [];
 let articlesFound    = [];
 let editCrashPersons = [];
-let watchEndOfPage   = false;
+let observerSpinner;
 let spinnerLoad;
 let pageType;
 let graph;
@@ -28,6 +28,16 @@ let PageType = Object.freeze({
 function initMain() {
   initPage();
   initSearchBar();
+
+  function initObserver(callFunction){
+    observerSpinner = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          callFunction();
+        }
+      });
+    }, {threshold: 0.9});
+  }
 
   spinnerLoad = document.getElementById('spinnerLoad');
 
@@ -107,6 +117,11 @@ function initMain() {
     initStatistics();
     loadStatistics();
   } else if (pageType === PageType.childDeaths){
+    initObserver(loadChildDeaths);
+
+    document.getElementById('filterChildDead').classList.add('buttonSelectedBlue'); // Dead is always selected
+    if (searchHealthInjured) document.getElementById('filterChildInjured').classList.add('buttonSelectedBlue');
+
     loadChildDeaths();
   } else if (pageType === PageType.export){
     initPageUser();
@@ -115,17 +130,8 @@ function initMain() {
     // Single crash details page
     loadCrashes(crashID, articleID);
   } else if (pageIsCrashList() || (pageType === PageType.crash)) {
-    // Infinity scroll event
-    // In the future switch to IntersectionObserver. At this moment Safari does not support it yet :(
-    document.addEventListener("scroll", (event) => {
-      if (watchEndOfPage) {
-        if ((spinnerLoad.style.display==='block') && isScrolledIntoView(spinnerLoad)) {
-          watchEndOfPage = false;
-          loadCrashes();
-        }
-      }
-    });
-
+    initObserver(loadCrashes);
+    loadCrashes();
     if (pageType === PageType.mosaic) document.getElementById('cards').classList.add('mosaic');
 
     loadCrashes();
@@ -215,6 +221,22 @@ function showCrashVictimsGraph(crashVictims){
 function selectFilterChild() {
   document.getElementById('filterStatsChild').classList.toggle('buttonSelectedBlue');
   loadStatistics();
+}
+
+function selectFilterChildDeaths() {
+  event.target.classList.toggle('buttonSelectedBlue');
+  clearTable();
+
+  const dead    = document.getElementById('filterChildDead').classList.contains('buttonSelectedBlue');
+  const injured = document.getElementById('filterChildInjured').classList.contains('buttonSelectedBlue');
+  const url = new URL(window.location);
+  if (dead) url.searchParams.set('hd', 1);
+  else url.searchParams.delete('hd');
+  if (injured) url.searchParams.set('hi', 1);
+  else url.searchParams.delete('hi');
+  window.history.pushState(null, null, url.toString());
+
+  loadChildDeaths();
 }
 
 async function loadStatistics(){
@@ -415,24 +437,40 @@ async function loadStatistics(){
   }
 }
 
+function clearTable(){
+  document.getElementById('dataTableBody').innerHTML = '';
+  crashes  = [];
+  articles = [];
+}
+
 async function loadChildDeaths(){
+
+  let newCrashes = [];
+  const serverData = {
+    count:  50,
+    offset: crashes.length,
+    sort:  'crashDate',
+    filter: {
+      child:         1,
+      healthDead:    document.getElementById('filterChildDead').classList.contains('buttonSelectedBlue')? 1 : 0,
+      healthInjured: document.getElementById('filterChildInjured').classList.contains('buttonSelectedBlue')? 1 : 0,
+    },
+  }
+
+  function getIcon(){
+
+  }
 
   try {
     spinnerLoad.style.display = 'block';
+    observerSpinner.unobserve(spinnerLoad);
+    let iYear = crashes.length > 0? crashes[crashes.length-1].date.getFullYear() : null;
 
-    const url      = '/ajax.php?function=getChildDeaths';
-    const response = await fetchFromServer(url);
-    const text     = await response.text();
-    const data     = JSON.parse(text);
-    if (data.user) updateLoginGUI(data.user);
-    if (data.error) showError(data.error);
-    else {
+    newCrashes = await loadCrashesFromServer(serverData);
+    if (newCrashes) {
 
-      data.crashes.forEach(c => c.date = new Date(c.date));
-
-      let iYear;
-      let html = '<div class="scrollTableWrapper"><table class="dataTable">';
-      for (const crash of data.crashes) {
+      let html = '';
+      for (const crash of newCrashes) {
 
         const year = crash.date.getFullYear();
         if (year !== iYear) {
@@ -440,29 +478,56 @@ async function loadChildDeaths(){
           html += `<tr class="trHeader"><td colspan="3">${iYear}</td></tr>`;
         }
 
-        let htmlIcons = '';
+        let htmlIconsChildren = '';
+        let htmlIconsOther    = '';
         crash.persons.forEach(p => {
-          if ((p.child === 1) && (p.health === 3)) htmlIcons += '<img src="/images/persondead.svg" style="width: 10px;">';
+          if (p.health === THealth.dead) {
+            if (p.child === 1) htmlIconsChildren += '<img src="/images/persondead.svg" style="width: 10px;">';
+            else htmlIconsOther += '<img src="/images/persondead_black.svg" style="width: 10px;">';
+          }
+
+          if (p.health === THealth.injured) {
+            if (p.child === 1) htmlIconsChildren += '<img src="/images/person_injured.svg" style="width: 10px;">';
+            else htmlIconsOther += '<img src="/images/person_injured_black.svg" style="width: 10px;">';
+          }
         });
 
         html += `
-        <tr>
+        <tr onclick="showCrashDetails(${crash.id})">
           <td style="white-space: nowrap;">${crash.date.pretty()}</td>
-          <td style="white-space: nowrap;">${htmlIcons}</td>
+          <td style="white-space: nowrap;">${htmlIconsChildren}${htmlIconsOther}</td>
           <td class="td400">${crash.title}</td>
         </tr>      
       `;
       }
 
-      html += '</table></div>';
-
-      document.getElementById('main').innerHTML = html;
+      document.getElementById('dataTableBody').innerHTML += html;
     }
 
   } finally {
-    spinnerLoad.style.display = 'none';
+    if (newCrashes.length < serverData.count) spinnerLoad.style.display = 'none';
   }
 
+  if (newCrashes.length >= serverData.count) observerSpinner.observe(spinnerLoad);
+}
+
+async function loadCrashesFromServer(serverData){
+  const url      = '/ajax.php?function=loadCrashes';
+  const response = await fetchFromServer(url, serverData);
+  const text     = await response.text();
+  const data           = JSON.parse(text);
+
+  if (data.user) updateLoginGUI(data.user);
+
+  if (data.error) {showError(data.error); return [];}
+  else {
+    prepareCrashServerData(data);
+
+    crashes  = crashes.concat(data.crashes);
+    articles = articles.concat(data.articles);
+
+    return data.crashes;
+  }
 }
 
 async function loadCrashes(crashID=null, articleID=null){
@@ -488,7 +553,9 @@ async function loadCrashes(crashID=null, articleID=null){
     tippy('[data-tippy-content]');
   }
 
-  let data;
+  if (observerSpinner) observerSpinner.unobserve(spinnerLoad);
+  let newCrashes;
+
   let maxLoadCount = (pageType === PageType.mosaic)? 60 : 20;
   try {
     spinnerLoad.style.display = 'block';
@@ -513,41 +580,32 @@ async function loadCrashes(crashID=null, articleID=null){
       };
     }
 
-    if (crashID)                                serverData.id = crashID;
-    if (pageType === PageType.moderations)      serverData.moderations=1;
-    if ((pageType === PageType.recent) || (pageType === PageType.mosaic)) serverData.sort = 'crashDate';
-    if (pageType === PageType.deCorrespondent) {
-      serverData.sort         = 'crashDate';
-      serverData.searchPeriod = 'decorrespondent';
+    if (crashID) serverData.id = crashID;
+    if (pageType  === PageType.moderations) serverData.moderations=1;
+    else if ((pageType === PageType.recent) || (pageType === PageType.mosaic)) serverData.sort = 'crashDate';
+    else if (pageType  === PageType.deCorrespondent) {
+      serverData.sort          = 'crashDate';
+      serverData.filter.period = 'decorrespondent';
     }
 
-    const url      = '/ajax.php?function=loadCrashes';
-    const response = await fetchFromServer(url, serverData);
-    const text     = await response.text();
-    data           = JSON.parse(text);
-    if (data.user) updateLoginGUI(data.user);
-    if (data.error) showError(data.error);
-    else {
-      prepareCrashServerData(data);
+    newCrashes = await loadCrashesFromServer(serverData);
 
-      crashes  = crashes.concat(data.crashes);
-      articles = articles.concat(data.articles);
-    }
   } catch (error) {
     showError(error.message);
   } finally {
     // Hide spinner if all data is loaded
-    if (data.crashes.length < maxLoadCount) spinnerLoad.style.display = 'none';
+    if (crashes.length < maxLoadCount) spinnerLoad.style.display = 'none';
   }
 
   if (crashID && (crashes.length === 1)) document.title = crashes[0].title + ' | Het Ongeluk';
 
-  showCrashes(data.crashes);
+  showCrashes(newCrashes);
   highlightSearchText();
+
+  if (observerSpinner && (newCrashes.length >= maxLoadCount)) observerSpinner.observe(spinnerLoad);
 
   setTimeout(()=>{
     if (articleID) selectArticle(articleID);
-    watchEndOfPage = true;
   }, 1);
 }
 
@@ -1551,7 +1609,6 @@ async function saveArticleCrash(){
       if (divDetails) {
         divDetails.outerHTML = getCrashDetailsHTML(crashEdited.id);
         showMapCrash(crashEdited.latitude, crashEdited.longitude);
-
       }
     } else {
       window.location.href = createCrashURL(data.crashId, crashEdited.title);
@@ -1576,7 +1633,7 @@ function showArticleMenu(event, articleDivId) {
 }
 
 function pageIsCrashList(){
-  return [PageType.recent, PageType.stream, PageType.mosaic, PageType.deCorrespondent, PageType.moderations].includes(pageType);
+  return [PageType.recent, PageType.stream, PageType.mosaic, PageType.deCorrespondent, PageType.moderations, PageType.childDeaths].includes(pageType);
 }
 
 function pageIsCrashPage(){
@@ -1762,7 +1819,7 @@ async function searchMergeCrash() {
       },
     };
 
-    const url      = '/ajax.php?function=loadCrashes&count=10&search=' + encodeURIComponent(searchText);
+    const url      = '/ajax.php?function=loadCrashes';
     const response = await fetchFromServer(url, serverData);
     const text     = await response.text();
     const data     = JSON.parse(text);

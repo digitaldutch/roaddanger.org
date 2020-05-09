@@ -18,8 +18,9 @@ else if (strpos($uri, '/statistieken/vervoertypes')  === 0) $pageType = PageType
 else if (strpos($uri, '/exporteren')                 === 0) $pageType = PageType::export;
 else                                                               $pageType = PageType::recent;
 
-$fullWindow    = false;
-$showCrashMenu = false;
+$fullWindow       = false;
+$showButtonSearch = false;
+$showButtonAdd    = false;
 $head = "<script src='/js/main.js?v=$VERSION'></script>";
 if ($pageType === PageType::statisticsCrashPartners){
   $head .= "<script src='/scripts/d3.v5.js?v=$VERSION'></script><script src='/js/d3CirclePlot.js?v=$VERSION'></script>";
@@ -65,10 +66,13 @@ if ($pageType === PageType::statisticsGeneral) {
 </div>
 HTML;
 } else if ($pageType === PageType::childDeaths) {
+
+  $showButtonAdd = true;
+
   $mainHTML = <<<HTML
 <div class="pageInner">
 
-  <div class="pageSubTitle">Kinddoden</div>
+  <div class="pageSubTitle"><img src="/images/child.svg" style="height: 20px; position: relative; top: 2px;"> Kinddoden</div>
   <div style="display: flex; flex-direction: column; align-items: center">
     <div style="text-align: left;">
       <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">Zo help je de representativiteit van deze tabel te verbeteren.</div>
@@ -80,7 +84,21 @@ In deze live-tabel zie je hoeveel kinderen er bij verkeersongevallen zijn omgeko
 Dit is een onvolledige tabel die representatiever wordt naarmate er meer berichten worden toegevoegd. <a href="/overdezesite">Zo help je mee</a>.   
 </div>
 
+  <div class="searchBar" style="display: flex; padding-bottom: 0;">
+
+    <div class="toolbarItem">
+      <span id="filterChildDead" class="menuButton bgDeadBlack" data-tippy-content="Letsel: Dood" onclick="selectFilterChildDeaths();"></span>      
+      <span id="filterChildInjured" class="menuButton bgInjuredBlack" data-tippy-content="Letsel: Gewond" onclick="selectFilterChildDeaths();"></span>      
+    </div>
+    
+  </div>
+
   <div id="main">
+    <div class="scrollTableWrapper">
+      <table class="dataTable">
+        <tbody id="dataTableBody"></tbody>
+      </table>
+    </div>
   </div>
   
   <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
@@ -251,9 +269,10 @@ HTML;
 </div>
 HTML;
 } else {
-  $showCrashMenu  = true;
-  $generalMessage = $database->fetchSingleValue("SELECT value FROM options WHERE name='globalMessage';");
-  $messageHTML    = formatMessage($generalMessage);
+  $showButtonSearch = true;
+  $showButtonAdd    = true;
+  $generalMessage   = $database->fetchSingleValue("SELECT value FROM options WHERE name='globalMessage';");
+  $messageHTML      = formatMessage($generalMessage);
 
   $introText = "<div id='pageSubTitle' class='pageSubTitle'></div>";
 
@@ -273,7 +292,7 @@ HTML;
 }
 
 $html =
-  getHTMLBeginMain('', $head, 'initMain', $showCrashMenu, $fullWindow) .
+  getHTMLBeginMain('', $head, 'initMain', $showButtonSearch, $showButtonAdd, $fullWindow) .
   $mainHTML .
   getHTMLEnd();
 

@@ -47,10 +47,6 @@ function addPeriodWhereSql(&$sqlWhere, &$params, $filter){
   }
 }
 
-function getCrashes(){
-
-}
-
 
 /**
  * @param TDatabase $database
@@ -515,7 +511,7 @@ SQL;
 
       addPeriodWhereSql($SQLWhere, $params, $filter);
 
-      if ($filter['siteName'] !== ''){
+      if (isset($filter['siteName'])){
         $joinArticlesTable = true;
         addSQLWhere($SQLWhere, " LOWER(ar.sitename) LIKE :sitename ");
         $params[':sitename'] = "%{$filter['siteName']}%";
@@ -1037,7 +1033,7 @@ else if ($function === 'getStatistics') {
     $type = $data['type'] ?? '';
     $filter = $data['filter'] ?? '';
 
-    if      ($type === 'general')       $stats = getStatsDatabase($database);
+    if ($type === 'general') $stats = getStatsDatabase($database);
     else if ($type === 'crashPartners') $stats = getStatsCrashPartners($database, $filter);
     else                                $stats = getStatsTransportation($database, $filter);
 
@@ -1046,70 +1042,6 @@ else if ($function === 'getStatistics') {
       'user' => $user->info()
     ];
   } catch (Exception $e) {
-    $result = ['ok' => false, 'error' => $e->getMessage()];
-  }
-  echo json_encode($result);
-} else if ($function === 'getChildDeaths'){
-  try{
-
-    $crashes = [];
-
-    // Sort on dead=3, injured=2, unknown=0, unharmed=1
-    $sql = <<<SQL
-SELECT 
-  groupid,
-  transportationmode,
-  health,
-  child,
-  underinfluence,
-  hitrun
-FROM accidentpersons
-WHERE accidentid=:accidentid
-ORDER BY health IS NULL, FIELD(health, 3, 2, 0, 1);
-SQL;
-    $DBStatementPersons = $database->prepare($sql);
-
-    $sql = <<<SQL
-SELECT DISTINCT 
-  ac.id,
-  ac.title,
-  ac.text,
-  ac.date,
-  ac.latitude,
-  ac.longitude
-FROM accidents ac
-JOIN accidentpersons ap on ac.id = ap.accidentid
-WHERE ap.child=1 AND ap.health=3
-ORDER BY ac.date DESC;
-SQL;
-
-    $DBResults = $database->fetchAll($sql);
-    foreach ($DBResults as $crash) {
-      $crash['id'] = (int)$crash['id'];
-
-      // Load crash persons
-      $crash['persons'] = [];
-      $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['accidentid' => $crash['id']]);
-      foreach ($DBPersons as $person) {
-        $person['groupid']            = isset($person['groupid'])? (int)$person['groupid'] : null;
-        $person['transportationmode'] = (int)$person['transportationmode'];
-        $person['health']             = isset($person['health'])? (int)$person['health'] : null;
-        $person['child']              = (int)$person['child'];
-        $person['underinfluence']     = (int)$person['underinfluence'];
-        $person['hitrun']             = (int)$person['hitrun'];
-
-        $crash['persons'][] = $person;
-      }
-
-
-      $crashes[] = $crash;
-    }
-
-    $result = ['ok' => true,
-      'crashes' => $crashes,
-      'user'    => $user->info()
-    ];
-  } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);

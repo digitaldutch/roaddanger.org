@@ -1,6 +1,6 @@
 <?php
 
-function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $showCrashMenu=false, $fullWindow=false){
+function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $showButtonSearch=false, $showButtonAdd=false, $fullWindow=false){
   global $VERSION;
   $defaultLanguage = DEFAULT_LANGUAGE;
 
@@ -22,11 +22,9 @@ HTML;
 
   $htmlClass = $fullWindow? ' class="fullWindow"' : '';
 
-  $mainMenuItems = '';
-  if ($showCrashMenu) $mainMenuItems = <<<HTML
-  <div id="buttonSearch" class="menuButton bgSearch" onclick="toggleSearchBar(event);"></div>
-  <div id="buttonNewArticle" class="menuButton buttonAdd" onclick="showNewCrashForm();"></div>
-HTML;
+  $buttons = '';
+  if ($showButtonSearch) $buttons .= '<div id="buttonSearch" class="menuButton bgSearch" onclick="toggleSearchBar(event);"></div>';
+  if ($showButtonAdd)    $buttons .= '<div class="menuButton buttonAdd" onclick="showNewCrashForm();"></div>';
 
   return <<<HTML
 <!DOCTYPE html>
@@ -56,7 +54,7 @@ $navigation
     <div class="headerMain pageTitle"><a href="/">Het Ongeluk</a></div>
    
     <div>
-      $mainMenuItems
+      $buttons
       <div id="loginButton" onclick="loginClick(event);">
         <div id="buttonPerson" class="menuButton bgPerson"></div>
         <div id="loginText">Log in</div>
