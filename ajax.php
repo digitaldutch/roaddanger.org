@@ -511,7 +511,7 @@ SQL;
 
       addPeriodWhereSql($SQLWhere, $params, $filter);
 
-      if (isset($filter['siteName'])){
+      if (! empty($filter['siteName'])){
         $joinArticlesTable = true;
         addSQLWhere($SQLWhere, " LOWER(ar.sitename) LIKE :sitename ");
         $params[':sitename'] = "%{$filter['siteName']}%";

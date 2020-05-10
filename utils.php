@@ -46,7 +46,14 @@ function translateArray($keys){
 }
 
 function pageWithEditMap($pageType){
-  return in_array($pageType, [PageType::recent, PageType::stream, PageType::deCorrespondent, PageType::crash, PageType::moderations, PageType::childDeaths]);
+  return in_array($pageType,
+    [PageType::recent,
+      PageType::stream,
+      PageType::deCorrespondent,
+      PageType::mosaic,
+      PageType::crash,
+      PageType::moderations,
+      PageType::childDeaths]);
 }
 
 function pageWithMap($pageType){

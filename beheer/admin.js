@@ -1,6 +1,6 @@
 let users = [];
 let selectedUser;
-let watchEndOfPage = false;
+let spinnerLoad;
 
 function initAdmin(){
   spinnerLoad = document.getElementById('spinnerLoad');
@@ -9,16 +9,7 @@ function initAdmin(){
 
   const url = new URL(location.href);
   if (url.pathname.startsWith('/beheer/mensen')) {
-    // Infinity scroll event
-    // In future switch to IntersectionObserver. At this moment Safari does not support it yet :(
-    document.addEventListener("scroll", (event) => {
-      if (watchEndOfPage) {
-        if ((spinnerLoadCard.style.display === 'block') && isScrolledIntoView(spinnerLoadCard)) {
-          watchEndOfPage = false;
-          loadUsers();
-        }
-      }
-    });
+    initObserver(loadUsers);
 
     loadUsers();
   }
@@ -26,7 +17,7 @@ function initAdmin(){
 
 async function loadUsers(){
   let data;
-  let count = 20;
+  const maxLoadCount = 50;
 
   function showUsers(users){
     let html = '';
@@ -49,10 +40,13 @@ async function loadUsers(){
 
   try {
     spinnerLoad.style.display = 'block';
-    let url        = '/beheer/ajax.php?function=loadusers&count=' + count + '&offset=' + users.length;
+    observerSpinner.unobserve(spinnerLoad);
+
+    const url      = '/beheer/ajax.php?function=loadusers&count=' + maxLoadCount + '&offset=' + users.length;
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
     data           = JSON.parse(text);
+
     if (data.user)  updateLoginGUI(data.user);
     if (data.error) showError(data.error);
     else {
@@ -63,15 +57,14 @@ async function loadUsers(){
       users = users.concat(data.users);
       showUsers(data.users);
     }
+
   } catch (error) {
     showError(error.message);
   } finally {
-    if (data.error || (data.users.length < count)) spinnerLoad.style.display = 'none';
+    if (data.error || (data.users.length < maxLoadCount)) spinnerLoad.style.display = 'none';
   }
 
-  setTimeout(()=>{
-    watchEndOfPage = true;
-  }, 1);
+  if (data.users.length >= maxLoadCount) observerSpinner.observe(spinnerLoad);
 }
 
 function userFromID(id) {

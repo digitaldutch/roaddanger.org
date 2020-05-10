@@ -3,7 +3,6 @@ let crashesFound     = [];
 let articles         = [];
 let articlesFound    = [];
 let editCrashPersons = [];
-let observerSpinner;
 let spinnerLoad;
 let pageType;
 let graph;
@@ -28,16 +27,6 @@ let PageType = Object.freeze({
 function initMain() {
   initPage();
   initSearchBar();
-
-  function initObserver(callFunction){
-    observerSpinner = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          callFunction();
-        }
-      });
-    }, {threshold: 0.9});
-  }
 
   spinnerLoad = document.getElementById('spinnerLoad');
 
@@ -131,9 +120,7 @@ function initMain() {
     loadCrashes(crashID, articleID);
   } else if (pageIsCrashList() || (pageType === PageType.crash)) {
     initObserver(loadCrashes);
-    loadCrashes();
     if (pageType === PageType.mosaic) document.getElementById('cards').classList.add('mosaic');
-
     loadCrashes();
   }
 }
@@ -447,7 +434,7 @@ async function loadChildDeaths(){
 
   let newCrashes = [];
   const serverData = {
-    count:  50,
+    count:  20,
     offset: crashes.length,
     sort:  'crashDate',
     filter: {
@@ -457,13 +444,10 @@ async function loadChildDeaths(){
     },
   }
 
-  function getIcon(){
-
-  }
-
   try {
-    spinnerLoad.style.display = 'block';
     observerSpinner.unobserve(spinnerLoad);
+    spinnerLoad.style.display = 'block';
+
     let iYear = crashes.length > 0? crashes[crashes.length-1].date.getFullYear() : null;
 
     newCrashes = await loadCrashesFromServer(serverData);
@@ -594,7 +578,7 @@ async function loadCrashes(crashID=null, articleID=null){
     showError(error.message);
   } finally {
     // Hide spinner if all data is loaded
-    if (crashes.length < maxLoadCount) spinnerLoad.style.display = 'none';
+    if (newCrashes.length < maxLoadCount) spinnerLoad.style.display = 'none';
   }
 
   if (crashID && (crashes.length === 1)) document.title = crashes[0].title + ' | Het Ongeluk';
@@ -795,7 +779,9 @@ function getMosaicHTML(newCrashes){
   for (let crash of newCrashes) {
     const crashArticles = getCrashArticles(crash.id, articles);
     const htmlPersons = getIconsHTML(crash);
-    for (let article of crashArticles) {
+
+    if (crashArticles.length > 0) {
+      let article = crashArticles[0];
       html +=`<div onclick="showCrashDetails(${crash.id}); event.stopPropagation();">
 <div class="thumbPersons">${htmlPersons}</div>
 <div class="thumbDetails">${article.publishedtime.pretty()}</div>

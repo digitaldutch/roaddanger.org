@@ -1,4 +1,5 @@
 let user;
+let observerSpinner;
 let xTouchDown      = null;
 let yTouchDown      = null;
 let TTouchDown      = Object.freeze({none:0, openNavigation:1, closeNavigation:2});
@@ -828,3 +829,8 @@ function download(uri, filename) {
   document.body.removeChild(element);
 }
 
+function initObserver(callFunction){
+  observerSpinner = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {if (entry.isIntersecting) callFunction();});
+  }, {threshold: 0.9});
+}
