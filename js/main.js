@@ -643,7 +643,10 @@ function getCrashListHTML(crashID){
 
   let htmlArticles = '';
   for (let article of crashArticles) {
+
+    const canEditArticle = user.moderator || (article.userid === user.id);
     let htmlModeration = '';
+
     if (article.awaitingmoderation){
       let modHTML = '';
       if (user.moderator) modHTML = `
@@ -656,33 +659,41 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
       else if (article.userid === user.id) modHTML = 'Bedankt voor het toevoegen van dit artikel. Je bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet voor iedereen zichtbaar.';
       else modHTML = 'Dit artikel wordt spoedig gemodereerd en is tot die tijd nog niet zichtbaar op de voorpagina.';
 
-      htmlModeration = `<div id="articleModeration${article.id}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
+      htmlModeration = `<div id="articleModeration${article.id}" class="moderation">${modHTML}</div>`;
     }
 
     let htmlButtonAllText = '';
     if (user.moderator && article.hasalltext) htmlButtonAllText = `<span class="buttonSelectionSmall bgArticle" data-userid="${article.userid}" data-tippy-content="Toon alle tekst" onclick="toggleAllText(this, event, ${article.id}, ${article.id});"></span>`;
 
+    let htmlMenuEdit      = '';
+    let buttonEditArticle = '';
+    if (canEditArticle) {
+      buttonEditArticle = `<span class="buttonEditPost bgTripleDots" data-userid="${article.userid}" onclick="showArticleMenu(event, ${article.id});"></span>`;
+      htmlMenuEdit += `
+        <div id="menuArticle${article.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
+          <div onclick="editArticle(${crash.id},  ${article.id});">Bewerken</div>
+          <div onclick="deleteArticle(${article.id})">Verwijderen</div>
+       </div>`;
+    }
+
     htmlArticles +=`
-<div class="cardArticle" id="article${article.id}" onclick="closeAllPopups(); event.stopPropagation();">
-  <a href="${article.url}" target="article">
+<div class="cardArticle" id="article${article.id}">
+  <a href="${article.url}" target="article" onclick="event.stopPropagation();">
     <div class="articleImageWrapper"><img class="articleImage" src="${article.urlimage}" onerror="this.style.display='none';"></div>
   </a>
   <div class="articleBody">
     <span class="postButtonArea" onclick="event.stopPropagation();">
       <span style="position: relative;">
         ${htmlButtonAllText}
-        <span class="buttonEditPost bgTripleDots" data-userid="${article.userid}" onclick="showArticleMenu(event, ${article.id});"></span>
+        ${buttonEditArticle}
       </span>
-      <div id="menuArticle${article.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
-        <div onclick="editArticle(${crash.id},  ${article.id});">Bewerken</div>
-        <div onclick="deleteArticle(${article.id})">Verwijderen</div>
-      </div>            
+      ${htmlMenuEdit}                  
     </span>   
     
     ${htmlModeration}     
   
     <div class="smallFont articleTitleSmall">
-      <a href="${article.url}" target="article"><span class="cardSitename">${escapeHtml(article.sitename)}</span></a> 
+      <a href="${article.url}" target="article" onclick="event.stopPropagation();"><span class="cardSitename">${escapeHtml(article.sitename)}</span></a> 
       | ${article.publishedtime.pretty()} | toegevoegd door ${article.user}
     </div>
   

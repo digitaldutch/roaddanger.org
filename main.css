@@ -70,6 +70,9 @@ a {
   font-family:     inherit;
   text-decoration: none;
 }
+a:hover {
+  text-decoration: underline;
+}
 
 .pageTitle, .pageTitle a {
   font-size:       25px;
@@ -208,21 +211,14 @@ a {
 .cardArticle {
   position:         relative;
   min-height:       80px;
-  background-color: #ffffff;
   color:            #000;
   margin:           10px 20px;
   border:           1px solid #eee;
   border-radius:    10px;
-  cursor: default;
 }
 
 .cardArticle:hover {
   border-color: #999999;
-}
-
-.cardArticle a, .cardCrashList a {
-  color: #000;
-  text-decoration: none;
 }
 
 .articleImage {
@@ -1085,7 +1081,7 @@ a {
 .navItem {
   display:         block;
   position:        relative;
-  text-decoration: none;
+  text-decoration: none !important;
   padding:         7px 10px 7px 30px;
   white-space:     nowrap;
   cursor:          pointer;
@@ -1093,8 +1089,7 @@ a {
 }
 
 .navItem a {
-  color:           #000000 !important;
-  text-decoration: none;
+  color: #000000 !important;
 }
 
 .navItem:hover, .itemSelected {
