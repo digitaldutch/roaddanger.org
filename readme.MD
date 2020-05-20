@@ -27,3 +27,7 @@ setting the `permission` for yourself field to `1` in the users table.
 
 ### License ###
 This software is made available under the [MIT license](LICENSE).
+
+### To Do list ###
+* Map with all crashes
+* Multi language / country support. A start has been made with language support, but it is not working yet.
