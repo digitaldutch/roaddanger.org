@@ -8,7 +8,7 @@ function initAdmin(){
   loadUserData();
 
   const url = new URL(location.href);
-  if (url.pathname.startsWith('/beheer/mensen')) {
+  if (url.pathname.startsWith('/admin/mensen')) {
     initObserver(loadUsers);
 
     loadUsers();
@@ -42,7 +42,7 @@ async function loadUsers(){
     spinnerLoad.style.display = 'block';
     observerSpinner.unobserve(spinnerLoad);
 
-    const url      = '/beheer/ajax.php?function=loadusers&count=' + maxLoadCount + '&offset=' + users.length;
+    const url      = '/admin/ajax.php?function=loadusers&count=' + maxLoadCount + '&offset=' + users.length;
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
     data           = JSON.parse(text);
@@ -128,7 +128,7 @@ function adminEditUser() {
 
 async function deleteUserDirect() {
   const userID = selectedUser.id;
-  const url    = '/beheer/ajax.php?function=deleteuser&id=' + userID;
+  const url    = '/admin/ajax.php?function=deleteuser&id=' + userID;
   try {
     const response = await fetch(url, fetchOptions);
     const text     = await response.text();
@@ -167,7 +167,7 @@ async function adminDeleteUser() {
   if (! user.firstname)            {showError('geen voornaam ingevuld'); return;}
   if (! user.lastname)             {showError('geen achternaam ingevuld'); return;}
 
-  const url = '/beheer/ajax.php?function=saveuser';
+  const url = '/admin/ajax.php?function=saveuser';
   const optionsFetch = {
     method:  'POST',
     body: JSON.stringify({
@@ -191,7 +191,7 @@ function afterLoginAction(){
 }
 
 async function saveOptions() {
-  const url = '/beheer/ajax.php?function=saveOptions';
+  const url = '/admin/ajax.php?function=saveOptions';
   const options = {
     globalMessage: document.getElementById('optionGlobalMessage').value,
   };

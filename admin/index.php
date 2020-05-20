@@ -49,7 +49,7 @@ if (containsText($_SERVER['REQUEST_URI'], '/mensen')) {
 </div>
 HTML;
   }
-} else if (containsText($_SERVER['REQUEST_URI'], '/beheer/opties')) {
+} else if (containsText($_SERVER['REQUEST_URI'], '/admin/options')) {
 
   $sql = "SELECT value FROM options WHERE name=:name;";
   $message = $database->fetchSingleValue($sql, [':name' => 'globalMessage']);
@@ -61,7 +61,7 @@ HTML;
     <label for="optionGlobalMessage">Website mededeling (wordt op alle ongeluk pagina's getoond)</label>
     <textarea id="optionGlobalMessage" class="textArea" maxlength="1500">$message</textarea>
     <div class="smallFont">Externe link:  [url=https://www.hetongeluk.nl]Het Ongeluk[/url]<br>
-    Interne link:  [url=/overdezesite]Over deze site[/url]<br>
+    Interne link:  [url=/aboutthissite]Over deze site[/url]<br>
     Paragrafen: Voeg lege regels toe
     </div>
     
@@ -74,7 +74,7 @@ HTML;
 }
 
 $htmlEnd = getFormEditUser();
-$head = "<script src='/beheer/admin.js?v=$VERSION'></script>";
+$head = "<script src='/admin/admin.js?v=$VERSION'></script>";
 $html =
   getHTMLBeginMain('Beheer', $head, 'initAdmin') .
   $mainHTML .

@@ -8,7 +8,7 @@ global $user;
 $uri = urldecode($_SERVER['REQUEST_URI']);
 if      (strpos($uri, '/stream')                     === 0) $pageType = PageType::stream;
 else if (strpos($uri, '/decorrespondent')            === 0) $pageType = PageType::deCorrespondent;
-else if (strpos($uri, '/kaart')                      === 0) $pageType = PageType::map;
+else if (strpos($uri, '/map')                        === 0) $pageType = PageType::map;
 else if (strpos($uri, '/moderaties')                 === 0) $pageType = PageType::moderations;
 else if (strpos($uri, '/mozaiek')                    === 0) $pageType = PageType::mosaic;
 else if (strpos($uri, '/kinddoden')                  === 0) $pageType = PageType::childDeaths;
@@ -81,7 +81,7 @@ HTML;
   
   <div id="pageInfo" style="display: none; margin: 10px 0;">
 In deze live-tabel zie je hoeveel kinderen er bij verkeersongevallen zijn omgekomen en op <a href="/">deze website</a> zijn toegevoegd.
-Dit is een onvolledige tabel die representatiever wordt naarmate er meer berichten worden toegevoegd. <a href="/overdezesite">Zo help je mee</a>.   
+Dit is een onvolledige tabel die representatiever wordt naarmate er meer berichten worden toegevoegd. <a href="/aboutthissite">Zo help je mee</a>.   
 </div>
 
   <div class="searchBar" style="display: flex; padding-bottom: 0;">
@@ -127,7 +127,7 @@ HTML;
 In deze live-tabel zie je welke partijen en tegenpartijen betrokken zijn bij verkeersongevallen die het nieuws haalden en op <a href="/">deze website</a> zijn toegevoegd. 
 Je kunt op de cijfers doorklikken om naar de nieuwsberichten te gaan.<br><br>
 
-Dit is een onvolledige live grafiek die representatiever wordt naarmate er meer berichten worden toegevoegd. <a href="/overdezesite">Zo help je mee</a>. 
+Dit is een onvolledige live grafiek die representatiever wordt naarmate er meer berichten worden toegevoegd. <a href="/aboutthissite">Zo help je mee</a>. 
 Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar 2017 vind je <a href="https://twitter.com/tverka/status/1118898388039348225">hier</a>. Bron: swov/de Correspondent.  
 </div>
 

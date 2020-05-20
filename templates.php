@@ -13,7 +13,7 @@ function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $showButton
     $cookieWarning = <<<HTML
     <div id="cookieWarning" class="flexRow">
       <div>Deze website gebruikt cookies. 
-        <a href="/overdezesite/#cookieInfo" style="text-decoration: underline; color: inherit;">Meer info.</a>
+        <a href="/aboutthissite/#cookieInfo" style="text-decoration: underline; color: inherit;">Meer info.</a>
       </div>
       <div class="button" onclick="acceptCookies();">Akkoord</div>
     </div>
@@ -186,7 +186,7 @@ function getNavigation(){
       <a href="/kinddoden" class="navItem">Kinddoden</a>
       <a href="/mozaiek" class="navItem">Mozaïek</a>
       <a href="/decorrespondent" class="navItem">De Correspondent week</a>
-      <a href="/kaart" class="navItem">Kaart</a>
+      <a href="/map" class="navItem">Kaart</a>
     </div>
 
     <div class="navigationSection">
@@ -200,16 +200,16 @@ function getNavigation(){
       <div class="navigationSectionHeader">Overig</div>
       <a href="/stream" class="navItem">Laatst gewijzigde ongelukken</a>
       <a href="/exporteren/" class="navItem">Exporteer data</a>
-      <a href="/overdezesite/" class="navItem">Over deze site</a>
+      <a href="/aboutthissite/" class="navItem">Over deze site</a>
     </div>
 
     <div id="navigationAdmin" data-moderator>    
       <div class="navigationSectionHeader">Beheer</div>
   
       <div class="navigationSection">
-        <a href="/beheer/mensen" class="navItem" data-admin>Mensen</a>
+        <a href="/admin/mensen" class="navItem" data-admin>Mensen</a>
         <a href="/moderaties/" class="navItem">Moderaties</a>
-        <a href="/beheer/opties/" class="navItem">Opties</a>
+        <a href="/admin/options/" class="navItem">Opties</a>
       </div>      
     </div>
     

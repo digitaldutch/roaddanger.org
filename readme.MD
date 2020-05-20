@@ -11,7 +11,7 @@ Website: [hetongeluk.nl](https://www.hetongeluk.nl)
 ### Installation ###
 * Put all files on a webserver with PHP support. 
 * Import de database on a MySQL/MariaDB server with full text search capability. The database creation script is located in
-[beheer/createdatabase.sql](beheer/createdatabase.sql)
+[admin/createdatabase.sql](beheer/createdatabase.sql)
 * Read the [config.php](config.php) file. It tells you to create a `configsecret.php` file with your database connection info. Never check this one into git.
 ```PHP
 <?php

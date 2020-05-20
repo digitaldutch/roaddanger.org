@@ -50,7 +50,7 @@ function initMain() {
   else if (pathName.startsWith('/decorrespondent'))            pageType = PageType.deCorrespondent;
   else if (pathName.startsWith('/mozaiek'))                    pageType = PageType.mosaic;
   else if (pathName.startsWith('/kinddoden'))                  pageType = PageType.childDeaths;
-  else if (pathName.startsWith('/kaart'))                      pageType = PageType.map;
+  else if (pathName.startsWith('/map'))                        pageType = PageType.map;
   else if (pathName.startsWith('/statistieken/algemeen'))      pageType = PageType.statisticsGeneral;
   else if (pathName.startsWith('/statistieken/andere_partij')) pageType = PageType.statisticsCrashPartners;
   else if (pathName.startsWith('/statistieken/vervoertypes'))  pageType = PageType.statisticsTransportationModes;
@@ -611,8 +611,9 @@ async function loadMap() {
     const serverData = {
       getUser: true,
     };
-    const url        = '/ajax.php?function=loadMapCrashes';
-    const data       = await fetchFromServer(url, serverData);
+
+    const url  = '/ajax.php?function=loadMapCrashes';
+    const data = await fetchFromServer(url, serverData);
 
     if (data.user) updateLoginGUI(data.user);
 
@@ -2198,7 +2199,7 @@ function startSearch() {
   if      (pageType === PageType.deCorrespondent) url += '/decorrespondent';
   else if (pageType === PageType.stream)          url += '/stream';
   else if (pageType === PageType.mosaic)          url += '/mozaiek';
-  else if (pageType === PageType.map)           url += '/kaart';
+  else if (pageType === PageType.map)             url += '/map';
 
   url += '?search=' + encodeURIComponent(searchText);
   if (searchSiteName) url += '&sitename=' + encodeURIComponent(searchSiteName);
@@ -2220,12 +2221,12 @@ function downloadData() {
   async function doDownload(period=''){
     spinnerLoad.style.display = 'block';
     try {
-      let url          = '/beheer/exportdata.php?function=downloadData&period=all&format=zjson';
+      let url          = '/admin/exportdata.php?function=downloadData&period=all&format=zjson';
       const response   = await fetch(url, fetchOptions);
       const text       = await response.text();
       const data       = JSON.parse(text);
 
-      url = '/beheer/' + data.filename;
+      url = '/admin/' + data.filename;
       download(url, data.filename);
     } finally {
       spinnerLoad.style.display = 'none';
@@ -2240,12 +2241,12 @@ function downloadCorrespondentData() {
     const spinner = document.getElementById('spinnerDownloadDeCorrespondentData');
     spinner.style.display = 'block';
     try {
-      let url          = '/beheer/exportdata.php?function=downloadCorrespondentWeekData';
+      let url          = '/admin/exportdata.php?function=downloadCorrespondentWeekData';
       const response   = await fetch(url, fetchOptions);
       const text       = await response.text();
       const data       = JSON.parse(text);
 
-      url = '/beheer/' + data.filename;
+      url = '/admin/' + data.filename;
       download(url, data.filename);
     } finally {
       spinner.style.display = 'none';
@@ -2260,12 +2261,12 @@ function downloadCorrespondentDataArticles() {
     const spinner = document.getElementById('spinnerDownloadDeCorrespondentData');
     spinner.style.display = 'block';
     try {
-      let url          = '/beheer/exportdata.php?function=downloadCorrespondentWeekArticles';
+      let url          = '/admin/exportdata.php?function=downloadCorrespondentWeekArticles';
       const response   = await fetch(url, fetchOptions);
       const text       = await response.text();
       const data       = JSON.parse(text);
 
-      url = '/beheer/' + data.filename;
+      url = '/admin/' + data.filename;
       download(url, data.filename);
     } finally {
       spinner.style.display = 'none';

@@ -478,8 +478,8 @@ SELECT DISTINCT
   ac.title,
   ac.text,
   ac.date,
-  ac.latitude,
-  ac.longitude,
+  ST_X(ac.location) AS longitude,
+  ST_Y(ac.location) AS latitude,
   ac.unilateral,
   ac.pet, 
   ac.trafficjam, 
@@ -647,7 +647,11 @@ else if ($function === 'loadMapCrashes') {
   try {
     $result = [];
 
+
+
     if ($data['getUser']) $result['user'] = $user->info();
+
+    $result['crashes'] = getMapCrashes();
 
     $result['ok'] = true;
   } catch (Exception $e) {
@@ -759,6 +763,7 @@ else if ($function === 'saveArticleCrash'){
       date            = :date,
       latitude        = :latitude,
       longitude       = :longitude,
+      location        = POINT(:longitude2, :latitude2), 
       unilateral      = :unilateral,
       pet             = :pet,
       trafficjam      = :trafficjam,
@@ -773,6 +778,8 @@ SQL;
           ':date'                  => $crash['date'],
           ':latitude'              => empty($crash['latitude'])?  null : $crash['latitude'],
           ':longitude'             => empty($crash['longitude'])? null : $crash['longitude'],
+          ':latitude2'             => empty($crash['latitude'])?  null : $crash['latitude'],
+          ':longitude2'            => empty($crash['longitude'])? null : $crash['longitude'],
           ':unilateral'            => $crash['unilateral'],
           ':pet'                   => $crash['pet'],
           ':trafficjam'            => $crash['trafficjam'],
@@ -786,8 +793,8 @@ SQL;
         // New crash
 
         $sql = <<<SQL
-    INSERT INTO accidents (userid, awaitingmoderation, title, text, date, latitude, longitude, unilateral, pet, trafficjam, tree)
-    VALUES (:userid, :awaitingmoderation, :title, :text, :date, :latitude, :longitude, :unilateral, :pet, :trafficjam, :tree);
+    INSERT INTO accidents (userid, awaitingmoderation, title, text, date, location, latitude, longitude, unilateral, pet, trafficjam, tree)
+    VALUES (:userid, :awaitingmoderation, :title, :text, :date, POINT(:longitude2, :latitude2), :latitude, :longitude, :unilateral, :pet, :trafficjam, :tree);
 SQL;
 
         $params = array(
@@ -798,6 +805,8 @@ SQL;
           ':date'                  => $crash['date'],
           ':latitude'              => $crash['latitude'],
           ':longitude'             => $crash['longitude'],
+          ':latitude2'             => $crash['latitude'],
+          ':longitude2'            => $crash['longitude'],
           ':unilateral'            => $crash['unilateral'],
           ':pet'                   => $crash['pet'],
           ':trafficjam'            => $crash['trafficjam'],
