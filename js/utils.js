@@ -36,14 +36,18 @@ if (!Date.prototype.pretty) {
   }
 }
 
-async function fetchFromServer(url, data={}){
+async function fetchFromServer(url, data={}, parseJSON=true){
   const optionsFetch = {
     method: 'POST',
     body:   JSON.stringify(data),
     headers:{'Content-Type': 'application/json', 'Cache': 'no-cache'}
   };
 
-  return await fetch(url, optionsFetch);
+  const response     = await fetch(url, optionsFetch);
+  const responseText = await response.text();
+  if (! responseText) throw new Error('Internal error: No response from server');
+
+  return parseJSON? JSON.parse(responseText) : responseText;
 }
 
 function isInt(value) {

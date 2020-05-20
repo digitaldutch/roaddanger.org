@@ -65,6 +65,17 @@ body.searchBody {
   padding-top: 95px;
 }
 
+html.fullWindow {
+  height: 100%;
+}
+
+html.fullWindow body{
+  display:        flex;
+  flex-direction: column;
+  padding-top:    0;
+  height:         100%;
+}
+
 a {
   color:           #df5b57;
   font-family:     inherit;
@@ -1345,7 +1356,6 @@ a:hover {
   display:        flex;
   flex-direction: column;
   flex-grow:      1;
-  background-color: red;
 }
 
 .mapMarker {
@@ -1363,7 +1373,7 @@ a:hover {
     display: flex !important;
   }
 
-  #searchBar input, .dropInput {
+  #searchBar input[type=search], .dropInput {
     max-width: 100px;
   }
 

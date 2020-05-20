@@ -16,14 +16,14 @@ Website: [hetongeluk.nl](https://www.hetongeluk.nl)
 ```PHP
 <?php
 
-// Data we do *not* want the source code repository
-define('DB_NAME',     '');
-define('DB_USER',     '');
-define('DB_PASSWORD', '');
-define('DB_HOST',     '');
+// Data we do *not* want in the source code repository
+const DB_HOST     = '';
+const DB_NAME     = '';
+const DB_USER     = '';
+const DB_PASSWORD = '';
 ```
 * Register yourself as a user on the website. Make yourself an administrator in MySQL by 
-setting the `permission` field to `1` in the users table.
+setting the `permission` for yourself field to `1` in the users table.
 
 ### License ###
 This software is made available under the [MIT license](LICENSE).

@@ -59,7 +59,7 @@ HTML;
   <div class="pageSubTitle">Beheer - opties</div>
   <div>
     <label for="optionGlobalMessage">Website mededeling (wordt op alle ongeluk pagina's getoond)</label>
-    <textarea id="optionGlobalMessage" class="textArea" maxlength="1000">$message</textarea>
+    <textarea id="optionGlobalMessage" class="textArea" maxlength="1500">$message</textarea>
     <div class="smallFont">Externe link:  [url=https://www.hetongeluk.nl]Het Ongeluk[/url]<br>
     Interne link:  [url=/overdezesite]Over deze site[/url]<br>
     Paragrafen: Voeg lege regels toe

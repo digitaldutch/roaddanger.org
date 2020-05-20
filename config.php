@@ -1,24 +1,24 @@
 <?php
 
-$VERSION      = 312;
-$VERSION_DATE = '11 mei 2020';
+$VERSION      = 314;
+$VERSION_DATE = '19 mei 2020';
 
 require_once 'configsecret.php';
 
 // Parameters below are defined in configsecret.php
 // Database connection data
-//define('DB_HOST',     '');
-//define('DB_NAME',     '');
-//define('DB_USER',     '');
-//define('DB_PASSWORD', '');
+// const DB_HOST     = '';
+// const DB_NAME     = '';
+// const DB_USER     = '';
+// const DB_PASSWORD = '';
 
 // Other settings
-define('DOMAIN_NAME',   'hetongeluk.nl');
-define('DOMAIN_EMAIL',  'info@hetongeluk.nl');
-define('SERVER_DOMAIN', 'https://www.' . DOMAIN_NAME);
+const DOMAIN_NAME   = 'hetongeluk.nl';
+const DOMAIN_EMAIL  = 'info@hetongeluk.nl';
+const SERVER_DOMAIN = 'https://www.' . DOMAIN_NAME;
 
 // Default interface language
 //   en: English
 //   nl: Dutch
-define('DEFAULT_LANGUAGE', 'nl');
+const DEFAULT_LANGUAGE = 'nl';
 

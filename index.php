@@ -109,11 +109,7 @@ HTML;
   $fullWindow = true;
 
   $mainHTML = <<<HTML
-<div style="display: flex; height: 100%;">
-  <div class="pageSubTitle">Kaart</div>
-
   <div id="mapMain"></div>
-</div>
 HTML;
 
 } else if ($pageType === PageType::statisticsCrashPartners) {

@@ -640,6 +640,22 @@ SQL;
 
   echo json_encode($result);
 } //==========
+else if ($function === 'loadMapCrashes') {
+
+  $data = json_decode(file_get_contents('php://input'), true);
+
+  try {
+    $result = [];
+
+    if ($data['getUser']) $result['user'] = $user->info();
+
+    $result['ok'] = true;
+  } catch (Exception $e) {
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+
+  echo json_encode($result);
+} //==========
 else if ($function === 'getuser') {
   try {
     $result = ['ok' => true, 'user' => $user->info()];
@@ -647,9 +663,7 @@ else if ($function === 'getuser') {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 
-  $json = json_encode($result);
-  if ($json) echo $json;
-  else echo json_encode(['ok' => false, 'error' => json_last_error()]);
+  echo json_encode($result);
 } //==========
 else if ($function === 'getPageMetaData'){
   try{
@@ -1030,7 +1044,7 @@ else if ($function === 'getStatistics') {
   try {
     $data = json_decode(file_get_contents('php://input'), true);
 
-    $type = $data['type'] ?? '';
+    $type   = $data['type'] ?? '';
     $filter = $data['filter'] ?? '';
 
     if ($type === 'general') $stats = getStatsDatabase($database);
@@ -1039,7 +1053,7 @@ else if ($function === 'getStatistics') {
 
     $result = ['ok' => true,
       'statistics' => $stats,
-      'user' => $user->info()
+      'user'       => $user->info()
     ];
   } catch (Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];

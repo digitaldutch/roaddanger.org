@@ -186,7 +186,7 @@ function getNavigation(){
       <a href="/kinddoden" class="navItem">Kinddoden</a>
       <a href="/mozaiek" class="navItem">Mozaïek</a>
       <a href="/decorrespondent" class="navItem">De Correspondent week</a>
-<!--      <a href="/kaart" class="navItem">Kaart</a>-->
+      <a href="/kaart" class="navItem">Kaart</a>
     </div>
 
     <div class="navigationSection">

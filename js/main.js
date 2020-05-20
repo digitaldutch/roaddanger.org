@@ -6,8 +6,9 @@ let editCrashPersons = [];
 let spinnerLoad;
 let pageType;
 let graph;
+let mapMain;
 let mapEdit;
-let mapMarker;
+let mapCrash;
 let PageType = Object.freeze({
   stream:                        0,
   crash:                         1,
@@ -113,8 +114,9 @@ function initMain() {
 
     loadChildDeaths();
   } else if (pageType === PageType.export){
-    initPageUser();
     initExport();
+  } else if (pageType === PageType.map){
+    loadMap();
   } else if (pageType === PageType.crash){
     // Single crash details page
     loadCrashes(crashID, articleID);
@@ -143,6 +145,8 @@ function initStatistics(){
 }
 
 function initExport(){
+  loadUserData();
+
   let html = '';
   for (const key of Object.keys(TTransportationMode)){
     const transportationMode =  TTransportationMode[key];
@@ -385,10 +389,8 @@ async function loadStatistics(){
       };
     }
 
-    const url      = '/ajax.php?function=getStatistics';
-    const response = await fetchFromServer(url, serverData);
-    const text     = await response.text();
-    const data     = JSON.parse(text);
+    const url  = '/ajax.php?function=getStatistics';
+    const data = await fetchFromServer(url, serverData);
     if (data.user) updateLoginGUI(data.user);
     if (data.error) showError(data.error);
     else {
@@ -496,10 +498,8 @@ async function loadChildDeaths(){
 }
 
 async function loadCrashesFromServer(serverData){
-  const url      = '/ajax.php?function=loadCrashes';
-  const response = await fetchFromServer(url, serverData);
-  const text     = await response.text();
-  const data           = JSON.parse(text);
+  const url  = '/ajax.php?function=loadCrashes';
+  const data = await fetchFromServer(url, serverData);
 
   if (data.user) updateLoginGUI(data.user);
 
@@ -588,9 +588,43 @@ async function loadCrashes(crashID=null, articleID=null){
 
   if (observerSpinner && (newCrashes.length >= maxLoadCount)) observerSpinner.observe(spinnerLoad);
 
-  setTimeout(()=>{
-    if (articleID) selectArticle(articleID);
-  }, 1);
+  if (articleID) setTimeout(()=> {selectArticle(articleID);}, 1);
+}
+
+async function loadMap() {
+
+  const latitudeNL  = 52.16;
+  const longitudeNL = 5.41;
+  const zoomLevel   = 6;
+
+  if (! mapMain){
+    mapboxgl.accessToken = mapboxKey;
+    mapMain = new mapboxgl.Map({
+      container: 'mapMain',
+      style:     'mapbox://styles/mapbox/streets-v9',
+      center:    [longitudeNL, latitudeNL],
+      zoom:      zoomLevel,
+    });
+  }
+
+  try {
+    const serverData = {
+      getUser: true,
+    };
+    const url        = '/ajax.php?function=loadMapCrashes';
+    const data       = await fetchFromServer(url, serverData);
+
+    if (data.user) updateLoginGUI(data.user);
+
+    if (data.error) {showError(data.error); return [];}
+
+
+
+  } catch (error) {
+    showError(error.message);
+  } finally {
+  }
+
 }
 
 function prepareArticleServerData(article){
@@ -1462,10 +1496,7 @@ async function getArticleMetaData() {
   document.getElementById('spinnerMeta').style.display = 'flex';
   document.getElementById('tarantulaResults').innerHTML = '<img src="/images/spinner.svg" style="height: 30px;">';
   try {
-    const response = await fetchFromServer(url, {url: urlArticle, newArticle: isNewArticle});
-    const text     = await response.text();
-    if (! text) showError('No response from server');
-    const data     = JSON.parse(text);
+    const data = await fetchFromServer(url, {url: urlArticle, newArticle: isNewArticle});
     if (data.error) showError(data.error);
     else {
       if (data.urlExists) showMessage(`Bericht is al toegevoegd aan database.<br><a href='/${data.urlExists.crashId}' style='text-decoration: underline;'>Klik hier.</a>`, 30);
@@ -1816,10 +1847,8 @@ async function searchMergeCrash() {
       },
     };
 
-    const url      = '/ajax.php?function=loadCrashes';
-    const response = await fetchFromServer(url, serverData);
-    const text     = await response.text();
-    const data     = JSON.parse(text);
+    const url  = '/ajax.php?function=loadCrashes';
+    const data = await fetchFromServer(url, serverData);
     if (data.error) showError(data.error);
     else if (data.ok){
       prepareCrashServerData(data);
@@ -1835,7 +1864,6 @@ async function searchMergeCrash() {
     document.getElementById('spinnerMerge').style.display = 'none';
   }
 }
-
 
 function mergeSearchResultClick(crashID) {
   const crash = crashesFound.find(crash => crash.id === crashID);
@@ -2255,7 +2283,7 @@ function showMapEdit(latitude, longitude) {
   }
 
   function setMarker(latitude, longitude){
-    if (mapMarker) mapMarker.setLngLat(new mapboxgl.LngLat(longitude, latitude));
+    if (mapCrash) mapCrash.setLngLat(new mapboxgl.LngLat(longitude, latitude));
     else {
       const markerElement = document.createElement('div');
       markerElement.innerHTML = `<img class="mapMarker" src="/images/pin.svg" alt="marker">`;
@@ -2269,26 +2297,26 @@ function showMapEdit(latitude, longitude) {
         });
        });
 
-      mapMarker = new mapboxgl.Marker(markerElement, {anchor: 'bottom', draggable: true})
+      mapCrash = new mapboxgl.Marker(markerElement, {anchor: 'bottom', draggable: true})
         .setLngLat([longitude, latitude])
         .addTo(mapEdit)
         .on('dragend', function(e) {
-          const lngLat = mapMarker.getLngLat();
+          const lngLat = mapCrash.getLngLat();
           saveMarkerPosition(lngLat);
         })
     }
   }
 
   function deleteMarker(){
-    if (mapMarker){
-      mapMarker.remove();
-      mapMarker = null;
+    if (mapCrash){
+      mapCrash.remove();
+      mapCrash = null;
     }
   }
 
-  let latitudeNL  = 52.16;
-  let longitudeNL = 5.41;
-  let zoomLevel   = 6;
+  const latitudeNL  = 52.16;
+  const longitudeNL = 5.41;
+  const zoomLevel   = 6;
   let showMarker = true;
   if (! latitude || ! longitude) {
     latitude   = latitudeNL;
