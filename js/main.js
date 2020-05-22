@@ -677,6 +677,13 @@ async function loadMap() {
       center:    [longitudeNL, latitudeNL],
       zoom:      zoomLevel,
     })
+    .addControl(
+      new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl:    mapboxgl,
+        clearOnBlur: true,
+      })
+    )
     .on('load', loadMapDataFromServer)
     .on('data', () => mapMain.on('moveend', delayedLoadMapData));
   }
@@ -783,7 +790,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
     ${htmlModeration}     
   
     <div class="smallFont articleTitleSmall">
-      <a href="${article.url}" target="article" onclick="event.stopPropagation();"><span class="cardSitename">${escapeHtml(article.sitename)}</span></a> 
+      <a href="${article.url}" target="article" onclick="event.stopPropagation();"><span class="cardSiteName">${escapeHtml(article.sitename)}</span></a> 
       | ${article.publishedtime.pretty()} | toegevoegd door ${article.user}
     </div>
   
@@ -940,7 +947,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
     ${htmlModeration}     
   
     <div class="smallFont articleTitleSmall">
-      <a href="${article.url}" target="article"><span class="cardSitename">${escapeHtml(article.sitename)}</span></a> 
+      <a href="${article.url}" target="article"><span class="cardSiteName">${escapeHtml(article.sitename)}</span></a> 
       | ${article.publishedtime.pretty()} | toegevoegd door ${article.user}
     </div>
   

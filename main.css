@@ -338,7 +338,7 @@ a:hover {
   color:     #666;
 }
 
-.cardSitename {
+.cardSiteName {
   font-weight: bold;
   color:       #df5b57;
 }
@@ -357,6 +357,10 @@ a:hover {
   min-height:       40px;
   background-color: #fff;
   z-index:          200;
+}
+
+html.fullWindow #pageBar {
+  position: static;
 }
 
 #topBar {
