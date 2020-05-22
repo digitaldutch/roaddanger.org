@@ -5,8 +5,8 @@ $VERSION_DATE = '22 mei 2020';
 
 require_once 'configsecret.php';
 
-// Parameters below are defined in configsecret.php
-// Database connection data
+// ***** Leave these empty and configure you database connection in configsecret.php *****
+// ***** This is to prevent your passwords from entering the source code repository  *****
 // const DB_HOST     = '';
 // const DB_NAME     = '';
 // const DB_USER     = '';
