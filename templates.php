@@ -24,7 +24,7 @@ HTML;
 
   $buttons = '';
   if ($showButtonSearch) $buttons .= '<div id="buttonSearch" class="menuButton bgSearch" onclick="toggleSearchBar(event);"></div>';
-  if ($showButtonAdd)    $buttons .= '<div class="menuButton buttonAdd" onclick="showNewCrashForm();"></div>';
+  if ($showButtonAdd)    $buttons .= '<div id="buttonNewCrash" style="display: none;" class="menuButton buttonAdd" onclick="showNewCrashForm();"></div>';
 
   return <<<HTML
 <!DOCTYPE html>
@@ -57,7 +57,7 @@ $navigation
       $buttons
       <div id="loginButton" onclick="loginClick(event);">
         <div id="buttonPerson" class="menuButton bgPerson"></div>
-        <div id="loginText">Log in</div>
+        <div id="loginText">...</div>
         <div id="loginName" class="hideOnMobile"></div>
       </div>
   

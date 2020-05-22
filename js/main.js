@@ -1567,7 +1567,7 @@ other tags: ${data.tagcount.other}
   } catch (error) {
     showError(error.message);
   } finally {
-    setTimeout(()=>{document.getElementById('spinnerMeta').style.display = 'none';}, 1500);
+    setTimeout(()=>{document.getElementById('spinnerMeta').style.display = 'none';}, 1000);
   }
 }
 
@@ -1637,7 +1637,7 @@ async function saveArticleCrash(){
 
   const url = '/ajax.php?function=saveArticleCrash';
   const optionsFetch = {
-    method:  'POST',
+    method: 'POST',
     body: JSON.stringify({
       article:      articleEdited,
       crash:        crashEdited,
@@ -1693,6 +1693,7 @@ async function saveArticleCrash(){
         showMapCrash(crashEdited.latitude, crashEdited.longitude);
       }
     } else {
+      // New crash
       window.location.href = createCrashURL(data.crashId, crashEdited.title);
       let text = '';
       if (articleEdited) {
@@ -1700,7 +1701,7 @@ async function saveArticleCrash(){
       } else text = 'Ongeluk opgeslagen';
       showMessage(text, 1);
     }
-    hideDiv('formEditCrash');
+    hideElement('formEditCrash');
   }
 }
 
@@ -1753,20 +1754,17 @@ function getCrashArticles(crashID, articles){
 }
 
 async function deleteArticleDirect(articleID) {
-  const url = '/ajax.php?function=deleteArticle&id=' + articleID;
   try {
-    const response = await fetch(url, fetchOptions);
-    const text     = await response.text();
-    const data     = JSON.parse(text);
+    const url = '/ajax.php?function=deleteArticle&id=' + articleID;
+    const data = await fetchFromServer(url);
     if (data.error) showError(data.error);
     else {
       // Remove article from articles array
       articles = articles.filter(a => a.id !== articleID);
 
-      // Delete the GUI element from list
-      document.getElementById('article' + articleID).remove();
-
-      if (crashDetailsVisible()) document.getElementById('articledetails' + articleID).remove();
+      // Delete the GUI elements
+      deleteElement('article' + articleID);
+      deleteElement('articledetails' + articleID);
 
       showMessage('Artikel verwijderd');
     }
@@ -1785,8 +1783,11 @@ async function deleteCrashDirect(crashID) {
     else {
       // Remove crash from crashes array
       crashes = crashes.filter(crash => crash.id !== crashID);
+
       // Delete the GUI element
-      document.getElementById('crash' + crashID).remove();
+      deleteElement('crash' + crashID);
+      deleteElement('crashdetails' + crashID);
+
       showMessage('Ongeluk verwijderd');
     }
   } catch (error) {

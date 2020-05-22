@@ -156,8 +156,13 @@ function dateToAge(date) {
   return text;
 }
 
-function hideDiv(id){
+function hideElement(id){
   document.getElementById(id).style.display = 'none';
+}
+
+function deleteElement(id){
+  const element = document.getElementById(id);
+  if (element) element.remove();
 }
 
 function showError(text, secondsVisible=5) {
@@ -205,7 +210,7 @@ function confirmMessage(text, okCallback, buttonOKText='OK', header='Bevestigen'
   document.getElementById('buttonConfirmOK').innerText              = buttonOKText;
   document.getElementById('buttonConfirmCancel').style.display      = 'inline-block';
   document.getElementById('buttonConfirmOK').onclick = function(){
-    hideDiv('formConfirmOuter');
+    hideElement('formConfirmOuter');
     okCallback();
     return false; // Prevent closing window
   };
@@ -315,6 +320,9 @@ function updateLoginGUI(userNew){
   user = userNew;
   const buttonPerson = document.getElementById('buttonPerson');
 
+  // New crash button is only visible after user data is loaded, because new crash function checks if user is logged in.
+  document.getElementById('buttonNewCrash').style.display = 'inline-block';
+
   document.getElementById('menuProfile').style.display = user.loggedin? 'block' : 'none';
   document.getElementById('menuLogin').style.display   = user.loggedin? 'none' : 'block';
   document.getElementById('menuLogout').style.display  = user.loggedin? 'block' : 'none';
@@ -322,14 +330,15 @@ function updateLoginGUI(userNew){
   if (user.loggedin) {
     document.getElementById('loginName').style.display = 'inline-block';
     document.getElementById('loginText').style.display = 'none';
-    document.getElementById('loginName').innerText   = user.firstname;
-    document.getElementById('menuProfile').innerHTML = user.firstname + '<div class="smallFont">' + permissionToText(user.permission) + '</div>';
+    document.getElementById('loginName').innerText     = user.firstname;
+    document.getElementById('menuProfile').innerHTML   = user.firstname + '<div class="smallFont">' + permissionToText(user.permission) + '</div>';
     buttonPerson.classList.remove('buttonPerson');
     buttonPerson.classList.add('bgPersonLoggedIn');
   } else {
     document.getElementById('loginName').style.display = 'none';
     document.getElementById('loginText').style.display = 'inline-block';
-    document.getElementById('menuProfile').innerText = '';
+    document.getElementById('loginText').innerText     = 'Log in';
+    document.getElementById('menuProfile').innerText   = '';
     buttonPerson.classList.add('buttonPerson');
     buttonPerson.classList.remove('bgPersonLoggedIn');
   }
@@ -361,7 +370,7 @@ function checkLogin() {
     document.getElementById('spinnerLogin').style.display = 'block';
     loginIntern(email, password, stayLoggedIn).then(user => {
         if (user.loggedin) {
-          hideDiv('formLogin');
+          hideElement('formLogin');
           showMessage('Inloggen succesvol', 1);
           window.location.reload();
         } else document.getElementById('spinnerLogin').style.display = 'none';
@@ -415,7 +424,7 @@ async function checkRegistration(){
             .then(user => {
               if (user.loggedin) {
                 updateLoginGUI(user);
-                hideDiv('formLogin');
+                hideElement('formLogin');
 
                 // Clear registratie velden
                 document.getElementById('loginEmail').value           = '';

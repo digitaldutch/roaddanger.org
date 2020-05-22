@@ -936,7 +936,8 @@ a:hover {
   right:           0;
   bottom:          0;
   background:      #ffffff;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top:     20px;
   align-items:     center;
   flex-direction:  column;
 }
