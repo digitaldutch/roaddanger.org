@@ -635,7 +635,10 @@ async function loadMapDataFromServer(){
       if (! crashes.find(c => c.id === crash.id)) {
         const markerElement = document.createElement('div');
         const personDied    = crash.persons.find(p => p.health === THealth.dead);
-        const imgSrc        = personDied? 'persondead.svg' : 'crash_icon.svg';
+        let   personInjured = false;
+        if (! personDied) personInjured = crash.persons.find(p => p.health === THealth.injured);
+
+        const imgSrc        = personDied? 'persondead.svg' : personInjured? 'person_injured.svg' : 'crash_icon.svg';
 
         markerElement.innerHTML = `<img class="crashIcon" src="/images/${imgSrc}">`;
         markerElement.onclick = () => {showCrashDetails(crash.id)};
@@ -665,7 +668,6 @@ async function loadMapDataFromServer(){
 }
 
 async function loadMap() {
-
   const latitudeNL  = 52.16;
   const longitudeNL = 5.41;
   const zoomLevel   = 6;
