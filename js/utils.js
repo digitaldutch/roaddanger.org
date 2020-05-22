@@ -321,7 +321,8 @@ function updateLoginGUI(userNew){
   const buttonPerson = document.getElementById('buttonPerson');
 
   // New crash button is only visible after user data is loaded, because new crash function checks if user is logged in.
-  document.getElementById('buttonNewCrash').style.display = 'inline-block';
+  const buttonNewCrash = document.getElementById('buttonNewCrash');
+  if (buttonNewCrash) buttonNewCrash.style.display = 'inline-block';
 
   document.getElementById('menuProfile').style.display = user.loggedin? 'block' : 'none';
   document.getElementById('menuLogin').style.display   = user.loggedin? 'none' : 'block';
