@@ -2345,7 +2345,7 @@ function showMapEdit(latitude, longitude) {
     document.getElementById('editCrashLongitude').value = lngLat.lng.toFixed(6);
   }
 
-  function setMarker(latitude, longitude){
+  function setCrashMarker(latitude, longitude){
     if (mapCrash) mapCrash.setLngLat(new mapboxgl.LngLat(longitude, latitude));
     else {
       const markerElement = document.createElement('div');
@@ -2356,21 +2356,22 @@ function showMapEdit(latitude, longitude) {
         confirmMessage(`Locatie verwijderen?`, () => {
           document.getElementById('editCrashLatitude').value  = '';
           document.getElementById('editCrashLongitude').value = '';
-          deleteMarker();
+          deleteCrashMarker();
         });
        });
 
+      deleteCrashMarker();
       markerEdit = new mapboxgl.Marker(markerElement, {anchor: 'bottom', draggable: true})
         .setLngLat([longitude, latitude])
         .addTo(mapEdit)
         .on('dragend', function(e) {
-          const lngLat = mapCrash.getLngLat();
+          const lngLat = markerEdit.getLngLat();
           saveMarkerPosition(lngLat);
         })
     }
   }
 
-  function deleteMarker(){
+  function deleteCrashMarker(){
     if (markerEdit){
       markerEdit.remove();
       markerEdit = null;
@@ -2385,7 +2386,7 @@ function showMapEdit(latitude, longitude) {
     latitude   = latitudeNL;
     longitude  = longitudeNL;
     showMarker = false;
-    deleteMarker();
+    deleteCrashMarker();
   }
 
   if (! mapEdit){
@@ -2403,7 +2404,7 @@ function showMapEdit(latitude, longitude) {
       })
     ).on('click', (e) => {
       saveMarkerPosition(e.lngLat);
-      setMarker(e.lngLat.lat, e.lngLat.lng);
+      setCrashMarker(e.lngLat.lat, e.lngLat.lng);
     });
 
   } else {
@@ -2411,7 +2412,7 @@ function showMapEdit(latitude, longitude) {
     mapEdit.setZoom(zoomLevel);
   }
 
-  if (showMarker) setMarker(latitude, longitude);
+  if (showMarker) setCrashMarker(latitude, longitude);
 }
 
 function showMapCrash(latitude, longitude) {
