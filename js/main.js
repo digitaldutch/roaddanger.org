@@ -9,6 +9,7 @@ let graph;
 let mapMain;
 let mapEdit;
 let mapCrash;
+let markerEdit;
 let PageType = Object.freeze({
   stream:                        0,
   crash:                         1,
@@ -652,7 +653,7 @@ async function loadMapDataFromServer(){
 
     if (crashes.length > 500) {
       for (const crash of crashes) {
-// Clean up markers that are out of the view
+// TODO Clean up markers that are out of the view
       }
     }
 
@@ -2359,7 +2360,7 @@ function showMapEdit(latitude, longitude) {
         });
        });
 
-      const marker = new mapboxgl.Marker(markerElement, {anchor: 'bottom', draggable: true})
+      markerEdit = new mapboxgl.Marker(markerElement, {anchor: 'bottom', draggable: true})
         .setLngLat([longitude, latitude])
         .addTo(mapEdit)
         .on('dragend', function(e) {
@@ -2370,9 +2371,9 @@ function showMapEdit(latitude, longitude) {
   }
 
   function deleteMarker(){
-    if (mapCrash){
-      mapCrash.remove();
-      mapCrash = null;
+    if (markerEdit){
+      markerEdit.remove();
+      markerEdit = null;
     }
   }
 
