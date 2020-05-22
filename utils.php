@@ -53,7 +53,9 @@ function pageWithEditMap($pageType){
       PageType::mosaic,
       PageType::crash,
       PageType::moderations,
-      PageType::childDeaths]);
+      PageType::childDeaths,
+      PageType::map,
+    ]);
 }
 
 function pageWithMap($pageType){

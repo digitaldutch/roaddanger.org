@@ -90,16 +90,7 @@ function initMain() {
 
   addEditPersonButtons();
 
-  // We watch browser for back button
-  window.onpopstate = function(event) {
-    const crashId = (event.state && event.state.lastCrashId)? event.state.lastCrashId : null;
-
-    if (crashId) showCrashDetails(crashId, false);
-    else {
-      if (pageIsCrashList()) closeCrashDetails(false);
-      else window.location.reload();
-    }
-  };
+  initWatchPopStart();
 
   if ((pageType === PageType.statisticsTransportationModes) ||
       (pageType === PageType.statisticsGeneral) ||
@@ -116,6 +107,7 @@ function initMain() {
   } else if (pageType === PageType.export){
     initExport();
   } else if (pageType === PageType.map){
+    initWatchPopStart();
     loadMap();
   } else if (pageType === PageType.crash){
     // Single crash details page
@@ -142,6 +134,19 @@ function initStatistics(){
   }
 
   setCustomFilterVisibility();
+}
+
+function initWatchPopStart(){
+  // We observer the browser back button, because we do not want to reload if a crash details window is closed
+  window.onpopstate = function(event) {
+    const crashId = (event.state && event.state.lastCrashId)? event.state.lastCrashId : null;
+
+    if (crashId) showCrashDetails(crashId, false);
+    else {
+      if (pageIsCrashList()) closeCrashDetails(false);
+      else window.location.reload();
+    }
+  };
 }
 
 function initExport(){
@@ -436,9 +441,10 @@ async function loadChildDeaths(){
 
   let newCrashes = [];
   const serverData = {
-    count:  20,
-    offset: crashes.length,
-    sort:  'crashDate',
+    count:   20,
+    offset:  crashes.length,
+    sort:    'crashDate',
+    getUser: !user,
     filter: {
       child:         1,
       healthDead:    document.getElementById('filterChildDead').classList.contains('buttonSelectedBlue')? 1 : 0,
@@ -545,9 +551,10 @@ async function loadCrashes(crashID=null, articleID=null){
     spinnerLoad.style.display = 'block';
 
     const serverData = {
-      count:  maxLoadCount,
-      offset: crashes.length,
-      filter: {},
+      count:   maxLoadCount,
+      offset:  crashes.length,
+      getUser: !user,
+      filter:  {},
     };
 
     if (searchVisible()) {
@@ -591,6 +598,71 @@ async function loadCrashes(crashID=null, articleID=null){
   if (articleID) setTimeout(()=> {selectArticle(articleID);}, 1);
 }
 
+function delayedLoadMapData(){
+  if (delayedLoadMapData.timeout) clearTimeout(delayedLoadMapData.timeout);
+
+  delayedLoadMapData.timeout = setTimeout(loadMapDataFromServer, 1000);
+}
+
+async function loadMapDataFromServer(){
+
+  try {
+    const bounds = mapMain.getBounds();
+    const serverData  = {
+      count:   100,
+      getUser: ! user,
+      sort:    'crashDate',
+      filter: {
+        // healthDead: 1,
+        area: {
+          latMax: bounds._ne.lat,
+          lonMax: bounds._ne.lng,
+          latMin: bounds._sw.lat,
+          lonMin: bounds._sw.lng,
+        },
+      }
+    };
+
+    const url  = '/ajax.php?function=loadCrashes';
+    const data = await fetchFromServer(url, serverData);
+
+    if (data.user) updateLoginGUI(data.user);
+
+    prepareCrashServerData(data);
+
+    for (const crash of data.crashes) {
+      if (! crashes.find(c => c.id === crash.id)) {
+        const markerElement = document.createElement('div');
+        const personDied    = crash.persons.find(p => p.health === THealth.dead);
+        const imgSrc        = personDied? 'persondead.svg' : 'crash_icon.svg';
+
+        markerElement.innerHTML = `<img class="crashIcon" src="/images/${imgSrc}">`;
+        markerElement.onclick = () => {showCrashDetails(crash.id)};
+
+        crash.marker = (new mapboxgl.Marker(markerElement)
+          .setLngLat([crash.longitude, crash.latitude])
+          .addTo(mapMain));
+
+        crashes.push(crash);
+        const crashArticles = data.articles.filter(a => a.accidentid === crash.id);
+        articles = articles.concat(crashArticles);
+      }
+    }
+
+
+    if (crashes.length > 500) {
+      for (const crash of crashes) {
+// Clean up markers that are out of the view
+      }
+    }
+
+    if (data.error) {showError(data.error); return [];}
+  } catch (error) {
+    showError(error.message);
+  }
+
+}
+
 async function loadMap() {
 
   const latitudeNL  = 52.16;
@@ -604,26 +676,9 @@ async function loadMap() {
       style:     'mapbox://styles/mapbox/streets-v9',
       center:    [longitudeNL, latitudeNL],
       zoom:      zoomLevel,
-    });
-  }
-
-  try {
-    const serverData = {
-      getUser: true,
-    };
-
-    const url  = '/ajax.php?function=loadMapCrashes';
-    const data = await fetchFromServer(url, serverData);
-
-    if (data.user) updateLoginGUI(data.user);
-
-    if (data.error) {showError(data.error); return [];}
-
-
-
-  } catch (error) {
-    showError(error.message);
-  } finally {
+    })
+    .on('load', loadMapDataFromServer)
+    .on('data', () => mapMain.on('moveend', delayedLoadMapData));
   }
 
 }
@@ -747,7 +802,6 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
       case TStreamTopType.articleAdded: titleModified = ' | nieuw artikel toegevoegd door ' + crash.streamtopuser; break;
       case TStreamTopType.placedOnTop:  titleModified = ' | omhoog geplaatst door '         + crash.streamtopuser; break;
     }
-    if (titleModified) titleModified += ' ' + crash.streamdatetime.pretty();
   }
 
   // Created date is only added if no modified title
@@ -905,7 +959,6 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
       case TStreamTopType.articleAdded: titleModified = ' | nieuw artikel toegevoegd door ' + crash.streamtopuser; break;
       case TStreamTopType.placedOnTop:  titleModified = ' | omhoog geplaatst door '         + crash.streamtopuser; break;
     }
-    if (titleModified) titleModified += ' ' + crash.streamdatetime.pretty();
   }
 
   // Created date is only added if no modified title
@@ -1662,7 +1715,7 @@ function showArticleMenu(event, articleDivId) {
 }
 
 function pageIsCrashList(){
-  return [PageType.recent, PageType.stream, PageType.mosaic, PageType.deCorrespondent, PageType.moderations, PageType.childDeaths].includes(pageType);
+  return [PageType.recent, PageType.stream, PageType.mosaic, PageType.deCorrespondent, PageType.moderations, PageType.childDeaths, PageType.map].includes(pageType);
 }
 
 function pageIsCrashPage(){
@@ -1841,6 +1894,7 @@ async function searchMergeCrash() {
     const serverData = {
       count: 10,
       filter: {
+        getUser:  !user,
         text:     document.getElementById('mergeCrashSearch').value.trim().toLowerCase(),
         period:   'custom',
         dateFrom: dateToISO(dateFrom),
@@ -1968,7 +2022,6 @@ function closeCrashDetails(popHistory=true) {
   document.getElementById('formCrash').style.display = 'none';
   if (popHistory) window.history.back();
 }
-
 
 function searchVisible(){
   return document.body.classList.contains('searchBody');
@@ -2298,7 +2351,7 @@ function showMapEdit(latitude, longitude) {
         });
        });
 
-      mapCrash = new mapboxgl.Marker(markerElement, {anchor: 'bottom', draggable: true})
+      const marker = new mapboxgl.Marker(markerElement, {anchor: 'bottom', draggable: true})
         .setLngLat([longitude, latitude])
         .addTo(mapEdit)
         .on('dragend', function(e) {

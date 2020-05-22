@@ -464,6 +464,7 @@ FROM accidentpersons
 WHERE accidentid=:accidentid
 ORDER BY health IS NULL, FIELD(health, 3, 2, 0, 1);
 SQL;
+
     $DBStatementPersons = $database->prepare($sql);
 
     $sql = <<<SQL
@@ -529,6 +530,16 @@ SQL;
       if ($filter['child'] === 1){
         $joinPersonsTable = true;
         addSQLWhere($SQLWhere, " ap.child=1 ");
+      }
+
+      if (isset($filter['area'])) {
+        $sqlArea = "latitude BETWEEN :latMin AND :latMax AND longitude BETWEEN :lonMin AND :lonMax";
+
+        addSQLWhere($SQLWhere, $sqlArea);
+        $params[':latMin'] = $filter['area']['latMin'];
+        $params[':latMax'] = $filter['area']['latMax'];
+        $params[':lonMin'] = $filter['area']['lonMin'];
+        $params[':lonMax'] = $filter['area']['lonMax'];
       }
 
       if (count($filter['persons']) > 0) $joinPersonsTable = true;
@@ -631,7 +642,7 @@ SQL;
     }
 
     $result = ['ok' => true, 'crashes' => $crashes, 'articles' => $articles];
-    if ($offset === 0) {
+    if ($data['getUser'] === true) {
       $result['user'] = $user->info();
     }
   } catch (Exception $e) {
@@ -647,12 +658,37 @@ else if ($function === 'loadMapCrashes') {
   try {
     $result = [];
 
+    $sql = <<<SQL
+SELECT 
+  id, 
+  ST_X(location) as longitude, 
+  ST_Y(location) as latitude
+FROM accidents
+WHERE 
+  latitude BETWEEN :latMin AND :latMax
+AND
+  longitude BETWEEN :lonMin AND :lonMax
+ORDER BY RAND()
+LIMIT 300; 
+SQL;
 
+    $params = [
+      ':latMin' => $data['filter']['area']['latMin'],
+      ':latMax' => $data['filter']['area']['latMax'],
+      ':lonMin' => $data['filter']['area']['lonMin'],
+      ':lonMax' => $data['filter']['area']['lonMax'],
+    ];
+
+    $result['crashes'] = [];
+    $DBResults = $database->fetchAll($sql, $params);
+    foreach ($DBResults as $crash) {
+      $crash['latitude']  = floatval($crash['latitude']);
+      $crash['longitude'] = floatval($crash['longitude']);
+
+      $result['crashes'][] = $crash;
+    }
 
     if ($data['getUser']) $result['user'] = $user->info();
-
-    $result['crashes'] = getMapCrashes();
-
     $result['ok'] = true;
   } catch (Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];

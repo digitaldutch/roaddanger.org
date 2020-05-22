@@ -1364,6 +1364,17 @@ a:hover {
   cursor: pointer;
 }
 
+.crashIcon {
+  height: 15px;
+  width:  15px;
+  cursor: pointer;
+}
+
+.crashIcon:hover {
+  border:        1.5px solid black;
+  border-radius: 50%;
+}
+
 @media (max-width: 750px) {
   .hideOnMobile {
     display: none !important;
