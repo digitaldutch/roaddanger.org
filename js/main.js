@@ -610,16 +610,16 @@ async function loadMapDataFromServer(){
   try {
     const bounds = mapMain.getBounds();
     const serverData  = {
-      count:   100,
+      count:   200,
       getUser: ! user,
       sort:    'crashDate',
       filter: {
         // healthDead: 1,
         area: {
-          latMax: bounds._ne.lat,
-          lonMax: bounds._ne.lng,
           latMin: bounds._sw.lat,
           lonMin: bounds._sw.lng,
+          latMax: bounds._ne.lat,
+          lonMax: bounds._ne.lng,
         },
       }
     };
@@ -670,15 +670,21 @@ async function loadMapDataFromServer(){
 async function loadMap() {
   const latitudeNL  = 52.16;
   const longitudeNL = 5.41;
-  const zoomLevel   = 6;
+  const zoomNL      = 6;
+
+  const url = new URL(location.href);
+  const longitude        = url.searchParams.get('lng')  || longitudeNL;
+  const latitude         = url.searchParams.get('lat')  || latitudeNL;
+  const zoom             = url.searchParams.get('zoom') || zoomNL;
 
   if (! mapMain){
     mapboxgl.accessToken = mapboxKey;
+
     mapMain = new mapboxgl.Map({
       container: 'mapMain',
       style:     'mapbox://styles/mapbox/streets-v9',
-      center:    [longitudeNL, latitudeNL],
-      zoom:      zoomLevel,
+      center:    [longitude, latitude],
+      zoom:      zoom,
     })
     .addControl(
       new MapboxGeocoder({
@@ -688,7 +694,13 @@ async function loadMap() {
       })
     )
     .on('load', loadMapDataFromServer)
-    .on('data', () => mapMain.on('moveend', delayedLoadMapData));
+    .on('moveend', () => {
+      const center = mapMain.getCenter();
+      const url    = `/map?lat=${center.lat}&lng=${center.lng}&zoom=${mapMain.getZoom()}`;
+      window.history.replaceState(null, null, url);
+      delayedLoadMapData();
+    });
+
   }
 
 }
@@ -2350,9 +2362,9 @@ function showMapEdit(latitude, longitude) {
   function setCrashMarker(latitude, longitude){
     if (mapCrash) mapCrash.setLngLat(new mapboxgl.LngLat(longitude, latitude));
     else {
-      const markerElement = document.createElement('div');
+      const markerElement     = document.createElement('div');
       markerElement.innerHTML = `<img class="mapMarker" src="/images/pin.svg" alt="marker">`;
-      markerElement.id = 'marker';
+      markerElement.id        = 'marker';
       markerElement.addEventListener('click', (e) => {
         e.stopPropagation();
         confirmMessage(`Locatie verwijderen?`, () => {
