@@ -51,7 +51,7 @@ $navigation
   <div id="topBar">
     <span class="menuButton bgMenu" onclick="toggleNavigation(event);"></span>
   
-    <div class="headerMain pageTitle"><a href="/">Het Ongeluk</a></div>
+    <div class="headerMain pageTitle"><span><a href="/">Het Ongeluk</a><img id="spinnerTitle" src="/images/spinner.svg" style="display: none; height: 17px; margin-left: 5px;"></span></div>
    
     <div>
       $buttons

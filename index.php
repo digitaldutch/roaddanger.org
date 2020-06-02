@@ -106,8 +106,9 @@ Dit is een onvolledige tabel die representatiever wordt naarmate er meer bericht
 HTML;
 
 } else if ($pageType === PageType::map) {
-  $fullWindow    = true;
-  $showButtonAdd = true;
+  $fullWindow       = true;
+  $showButtonAdd    = true;
+  $showButtonSearch = true;
 
   $mainHTML = <<<HTML
   <div id="mapMain"></div>

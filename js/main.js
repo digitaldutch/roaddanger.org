@@ -226,11 +226,11 @@ function selectFilterChildDeaths() {
 
   const dead    = document.getElementById('filterChildDead').classList.contains('buttonSelectedBlue');
   const injured = document.getElementById('filterChildInjured').classList.contains('buttonSelectedBlue');
+
   const url = new URL(window.location);
-  if (dead) url.searchParams.set('hd', 1);
-  else url.searchParams.delete('hd');
-  if (injured) url.searchParams.set('hi', 1);
-  else url.searchParams.delete('hi');
+  if (dead)    url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
+  if (injured) url.searchParams.set('hi', 1); else url.searchParams.delete('hi');
+
   window.history.pushState(null, null, url.toString());
 
   loadChildDeaths();
@@ -555,22 +555,9 @@ async function loadCrashes(crashID=null, articleID=null){
       count:   maxLoadCount,
       offset:  crashes.length,
       getUser: !user,
-      filter:  {},
     };
 
-    if (searchVisible()) {
-      serverData.filter = {
-        text:          document.getElementById('searchText').value.trim().toLowerCase(),
-        period:        document.getElementById('searchPeriod').value,
-        dateFrom:      document.getElementById('searchDateFrom').value,
-        dateTo:        document.getElementById('searchDateTo').value,
-        persons:       getPersonsFromFilter(),
-        siteName:      document.getElementById('searchSiteName').value.trim().toLowerCase(),
-        healthDead:    document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue')? 1 : 0,
-        healthInjured: document.getElementById('searchPersonHealthInjured').classList.contains('buttonSelectedBlue')? 1 : 0,
-        child:         document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue')? 1 : 0,
-      };
-    }
+    serverData.filter = getSearchFilter();
 
     if (crashID) serverData.id = crashID;
     if (pageType  === PageType.moderations) serverData.moderations=1;
@@ -599,6 +586,22 @@ async function loadCrashes(crashID=null, articleID=null){
   if (articleID) setTimeout(()=> {selectArticle(articleID);}, 1);
 }
 
+function getSearchFilter(){
+  if (searchVisible()) {
+    return {
+      text:          document.getElementById('searchText').value.trim().toLowerCase(),
+      period:        document.getElementById('searchPeriod').value,
+      dateFrom:      document.getElementById('searchDateFrom').value,
+      dateTo:        document.getElementById('searchDateTo').value,
+      persons:       getPersonsFromFilter(),
+      siteName:      document.getElementById('searchSiteName').value.trim().toLowerCase(),
+      healthDead:    document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue')? 1 : 0,
+      healthInjured: document.getElementById('searchPersonHealthInjured').classList.contains('buttonSelectedBlue')? 1 : 0,
+      child:         document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue')? 1 : 0,
+    };
+  }  else return {};
+}
+
 function delayedLoadMapData(){
   if (delayedLoadMapData.timeout) clearTimeout(delayedLoadMapData.timeout);
 
@@ -608,21 +611,22 @@ function delayedLoadMapData(){
 async function loadMapDataFromServer(){
 
   try {
+    document.getElementById('spinnerTitle').style.display = 'inline-flex';
+
     const bounds = mapMain.getBounds();
     const serverData  = {
       count:   200,
       getUser: ! user,
       sort:    'crashDate',
-      filter: {
-        // healthDead: 1,
-        area: {
-          latMin: bounds._sw.lat,
-          lonMin: bounds._sw.lng,
-          latMax: bounds._ne.lat,
-          lonMax: bounds._ne.lng,
-        },
-      }
     };
+
+    serverData.filter = getSearchFilter();
+    serverData.filter.area = {
+      latMin: bounds._sw.lat,
+      lonMin: bounds._sw.lng,
+      latMax: bounds._ne.lat,
+      lonMax: bounds._ne.lng,
+    }
 
     const url  = '/ajax.php?function=loadCrashes';
     const data = await fetchFromServer(url, serverData);
@@ -638,7 +642,7 @@ async function loadMapDataFromServer(){
         let   personInjured = false;
         if (! personDied) personInjured = crash.persons.find(p => p.health === THealth.injured);
 
-        const imgSrc        = personDied? 'persondead.svg' : personInjured? 'person_injured.svg' : 'crash_icon.svg';
+        const imgSrc = personDied? 'persondead.svg' : personInjured? 'person_injured.svg' : 'crash_icon.svg';
 
         markerElement.innerHTML = `<img class="crashIcon" src="/images/${imgSrc}">`;
         markerElement.onclick = () => {showCrashDetails(crash.id)};
@@ -653,7 +657,6 @@ async function loadMapDataFromServer(){
       }
     }
 
-
     if (crashes.length > 500) {
       for (const crash of crashes) {
 // TODO Clean up markers that are out of the view
@@ -663,6 +666,8 @@ async function loadMapDataFromServer(){
     if (data.error) {showError(data.error); return [];}
   } catch (error) {
     showError(error.message);
+  } finally {
+    document.getElementById('spinnerTitle').style.display = 'none';
   }
 
 }
@@ -695,14 +700,10 @@ async function loadMap() {
     )
     .on('load', loadMapDataFromServer)
     .on('moveend', () => {
-      const center = mapMain.getCenter();
-      const url    = `/map?lat=${center.lat}&lng=${center.lng}&zoom=${mapMain.getZoom()}`;
-      window.history.replaceState(null, null, url);
+      updateBrowserUrl(false);
       delayedLoadMapData();
     });
-
   }
-
 }
 
 function prepareArticleServerData(article){
@@ -1818,11 +1819,22 @@ async function deleteCrashDirect(crashID) {
 }
 
 function reloadCrashes(){
-  crashes = [];
-  articles  = [];
-  document.getElementById('cards').innerHTML = '';
-  window.scrollTo(0, 0);
-  loadCrashes();
+  if (pageType === PageType.map) {
+    // Delete all markers
+    crashes.forEach(c => {c.marker.remove(); c.marker = null;});
+    crashes  = [];
+    articles = [];
+
+    loadMapDataFromServer();
+  } else {
+    document.getElementById('cards').innerHTML = '';
+    window.scrollTo(0, 0);
+
+    crashes  = [];
+    articles = [];
+
+    loadCrashes();
+  }
 }
 
 function deleteArticle(id) {
@@ -2261,6 +2273,11 @@ function setPersonsFilter(personsCommaString){
 }
 
 function startSearch() {
+  updateBrowserUrl(true);
+  reloadCrashes();
+}
+
+function updateBrowserUrl(pushState=false){
   const searchText          = document.getElementById('searchText').value.trim().toLowerCase();
   const searchPeriod        = document.getElementById('searchPeriod').value;
   const searchDateFrom      = document.getElementById('searchDateFrom').value;
@@ -2271,26 +2288,36 @@ function startSearch() {
   const searchChild         = document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue');
   const searchPersons       = getPersonsFromFilter();
 
-  let url = window.location.origin;
-  if      (pageType === PageType.deCorrespondent) url += '/decorrespondent';
-  else if (pageType === PageType.stream)          url += '/stream';
-  else if (pageType === PageType.mosaic)          url += '/mozaiek';
-  else if (pageType === PageType.map)             url += '/map';
+  const url = new URL(location.origin);
 
-  url += '?search=' + encodeURIComponent(searchText);
-  if (searchSiteName) url += '&sitename=' + encodeURIComponent(searchSiteName);
-  if (searchPeriod){
-    url += '&period=' + searchPeriod;
-    if (searchDateFrom) url += '&date_from=' + searchDateFrom;
-    if (searchDateTo)   url += '&date_to=' + searchDateTo;
+  if      (pageType === PageType.deCorrespondent) url.pathname = '/decorrespondent';
+  else if (pageType === PageType.stream)          url.pathname = '/stream';
+  else if (pageType === PageType.mosaic)          url.pathname = '/mozaiek';
+  else if (pageType === PageType.map)             url.pathname = '/map';
+
+  if (pageType === PageType.map) {
+    const center = mapMain.getCenter();
+    url.searchParams.set('lat', center.lat);
+    url.searchParams.set('lng', center.lng);
+    url.searchParams.set('zoom', mapMain.getZoom());
   }
-  if (searchHealthDead)         url += '&hd=1';
-  if (searchHealthInjured)      url += '&hi=1';
-  if (searchChild)              url += '&child=1';
-  if (searchPersons.length > 0) url += '&persons=' + searchPersons.join();
 
-  window.history.pushState(null, null, url);
-  reloadCrashes();
+  if (searchText)     url.searchParams.set('search', searchText);
+  if (searchSiteName) url.searchParams.set('siteName', searchSiteName);
+  if (searchPeriod){
+    url.searchParams.set('period', searchPeriod);
+
+    if (searchDateFrom) url.searchParams.set('date_from', searchDateFrom);
+    if (searchDateTo)   url.searchParams.set('date_to', searchDateTo);
+  }
+  if (searchHealthDead)         url.searchParams.set('hd', 1);
+  if (searchHealthInjured)      url.searchParams.set('hi', 1);
+  if (searchChild)              url.searchParams.set('child', 1);
+  if (searchPersons.length > 0) url.searchParams.set('persons', searchPersons.join());
+
+  if (pushState) window.history.pushState(null, null, url.toString());
+  else           window.history.replaceState(null, null, url);
+
 }
 
 function downloadData() {
