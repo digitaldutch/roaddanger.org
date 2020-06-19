@@ -11,11 +11,11 @@ class TUser{
   private $database;
 
   public $id;
-  public $loggedin = false;
-  public $firstname;
-  public $lastname;
+  public $loggedIn = false;
+  public $firstName;
+  public $lastName;
   public $email;
-  public $emailexists = false;
+  public $emailExists = false;
   public $admin = false;
   public $permission;
 
@@ -30,11 +30,11 @@ class TUser{
     }
 
     // Plan B: Check if a remember me login token cookie is available
-    if ( (! $this->loggedin) && isset($_COOKIE['user_id']) && isset($_COOKIE['login_token']) && isset($_COOKIE['login_id'])) {
+    if ( (! $this->loggedIn) && isset($_COOKIE['user_id']) && isset($_COOKIE['login_token']) && isset($_COOKIE['login_id'])) {
       $this->loadUserFromDBByToken($_COOKIE['user_id'], $_COOKIE['login_id'], $_COOKIE['login_token']);
     }
 
-    if (!$this->loggedin) {
+    if (!$this->loggedIn) {
       // Delete hanging sessions and cookies if not logged in. Sometimes a session is killed.
       $this->logout();
     }
@@ -46,11 +46,12 @@ class TUser{
 
   private function clearData(){
     $this->id          = -1;
-    $this->loggedin    = false;
-    $this->firstname   = '';
-    $this->lastname    = '';
+    $this->loggedIn    = false;
+    $this->firstName   = '';
+    $this->lastName    = '';
     $this->email       = '';
-    $this->emailexists = false;
+    $this->language    = DEFAULT_LANGUAGE;
+    $this->emailExists = false;
     $this->admin       = false;
     $this->permission  = TUserPermission::newuser;
   }
@@ -59,30 +60,31 @@ class TUser{
     $this->clearData();
 
     if ($id !== ''){
-      $sql = "SELECT u.id, firstname, lastname, email, passwordhash, permission FROM users u WHERE id=:id;";
-      $params = array(':id' => $id);
+      $sql = "SELECT u.id, firstname, lastname, email, passwordhash, permission, language FROM users u WHERE id=:id;";
+      $params = [':id' => $id];
     } else {
-      $sql = "SELECT u.id, firstname, lastname, email, passwordhash, permission FROM users u WHERE email=:email;";
-      $params = array(':email' => $email);
+      $sql = "SELECT u.id, firstname, lastname, email, passwordhash, permission, language FROM users u WHERE email=:email;";
+      $params = [':email' => $email];
     }
 
     $user = $this->database->fetch($sql, $params);
     if ($user) {
-      $this->emailexists = true;
+      $this->emailExists = true;
       if (($password === '') || (password_verify($password, $user['passwordhash']))) {
         $this->id         = (int)$user['id'];
+        $this->firstName  = $user['firstname'];
+        $this->lastName   = $user['lastname'];
         $this->email      = $user['email'];
-        $this->firstname  = $user['firstname'];
-        $this->lastname   = $user['lastname'];
+        $this->language   = $user['language']?? DEFAULT_LANGUAGE;
         $this->permission = (int)$user['permission'];
         $this->admin      = $this->permission == 1;
-        $this->loggedin   = true;
+        $this->loggedIn   = true;
       }
     }
 
-    if ($this->loggedin) {
+    if ($this->loggedIn) {
       $sql = 'UPDATE users SET lastactive=CURRENT_TIMESTAMP WHERE id=:id;';
-      $params = array(':id' => $this->id);
+      $params = [':id' => $this->id];
       $this->database->execute($sql, $params);
 
       $_SESSION['user_id'] = $this->id;
@@ -93,9 +95,9 @@ class TUser{
     $this->loadUserFromDBIntern($ID);
   }
 
-  private function loadUserFromDBByToken($userID, $loginID, $loginToken) {
+  private function loadUserFromDBByToken($userId, $loginId, $loginToken) {
     $sql    = "SELECT tokenhash FROM logins WHERE userid=:userid AND id=:loginid";
-    $params = array(':userid' => $userID, ':loginid' => $loginID);
+    $params = [':userid' => $userId, ':loginid' => $loginId];
     $row = $this->database->fetch($sql, $params);
 
     // Kill the token even if login fails. One time use only to block tokens from stolen cookies.
@@ -103,7 +105,7 @@ class TUser{
     $this->database->execute($sql, $params);
 
     if ($row && password_verify($loginToken, $row['tokenhash'])){
-      $this->loadUserFromDBIntern($userID);
+      $this->loadUserFromDBIntern($userId);
 
       // Create a new token now that we successfully logged in
       $this->setStayLoggedInToken();
@@ -146,7 +148,7 @@ class TUser{
 
       $passwordRecoveryID = getRandomString(16);
       $sql    = "UPDATE users SET passwordrecoveryid=:passwordrecoveryid, passwordrecoverytime=current_timestamp WHERE email=:email;";
-      $params = array(':passwordrecoveryid' => $passwordRecoveryID, ':email' => $email);
+      $params = [':passwordrecoveryid' => $passwordRecoveryID, ':email' => $email];
       $this->database->execute($sql, $params);
       return $passwordRecoveryID;
     } catch (Exception $e){
@@ -182,22 +184,22 @@ SQL;
   }
 
   /**
-   * @param $firstname
-   * @param $lastname
+   * @param $firstName
+   * @param $lastName
    * @param $email
    * @param $password
    * @return string
    * @throws Exception
    */
-  public function register($firstname, $lastname, $email, $password){
+  public function register($firstName, $lastName, $email, $password){
     if (empty($password))                            throw new Exception('Geen paswoord') ;
-    if (empty($firstname))                           throw new Exception('Geen voornaam') ;
-    if (empty($lastname))                            throw new Exception('Geen achternaam') ;
+    if (empty($firstName))                           throw new Exception('Geen voornaam') ;
+    if (empty($lastName))                            throw new Exception('Geen achternaam') ;
     if (empty($email))                               throw new Exception('Geen email') ;
     if (empty($password) or (strlen($password) < 6)) throw new Exception('Wachtwoord is te kort: Minder dan 6 karakters.') ;
 
     $sql = "SELECT COUNT(*) AS count FROM users WHERE email=:email;";
-    $params = array(':email' => $email);
+    $params = [':email' => $email];
     $rows = $this->database->fetchAll($sql, $params);
 
     if ((count($rows) > 0) && ($rows[0]['count'] > 0)) {
@@ -206,7 +208,7 @@ SQL;
 
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
     $sql = 'INSERT INTO users (firstname, lastname, email, passwordhash) VALUES(:firstname, :lastname, :email, :password)';
-    $params = array(':firstname' => $firstname, ':lastname' => $lastname, ':email' => $email, ':password' => $passwordHash);
+    $params = [':firstname' => $firstName, ':lastname' => $lastName, ':email' => $email, ':password' => $passwordHash];
     $this->database->execute($sql, $params);
     $userId = $this->database->lastInsertID();
 
@@ -216,52 +218,78 @@ SQL;
   }
 
   /**
-   * @param $firstname
-   * @param $lastname
-   * @param string $password
+   * @param $newUser
    * @return bool
    * @throws Exception
    */
-  public function saveProfile($firstname, $lastname, $password=''){
-    if (strlen($firstname) <= 0) throw new Exception('Geen voornaam gevonden');
-    if (strlen($lastname)  <= 0) throw new Exception('Geen achternaam gevonden');
+  public function saveAccount($newUser){
+    // Users can only change their own account
+    if ($newUser->id !== $this->id) throw new Exception('Internal error: User id is not of logged in user');
 
-    if (strlen($password) > 0) {
-      if (strlen($password) < 6) throw new Exception('Wachtwoord te kort. Minder dan 6 karakters.');
+    if (empty($newUser->firstName))        throw new Exception('Geen voornaam ingevuld');
+    if (empty($newUser->lastName))         throw new Exception('Geen achternaam ingevuld');
+    if (strlen($newUser->firstName) > 100) throw new Exception('Voornaam te lang (> 100)');
+    if (strlen($newUser->lastName)  > 100) throw new Exception('Achternaam te lang (> 100)');
+    if (strlen($newUser->email)     > 250) throw new Exception('Email adres is te lang (> 250)');
+    if (!filter_var($newUser->email, FILTER_VALIDATE_EMAIL)) throw new Exception('Ongeldig email adres');
 
-      $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-      $sql    = 'UPDATE users SET firstname=:firstname, lastname=:lastname, passwordhash=:passwordHash WHERE id=:id;';
-      $params = array(':firstname' => $firstname, ':lastname' => $lastname, ':passwordHash' => $passwordHash,':id' => $this->id);
-    } else {
-      $sql    = 'UPDATE  users SET firstname=:firstname, lastname=:lastname WHERE id=:id;';
-      $params = array(':firstname' => $firstname, ':lastname' => $lastname, ':id' => $this->id);
-    }
+    $sql = <<<SQL
+UPDATE users SET
+  firstname = :firstName,                 
+  lastname  = :lastName,                 
+  email     = :email,               
+  language  = :language                 
+WHERE id = :id
+SQL;
 
+    $params = [
+      ':firstName' => $newUser->firstName,
+      ':lastName'  => $newUser->lastName,
+      ':email'     => $newUser->email,
+      ':language'  => $newUser->language,
+      ':id'        => $this->id,
+    ];
     $this->database->execute($sql, $params);
+
+    if (strlen($newUser->password) > 0){
+      if (strlen($newUser->password) < 6) throw new Exception('Wachtwoord moet minimaal 6 karakters lang zijn');
+      if ($newUser->password !== $newUser->passwordConfirm) throw new Exception('Wachtwoord bevestigen is niet hetzelfde als het wachtwoord');
+
+      $passwordHash = password_hash($newUser->password, PASSWORD_DEFAULT);
+
+      $sql = "UPDATE users SET passwordhash=:passwordhash, passwordrecoveryid = null WHERE id=:id;";
+      $params = [
+        ':passwordhash' => $passwordHash,
+        ':id'           => $this->id,
+      ];
+
+      $this->database->execute($sql, $params);
+    }
 
     return true;
   }
 
   public function fullName(){
-    return trim($this->firstname . ' ' . $this->lastname);
+    return trim($this->firstName . ' ' . $this->lastName);
   }
 
   public function info() {
-    if ($this->loggedin)
+    if ($this->loggedIn)
       $r = [
-        'loggedin'    => $this->loggedin,
+        'loggedin'    => $this->loggedIn,
         'id'          => $this->id,
-        'firstname'   => $this->firstname,
-        'lastname'    => $this->lastname,
+        'firstname'   => $this->firstName,
+        'lastname'    => $this->lastName,
         'email'       => $this->email,
-        'emailexists' => $this->emailexists,
+        'language'    => $this->language,
+        'emailexists' => $this->emailExists,
         'admin'       => $this->admin,
         'moderator'   => $this->isModerator(),
         'permission'  => $this->permission,
       ];
     else $r = [
       'loggedin'    => false,
-      'emailexists' => $this->emailexists,
+      'emailexists' => $this->emailExists,
     ];
     return $r;
   }

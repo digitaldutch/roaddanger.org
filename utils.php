@@ -68,7 +68,7 @@ function showIntroMessagePage($pageType){
 
 function headerContainsGZIP($headersRaw){
   function parseHeaders($headers) {
-    $headerArray = array();
+    $headerArray = [];
     foreach($headers as $header) {
       $headerParts = explode(':', $header,2);
       if(isset($headerParts[1])) $headerArray[trim($headerParts[0])] = trim($headerParts[1]);
@@ -108,18 +108,18 @@ function parse_url_all($url){
  * @throws Exception
  */
 function getPageMediaMetaData($url){
-  $arrContextOptions = array(
-    'ssl' => array(
+  $arrContextOptions = [
+    'ssl' => [
       'verify_peer'      => false,
       'verify_peer_name' => false,
-    ),
-    'http' => array(
+    ],
+    'http' => [
       'follow_location'  => true,
-      'header'=>"User-agent: Googlebot-News this is not\r\n" .
+      'header'           => "User-agent: Googlebot-News this is not\r\n" .
         "Accept-Charset: UTF-8, *;q=0\r\n" .
         "Accept-Encoding: gzip\r\n"
-    ),
-  );
+    ],
+  ];
 
   $meta = ['og' => [], 'twitter' => [], 'article' => [], 'itemprop' => [], 'other' => []];
 
@@ -197,7 +197,7 @@ function emptyIfNull($parameter){
 }
 
 function jsonErrorMessage($message) {
-  return json_encode(array('error' => $message));
+  return json_encode(['error' => $message]);
 }
 
 function dieWithJSONErrorMessage($message) {

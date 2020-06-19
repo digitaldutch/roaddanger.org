@@ -1,7 +1,7 @@
 <?php
 
-$VERSION      = 327;
-$VERSION_DATE = '2 june 2020';
+$VERSION      = 328;
+$VERSION_DATE = '17 june 2020';
 
 require_once 'configsecret.php';
 
@@ -19,6 +19,6 @@ const SERVER_DOMAIN = 'https://www.' . DOMAIN_NAME;
 
 // Default interface language
 //   en: English
-//   nl: Dutch
+//   nl: Nederlands (Dutch)
 const DEFAULT_LANGUAGE = 'nl';
 

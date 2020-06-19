@@ -291,7 +291,7 @@ function setCrashStreamTop($database, $crashId, $userId, $streamTopType){
     streamtopuserid = :userid
   WHERE id=:id;
 SQL;
-  $params = array(':id' => $crashId, ':userid' => $userId);
+  $params = [':id' => $crashId, ':userid' => $userId];
   $database->execute($sql, $params);
 }
 
@@ -334,6 +334,7 @@ function cleanArticleDBRow($article){
 
 // ***** Main loop *****
 if ($function == 'login') {
+
   if (is_null($_REQUEST['email']) || is_null($_REQUEST['password'])) dieWithJSONErrorMessage('Invalid AJAX login call.');
 
   $email        = $_REQUEST['email'];
@@ -343,6 +344,7 @@ if ($function == 'login') {
   global $user;
 
   $user->login($email, $password, $stayLoggedIn);
+
   echo json_encode($user->info());
 } // ====================
 else if ($function == 'register') {
@@ -352,9 +354,9 @@ else if ($function == 'register') {
     global $user;
 
     $user->register($data['firstname'], $data['lastname'], $data['email'], $data['password']);
-    $result = array('ok' => true);
+    $result = ['ok' => true];
   } catch (Exception $e) {
-    $result = array('error' => $e->getMessage());
+    $result = ['error' => $e->getMessage()];
   }
 
   echo json_encode($result);
@@ -384,7 +386,7 @@ else if ($function == 'sendPasswordResetInstructions') {
 
 <p>We hebben een verzoek ontvangen om het wachtwoord verbonden aan je emailadres ($email) te resetten. Om je wachtwoord te resetten, klik op de onderstaande link:</p>
 
-<p><a href="$server/account/resetpassword.php?email=$emailEncoded&recoveryid=$recoveryIDEncoded">Wachtwoord resetten</a></p>
+<p><a href="$server/account/resetpassword?email=$emailEncoded&recoveryid=$recoveryIDEncoded">Wachtwoord resetten</a></p>
 
 <p>Vriendelijke groeten,<br>
 $domain</p>
@@ -393,7 +395,7 @@ HTML;
     if (sendEmail($email, $subject, $body, [])) $result['ok'] = true;
     else throw new Exception('Interne server fout: Kan email niet verzenden.');
   } catch (Exception $e){
-    $result = array('ok' => false, 'error' => $e->getMessage());
+    $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
 } // ====================
@@ -402,8 +404,9 @@ else if ($function == 'saveNewPassword') {
     if (! isset($_REQUEST['password']))   throw new Exception('Geen password opgegeven');
     if (! isset($_REQUEST['recoveryid'])) throw new Exception('Geen recoveryid opgegeven');
     if (! isset($_REQUEST['email']))      throw new Exception('Geen email opgegeven');
+
     $password   = $_REQUEST['password'];
-    $recoveryid = $_REQUEST['recoveryid'];
+    $recoveryId = $_REQUEST['recoveryid'];
     $email      = $_REQUEST['email'];
 
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
@@ -415,12 +418,30 @@ WHERE email=:email
   AND passwordrecoveryid=:passwordrecoveryid;
 SQL;
 
-    $params = array(':passwordhash' => $passwordHash, ':email' => $email, ':passwordrecoveryid' => $recoveryid);
+    $params = [
+      ':passwordhash'       => $passwordHash,
+      ':email'              => $email,
+      ':passwordrecoveryid' => $recoveryId,
+    ];
+
     if (($database->execute($sql, $params, true)) && ($database->rowCount ===1)) {
       $result = ['ok' => true];
     } else $result = ['ok' => false, 'error' => 'Wachtwoord link is verlopen of email is onbekend'];
   } catch (Exception $e) {
-    $result = array('ok' => false, 'error' => $e->getMessage());
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+
+  echo json_encode($result);
+} // ====================
+else if ($function == 'saveAccount') {
+  try {
+    $newUser = json_decode(file_get_contents('php://input'));
+
+    $user->saveAccount($newUser);
+
+    $result = ['ok' => true];
+  } catch (Exception $e) {
+    $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 
   echo json_encode($result);
@@ -806,7 +827,7 @@ else if ($function === 'saveArticleCrash'){
       tree            = :tree
     WHERE id=:id $sqlANDOwnOnly
 SQL;
-        $params = array(
+        $params = [
           ':id'                    => $crash['id'],
           ':userid'                => $user->id,
           ':title'                 => $crash['title'],
@@ -820,7 +841,7 @@ SQL;
           ':pet'                   => $crash['pet'],
           ':trafficjam'            => $crash['trafficjam'],
           ':tree'                  => $crash['tree'],
-        );
+        ];
         if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
         $database->execute($sql, $params, true);
@@ -833,7 +854,7 @@ SQL;
     VALUES (:userid, :awaitingmoderation, :title, :text, :date, POINT(:longitude2, :latitude2), :latitude, :longitude, :unilateral, :pet, :trafficjam, :tree);
 SQL;
 
-        $params = array(
+        $params = [
           ':userid'                => $user->id,
           ':awaitingmoderation'    => $moderationRequired,
           ':title'                 => $crash['title'],
@@ -847,7 +868,7 @@ SQL;
           ':pet'                   => $crash['pet'],
           ':trafficjam'            => $crash['trafficjam'],
           ':tree'                  => $crash['tree'],
-        );
+        ];
         $dbresult = $database->execute($sql, $params);
         $crash['id'] = (int)$database->lastInsertID();
       }
@@ -923,7 +944,7 @@ SQL;
         $article['userid']             = $user->id;
         $article['accidentid']         = $crash['id'];
         $article['awaitingmoderation'] = $articleIsAwaitingModeration;
-        $params = array(
+        $params = [
           ':userid'             => $article['userid'],
           ':awaitingmoderation' => $article['awaitingmoderation'],
           ':accidentid'         => $article['accidentid'],
@@ -933,7 +954,8 @@ SQL;
           ':alltext'            => $article['alltext'],
           ':sitename'           => $article['sitename'],
           ':publishedtime'      => $article['date'],
-          ':urlimage'           => $article['urlimage']);
+          ':urlimage'           => $article['urlimage'],
+        ];
 
         $database->execute($sql, $params);
         $article['id'] = (int)$database->lastInsertID();
@@ -974,7 +996,7 @@ else if ($function === 'mergeCrashes'){
     $database->execute($sql, $params);
 
     $sql = "UPDATE accidents SET streamdatetime=current_timestamp, streamtoptype=1, streamtopuserid=:userId WHERE id=:id";
-    $params = array(':id' => $idTo, ':userId' => $user->id);
+    $params = [':id' => $idTo, ':userId' => $user->id];
     $database->execute($sql, $params);
 
     $result = ['ok' => true];
@@ -988,8 +1010,8 @@ else if ($function === 'deleteArticle'){
     $crashId = (int)$_REQUEST['id'];
     if ($crashId > 0){
       $sqlANDOwnOnly = (! $user->isModerator())? ' AND userid=:useridwhere ' : '';
-      $sql = "DELETE FROM articles WHERE id=:id $sqlANDOwnOnly ;";
-      $params = array(':id' => $crashId);
+      $sql    = "DELETE FROM articles WHERE id=:id $sqlANDOwnOnly ;";
+      $params = [':id' => $crashId];
       if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
       $database->execute($sql, $params, true);
@@ -1007,7 +1029,7 @@ else if ($function === 'deleteCrash'){
     if ($crashId > 0){
       $sqlANDOwnOnly = (! $user->isModerator())? ' AND userid=:useridwhere ' : '';
       $sql = "DELETE FROM accidents WHERE id=:id $sqlANDOwnOnly ;";
-      $params = array(':id' => $crashId);
+      $params = [':id' => $crashId];
       if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
       $database->execute($sql, $params, true);
@@ -1038,7 +1060,7 @@ else if ($function === 'crashModerateOK'){
     $crashId = (int)$_REQUEST['id'];
     if ($crashId > 0){
       $sql    = "UPDATE accidents SET awaitingmoderation=0 WHERE id=:id;";
-      $params = array(':id' => $crashId);
+      $params = [':id' => $crashId];
       $database->execute($sql, $params);
     }
     $result = ['ok' => true];
@@ -1054,7 +1076,7 @@ else if ($function === 'articleModerateOK'){
     $crashId = (int)$_REQUEST['id'];
     if ($crashId > 0){
       $sql    = "UPDATE articles SET awaitingmoderation=0 WHERE id=:id;";
-      $params = array(':id' => $crashId);
+      $params = [':id' => $crashId];
       $database->execute($sql, $params);
     }
     $result = ['ok' => true];
@@ -1068,7 +1090,7 @@ else if ($function === 'getArticleText'){
 
     $crashId = (int)$_REQUEST['id'];
     if ($crashId > 0){
-      $params = array(':id' => $crashId);
+      $params = [':id' => $crashId];
 
       $sqlANDOwnOnly = '';
       if (! $user->isModerator()) {

@@ -110,7 +110,7 @@ a:hover {
 }
 
 .sectionIntro{
-  margin-bottom: 15px;
+  margin-bottom:    15px;
 }
 
 .pageInner {
@@ -684,19 +684,23 @@ html.fullWindow #pageBar {
   text-decoration:  none;
 }
 
-.buttonPopupMenu > div, .buttonPopupMenuTemp > div {
+.buttonPopupMenu > div, .buttonPopupMenu > a, .buttonPopupMenuTemp > div {
   display:         block;
   white-space:     nowrap;
   padding:         10px;
   cursor:          pointer;
+  color:           #000000 !important;
+  text-decoration: none !important;
 }
 
-.buttonPopupMenu > div:hover, .buttonPopupMenuTemp div:hover {
+.buttonPopupMenu > div:hover, .buttonPopupMenu > a:hover, .buttonPopupMenuTemp div:hover {
   background-color: #ddd;
 }
 
 .menuHeader {
-  background-color: #eee;
+  background-color: #eeeeee;
+  font-size:        16px;
+  border-bottom:    1px solid #dddddd;
   cursor:           default !important;
 }
 
@@ -797,7 +801,7 @@ html.fullWindow #pageBar {
   box-sizing:       border-box;
 }
 
-.formFullPage label, .labelDiv {
+.formFullPage label, .labelDiv, .formPage label {
   margin-top: 5px;
 }
 
@@ -861,6 +865,21 @@ html.fullWindow #pageBar {
 .popupInput {
   flex-grow:  1;
   box-sizing: border-box;
+}
+
+.inputForm {
+  width:      100%;
+  height:     2em;
+  margin:     0;
+  font-size:  12px;
+  border:     1px solid #ccc;
+  box-sizing: border-box;
+  padding:    0 3px;
+}
+
+.inputLabel {
+  display:       block;
+  margin-bottom: 5px;
 }
 
 .button {

@@ -16,7 +16,7 @@ function initAdmin(){
 }
 
 async function loadUsers(){
-  let data;
+  let response;
   const maxLoadCount = 50;
 
   function showUsers(users){
@@ -42,29 +42,27 @@ async function loadUsers(){
     spinnerLoad.style.display = 'block';
     observerSpinner.unobserve(spinnerLoad);
 
-    const url      = '/admin/ajax.php?function=loadusers&count=' + maxLoadCount + '&offset=' + users.length;
-    const response = await fetch(url, fetchOptions);
-    const text     = await response.text();
-    data           = JSON.parse(text);
+    const url = '/admin/ajax.php?function=loadusers&count=' + maxLoadCount + '&offset=' + users.length;
+    response  = await fetchFromServer(url);
 
-    if (data.user)  updateLoginGUI(data.user);
-    if (data.error) showError(data.error);
+    if (response.user)  updateLoginGUI(response.user);
+    if (response.error) showError(response.error);
     else {
-      data.users.forEach(user => {
+      response.users.forEach(user => {
         user.lastactive = new Date(user.lastactive);
       });
 
-      users = users.concat(data.users);
-      showUsers(data.users);
+      users = users.concat(response.users);
+      showUsers(response.users);
     }
 
   } catch (error) {
     showError(error.message);
   } finally {
-    if (data.error || (data.users.length < maxLoadCount)) spinnerLoad.style.display = 'none';
+    if (response.error || (response.users.length < maxLoadCount)) spinnerLoad.style.display = 'none';
   }
 
-  if (data.users.length >= maxLoadCount) observerSpinner.observe(spinnerLoad);
+  if (response.users.length >= maxLoadCount) observerSpinner.observe(spinnerLoad);
 }
 
 function userFromID(id) {
@@ -127,17 +125,15 @@ function adminEditUser() {
 }
 
 async function deleteUserDirect() {
-  const userID = selectedUser.id;
-  const url    = '/admin/ajax.php?function=deleteuser&id=' + userID;
   try {
-    const response = await fetch(url, fetchOptions);
-    const text     = await response.text();
-    const data     = JSON.parse(text);
-    if (data.error) showError(data.error);
+    const userId   = selectedUser.id;
+    const url      = '/admin/ajax.php?function=deleteUser&id=' + userId;
+    const response = await fetchFromServer(url);
+    if (response.error) showError(response.error);
     else {
-      users = users.filter(user => user.id !== userID);
-      document.getElementById('truser' + userID).remove();
-      showMessage('Lid verwijderd');
+      users = users.filter(user => user.id !== userId);
+      document.getElementById('truser' + userId).remove();
+      showMessage('Mens verwijderd');
     }
   } catch (error) {
     showError(error.message);
@@ -145,11 +141,11 @@ async function deleteUserDirect() {
 }
 
 async function adminDeleteUser() {
-  confirmMessage(`Lid #${user.id} "${selectedUser.name}" en alle items die dit lid heeft aangemaakt verwijderen?<br><br><b>Dit kan niet ongedaan worden!</b>`,
+  confirmMessage(`Mens #${selectedUser.id} "${selectedUser.name}" en alle items die dit mens heeft aangemaakt verwijderen?<br><br><b>Dit kan niet ongedaan worden!</b>`,
     function (){
       deleteUserDirect();
     },
-    `Verwijder gebruiker en zijn items`, null, true
+    `Verwijder mens en zijn items`, null, true
   );
 }
 
@@ -167,19 +163,11 @@ async function adminDeleteUser() {
   if (! user.firstname)            {showError('geen voornaam ingevuld'); return;}
   if (! user.lastname)             {showError('geen achternaam ingevuld'); return;}
 
-  const url = '/admin/ajax.php?function=saveuser';
-  const optionsFetch = {
-    method:  'POST',
-    body: JSON.stringify({
-      user: user,
-    }),
-    headers: {'Content-Type': 'application/json'},
-  };
-  const response = await fetch(url, optionsFetch);
-  const text     = await response.text();
-  const data     = JSON.parse(text);
-  if (data.error) {
-    showError(data.error, 10);
+  const url      = '/admin/ajax.php?function=saveUser';
+  const response = await fetchFromServer(url, user);
+
+  if (response.error) {
+    showError(response.error, 10);
   } else {
     showMessage('Mens opgeslagen', 1);
     window.location.reload();
@@ -191,26 +179,17 @@ function afterLoginAction(){
 }
 
 async function saveOptions() {
-  const url = '/admin/ajax.php?function=saveOptions';
+  const url     = '/admin/ajax.php?function=saveOptions';
   const options = {
     globalMessage: document.getElementById('optionGlobalMessage').value,
   };
 
-  const optionsFetch = {
-    method:  'POST',
-    body: JSON.stringify({
-      options: options,
-    }),
-    headers: {'Content-Type': 'application/json'},
-  };
-  const response = await fetch(url, optionsFetch);
-  const text     = await response.text();
-  const data     = JSON.parse(text);
-  if (data.error) {
-    showError(data.error, 10);
+  const response = await fetchFromServer(url, options);
+
+  if (response.error) {
+    showError(response.error, 10);
   } else {
     showMessage('Options opgeslagen', 1);
-    window.location.reload();
   }
 
 }

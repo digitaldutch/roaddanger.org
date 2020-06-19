@@ -50,6 +50,7 @@ Deze website is nadrukkelijk in aanbouw en op allerlei manieren onvolledig. De a
 
 <p>
 Het doel van deze site is niet volledigheid van cijfers, maar het krijgen van begrip over hoe we via media met elkaar praten over het verkeersleed in onze samenleving. De cijfers geven dus alleen een globaal beeld van wat er aan slachtoffers en verkeersdeelnemers in deze database te vinden is.
+Ook de locatiegegevens zijn vaak onnauwkeurig.
 </p>
 
 <p>

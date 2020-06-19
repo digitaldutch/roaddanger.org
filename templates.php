@@ -2,7 +2,7 @@
 
 function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $showButtonSearch=false, $showButtonAdd=false, $fullWindow=false){
   global $VERSION;
-  $defaultLanguage = DEFAULT_LANGUAGE;
+  global $user;
 
   $title = 'Het Ongeluk';
   if ($pageTitle !== '') $title = $pageTitle . ' | ' . $title;
@@ -28,7 +28,7 @@ HTML;
 
   return <<<HTML
 <!DOCTYPE html>
-<html lang="$defaultLanguage" $htmlClass>
+<html lang="$user->language" $htmlClass>
 <head>
 <link href="https://fonts.googleapis.com/css?family=Lora|Montserrat" rel="stylesheet">
 <link href="/main.css?v=$VERSION" rel="stylesheet" type="text/css">
@@ -40,6 +40,7 @@ $head
 <title>$title</title>
 <script src="/scripts/tippy.all.min.js"></script>
 <script src="/js/utils.js?v=$VERSION"></script>
+<script src="/languages/language.js?v=$VERSION"></script>
 
 $initScript
 
@@ -63,6 +64,7 @@ $navigation
   
       <div id="menuPerson" class="buttonPopupMenu">
         <div id="menuProfile" class="menuHeader"></div>
+        <a id="menuProfile" href="/account">Account</a>
         <div id="menuLogin" onclick="showLoginForm();">Log in</div> 
         <div id="menuLogout" style="display: none;" onclick="logOut();">Log uit</div>
       </div>
@@ -198,7 +200,6 @@ function getNavigation(){
 
     <div class="navigationSection">
       <div class="navigationSectionHeader">Overig</div>
-      <a href="/stream" class="navItem">Laatst gewijzigde ongelukken</a>
       <a href="/exporteren/" class="navItem">Exporteer data</a>
       <a href="/aboutthissite/" class="navItem">Over deze site</a>
     </div>
@@ -209,6 +210,7 @@ function getNavigation(){
       <div class="navigationSection">
         <a href="/admin/mensen" class="navItem" data-admin>Mensen</a>
         <a href="/moderaties/" class="navItem">Moderaties</a>
+        <a href="/stream" class="navItem">Laatst gewijzigde ongelukken</a>
         <a href="/admin/options/" class="navItem">Opties</a>
       </div>      
     </div>
@@ -224,8 +226,8 @@ HTML;
 
 function getLoginForm() {
   return <<<HTML
-<div id="formLogin" class="popupOuter" onclick="closePopupForm();">
-  <form class="formFullPage" onclick="event.stopPropagation();" onsubmit="return checkLogin();">
+<div id="formLogin" class="popupOuter">
+  <form class="formFullPage" onclick="event.stopPropagation();" onsubmit="checkLogin(); return false;">
 
     <div class="popupHeader">Log in of registreer</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
@@ -260,6 +262,7 @@ function getLoginForm() {
     <div class="popupFooter">
       <input id="buttonLogin" type="submit" class="button" style="margin-left: 0;" value="Log in">
       <input id="buttonRegistreer" type="button" class="button buttonGray" value="Registreer" onclick="checkRegistration();">
+      <input type="button" class="button buttonGray" value="Annuleren" onclick="closePopupForm();">
 
       <span onclick="loginForgotPassword()" style="margin-left: auto; text-decoration: underline; cursor: pointer;">Wachtwoord vergeten</span>
     </div>

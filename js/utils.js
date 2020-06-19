@@ -14,13 +14,6 @@ const TTransportationMode = Object.freeze({
 const THealth             = Object.freeze({unknown: 0, unharmed: 1, injured: 2, dead: 3});
 const TStreamTopType      = Object.freeze({unknown: 0, edited: 1, articleAdded: 2, placedOnTop: 3});
 
-// Required for Safari. Safari sets the credentials by default to none, resulting in no cookies being sent and login failure in the AJAX script :(
-const fetchOptions = {
-  method:      'GET',
-  headers:     {'Content-Type': 'application/json', 'Cache': 'no-cache'},
-  credentials: 'same-origin',
-};
-
 if (!Date.prototype.addDays) {
   Date.prototype.addDays = function(days) {
     if (days === 0) return thisthis;
@@ -38,9 +31,10 @@ if (!Date.prototype.pretty) {
 
 async function fetchFromServer(url, data={}, parseJSON=true){
   const optionsFetch = {
-    method: 'POST',
-    body:   JSON.stringify(data),
-    headers:{'Content-Type': 'application/json', 'Cache': 'no-cache'}
+    method:      'POST',
+    body:        JSON.stringify(data),
+    headers:     {'Content-Type': 'application/json', 'Cache': 'no-cache'},
+    credentials: 'same-origin',
   };
 
   const response     = await fetch(url, optionsFetch);
@@ -288,32 +282,29 @@ function showLoginError(text) {
 
 async function logOut() {
   hideMessage();
-  const url = "/ajax.php?function=logout";
-
-  const response = await fetch(url, fetchOptions);
-  const text     = await response.text();
-  const user     = JSON.parse(text);
+  const url  = "/ajax.php?function=logout";
+  const user = await fetchFromServer(url);
   if (! user.loggedin) {
     showMessage('Uitloggen succesvol', 1);
     window.location.reload();
   } else showError('Interne fout bij uitloggen.');
 }
 
-function loginIntern(email, password, stayLoggedIn=0) {
-  let url = "/ajax.php?function=login" +
+async function loginIntern(email, password, stayLoggedIn=0) {
+  const url = "/ajax.php?function=login" +
     "&email="        + encodeURIComponent(email) +
     "&password="     + encodeURIComponent(password) +
     "&stayLoggedIn=" + stayLoggedIn;
+
   document.getElementById('loginError').style.display = "none";
 
-  return fetch(url, fetchOptions)
-    .then(responseJSON => responseJSON.json())
-    .then(user => {
-      if      (! user.emailexists) showLoginError('Email adres onbekend');
-      else if (! user.loggedin)    showLoginError('Wachtwoord verkeerd');
-      return user;
-    })
-    .catch(error => showLoginError(error));
+  const user = await fetchFromServer(url);
+  if (user.error) showLoginError(user.error);
+  else {
+    if      (! user.emailexists) showLoginError('Email adres onbekend');
+    else if (! user.loggedin)    showLoginError('Wachtwoord verkeerd');
+    return user;
+  }
 }
 
 function updateLoginGUI(userNew){
@@ -358,29 +349,33 @@ function updateLoginGUI(userNew){
 
 }
 
-function checkLogin() {
+async function checkLogin() {
   showHideRegistrationFields(false);
 
-  let email        = document.getElementById('loginEmail').value;
-  let password     = document.getElementById('loginPassword').value;
-  let stayLoggedIn = (document.getElementById('stayLoggedIn').checked)? 1 : 0;
+  const email        = document.getElementById('loginEmail').value;
+  const password     = document.getElementById('loginPassword').value;
+  const stayLoggedIn = document.getElementById('stayLoggedIn').checked? 1 : 0;
 
   if (! validateEmail(email))     showLoginError('Geen geldig email ingevuld');
   else if (password.length === 0) showLoginError('Geen wachtwoord ingevuld');
   else {
     document.getElementById('spinnerLogin').style.display = 'block';
-    loginIntern(email, password, stayLoggedIn).then(user => {
-        if (user.loggedin) {
-          hideElement('formLogin');
-          showMessage('Inloggen succesvol', 1);
-          window.location.reload();
-        } else document.getElementById('spinnerLogin').style.display = 'none';
-      }
-    );
-  }
 
-  // Prevent default form submit close action
-  return false;
+    try {
+      const user = await loginIntern(email, password, stayLoggedIn);
+
+      if (user.loggedin) {
+        updateLoginGUI(user);
+
+        hideElement('formLogin');
+        showMessage('Inloggen succesvol', 1);
+        window.location.reload();
+      } else document.getElementById('spinnerLogin').style.display = 'none';
+
+    } catch (e) {
+      alert(e.message);
+    }
+  }
 }
 
 function showHideRegistrationFields(show) {
@@ -392,54 +387,47 @@ function showHideRegistrationFields(show) {
 async function checkRegistration(){
   showHideRegistrationFields(true);
 
-  let user = {};
-  user.email           = document.getElementById('loginEmail').value.trim();
-  user.firstname       = document.getElementById('loginFirstName').value.trim();
-  user.lastname        = document.getElementById('loginLastName').value.trim();
-  user.password        = document.getElementById('loginPassword').value.trim();
-  user.passwordconfirm = document.getElementById('loginPasswordConfirm').value.trim();
+  const userNew = {
+    email:           document.getElementById('loginEmail').value.trim(),
+    firstname:       document.getElementById('loginFirstName').value.trim(),
+    lastname:        document.getElementById('loginLastName').value.trim(),
+    password:        document.getElementById('loginPassword').value.trim(),
+    passwordconfirm: document.getElementById('loginPasswordConfirm').value.trim(),
+  };
 
-  if (! validateEmail(user.email))            showLoginError('Geen geldig email ingevuld.');
-  else if (user.firstname.length < 1)         showLoginError('Geen voornaam ingevuld');
-  else if (user.lastname.length < 1)          showLoginError('Geen achternaam ingevuld');
-  else if (user.password.length < 6)          showLoginError('Wachtwoord moet minimaal 6 karakters lang zijn.');
-  else if (user.password !== user.passwordconfirm) showLoginError('Wachtwoorden zijn niet gelijk.');
+  if (! validateEmail(userNew.email))            showLoginError('Geen geldig email ingevuld.');
+  else if (userNew.firstname.length < 1)         showLoginError('Geen voornaam ingevuld');
+  else if (userNew.lastname.length < 1)          showLoginError('Geen achternaam ingevuld');
+  else if (userNew.password.length < 6)          showLoginError('Wachtwoord moet minimaal 6 karakters lang zijn.');
+  else if (userNew.password !== userNew.passwordconfirm) showLoginError('Wachtwoorden zijn niet gelijk.');
   else {
 
     document.getElementById('spinnerLogin').style.display = 'block';
     try {
-      const url = '/ajax.php?function=register';
-      const optionsFetch = {
-        method:  'POST',
-        body: JSON.stringify(user),
-        headers: {'Content-Type': 'application/json'},
-      };
-      const response = await fetch(url, optionsFetch);
-      const text     = await response.text();
-      const data     = JSON.parse(text);
-      if (data.error) {
-        showError(data.error, 10);
+      const url      = '/ajax.php?function=register';
+      const response = await fetchFromServer(url, userNew);
+
+      if (response.error) {
+        showError(response.error, 10);
       } else {
-        if (data.ok) {
-          loginIntern(user.email, user.password)
-            .then(user => {
-              if (user.loggedin) {
-                updateLoginGUI(user);
-                hideElement('formLogin');
+        if (response.ok) {
+          const user = await loginIntern(userNew.email, userNew.password);
+          if (user.loggedin) {
+            updateLoginGUI(user);
 
-                // Clear registratie velden
-                document.getElementById('loginEmail').value           = '';
-                document.getElementById('loginFirstName').value       = '';
-                document.getElementById('loginLastName').value        = '';
-                document.getElementById('loginPassword').value        = '';
-                document.getElementById('loginPasswordConfirm').value = '';
+            hideElement('formLogin');
 
-                showMessage('Registratie succesvol', 1);
+            // Clear registratie velden
+            document.getElementById('loginEmail').value           = '';
+            document.getElementById('loginFirstName').value       = '';
+            document.getElementById('loginLastName').value        = '';
+            document.getElementById('loginPassword').value        = '';
+            document.getElementById('loginPasswordConfirm').value = '';
 
-                window.location.reload();
-              }
-            }
-          );
+            showMessage('Registratie succesvol', 1);
+
+            window.location.reload();
+          }
         }
       }
 
@@ -459,13 +447,11 @@ function loginForgotPassword() {
 }
 
 async function sendResetPasswordInstructions(email) {
-  const url = '/ajax.php?function=sendPasswordResetInstructions&email=' + encodeURIComponent(email);
+  const url      = '/ajax.php?function=sendPasswordResetInstructions&email=' + encodeURIComponent(email);
+  const response = await fetchFromServer(url);
 
-  const response = await fetch(url, fetchOptions);
-  const text     = await response.text();
-  const data     = JSON.parse(text);
-  if (data.error) showError(data.error);
-  else if (data.ok) {
+  if (response.error) showError(response.error);
+  else if (response.ok) {
     showMessage('Email met wachtwoord reset instructies is verzonden naar ' + email + '.', 3);
   } else showError('Interne fout bij wachtwoord resetten.');
 }
@@ -632,11 +618,9 @@ function initPageUser(){
 
 async function loadUserData() {
   try {
-    let url = '/ajax.php?function=getuser';
-    const response = await fetch(url, fetchOptions);
-    const text = await response.text();
-    data = JSON.parse(text);
-    if (data.user) updateLoginGUI(data.user);
+    const url = '/ajax.php?function=getuser';
+    const response = await fetchFromServer(url);
+    if (response.user) updateLoginGUI(response.user);
   } catch (error) {
     showError(error.message);
   }
@@ -644,14 +628,17 @@ async function loadUserData() {
 
 function loginClick(event) {
   event.stopPropagation();
-  closeAllPopups();
 
-  if (user.loggedin) showPersonMenu();
+  if (! user) return;
+
+  if (user.loggedin) togglePersonMenu();
   else showLoginForm();
 }
 
-function showPersonMenu(){
-  document.getElementById('menuPerson').style.display = 'block';
+function togglePersonMenu(){
+  const div = document.getElementById('menuPerson');
+
+  div.style.display = div.style.display === 'block'? 'none' : 'block';
 }
 
 function toggleNavigation(event) {

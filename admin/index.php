@@ -6,7 +6,7 @@ global $database;
 global $user;
 global $VERSION;
 
-if ((! $user->loggedin) || (! $user->isModerator())) {
+if ((! $user->loggedIn) || (! $user->isModerator())) {
   $mainHTML = <<<HTML
 <div id="main" class="pageInner">
   <div style="text-align: center;">U bent geen moderator of beheerder. Log eerst in als moderator of beheerder.</div>
@@ -57,7 +57,9 @@ HTML;
   $mainHTML = <<<HTML
 <div id="main" class="pageInner">
   <div class="pageSubTitle">Beheer - opties</div>
+
   <div>
+  
     <label for="optionGlobalMessage">Website mededeling (wordt op alle ongeluk pagina's getoond)</label>
     <textarea id="optionGlobalMessage" class="textArea" maxlength="1500">$message</textarea>
     <div class="smallFont">Externe link:  [url=https://www.hetongeluk.nl]Het Ongeluk[/url]<br>
@@ -68,6 +70,7 @@ HTML;
     <div class="buttonBar">
       <button class="button" style="margin-left: 0;" onclick="saveOptions();">Opslaan</button>
     </div>
+
   </div>
 </div>
 HTML;

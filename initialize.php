@@ -31,8 +31,6 @@ require_once 'users.php';
 require_once 'utils.php';
 
 try {
-  $GLOBALS['defaultLanguage'] = include(__DIR__ . '/languages/lang_nl.php');
-  $GLOBALS['language']        = include(__DIR__ . '/languages/lang_' . DEFAULT_LANGUAGE . '.php');
 
   /** @var TDatabase $database */
   $database = new TDatabase();
@@ -44,6 +42,10 @@ try {
   }
 
   $user = new TUser($database);
+
+  $GLOBALS['defaultLanguage'] = include(__DIR__ . '/languages/lang_nl.php');
+  $GLOBALS['language']        = include(__DIR__ . '/languages/lang_' . $user->language . '.php');
+
 } catch (Exception $e){
   die('Internal error: Initialization failed');
 }

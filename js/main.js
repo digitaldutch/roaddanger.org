@@ -65,7 +65,7 @@ function initMain() {
     case PageType.stream:          title = 'Laatst gewijzigde ongelukken'; break;
     case PageType.deCorrespondent: title = 'De Correspondent week<br>14 t/m 20 januari 2019'; break;
     case PageType.moderations:     title = 'Moderaties'; break;
-    case PageType.recent:          title = 'Recente ongelukken'; break;
+    case PageType.recent:          title = translate('Recent_crashes'); break;
     default:                       title = '';
   }
 
@@ -395,10 +395,11 @@ async function loadStatistics(){
       };
     }
 
-    const url  = '/ajax.php?function=getStatistics';
-    const data = await fetchFromServer(url, serverData);
-    if (data.user) updateLoginGUI(data.user);
-    if (data.error) showError(data.error);
+    const url      = '/ajax.php?function=getStatistics';
+    const response = await fetchFromServer(url, serverData);
+
+    if (response.user) updateLoginGUI(response.user);
+    if (response.error) showError(response.error);
     else {
 
       let url = window.location.origin + '/statistieken';
@@ -420,9 +421,9 @@ async function loadStatistics(){
       window.history.replaceState(null, null, url);
 
       switch (pageType) {
-        case PageType.statisticsGeneral:             {showStatisticsGeneral(data.statistics);              break;}
-        case PageType.statisticsCrashPartners:       {showCrashVictimsGraph(data.statistics.crashVictims); break;}
-        case PageType.statisticsTransportationModes: {showStatisticsTransportation(data.statistics);       break;}
+        case PageType.statisticsGeneral:             {showStatisticsGeneral(response.statistics);              break;}
+        case PageType.statisticsCrashPartners:       {showCrashVictimsGraph(response.statistics.crashVictims); break;}
+        case PageType.statisticsTransportationModes: {showStatisticsTransportation(response.statistics);       break;}
       }
     }
   } catch (error) {
@@ -505,19 +506,19 @@ async function loadChildDeaths(){
 }
 
 async function loadCrashesFromServer(serverData){
-  const url  = '/ajax.php?function=loadCrashes';
-  const data = await fetchFromServer(url, serverData);
+  const url      = '/ajax.php?function=loadCrashes';
+  const response = await fetchFromServer(url, serverData);
 
-  if (data.user) updateLoginGUI(data.user);
+  if (response.user) updateLoginGUI(response.user);
 
-  if (data.error) {showError(data.error); return [];}
+  if (response.error) {showError(response.error); return [];}
   else {
-    prepareCrashServerData(data);
+    prepareCrashServerData(response);
 
-    crashes  = crashes.concat(data.crashes);
-    articles = articles.concat(data.articles);
+    crashes  = crashes.concat(response.crashes);
+    articles = articles.concat(response.articles);
 
-    return data.crashes;
+    return response.crashes;
   }
 }
 
@@ -628,14 +629,14 @@ async function loadMapDataFromServer(){
       lonMax: bounds._ne.lng,
     }
 
-    const url  = '/ajax.php?function=loadCrashes';
-    const data = await fetchFromServer(url, serverData);
+    const url      = '/ajax.php?function=loadCrashes';
+    const response = await fetchFromServer(url, serverData);
 
-    if (data.user) updateLoginGUI(data.user);
+    if (response.user) updateLoginGUI(response.user);
 
-    prepareCrashServerData(data);
+    prepareCrashServerData(response);
 
-    for (const crash of data.crashes) {
+    for (const crash of response.crashes) {
       if (! crashes.find(c => c.id === crash.id)) {
         const markerElement = document.createElement('div');
         const personDied    = crash.persons.find(p => p.health === THealth.dead);
@@ -652,7 +653,7 @@ async function loadMapDataFromServer(){
           .addTo(mapMain));
 
         crashes.push(crash);
-        const crashArticles = data.articles.filter(a => a.accidentid === crash.id);
+        const crashArticles = response.articles.filter(a => a.accidentid === crash.id);
         articles = articles.concat(crashArticles);
       }
     }
@@ -663,7 +664,7 @@ async function loadMapDataFromServer(){
       }
     }
 
-    if (data.error) {showError(data.error); return [];}
+    if (response.error) {showError(response.error); return [];}
   } catch (error) {
     showError(error.message);
   } finally {
@@ -1464,32 +1465,29 @@ function editCrash(crashID) {
 async function crashToTopStream(crashID) {
   closeAllPopups();
 
-  const url = '/ajax.php?function=crashToStreamTop&id=' + crashID;
-  const response = await fetch(url, fetchOptions);
-  const text     = await response.text();
-  const data     = JSON.parse(text);
-  if (data.error) showError(data.error, 10);
+  const url      = '/ajax.php?function=crashToStreamTop&id=' + crashID;
+  const response = await fetchFromServer(url);
+
+  if (response.error) showError(response.error, 10);
   else window.location.reload();
 }
 
 async function getArticleText(articleId) {
-  const url = '/ajax.php?function=getArticleText&id=' + articleId;
-  const response = await fetch(url, fetchOptions);
-  const text     = await response.text();
-  const data     = JSON.parse(text);
-  if (data.error) showError(data.error, 10);
-  else return data.text;
+  const url      = '/ajax.php?function=getArticleText&id=' + articleId;
+  const response = await fetchFromServer(url);
+
+  if (response.error) showError(response.error, 10);
+  else return response.text;
 }
 
 async function crashModerateOK(crash) {
   closeAllPopups();
 
-  const url = '/ajax.php?function=crashModerateOK&id=' + crash;
-  const response = await fetch(url, fetchOptions);
-  const text     = await response.text();
-  const data     = JSON.parse(text);
-  if (data.error) showError(data.error, 10);
-  else if (data.ok){
+  const url      = '/ajax.php?function=crashModerateOK&id=' + crash;
+  const response = await fetchFromServer(url);
+
+  if (response.error) showError(response.error, 10);
+  else if (response.ok){
     // Remove moderation div
     getCrashFromID(crash).awaitingmoderation = false;
 
@@ -1504,12 +1502,11 @@ async function crashModerateOK(crash) {
 async function articleModerateOK(articleID) {
   closeAllPopups();
 
-  const url = '/ajax.php?function=articleModerateOK&id=' + articleID;
-  const response = await fetch(url, fetchOptions);
-  const text     = await response.text();
-  const data     = JSON.parse(text);
-  if (data.error) showError(data.error, 10);
-  else if (data.ok){
+  const url      = '/ajax.php?function=articleModerateOK&id=' + articleID;
+  const response = await fetchFromServer(url);
+
+  if (response.error) showError(response.error, 10);
+  else if (response.ok){
     // Remove moderation div
     getArticleFromID(articleID).awaitingmoderation = false;
 
@@ -1573,18 +1570,19 @@ async function getArticleMetaData() {
   document.getElementById('spinnerMeta').style.display = 'flex';
   document.getElementById('tarantulaResults').innerHTML = '<img src="/images/spinner.svg" style="height: 30px;">';
   try {
-    const data = await fetchFromServer(url, {url: urlArticle, newArticle: isNewArticle});
-    if (data.error) showError(data.error);
+    const response = await fetchFromServer(url, {url: urlArticle, newArticle: isNewArticle});
+
+    if (response.error) showError(response.error);
     else {
-      if (data.urlExists) showMessage(`Bericht is al toegevoegd aan database.<br><a href='/${data.urlExists.crashId}' style='text-decoration: underline;'>Klik hier.</a>`, 30);
-      else showMetaData(data.media);
+      if (response.urlExists) showMessage(`Bericht is al toegevoegd aan database.<br><a href='/${response.urlExists.crashId}' style='text-decoration: underline;'>Klik hier.</a>`, 30);
+      else showMetaData(response.media);
 
       document.getElementById('tarantulaResults').innerHTML = `Gevonden:<br>
-Open Graph Facebook tags: ${data.tagcount.og}<br>
-Twitter tags: ${data.tagcount.twitter}<br>
-article tags: ${data.tagcount.article}<br>
-itemprop tags: ${data.tagcount.itemprop}<br>
-other tags: ${data.tagcount.other}
+Open Graph Facebook tags: ${response.tagcount.og}<br>
+Twitter tags: ${response.tagcount.twitter}<br>
+article tags: ${response.tagcount.article}<br>
+itemprop tags: ${response.tagcount.itemprop}<br>
+other tags: ${response.tagcount.other}
 `;
     }
   } catch (error) {
@@ -1659,21 +1657,16 @@ async function saveArticleCrash(){
   }
 
   const url = '/ajax.php?function=saveArticleCrash';
-  const optionsFetch = {
-    method: 'POST',
-    body: JSON.stringify({
-      article:      articleEdited,
-      crash:        crashEdited,
-      saveArticle:  saveArticle,
-      saveCrash:    saveCrash,
-    }),
-    headers: {'Content-Type': 'application/json'},
-  };
-  const response = await fetch(url, optionsFetch);
-  const text     = await response.text();
-  const data     = JSON.parse(text);
-  if (data.error) {
-    showError(data.error, 10);
+  const serverData = {
+    article:      articleEdited,
+    crash:        crashEdited,
+    saveArticle:  saveArticle,
+    saveCrash:    saveCrash,
+  }
+  const response = await fetchFromServer(url, serverData);
+
+  if (response.error) {
+    showError(response.error, 10);
   } else {
     const editingCrash = crashEdited.id !== '';
 
@@ -1702,9 +1695,9 @@ async function saveArticleCrash(){
           articles[i].urlimage   = articleEdited.urlimage;
           articles[i].date       = articleEdited.date;
           articles[i].hasalltext = articleEdited.alltext.length > 0;
-        } else if (data.article){
-          prepareArticleServerData(data.article);
-          articles.push(data.article);
+        } else if (response.article){
+          prepareArticleServerData(response.article);
+          articles.push(response.article);
         }
       }
 
@@ -1717,7 +1710,7 @@ async function saveArticleCrash(){
       }
     } else {
       // New crash
-      window.location.href = createCrashURL(data.crashId, crashEdited.title);
+      window.location.href = createCrashURL(response.crashId, crashEdited.title);
       let text = '';
       if (articleEdited) {
         text = articleEdited.id? 'Artikel opgeslagen' : 'Artikel toegevoegd';
@@ -1778,9 +1771,10 @@ function getCrashArticles(crashID, articles){
 
 async function deleteArticleDirect(articleID) {
   try {
-    const url = '/ajax.php?function=deleteArticle&id=' + articleID;
-    const data = await fetchFromServer(url);
-    if (data.error) showError(data.error);
+    const url      = '/ajax.php?function=deleteArticle&id=' + articleID;
+    const response = await fetchFromServer(url);
+
+    if (response.error) showError(response.error);
     else {
       // Remove article from articles array
       articles = articles.filter(a => a.id !== articleID);
@@ -1797,12 +1791,11 @@ async function deleteArticleDirect(articleID) {
 }
 
 async function deleteCrashDirect(crashID) {
-  const url = '/ajax.php?function=deleteCrash&id=' + crashID;
   try {
-    const response = await fetch(url, fetchOptions);
-    const text = await response.text();
-    const data = JSON.parse(text);
-    if (data.error) showError(data.error);
+    const url      = '/ajax.php?function=deleteCrash&id=' + crashID;
+    const response = await fetchFromServer(url);
+
+    if (response.error) showError(response.error);
     else {
       // Remove crash from crashes array
       crashes = crashes.filter(crash => crash.id !== crashID);
@@ -1937,13 +1930,14 @@ async function searchMergeCrash() {
       },
     };
 
-    const url  = '/ajax.php?function=loadCrashes';
-    const data = await fetchFromServer(url, serverData);
-    if (data.error) showError(data.error);
-    else if (data.ok){
-      prepareCrashServerData(data);
-      crashesFound  = data.crashes;
-      articlesFound = data.articles;
+    const url      = '/ajax.php?function=loadCrashes';
+    const response = await fetchFromServer(url, serverData);
+
+    if (response.error) showError(response.error);
+    else if (response.ok){
+      prepareCrashServerData(response);
+      crashesFound  = response.crashes;
+      articlesFound = response.articles;
 
       let html = '';
       crashesFound.forEach(crashFound => {if (crashFound.id !== crash.id) html += crashRowHTML(crashFound, true);});
@@ -1979,10 +1973,9 @@ function mergeCrash() {
 
   async function mergeCrashesOnServer(fromID, toID){
     const url      = `/ajax.php?function=mergeCrashes&idFrom=${fromID}&idTo=${toID}`;
-    const response = await fetch(url, fetchOptions);
-    const text     = await response.text();
-    const data     = JSON.parse(text);
-    if (data.error) showError(data.error);
+    const response = await fetchFromServer(url);
+
+    if (response.error) showError(response.error);
     else {
       articles.forEach(article => {if (article.accidentid === fromID) article.accidentid = toID;});
       crashes.filter(crash => crash.id !== fromID);
@@ -2324,13 +2317,11 @@ function downloadData() {
   async function doDownload(period=''){
     spinnerLoad.style.display = 'block';
     try {
-      let url          = '/admin/exportdata.php?function=downloadData&period=all&format=zjson';
-      const response   = await fetch(url, fetchOptions);
-      const text       = await response.text();
-      const data       = JSON.parse(text);
+      const url      = '/admin/exportdata.php?function=downloadData&period=all&format=zjson';
+      const response = await fetchFromServer(url);
 
-      url = '/admin/' + data.filename;
-      download(url, data.filename);
+      const urlFile = '/admin/' + response.filename;
+      download(urlFile, response.filename);
     } finally {
       spinnerLoad.style.display = 'none';
     }
@@ -2344,13 +2335,11 @@ function downloadCorrespondentData() {
     const spinner = document.getElementById('spinnerDownloadDeCorrespondentData');
     spinner.style.display = 'block';
     try {
-      let url          = '/admin/exportdata.php?function=downloadCorrespondentWeekData';
-      const response   = await fetch(url, fetchOptions);
-      const text       = await response.text();
-      const data       = JSON.parse(text);
+      let url        = '/admin/exportdata.php?function=downloadCorrespondentWeekData';
+      const response = await fetchFromServer(url);
 
-      url = '/admin/' + data.filename;
-      download(url, data.filename);
+      url = '/admin/' + response.filename;
+      download(url, response.filename);
     } finally {
       spinner.style.display = 'none';
     }
@@ -2364,13 +2353,11 @@ function downloadCorrespondentDataArticles() {
     const spinner = document.getElementById('spinnerDownloadDeCorrespondentData');
     spinner.style.display = 'block';
     try {
-      let url          = '/admin/exportdata.php?function=downloadCorrespondentWeekArticles';
-      const response   = await fetch(url, fetchOptions);
-      const text       = await response.text();
-      const data       = JSON.parse(text);
+      let url        = '/admin/exportdata.php?function=downloadCorrespondentWeekArticles';
+      const response = fetchFromServer(url);
 
-      url = '/admin/' + data.filename;
-      download(url, data.filename);
+      url = '/admin/' + response.filename;
+      download(url, response.filename);
     } finally {
       spinner.style.display = 'none';
     }

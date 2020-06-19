@@ -24,10 +24,10 @@ class TDatabase {
     // To debug on localhost with remote database use port forwarding:
     // ssh -L 3306:localhost:3306 loginname@databaseserver.com
     try {
-      $options = array(
+      $options = [
         PDO::ATTR_EMULATE_PREPARES   => false,              // Forces native MySQL prepares. Required to return native fields (integer & float instead of strings) See: https://stackoverflow.com/questions/10113562/pdo-mysql-use-pdoattr-emulate-prepares-or-not
         PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'", // Unicode support
-      );
+      ];
       $this->pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD, $options);
     } catch (Exception $e) {
       throw new Exception('Database error: ' . $e->getMessage());
@@ -116,8 +116,10 @@ class TDatabase {
   public function execute($sql, $params=null, $doRowCount=false){
     try {
       $statement = $this->pdo->prepare($sql);
-      $result = $statement->execute($params);
+      $result    = $statement->execute($params);
+
       if ($doRowCount) $this->rowCount = $statement->rowCount();
+
       return $result;
     } catch (Exception $e) {
       return false;
@@ -162,14 +164,14 @@ class TDatabase {
 
   public function getUserIDFromEmail($email){
     $sql = 'SELECT id FROM users WHERE email=:email';
-    $params = array(':email' => $email);
+    $params = [':email' => $email];
     return $this->fetchSingleValue($sql, $params);
   }
 
   public function log($userId, $level=TLogLevel::info, $info=''){
     $ip = substr(getCallerIP(), 0, 45);
     $sql = 'INSERT INTO logs (userid, level, ip, info) VALUES (:userid, :level, :ip, :info)';
-    $params = array(':userid' => $userId, ':level' => $level, ':ip' => $ip, ':info' => substr($info, 0, 500));
+    $params = [':userid' => $userId, ':level' => $level, ':ip' => $ip, ':info' => substr($info, 0, 500)];
     return $this->execute($sql, $params);
   }
 

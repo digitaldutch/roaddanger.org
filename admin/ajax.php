@@ -54,8 +54,7 @@ SQL;
 } // ====================
 else if ($function === 'saveOptions') {
   try{
-    $data    = json_decode(file_get_contents('php://input'), true);
-    $options = $data['options'];
+    $options = json_decode(file_get_contents('php://input'), true);
 
     $sql         = "INSERT INTO options (name, value) VALUES (:name, :value) ON DUPLICATE KEY UPDATE value=:value2";
     $DBStatement = $database->prepare($sql);
@@ -71,10 +70,9 @@ else if ($function === 'saveOptions') {
   }
   echo json_encode($result);
 } // ====================
-else if ($function === 'saveuser') {
+else if ($function === 'saveUser') {
   try{
-    $data    = json_decode(file_get_contents('php://input'), true);
-    $user = $data['user'];
+    $user = json_decode(file_get_contents('php://input'), true);
 
     $sql = <<<SQL
     UPDATE users SET
@@ -84,13 +82,13 @@ else if ($function === 'saveuser') {
       permission  = :permission                    
     WHERE id=:id;
 SQL;
-    $params = array(
+    $params = [
       ':email'       => $user['email'],
       ':firstname'   => $user['firstname'],
       ':lastname'    => $user['lastname'],
       ':permission'  => $user['permission'],
       ':id'          => $user['id'],
-    );
+    ];
     $database->execute($sql, $params);
 
     $result = ['ok' => true];
@@ -99,12 +97,12 @@ SQL;
   }
   echo json_encode($result);
 } // ====================
-else if ($function === 'deleteuser') {
+else if ($function === 'deleteUser') {
   try{
     $id = (int)$_REQUEST['id'];
     if ($id > 0){
       $sql = "DELETE FROM users WHERE id=:id;";
-      $params = array(':id' => $id);
+      $params = [':id' => $id];
 
       $database->execute($sql, $params, true);
       if ($database->rowCount === 0) throw new Exception('Kan mens niet verwijderen.');
