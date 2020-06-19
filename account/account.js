@@ -7,16 +7,16 @@ let PageTypeAccount = Object.freeze({
 async function initAccount() {
   initPage();
 
-  clearAccountSettings();
-
-  await loadUserData();
-
   const url      = new URL(location.href);
   const pathName = decodeURIComponent(url.pathname);
 
   if      (pathName.startsWith('/account/resetpassword')) pageType = PageTypeAccount.resetPassword;
   else if (pathName.startsWith('/account'))               pageType = PageTypeAccount.account;
   else                                                    pageType = PageTypeAccount.account;
+
+  if (pageType === PageTypeAccount.account) clearAccountSettings();
+
+  await loadUserData();
 
   switch (pageType) {
     case PageTypeAccount.account: {
