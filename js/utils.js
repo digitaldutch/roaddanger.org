@@ -1,9 +1,13 @@
 let user;
 let observerSpinner;
+let tableData = [];
+let selectedTableData;
+
 let xTouchDown      = null;
 let yTouchDown      = null;
 let TTouchDown      = Object.freeze({none:0, openNavigation:1, closeNavigation:2});
 let touchDownAction = TTouchDown.none;
+
 const mapboxKey     = 'pk.eyJ1IjoiamFuZGVyayIsImEiOiJjazI4dTVzNW8zOWw4M2NtdnRhMGs4dDc1In0.Cxw10toXdLoC1eqVaTn1RQ';
 
 // Enumerated types
@@ -95,23 +99,23 @@ function datetimeToAge(datetime) {
   if (age > (100 * ApproxSecondsPerYear)) {
     text = ''; // Age is invalid if more than 100 years old
   } else if (age < secondsPerDay) {
-    if (age < 60)              text = '< 1 minuut';
-    else if (age < (2 * 60))   text = '1 minuut';
-    else if (age < 3600)       text = Math.floor(age / 60) + ' minuten';
-    else if (age < (2 * 3600)) text = '1 uur';
-    else                       text = Math.floor(age / 3600) + ' uur';
+    if (age < 60)              text = '< 1 ' + translate('minute');
+    else if (age < (2 * 60))   text = '1 ' + translate('minute');
+    else if (age < 3600)       text = Math.floor(age / 60) + ' ' + translate('minutes');
+    else if (age < (2 * 3600)) text = '1 ' + translate('hour');
+    else                       text = Math.floor(age / 3600) + ' ' + translate('hours');
   }
-  else if (age < 2  * secondsPerDay)         text = '1 dag';
-  else if (age < 7  * secondsPerDay)         text = Math.floor(age / secondsPerDay) + ' dagen';
-  else if (age < 14 * secondsPerDay)         text = '1 week';
-  else if (age <      ApproxSecondsPerMonth) text = Math.floor(age / (7 * secondsPerDay)) + ' weken';
-  else if (age < 2  * ApproxSecondsPerMonth) text = '1 maand';
-  else if (age <      ApproxSecondsPerYear)  text = Math.floor(age / ApproxSecondsPerMonth) + ' maanden';
-  else if (age < 2  * ApproxSecondsPerYear)  text = '1 jaar';
-  else                                       text = Math.floor(age / ApproxSecondsPerYear) + ' jaar';
+  else if (age < 2  * secondsPerDay)         text = '1 ' + translate('day');
+  else if (age < 7  * secondsPerDay)         text = Math.floor(age / secondsPerDay) + ' ' + translate('days');
+  else if (age < 14 * secondsPerDay)         text = '1 ' + translate('week');
+  else if (age <      ApproxSecondsPerMonth) text = Math.floor(age / (7 * secondsPerDay)) + ' ' + translate('weeks');
+  else if (age < 2  * ApproxSecondsPerMonth) text = '1 ' + translate('month');
+  else if (age <      ApproxSecondsPerYear)  text = Math.floor(age / ApproxSecondsPerMonth) + ' ' + translate('months');
+  else if (age < 2  * ApproxSecondsPerYear)  text = '1 ' + translate('year');
+  else                                       text = Math.floor(age / ApproxSecondsPerYear) + ' ' + translate('years');
 
-  if (unborn) text = 'over ' + text;
-  else text += ' geleden';
+  if (unborn) text = translate('in_(time)') + ' ' + text;
+  else text += ' ' + translate('ago');
 
   return text;
 }
@@ -323,7 +327,7 @@ function updateLoginGUI(userNew){
     document.getElementById('loginName').style.display = 'inline-block';
     document.getElementById('loginText').style.display = 'none';
     document.getElementById('loginName').innerText     = user.firstname;
-    document.getElementById('menuProfile').innerHTML   = user.firstname + '<div class="smallFont">' + permissionToText(user.permission) + '</div>';
+    document.getElementById('menuProfile').innerHTML   = user.firstname + ' ' + user.lastname + '<div class="smallFont">' + permissionToText(user.permission) + '</div>';
     buttonPerson.classList.remove('buttonPerson');
     buttonPerson.classList.add('bgPersonLoggedIn');
   } else {
@@ -334,6 +338,8 @@ function updateLoginGUI(userNew){
     buttonPerson.classList.add('buttonPerson');
     buttonPerson.classList.remove('bgPersonLoggedIn');
   }
+
+  document.getElementById('iconCountry').style.backgroundImage = `url(/images/flags/${user.language}.svg)`;
 
   document.querySelectorAll('.buttonEditPost').forEach(
     button => {
@@ -346,6 +352,19 @@ function updateLoginGUI(userNew){
   // Show/hide moderator items
   document.querySelectorAll('[data-moderator]').forEach(d => {d.style.display = user.moderator? 'block' : 'none'});
   document.querySelectorAll('[data-admin]').forEach(d => {d.style.display = user.admin? 'block' : 'none'});
+  document.querySelectorAll('[data-inline-admin]').forEach(d => {d.style.display = user.admin? 'inline-block' : 'none'});
+}
+
+async function setAccountLanguage(languageId){
+  const url        = '/ajax.php?function=saveAccountLanguage&id=' + languageId;
+  const response   = await fetchFromServer(url);
+
+  if (response.error) {
+    showError(response.error);
+    return;
+  }
+
+  window.location.reload();
 
 }
 
@@ -501,18 +520,6 @@ function menuButtonSelected(id){
   return document.getElementById(id).classList.contains('buttonSelected');
 }
 
-function isScrolledIntoView(element) {
-  let rect       = element.getBoundingClientRect();
-  let elemTop    = rect.top;
-  let elemBottom = rect.bottom;
-
-  // Only completely visible elements return true:
-  // let isVisible = (elemTop >= 0) && (elemBottom <= window.innerHeight);
-
-  // Partially visible elements return true:
-  return elemTop < window.innerHeight && elemBottom >= 0;
-}
-
 function initMenuSwipe() {
   document.addEventListener('touchstart', function (event) {
     if ((event.touches[0].clientX < 60) && (! navigationIsOpen())) { // Only start navigation open swipe on left side of screen
@@ -592,9 +599,9 @@ function initMenuSwipe() {
 
 function permissionToText(permission) {
   switch (permission) {
-    case 0: return 'Helper';
-    case 1: return 'Beheerder';
-    case 2: return 'Moderator';
+    case 0: return translate('Helper');
+    case 1: return translate('Administrator');
+    case 2: return translate('Moderator');
   }
 }
 
@@ -618,7 +625,7 @@ function initPageUser(){
 
 async function loadUserData() {
   try {
-    const url = '/ajax.php?function=getuser';
+    const url      = '/ajax.php?function=getUser';
     const response = await fetchFromServer(url);
     if (response.user) updateLoginGUI(response.user);
   } catch (error) {
@@ -628,11 +635,20 @@ async function loadUserData() {
 
 function loginClick(event) {
   event.stopPropagation();
+  closeAllPopups();
 
   if (! user) return;
 
   if (user.loggedin) togglePersonMenu();
   else showLoginForm();
+}
+
+function countryClick(event){
+  event.stopPropagation();
+  closeAllPopups();
+
+  const div = document.getElementById('menuCountries');
+  div.style.display = div.style.display === 'block'? 'none' : 'block';
 }
 
 function togglePersonMenu(){
@@ -665,22 +681,22 @@ function closeNavigation() {
 
 function transportationModeText(transportationMode) {
   switch (transportationMode) {
-    case TTransportationMode.unknown:          return 'Onbekend';
-    case TTransportationMode.pedestrian:       return 'Voetganger';
-    case TTransportationMode.bicycle:          return 'Fiets';
-    case TTransportationMode.scooter:          return 'Snorfiets/Scooter/Brommer';
-    case TTransportationMode.motorcycle:       return 'Motorfiets';
-    case TTransportationMode.car:              return 'Personenauto';
-    case TTransportationMode.taxi:             return 'Taxi/Uber';
-    case TTransportationMode.emergencyVehicle: return 'Hulpverleningsvoertuig';
-    case TTransportationMode.deliveryVan:      return 'Bestelwagen';
-    case TTransportationMode.tractor:          return 'Landbouwvoertuig';
-    case TTransportationMode.bus:              return 'Bus';
-    case TTransportationMode.tram:             return 'Tram';
-    case TTransportationMode.truck:            return 'Vrachtwagen';
-    case TTransportationMode.train:            return 'Trein';
-    case TTransportationMode.wheelchair:       return 'Scootmobiel';
-    case TTransportationMode.mopedCar:         return 'Brommobiel/Tuktuk';
+    case TTransportationMode.unknown:          return translate('unknown');
+    case TTransportationMode.pedestrian:       return translate('pedestrian');
+    case TTransportationMode.bicycle:          return translate('bicycle');
+    case TTransportationMode.scooter:          return translate('scooter');
+    case TTransportationMode.motorcycle:       return translate('motorcycle');
+    case TTransportationMode.car:              return translate('car');
+    case TTransportationMode.taxi:             return translate('taxi');
+    case TTransportationMode.emergencyVehicle: return translate('emergency_vehicle');
+    case TTransportationMode.deliveryVan:      return translate('delivery_van');
+    case TTransportationMode.tractor:          return translate('agricultural_vehicle');
+    case TTransportationMode.bus:              return translate('bus');
+    case TTransportationMode.tram:             return translate('tram');
+    case TTransportationMode.truck:            return translate('truck');
+    case TTransportationMode.train:            return translate('train');
+    case TTransportationMode.wheelchair:       return translate('mobility_scooter');
+    case TTransportationMode.mopedCar:         return translate('moped_car');
     default:                                   return '';
   }
 }
@@ -834,4 +850,60 @@ function initObserver(callFunction){
   observerSpinner = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {if (entry.isIntersecting) callFunction();});
   }, {threshold: 0.9});
+}
+
+/**
+ * Input is key. Output is translated text.
+ * First character is automatically capitalized if the first character of the key is capitalized.
+ * @param key
+ * @return {string|*}
+ */
+
+function translate(key){
+
+  if (! user.translations) {
+    throw new Error('Internal error: User translations not loaded');
+  }
+
+  let textTranslated = user.translations[key.toLowerCase()];
+
+  if (! textTranslated) textTranslated = key + '**';
+
+  function initialIsCapital(text){
+    return text && (text[0] !== text[0].toLowerCase());
+  }
+
+  function capitalizeFirstLetter(text) {
+    if (! text) return '';
+    else return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  if (initialIsCapital(key)) textTranslated = capitalizeFirstLetter(textTranslated);
+
+  return textTranslated;
+}
+
+function hideSelectedTableRow(){
+  if (selectedTableData) {
+    const element = document.getElementById('tr' + selectedTableData.id);
+    if (element) element.classList.remove('trSelected');
+  }
+}
+
+function selectTableRow(id=null) {
+  hideSelectedTableRow();
+
+  selectedTableData = getSelectedTableData(id);
+
+  if ((! selectedTableData) && (tableData.length > 0)) selectedTableData = tableData[0];
+
+  showSelectedTableRow();
+}
+
+function showSelectedTableRow(){
+  if (selectedTableData) document.getElementById('tr' + selectedTableData.id).classList.add('trSelected');
+}
+
+function getSelectedTableData(id){
+  return tableData.find(d => d.id === id);
 }

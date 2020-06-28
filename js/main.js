@@ -26,8 +26,9 @@ let PageType = Object.freeze({
 });
 
 
-function initMain() {
+async function initMain() {
   initPage();
+  await loadUserData();
   initSearchBar();
 
   spinnerLoad = document.getElementById('spinnerLoad');
@@ -59,17 +60,6 @@ function initMain() {
   else if (pathName.startsWith('/exporteren'))                 pageType = PageType.export;
   else if (crashID)                                            pageType = PageType.crash;
   else                                                         pageType = PageType.recent;
-
-  let title = '';
-  switch (pageType){
-    case PageType.stream:          title = 'Laatst gewijzigde ongelukken'; break;
-    case PageType.deCorrespondent: title = 'De Correspondent week<br>14 t/m 20 januari 2019'; break;
-    case PageType.moderations:     title = 'Moderaties'; break;
-    case PageType.recent:          title = translate('Recent_crashes'); break;
-    default:                       title = '';
-  }
-
-  if (title) document.getElementById('pageSubTitle').innerHTML = title;
 
   const searchButtonExists = document.getElementById('buttonSearch');
   if (searchButtonExists && (searchText || searchPeriod || searchSiteName || searchHealthDead || searchChild || searchPersons)) {
@@ -118,6 +108,7 @@ function initMain() {
     if (pageType === PageType.mosaic) document.getElementById('cards').classList.add('mosaic');
     loadCrashes();
   }
+
 }
 
 function initStatistics(){
@@ -151,8 +142,6 @@ function initWatchPopStart(){
 }
 
 function initExport(){
-  loadUserData();
-
   let html = '';
   for (const key of Object.keys(TTransportationMode)){
     const transportationMode =  TTransportationMode[key];
@@ -202,8 +191,8 @@ function showCrashVictimsGraph(crashVictims){
   });
 
   const options = {
-    xLabel: 'Tegenpartij',
-    yLabel: 'Verkeersdoden',
+    xLabel: translate('Counterparty'),
+    yLabel: translate('traffic_fatalities'),
   };
 
   const filter = {
@@ -446,7 +435,6 @@ async function loadChildDeaths(){
     count:   20,
     offset:  crashes.length,
     sort:    'crashDate',
-    getUser: !user,
     filter: {
       child:         1,
       healthDead:    document.getElementById('filterChildDead').classList.contains('buttonSelectedBlue')? 1 : 0,
@@ -509,8 +497,6 @@ async function loadCrashesFromServer(serverData){
   const url      = '/ajax.php?function=loadCrashes';
   const response = await fetchFromServer(url, serverData);
 
-  if (response.user) updateLoginGUI(response.user);
-
   if (response.error) {showError(response.error); return [];}
   else {
     prepareCrashServerData(response);
@@ -555,7 +541,6 @@ async function loadCrashes(crashID=null, articleID=null){
     const serverData = {
       count:   maxLoadCount,
       offset:  crashes.length,
-      getUser: !user,
     };
 
     serverData.filter = getSearchFilter();
@@ -577,7 +562,7 @@ async function loadCrashes(crashID=null, articleID=null){
     if (newCrashes.length < maxLoadCount) spinnerLoad.style.display = 'none';
   }
 
-  if (crashID && (crashes.length === 1)) document.title = crashes[0].title + ' | Het Ongeluk';
+  if (crashID && (crashes.length === 1)) document.title = crashes[0].title + ' | ' + translate('The_Crashes');
 
   showCrashes(newCrashes);
   highlightSearchText();
@@ -617,7 +602,6 @@ async function loadMapDataFromServer(){
     const bounds = mapMain.getBounds();
     const serverData  = {
       count:   200,
-      getUser: ! user,
       sort:    'crashDate',
     };
 
@@ -818,13 +802,12 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   }
 
   const htmlTopIcons = getCrashTopIcons(crash, true);
-  let titleSmall     = 'aangemaakt door ' + crash.user;
+  let titleSmall     = translate('created_by') + ' ' + crash.user;
   let titleModified  = '';
   if (crash.streamtopuser) {
     switch (crash.streamtoptype) {
-      case TStreamTopType.edited:       titleModified = ' | aangepast door '                + crash.streamtopuser; break;
-      case TStreamTopType.articleAdded: titleModified = ' | nieuw artikel toegevoegd door ' + crash.streamtopuser; break;
-      case TStreamTopType.placedOnTop:  titleModified = ' | omhoog geplaatst door '         + crash.streamtopuser; break;
+      case TStreamTopType.edited:       titleModified = ' | ' + translate('edited_by')            + ' ' + crash.streamtopuser; break;
+      case TStreamTopType.articleAdded: titleModified = ' | ' + translate('new_article_added_by') + ' ' + crash.streamtopuser; break;
     }
   }
 
@@ -1922,7 +1905,6 @@ async function searchMergeCrash() {
     const serverData = {
       count: 10,
       filter: {
-        getUser:  !user,
         text:     document.getElementById('mergeCrashSearch').value.trim().toLowerCase(),
         period:   'custom',
         dateFrom: dateToISO(dateFrom),

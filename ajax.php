@@ -446,6 +446,19 @@ else if ($function == 'saveAccount') {
 
   echo json_encode($result);
 } // ====================
+else if ($function == 'saveAccountLanguage') {
+  try {
+    $languageId = getRequest('id');
+
+    $user->saveLanguage($languageId);
+
+    $result = ['ok' => true];
+  } catch (Exception $e) {
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+
+  echo json_encode($result);
+} // ====================
 else if ($function === 'loadCrashes') {
   try {
     $data = json_decode(file_get_contents('php://input'), true);
@@ -663,9 +676,7 @@ SQL;
     }
 
     $result = ['ok' => true, 'crashes' => $crashes, 'articles' => $articles];
-    if ($data['getUser'] === true) {
-      $result['user'] = $user->info();
-    }
+
   } catch (Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
@@ -709,7 +720,6 @@ SQL;
       $result['crashes'][] = $crash;
     }
 
-    if ($data['getUser']) $result['user'] = $user->info();
     $result['ok'] = true;
   } catch (Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
@@ -717,8 +727,9 @@ SQL;
 
   echo json_encode($result);
 } //==========
-else if ($function === 'getuser') {
+else if ($function === 'getUser') {
   try {
+    $user->getTranslations();
     $result = ['ok' => true, 'user' => $user->info()];
   } catch (Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
@@ -1118,9 +1129,10 @@ else if ($function === 'getStatistics') {
     else if ($type === 'crashPartners') $stats = getStatsCrashPartners($database, $filter);
     else                                $stats = getStatsTransportation($database, $filter);
 
+    $user->getTranslations();
     $result = ['ok' => true,
       'statistics' => $stats,
-      'user'       => $user->info()
+      'user'       => $user->info(),
     ];
   } catch (Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];

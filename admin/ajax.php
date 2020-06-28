@@ -3,17 +3,16 @@
 header('Content-Type: application/json; charset=utf-8');
 
 require_once '../initialize.php';
-$userInfo = $user->info();
 
 // Only admins allowed
 if (! $user->admin) {
-  $result = ['ok' => false, 'error' => 'Mens is geen beheerder', 'user' => $userInfo];
+  $result = ['ok' => false, 'error' => 'Mens is geen beheerder', 'user' => $user->info()];
   die(json_encode($result));
 }
 
 $function = $_REQUEST['function'];
 
-if ($function === 'loadusers') {
+if ($function === 'loadUsers') {
   try {
     $offset = (int)getRequest('offset',0);
     $count  = (int)getRequest('count', 100);
@@ -34,18 +33,20 @@ SQL;
 
     $users = [];
     $DBResults = $database->fetchAll($sql);
-    foreach ($DBResults as $user) {
-      $user['id']         = (int)$user['id'];
-      $user['permission'] = (int)$user['permission'];
-      $user['lastactive'] = datetimeDBToISO8601($user['lastactive']);
+    foreach ($DBResults as $dbUser) {
+      $dbUser['id']         = (int)$dbUser['id'];
+      $dbUser['permission'] = (int)$dbUser['permission'];
+      $dbUser['lastactive'] = datetimeDBToISO8601($dbUser['lastactive']);
 
-      $users[] = $user;
+      $users[] = $dbUser;
     }
 
     $result = ['ok' => true, 'users' => $users];
     if ($offset === 0) {
-      $result['user'] = $userInfo;
+      $user->getTranslations();
+      $result['user'] = $user->info();
     }
+
   } catch (Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
@@ -107,6 +108,45 @@ else if ($function === 'deleteUser') {
       $database->execute($sql, $params, true);
       if ($database->rowCount === 0) throw new Exception('Kan mens niet verwijderen.');
     }
+    $result = ['ok' => true];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} // ====================
+else if ($function === 'saveNewTranslation') {
+  try{
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    $sql          = "SELECT translations FROM languages WHERE id='en'";
+    $translations = json_decode($database->fetchSingleValue($sql), true);
+
+    $translations[strtolower($data['id'])] = strtolower($data['english']);
+
+    $sql    = "UPDATE languages SET translations =:translations WHERE id='en'";
+    $params = [':translations' => json_encode($translations)];
+    $database->execute($sql, $params);
+
+    $result = ['ok' => true];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} // ====================
+else if ($function === 'deleteTranslation') {
+  try{
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    $sql          = "SELECT translations FROM languages WHERE id='en'";
+    $translations = json_decode($database->fetchSingleValue($sql), true);
+
+    $id = $data['id'];
+    unset($translations[$id]);
+
+    $sql    = "UPDATE languages SET translations =:translations WHERE id='en'";
+    $params = [':translations' => json_encode($translations)];
+    $database->execute($sql, $params);
+
     $result = ['ok' => true];
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];

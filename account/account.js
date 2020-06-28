@@ -60,6 +60,7 @@ async function saveUser() {
   if (response.error) showError(response.error);
   else {
     showMessage('Gegevens zijn opgeslagen');
+    window.location.reload();
   }
 }
 

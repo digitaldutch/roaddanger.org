@@ -16,6 +16,8 @@ class TUser{
   public $lastName;
   public $email;
   public $emailExists = false;
+  public $languageId = DEFAULT_LANGUAGE_ID;
+  public $translations;
   public $admin = false;
   public $permission;
 
@@ -37,6 +39,9 @@ class TUser{
     if (!$this->loggedIn) {
       // Delete hanging sessions and cookies if not logged in. Sometimes a session is killed.
       $this->logout();
+
+      // Load default language from cookie if it exists
+      if (isset($_COOKIE['language_id'])) $this->languageId = $_COOKIE['language_id'];
     }
   }
 
@@ -45,15 +50,16 @@ class TUser{
   }
 
   private function clearData(){
-    $this->id          = -1;
-    $this->loggedIn    = false;
-    $this->firstName   = '';
-    $this->lastName    = '';
-    $this->email       = '';
-    $this->language    = DEFAULT_LANGUAGE;
-    $this->emailExists = false;
-    $this->admin       = false;
-    $this->permission  = TUserPermission::newuser;
+    $this->id           = -1;
+    $this->loggedIn     = false;
+    $this->firstName    = '';
+    $this->lastName     = '';
+    $this->email        = '';
+    $this->languageId   = DEFAULT_LANGUAGE_ID;
+    $this->translations = '';
+    $this->emailExists  = false;
+    $this->admin        = false;
+    $this->permission   = TUserPermission::newuser;
   }
 
   private function loadUserFromDBIntern($id='', $email='', $password='') {
@@ -75,7 +81,7 @@ class TUser{
         $this->firstName  = $user['firstname'];
         $this->lastName   = $user['lastname'];
         $this->email      = $user['email'];
-        $this->language   = $user['language']?? DEFAULT_LANGUAGE;
+        $this->languageId   = $user['language']?? DEFAULT_LANGUAGE_ID;
         $this->permission = (int)$user['permission'];
         $this->admin      = $this->permission == 1;
         $this->loggedIn   = true;
@@ -133,6 +139,34 @@ class TUser{
     $this->loadUserFromDBIntern('', $email, $password);
   }
 
+  private function loadTranslations(){
+    // First get English translations
+    $sql = "SELECT translations FROM languages WHERE id='en';";
+    $translations_json = $this->database->fetchSingleValue($sql);
+    $this->translations = json_decode($translations_json, true);
+
+    // Get user language
+    if ($this->languageId !== 'en') {
+      $sql                  = 'SELECT translations FROM languages WHERE id=:id';
+      $params               = [':id' => $this->languageId];
+      $translations_json    = $this->database->fetchSingleValue($sql, $params);
+      $translationsLanguage = json_decode($translations_json, true);
+
+      foreach ($this->translations as $key => $english) {
+        $textLanguage = $translationsLanguage[$key];
+        if (! empty($textLanguage)) $this->translations[$key] = $textLanguage;
+        else $this->translations[$key] .= '*';
+      }
+    }
+
+    // Sort on key alphabetically
+    ksort($this->translations);
+  }
+
+  public function getTranslations(){
+    if (empty($this->translations)) $this->loadTranslations();
+  }
+
   public function logout(){
     if (isset($_SESSION['user_id'])) unset($_SESSION['user_id']);
     $this->deleteLoginTokenAndCookies();
@@ -179,6 +213,7 @@ SQL;
   public function login($email, $password, $stayLoggedIn=false){
     $this->logout();
     $this->loadUserFromDB($email, $password);
+    $this->loadTranslations();
 
     if ($stayLoggedIn) $this->setStayLoggedInToken();
   }
@@ -269,29 +304,82 @@ SQL;
     return true;
   }
 
+  /**
+   * @param $newUser
+   * @return bool
+   * @throws Exception
+   */
+  public function saveLanguage($languageId){
+
+    if ($this->loggedIn) {
+      $sql = <<<SQL
+UPDATE users SET
+  language  = :language                 
+WHERE id = :id
+SQL;
+
+      $params = [
+        ':language'  => $languageId,
+        ':id'        => $this->id,
+      ];
+      $this->database->execute($sql, $params);
+    }
+
+    // Also save language id in cookie in case user is not logged in.
+    $NowPlus10Years = time() + 60*60*24*3650; // 3650 dagen cookie expiration time
+    setcookie('language_id', $languageId,  ['expires' => $NowPlus10Years, 'path' => '/', 'secure' => true, 'samesite' => 'Lax']);
+
+    return true;
+  }
+
   public function fullName(){
     return trim($this->firstName . ' ' . $this->lastName);
   }
 
   public function info() {
     if ($this->loggedIn)
-      $r = [
-        'loggedin'    => $this->loggedIn,
-        'id'          => $this->id,
-        'firstname'   => $this->firstName,
-        'lastname'    => $this->lastName,
-        'email'       => $this->email,
-        'language'    => $this->language,
-        'emailexists' => $this->emailExists,
-        'admin'       => $this->admin,
-        'moderator'   => $this->isModerator(),
-        'permission'  => $this->permission,
+      $info = [
+        'loggedin'     => $this->loggedIn,
+        'id'           => $this->id,
+        'firstname'    => $this->firstName,
+        'lastname'     => $this->lastName,
+        'email'        => $this->email,
+        'language'     => $this->languageId,
+        'translations' => $this->translations,
+        'emailexists'  => $this->emailExists,
+        'admin'        => $this->admin,
+        'moderator'    => $this->isModerator(),
+        'permission'   => $this->permission,
       ];
-    else $r = [
-      'loggedin'    => false,
-      'emailexists' => $this->emailExists,
+    else $info = [
+      'loggedin'     => false,
+      'language'     => $this->languageId,
+      'translations' => $this->translations,
+      'emailexists'  => $this->emailExists,
     ];
-    return $r;
+    return $info;
+  }
+
+  /**
+   * @param string $key
+   * @return string
+   */
+  public function translate($key) {
+    $lowerKey = strtolower($key);
+
+    $this ->getTranslations();
+
+    $text = $this->translations[$lowerKey]?? $key . '**';
+
+    return $lowerKey === $key? $text : ucfirst($text);
+  }
+
+  public function translateArray($keys){
+    $texts = [];
+
+    foreach ($keys as $key) $texts[$key] = $this->translate($key);
+
+    return $texts;
   }
 
 }

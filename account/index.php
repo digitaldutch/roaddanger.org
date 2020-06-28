@@ -12,38 +12,44 @@ else $pageType = 'none';
 
 if ($pageType === 'account') {
 
+  $languages       = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
+  $languageOptions = '';
+  foreach ($languages as $language) {
+    $selected = $language['id'] === $user->languageId? 'selected' : '';
+    $languageOptions .= "<option value='{$language['id']}' {$selected}>{$language['name']}</option>";
+  }
+
+  $texts = $user->translateArray(['First_name', 'Last_name', 'Email', 'New_password', 'Confirm_password', 'Settings', 'Language']);
+
   $htmlMain = <<<HTML
   <div class="pageSubTitle">Account</div>
 
   <form class="formPage" onsubmit="saveUser(); return false;">  
 
-    <label class="inputLabel">Voornaam
+    <label class="inputLabel">{$texts['First_name']}
       <input id="profileFirstName" class="inputForm" type="text" autocomplete="given-name">
     </label>
     
-    <label class="inputLabel">Achternaam
+    <label class="inputLabel">{$texts['Last_name']}
       <input id="profileLastName" class="inputForm" type="text" autocomplete="family-name">
     </label>
     
-    <label class="inputLabel">Email
+    <label class="inputLabel">{$texts['Email']}
       <input id="profileEmail" class="inputForm" type="email" autocomplete="email">
     </label>
     
-    <label class="inputLabel">Nieuw wachtwoord
+    <label class="inputLabel">{$texts['New_password']}
       <input id="profileNewPassword" class="inputForm" type="password" autocomplete="new-password">
     </label>
     
-    <label class="inputLabel">Nieuw wachtwoord bevestigen
+    <label class="inputLabel">{$texts['Confirm_password']}
       <input id="profileNewPasswordConfirm" class="inputForm" type="password" autocomplete="new-password">
     </label>
     
-    <div class="formSubHeader">Instellingen</div>
+    <div class="formSubHeader">{$texts['Settings']}</div>
     
-    <label class="inputLabel">Language
-      <select id="profileLanguage" class="inputForm">
-        <option value="en">English</option>
-        <option value="nl">Nederlands</option>
-      </select>
+    <label class="inputLabel">{$texts['Language']}
+      <select id="profileLanguage" class="inputForm">$languageOptions</select>
     </label>
     
     <div class="buttonBar">

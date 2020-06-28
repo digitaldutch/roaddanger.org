@@ -4,7 +4,7 @@ function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $showButton
   global $VERSION;
   global $user;
 
-  $title = 'Het Ongeluk';
+  $title = $user->translate('The_crashes');
   if ($pageTitle !== '') $title = $pageTitle . ' | ' . $title;
   $initScript = ($initFunction !== '')? "<script>document.addEventListener('DOMContentLoaded', $initFunction);</script>" : '';
   $navigation = getNavigation();
@@ -26,9 +26,19 @@ HTML;
   if ($showButtonSearch) $buttons .= '<div id="buttonSearch" class="menuButton bgSearch" onclick="toggleSearchBar(event);"></div>';
   if ($showButtonAdd)    $buttons .= '<div id="buttonNewCrash" style="display: none;" class="menuButton buttonAdd" onclick="showNewCrashForm();"></div>';
 
+  global $database;
+  $languages       = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
+  $languageOptions = '';
+  foreach ($languages as $language) {
+    $bgImage = "/images/flags/{$language['id']}.svg";
+    $languageOptions .= "<div onclick=\"setAccountLanguage('{$language['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url($bgImage);'></div>{$language['name']}</div>";
+  }
+
+  $texts = $user->translateArray(['Log_out', 'Log_in', 'The_crashes', 'Account']);
+
   return <<<HTML
 <!DOCTYPE html>
-<html lang="$user->language" $htmlClass>
+<html lang="$user->languageId" $htmlClass>
 <head>
 <link href="https://fonts.googleapis.com/css?family=Lora|Montserrat" rel="stylesheet">
 <link href="/main.css?v=$VERSION" rel="stylesheet" type="text/css">
@@ -40,7 +50,6 @@ $head
 <title>$title</title>
 <script src="/scripts/tippy.all.min.js"></script>
 <script src="/js/utils.js?v=$VERSION"></script>
-<script src="/languages/language.js?v=$VERSION"></script>
 
 $initScript
 
@@ -52,22 +61,37 @@ $navigation
   <div id="topBar">
     <span class="menuButton bgMenu" onclick="toggleNavigation(event);"></span>
   
-    <div class="headerMain pageTitle"><span><a href="/">Het Ongeluk</a><img id="spinnerTitle" src="/images/spinner.svg" style="display: none; height: 17px; margin-left: 5px;"></span></div>
+    <div class="headerMain pageTitle"><span><a href="/">{$texts['The_crashes']}</a><img id="spinnerTitle" src="/images/spinner.svg" style="display: none; height: 17px; margin-left: 5px;"></span></div>
    
-    <div>
+    <div style="display: flex; position: relative;">
       $buttons
-      <div id="loginButton" onclick="loginClick(event);">
-        <div id="buttonPerson" class="menuButton bgPerson"></div>
-        <div id="loginText">...</div>
-        <div id="loginName" class="hideOnMobile"></div>
-      </div>
+      
+      <span style="position: relative;">
+        <div class="buttonLight" onclick="loginClick(event);">
+          <div id="buttonPerson" class="buttonIcon bgPerson"></div>
+          <div id="loginText">...</div>
+          <div id="loginName" class="hideOnMobile"></div>
+        </div>
   
-      <div id="menuPerson" class="buttonPopupMenu">
-        <div id="menuProfile" class="menuHeader"></div>
-        <a id="menuProfile" href="/account">Account</a>
-        <div id="menuLogin" onclick="showLoginForm();">Log in</div> 
-        <div id="menuLogout" style="display: none;" onclick="logOut();">Log uit</div>
-      </div>
+        <div id="menuPerson" class="buttonPopupMenu">
+          <div id="menuProfile" class="menuHeader"></div>
+          <a href="/account">{$texts['Account']}</a>
+          <div id="menuLogin" onclick="showLoginForm();">{$texts['Log_in']}</div> 
+          <div id="menuLogout" style="display: none;" onclick="logOut();">{$texts['Log_out']}</div>
+        </div>
+      </span>
+
+      <span style="position: relative;">
+        <div id="buttonLanguages" class="buttonLight" onclick="countryClick(event);">
+          <div id="iconCountry" class="buttonIcon"></div>
+          <div class="buttonIcon bgLanguage"></div>
+        </div>
+        
+        <div id="menuCountries" class="buttonPopupMenu">
+          $languageOptions
+        </div>
+      </span>
+  
     </div>
   </div>
   
@@ -156,7 +180,7 @@ function getHTMLConfirm(){
 
     <div class="popupFooter">
       <button id="buttonConfirmOK" class="button" type="submit" autofocus>OK</button>
-      <button id="buttonConfirmCancel" class="button buttonGray" type="button" onclick="hideDiv('formConfirmOuter');">Annuleren</button>
+      <button id="buttonConfirmCancel" class="button buttonGray" type="button" onclick="closePopupForm();">Annuleren</button>
     </div>    
 
   </form>
@@ -170,53 +194,58 @@ function getNavigation(){
 
   global $VERSION;
   global $VERSION_DATE;
+  global $user;
 
-  $texts = translateArray(['Crashes', 'Statistics']);
+  $texts = $user->translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Other', 'Recent_crashes',
+    'Child_deaths', 'Mosaic', 'The_correspondent_week', 'Map', 'The_crashes', 'General', 'deadly_crashpartners',
+    'Counterparty_fatal', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
+    'Version']);
 
   return <<<HTML
 <div id="navShadow" class="navShadow" onclick="closeNavigation()"></div>
 <div id="navigation" onclick="closeNavigation();">
   <div class="navHeader">
     <div class="popupCloseCross" onclick="closeNavigation();"></div>
-    <div class="navHeaderTop"><span class="pageTitle">Het Ongeluk</span></div>      
+    <div class="navHeaderTop"><span class="pageTitle">{$texts['The_crashes']}</span></div>      
   </div>
   <div style="overflow-y: auto;">
   
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Crashes']}</div>
-      <a href="/" class="navItem">Recente ongelukken</a>
-      <a href="/kinddoden" class="navItem">Kinddoden</a>
-      <a href="/mozaiek" class="navItem">Mozaïek</a>
-      <a href="/decorrespondent" class="navItem">De Correspondent week</a>
-      <a href="/map" class="navItem">Kaart</a>
+      <a href="/" class="navItem">{$texts['Recent_crashes']}</a>
+      <a href="/kinddoden" class="navItem">{$texts['Child_deaths']}</a>
+      <a href="/mozaiek" class="navItem">{$texts['Mosaic']}</a>
+      <a href="/decorrespondent" class="navItem">{$texts['The_correspondent_week']}</a>
+      <a href="/map" class="navItem">{$texts['Map']}</a>
     </div>
 
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Statistics']}</div>
-      <a href="/statistieken/andere_partij" class="navItem">Tegenpartij bij verkeersdoden</a>
-      <a href="/statistieken/vervoertypes" class="navItem">Vervoertypes</a>
-      <a href="/statistieken/algemeen" class="navItem">Algemeen</a>
+      <a href="/statistieken/andere_partij" class="navItem">{$texts['Counterparty_fatal']}</a>
+      <a href="/statistieken/vervoertypes" class="navItem">{$texts['Transportation_modes']}</a>
+      <a href="/statistieken/algemeen" class="navItem">{$texts['General']}</a>
     </div>
 
     <div class="navigationSection">
-      <div class="navigationSectionHeader">Overig</div>
-      <a href="/exporteren/" class="navItem">Exporteer data</a>
-      <a href="/aboutthissite/" class="navItem">Over deze site</a>
+      <div class="navigationSectionHeader">{$texts['Other']}</div>
+      <a href="/admin/translations/" class="navItem" data-moderator>{$texts['Translations']}</a>
+      <a href="/exporteren/" class="navItem">{$texts['Export_data']}</a>
+      <a href="/aboutthissite/" class="navItem">{$texts['About_this_site']}</a>
     </div>
 
     <div id="navigationAdmin" data-moderator>    
-      <div class="navigationSectionHeader">Beheer</div>
+      <div class="navigationSectionHeader">{$texts['Admin']}</div>
   
       <div class="navigationSection">
-        <a href="/admin/mensen" class="navItem" data-admin>Mensen</a>
-        <a href="/moderaties/" class="navItem">Moderaties</a>
-        <a href="/stream" class="navItem">Laatst gewijzigde ongelukken</a>
-        <a href="/admin/options/" class="navItem">Opties</a>
+        <a href="/admin/mensen" class="navItem" data-admin-inline>{$texts['Humans']}</a>
+        <a href="/moderaties/" class="navItem">{$texts['Moderations']}</a>
+        <a href="/stream" class="navItem">{$texts['Last_modified_crashes']}</a>
+        <a href="/admin/options/" class="navItem">{$texts['Options']}</a>
       </div>      
     </div>
     
     <div class="navFooter">
-     Versie $VERSION • $VERSION_DATE 
+     {$texts['Version']} $VERSION • $VERSION_DATE 
     </div>   
  
   </div>  
@@ -461,6 +490,10 @@ HTML;
 }
 
 function getFormEditPerson(){
+  global $user;
+
+  $texts = $user->translateArray(['Transporation_mode']);
+
   return <<<HTML
 <div id="formEditPerson" class="popupOuter" style="z-index: 501;" onclick="closeEditPersonForm();">
 
@@ -472,7 +505,7 @@ function getFormEditPerson(){
     <input id="personIDHidden" type="hidden">
 
     <div style="margin-top: 5px;">
-      <div>Vervoertype</div> 
+      <div>${texts['Transporation_mode']}</div> 
       <div id="personTransportationButtons"></div>
     </div>
             
@@ -533,11 +566,9 @@ function getFormEditUser(){
    
     <div class="popupFooter">
       <input type="button" class="button" value="Opslaan" onclick="saveUser();">
-      <input type="button" class="button buttonGray" value="Annuleren" onclick="hideDiv('formEditUser');">
+      <input type="button" class="button buttonGray" value="Annuleren" onclick="closePopupForm();">
     </div>    
   </form>
 </div>
 HTML;
 }
-
-

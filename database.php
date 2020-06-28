@@ -161,17 +161,10 @@ class TDatabase {
     }
   }
 
-
-  public function getUserIDFromEmail($email){
-    $sql = 'SELECT id FROM users WHERE email=:email';
-    $params = [':email' => $email];
-    return $this->fetchSingleValue($sql, $params);
-  }
-
   public function log($userId, $level=TLogLevel::info, $info=''){
-    $ip = substr(getCallerIP(), 0, 45);
-    $sql = 'INSERT INTO logs (userid, level, ip, info) VALUES (:userid, :level, :ip, :info)';
-    $params = [':userid' => $userId, ':level' => $level, ':ip' => $ip, ':info' => substr($info, 0, 500)];
+    $ip     = substr(getCallerIP(), 0, 45);
+    $sql    = 'INSERT INTO logs (userid, level, ip, info) VALUES (:userId, :level, :ip, :info)';
+    $params = [':userId' => $userId, ':level' => $level, ':ip' => $ip, ':info' => substr($info, 0, 500)];
     return $this->execute($sql, $params);
   }
 

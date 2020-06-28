@@ -115,12 +115,15 @@ HTML;
 HTML;
 
 } else if ($pageType === PageType::statisticsCrashPartners) {
+
+  $texts = $user->translateArray(['Counterparty_fatal', 'Always', 'days', 'the_correspondent_week', 'Custom_period']);
+
   $mainHTML = <<<HTML
 <div class="pageInner">
 
   <div style="display: flex; flex-direction: column; align-items: center">
     <div style="text-align: left;">
-      <div class="pageSubTitleFont">Doden in het verkeer en hun tegenpartij</div>
+      <div class="pageSubTitleFont">{$texts['Counterparty_fatal']}</div>
       <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">Zo help je de representativiteit van deze tabel te verbeteren.</div>
     </div>
   </div>
@@ -143,13 +146,13 @@ Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar
 
       <div class="toolbarItem">
         <select id="filterStatsPeriod" class="searchInput" oninput="loadStatistics();" data-tippy-content="Periode">
-          <option value="all" selected>Altijd</option> 
-          <option value="7days">7 dagen</option> 
-          <option value="30days">30 dagen</option> 
-          <option value="decorrespondent">De Correspondent week</option> 
+          <option value="all" selected>{$texts['Always']}</option> 
+          <option value="7days">7 {$texts['days']}</option> 
+          <option value="30days">30 {$texts['days']}</option> 
+          <option value="decorrespondent">{$texts['the_correspondent_week']}</option> 
           <option value="2019">2019</option> 
           <option value="2020">2020</option>
-          <option value="custom">Handmatige periode</option>          
+          <option value="custom">{$texts['Custom_period']}</option>          
         </select>
       </div>
       
@@ -166,9 +169,12 @@ Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar
 HTML;
 
 } else if ($pageType === PageType::statisticsTransportationModes) {
+
+  $texts = $user->translateArray(['Statistics', 'Transportation_modes']);
+
   $mainHTML = <<<HTML
 <div class="pageInner">
-  <div class="pageSubTitle">Statistieken - vervoertypes<span class="iconTooltip" data-tippy-content="Dit zijn de cijfers over de ongelukken tot nog toe in de database."></span></div>
+  <div class="pageSubTitle">{$texts['Statistics']} - {$texts['Transportation_modes']}<span class="iconTooltip" data-tippy-content="Dit zijn de cijfers over de ongelukken tot nog toe in de database."></span></div>
   
   <div id="statistics">
   
@@ -272,7 +278,15 @@ HTML;
   $generalMessage   = $database->fetchSingleValue("SELECT value FROM options WHERE name='globalMessage';");
   $messageHTML      = formatMessage($generalMessage);
 
-  $introText = "<div id='pageSubTitle' class='pageSubTitle'></div>";
+  $title = '';
+  switch ($pageType){
+    case PageType::stream:          $title = 'Laatst gewijzigde ongelukken'; break;
+    case PageType::deCorrespondent: $title = 'De Correspondent week<br>14 t/m 20 januari 2019'; break;
+    case PageType::moderations:     $title = 'Moderaties'; break;
+    case PageType::recent:          $title = $user->translate('Recent_crashes'); break;
+  }
+
+  $introText = "<div id='pageSubTitle' class='pageSubTitle'>$title</div>";
 
   if (isset($generalMessage) && in_array($pageType, [PageType::recent, PageType::stream, PageType::deCorrespondent, PageType::crash])) {
     $introText .= "<div class='sectionIntro'>$messageHTML</div>";

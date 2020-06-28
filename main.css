@@ -494,6 +494,20 @@ html.fullWindow #pageBar {
   border-radius:       5px;
 }
 
+.buttonIcon {
+  position:            relative;
+  display:             inline-block;
+  outline:             none;
+  padding:             1px;
+  margin-right:        3px;
+  opacity:             0.7;
+  height:              20px;
+  width:               20px;
+  background-size:     20px;
+  background-repeat:   no-repeat;
+  background-position: center;
+}
+
 .menuIcon {
   position:            relative;
   display:             inline-block;
@@ -562,20 +576,22 @@ html.fullWindow #pageBar {
   background-color: #dddddd;
 }
 
-.menuButton:hover, .iconTooltip:hover, #loginButton:hover {
+.menuButton:hover, .iconTooltip:hover, .buttonLight:hover {
   opacity:          1;
   background-color: #dddddd;
 }
 
-#loginButton {
+.buttonLight {
   display:          inline-flex;
+  height:           30px;
+  min-width:        30px;
   align-items:      center;
   justify-content:  center;
-  margin-right:     7px;
-  background-color: #f6f6f6;
+  padding:          0 3px;
+  margin:           0 4px;
   opacity:          0.7;
   font-weight:      bold;
-  font-size:        12px;
+  background-color: #f6f6f6;
   cursor:           pointer;
   border:           1px solid #ddd;
   border-radius:    5px;
@@ -585,11 +601,7 @@ html.fullWindow #pageBar {
   opacity: inherit;
 }
 
-#loginName, #loginText {
-  margin-right: 5px;
-}
-
-#loginButton:hover {
+.buttonLight:hover {
   border-color: #bbb;
 }
 
@@ -620,14 +632,9 @@ html.fullWindow #pageBar {
   background-color: #4D90FE !important;
 }
 
-.buttonAdd {
-  background-image: url(/images/add.svg);
-}
-
-.bgPerson {
-  background-image: url(/images/person.svg);
-}
-
+.buttonAdd     {background-image: url(/images/add.svg);}
+.bgPerson      {background-image: url(/images/person.svg);}
+.bgLanguage    {background-image: url(/images/language.svg);}
 .bgSearch      {background-image: url(/images/search.svg);}
 .bgMenu        {background-image: url(/images/menu.svg);}
 .bgArticle     {background-image: url(/images/article.svg);}
@@ -685,7 +692,8 @@ html.fullWindow #pageBar {
 }
 
 .buttonPopupMenu > div, .buttonPopupMenu > a, .buttonPopupMenuTemp > div {
-  display:         block;
+  display:         flex;
+  align-items:     center;
   white-space:     nowrap;
   padding:         10px;
   cursor:          pointer;
@@ -758,9 +766,13 @@ html.fullWindow #pageBar {
   cursor:           pointer;
 }
 
-#floatingMessage,  #floatingMessage a {
+#floatingMessage,  #floatingMessage a, .notice {
   color:            #fff;
   background-color: #4D90FE;
+}
+
+.notice {
+  padding: 5px;
 }
 
 #cookieWarning {
@@ -1020,7 +1032,7 @@ html.fullWindow #pageBar {
   display:          flex;
   flex-direction:   column;
   position:         fixed;
-  z-index:          20001;
+  z-index:          201;
   top:              0;
   left:             -300px;
   width:            300px;
@@ -1034,7 +1046,7 @@ html.fullWindow #pageBar {
   position:   fixed;
   left:       0;
   top:        0;
-  z-index:    20000;
+  z-index:    200;
   background: black;
   width:      0;
   height:     0;
@@ -1397,6 +1409,12 @@ html.fullWindow #pageBar {
 .crashIcon:hover {
   border:        1.5px solid black;
   border-radius: 50%;
+}
+
+.editableCell {
+  color:            #000000 !important;
+  background-color: #ffffff !important;
+  padding: 0 3px;
 }
 
 @media (max-width: 750px) {
