@@ -194,7 +194,11 @@ function hideMessage() {
   document.getElementById('messageText').innerHTML = '';
 }
 
-function confirmMessage(text, okCallback, buttonOKText='OK', header='Bevestigen', isWarning=false){
+function confirmWarning(text, okCallback, buttonOKText=translate('ok'), header=translate('Confirm')){
+  confirmMessage(text, okCallback, buttonOKText, header, true);
+}
+
+function confirmMessage(text, okCallback, buttonOKText=translate('ok'), header=translate('Confirm'), isWarning=false){
   if (isWarning) {
     document.getElementById('buttonConfirmOK').className            = 'button buttonWarning';
     document.getElementById('formConfirm').style.backgroundColor    = '#ffdb9d';
@@ -259,7 +263,8 @@ function closeAllPopups() {
   document.querySelectorAll('.buttonPopupMenuTemp').forEach(menu => menu.remove());
   document.body.style.overflow = 'auto';
 
-  if (document.getElementById('searchSearchPersons').style.display  === 'block') toggleSearchPersons(event);
+  const searchPersons = document.getElementById('searchSearchPersons');
+  if (searchPersons && (searchPersons.style.display  === 'block')) toggleSearchPersons(event);
 }
 
 function validateEmail(email) {
@@ -746,7 +751,7 @@ function transportationModeImage(transportationMode) {
 
 function transportationModeIcon(transportationMode, addTooltip=true, small=false) {
   const bg        = transportationModeImage(transportationMode);
-  const text      = 'Vervoertype: ' + transportationModeText(transportationMode);
+  const text      = translate('Transportation_mode')  + ': ' + transportationModeText(transportationMode);
   const tooltip   = addTooltip? 'data-tippy-content="' + text + '"' : '';
   const className = small? 'iconSmall' : 'iconMedium';
   return `<div class="${className} ${bg}" ${tooltip}></div>`;
@@ -754,17 +759,17 @@ function transportationModeIcon(transportationMode, addTooltip=true, small=false
 
 function healthIcon(healthStatus, addTooltip=true) {
   const bg      = healthImage(healthStatus);
-  const text    = 'Letsel: ' + healthText(healthStatus);
+  const text    = translate('Injury') + ': ' + healthText(healthStatus);
   const tooltip = addTooltip? 'data-tippy-content="' + text + '"' : '';
   return `<div class="iconMedium ${bg}" ${tooltip}></div>`;
 }
 
 function healthText(healthStatus) {
   switch (healthStatus) {
-    case THealth.unknown:  return 'Onbekend';
-    case THealth.unharmed: return 'Ongedeerd';
-    case THealth.injured:  return 'Gewond';
-    case THealth.dead:     return 'Dood';
+    case THealth.unknown:  return translate('Unknown');
+    case THealth.unharmed: return translate('Unharmed');
+    case THealth.injured:  return translate('Injured');
+    case THealth.dead:     return translate('Dead_(adjective)');
     default:               return '';
   }
 }

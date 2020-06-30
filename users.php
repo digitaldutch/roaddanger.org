@@ -153,7 +153,8 @@ class TUser{
       $translationsLanguage = json_decode($translations_json, true);
 
       foreach ($this->translations as $key => $english) {
-        $textLanguage = $translationsLanguage[$key];
+        $textLanguage = trim($translationsLanguage[$key]);
+
         if (! empty($textLanguage)) $this->translations[$key] = $textLanguage;
         else $this->translations[$key] .= '*';
       }
@@ -360,6 +361,12 @@ SQL;
     return $info;
   }
 
+  private function firstCharacterUpper($text) {
+    // ucfirst does not support Unicode
+    if (strlen($text) > 1) return mb_convert_case(mb_substr($text, 0, 1), MB_CASE_TITLE) . mb_substr($text, 1, mb_strlen($text));
+    else return $text;
+  }
+
   /**
    * @param string $key
    * @return string
@@ -371,7 +378,7 @@ SQL;
 
     $text = $this->translations[$lowerKey]?? $key . '**';
 
-    return $lowerKey === $key? $text : ucfirst($text);
+    return $lowerKey === $key? $text : $this->firstCharacterUpper($text);
   }
 
   public function translateArray($keys){

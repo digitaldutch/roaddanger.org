@@ -18,9 +18,9 @@ else if (strpos($uri, '/statistieken/vervoertypes')  === 0) $pageType = PageType
 else if (strpos($uri, '/exporteren')                 === 0) $pageType = PageType::export;
 else                                                               $pageType = PageType::recent;
 
-$fullWindow       = false;
-$showButtonSearch = false;
-$showButtonAdd    = false;
+$fullWindow     = false;
+$addSearchBar   = false;
+$showButtonAdd  = false;
 $head = "<script src='/js/main.js?v=$VERSION'></script>";
 if ($pageType === PageType::statisticsCrashPartners){
   $head .= "<script src='/scripts/d3.v5.js?v=$VERSION'></script><script src='/js/d3CirclePlot.js?v=$VERSION'></script>";
@@ -68,11 +68,12 @@ HTML;
 } else if ($pageType === PageType::childDeaths) {
 
   $showButtonAdd = true;
+  $texts = $user->translateArray(['Child_deaths', 'Injury', 'Dead_(adjective)', 'Injured']);
 
   $mainHTML = <<<HTML
 <div class="pageInner">
 
-  <div class="pageSubTitle"><img src="/images/child.svg" style="height: 20px; position: relative; top: 2px;"> Kinddoden</div>
+  <div class="pageSubTitle"><img src="/images/child.svg" style="height: 20px; position: relative; top: 2px;"> {$texts['Child_deaths']}</div>
   <div style="display: flex; flex-direction: column; align-items: center">
     <div style="text-align: left;">
       <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">Zo help je de representativiteit van deze tabel te verbeteren.</div>
@@ -87,8 +88,8 @@ Dit is een onvolledige tabel die representatiever wordt naarmate er meer bericht
   <div class="searchBar" style="display: flex; padding-bottom: 0;">
 
     <div class="toolbarItem">
-      <span id="filterChildDead" class="menuButton bgDeadBlack" data-tippy-content="Letsel: Dood" onclick="selectFilterChildDeaths();"></span>      
-      <span id="filterChildInjured" class="menuButton bgInjuredBlack" data-tippy-content="Letsel: Gewond" onclick="selectFilterChildDeaths();"></span>      
+      <span id="filterChildDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterChildDeaths();"></span>      
+      <span id="filterChildInjured" class="menuButton bgInjuredBlack" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterChildDeaths();"></span>      
     </div>
     
   </div>
@@ -106,9 +107,9 @@ Dit is een onvolledige tabel die representatiever wordt naarmate er meer bericht
 HTML;
 
 } else if ($pageType === PageType::map) {
-  $fullWindow       = true;
-  $showButtonAdd    = true;
-  $showButtonSearch = true;
+  $fullWindow    = true;
+  $showButtonAdd = true;
+  $addSearchBar  = true;
 
   $mainHTML = <<<HTML
   <div id="mapMain"></div>
@@ -116,7 +117,9 @@ HTML;
 
 } else if ($pageType === PageType::statisticsCrashPartners) {
 
-  $texts = $user->translateArray(['Counterparty_fatal', 'Always', 'days', 'the_correspondent_week', 'Custom_period']);
+  $texts = $user->translateArray(['Counterparty_fatal', 'Always', 'days', 'the_correspondent_week', 'Custom_period', 'Child']);
+
+  $htmlSearchPeriod = getSearchPeriodHtml('loadStatistics');
 
   $mainHTML = <<<HTML
 <div class="pageInner">
@@ -141,23 +144,10 @@ Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar
     <div class="searchBar" style="display: flex;">
 
       <div class="toolbarItem">
-        <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="Kind" onclick="selectFilterChild();"></span>      
+        <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterChild();"></span>      
       </div>
 
-      <div class="toolbarItem">
-        <select id="filterStatsPeriod" class="searchInput" oninput="loadStatistics();" data-tippy-content="Periode">
-          <option value="all" selected>{$texts['Always']}</option> 
-          <option value="7days">7 {$texts['days']}</option> 
-          <option value="30days">30 {$texts['days']}</option> 
-          <option value="decorrespondent">{$texts['the_correspondent_week']}</option> 
-          <option value="2019">2019</option> 
-          <option value="2020">2020</option>
-          <option value="custom">{$texts['Custom_period']}</option>          
-        </select>
-      </div>
-      
-      <input id="filterStatsDateFrom" oninput="loadStatistics();" class="searchInput toolbarItem" type="date" data-tippy-content="Vanaf">
-      <input id="filterStatsDateTo" oninput="loadStatistics();"  class="searchInput toolbarItem" type="date" data-tippy-content="Tot en met">  
+      $htmlSearchPeriod
     </div>
 
     <div id="graphPartners" style="position: relative;"></div>
@@ -170,7 +160,10 @@ HTML;
 
 } else if ($pageType === PageType::statisticsTransportationModes) {
 
-  $texts = $user->translateArray(['Statistics', 'Transportation_modes']);
+  $texts = $user->translateArray(['Statistics', 'Transportation_modes', 'Transportation_mode', 'Child',
+    'Dead_(adjective)', 'Injured', 'Unharmed', 'Unknown']);
+
+  $htmlSearchPeriod = getSearchPeriodHtml('loadStatistics');
 
   $mainHTML = <<<HTML
 <div class="pageInner">
@@ -181,37 +174,22 @@ HTML;
     <div class="searchBar" style="display: flex;">
 
       <div class="toolbarItem">
-        <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="Kind" onclick="selectFilterChild();"></span>      
+        <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterChild();"></span>      
       </div>
 
-      <div class="toolbarItem">
-        <select id="filterStatsPeriod" class="searchInput" oninput="loadStatistics();" data-tippy-content="Periode">
-          <option value="all" selected>Altijd</option> 
-          <option value="today">Vandaag</option> 
-          <option value="yesterday">Gisteren</option> 
-          <option value="7days">7 dagen</option> 
-          <option value="30days">30 dagen</option> 
-          <option value="decorrespondent">De Correspondent week</option> 
-          <option value="2019">2019</option> 
-          <option value="2020">2020</option> 
-          <option value="custom">Handmatige periode</option> 
-        </select>
-      </div>
-      
-      <input id="filterStatsDateFrom" oninput="loadStatistics();" class="searchInput toolbarItem" type="date" data-tippy-content="Vanaf">
-      <input id="filterStatsDateTo" oninput="loadStatistics();" class="searchInput toolbarItem" type="date" data-tippy-content="Tot en met">  
+      $htmlSearchPeriod   
      
     </div>
 
     <table class="dataTable">
       <thead>
         <tr>
-          <th style="text-align: left;">Vervoertype</th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgDead" data-tippy-content="Dood"></div> <div class="hideOnMobile">Dood</div></div></th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgInjured" data-tippy-content="Gewond"></div> <div  class="hideOnMobile">Gewond</div></div></th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnharmed" data-tippy-content="Ongedeerd"></div> <div  class="hideOnMobile">Ongedeerd</div></div></th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnknown" data-tippy-content="Letsel onbekend"></div> <div  class="hideOnMobile">Onbekend</div></div></th>
-          <th style="text-align: right;"><div class="iconSmall bgChild" data-tippy-content="Kind"></div></th>
+          <th style="text-align: left;">{$texts['Transportation_mode']}</th>
+          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgDead" data-tippy-content="Dood"></div> <div class="hideOnMobile">{$texts['Dead_(adjective)']}</div></div></th>
+          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgInjured" data-tippy-content="Gewond"></div> <div  class="hideOnMobile">{$texts['Injured']}</div></div></th>
+          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnharmed" data-tippy-content="Ongedeerd"></div> <div  class="hideOnMobile">{$texts['Unharmed']}</div></div></th>
+          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnknown" data-tippy-content="Onbekend"></div> <div  class="hideOnMobile">{$texts['Unknown']}</div></div></th>
+          <th style="text-align: right;"><div class="iconSmall bgChild" data-tippy-content="{$texts['Child']}"></div></th>
           <th style="text-align: right;"><div class="iconSmall bgAlcohol" data-tippy-content="Onder invloed"></div></th>
           <th style="text-align: right;"><div class="iconSmall bgHitRun" data-tippy-content="Doorrijden/vluchten"></div></th>
         </tr>
@@ -273,10 +251,10 @@ HTML;
 </div>
 HTML;
 } else {
-  $showButtonSearch = true;
-  $showButtonAdd    = true;
-  $generalMessage   = $database->fetchSingleValue("SELECT value FROM options WHERE name='globalMessage';");
-  $messageHTML      = formatMessage($generalMessage);
+  $addSearchBar    = true;
+  $showButtonAdd   = true;
+  $generalMessage  = $database->fetchSingleValue("SELECT value FROM options WHERE name='globalMessage';");
+  $messageHTML     = formatMessage($generalMessage);
 
   $title = '';
   switch ($pageType){
@@ -304,7 +282,7 @@ HTML;
 }
 
 $html =
-  getHTMLBeginMain('', $head, 'initMain', $showButtonSearch, $showButtonAdd, $fullWindow) .
+  getHTMLBeginMain('', $head, 'initMain', $addSearchBar, $showButtonAdd, $fullWindow) .
   $mainHTML .
   getHTMLEnd();
 

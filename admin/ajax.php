@@ -121,7 +121,7 @@ else if ($function === 'saveNewTranslation') {
     $sql          = "SELECT translations FROM languages WHERE id='en'";
     $translations = json_decode($database->fetchSingleValue($sql), true);
 
-    $translations[strtolower($data['id'])] = strtolower($data['english']);
+    $translations[strtolower($data['id'])] = strtolower(trim($data['english']));
 
     $sql    = "UPDATE languages SET translations =:translations WHERE id='en'";
     $params = [':translations' => json_encode($translations)];

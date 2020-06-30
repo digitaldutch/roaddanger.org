@@ -127,11 +127,9 @@ async function deleteUserDirect() {
 }
 
 async function adminDeleteUser() {
-  confirmMessage(`Mens #${selectedTableData.id} "${selectedTableData.name}" en alle items die dit mens heeft aangemaakt verwijderen?<br><br><b>Dit kan niet ongedaan worden!</b>`,
-    function (){
-      deleteUserDirect();
-    },
-    `Verwijder mens en zijn items`, null, true
+  confirmWarning(`Mens #${selectedTableData.id} "${selectedTableData.name}" en alle items die dit mens heeft aangemaakt verwijderen?<br><br><b>Dit kan niet ongedaan worden!</b>`,
+    function (){deleteUserDirect();},
+    `Verwijder mens en zijn items`
   );
 }
 
@@ -180,9 +178,12 @@ async function saveOptions() {
 
 }
 
+function translationNeeded(text) {
+  return text && text.charAt(text.length - 1) === '*';
+}
+
 function getTranslationTableRow(translation){
-  const translationExists = translation.translation.charAt(translation.translation.length - 1) !== '*';
-  const text = translationExists? translation.translation : '';
+  const text = translationNeeded(translation.translation)? '' : translation.translation;
 
   return `
 <tr id="tr${translation.id}">
@@ -216,17 +217,22 @@ async function loadTranslations(){
 
     if (response.error) showError(response.error);
     else {
-      tableData = [];
+      const data = [];
 
-      // Object.entries(list).sort((a, b) => a[1] - b[1])
+      const dataTranslationNeeded = [];
+      const dataTranslated        = [];
+
       for (const [id, value] of Object.entries(response.translationsEnglish)) {
         const translation = user.translations[id];
-        tableData.push({
+        const data = translationNeeded(translation)? dataTranslationNeeded : dataTranslated;
+        data.push({
           id:          id,
           english:     value,
           translation: translation? translation : '',
         });
       }
+
+      tableData = dataTranslationNeeded.concat(dataTranslated);
 
       showTranslations(tableData);
 
@@ -244,7 +250,7 @@ function saveTranslation(id) {
   const td   = event.target.closest('td');
   const item = tableData.find(d => d.id === id);
 
-  item.translation = td.innerText;
+  item.translation = td.innerText.trim();
   item.modified    = true;
 }
 
@@ -312,7 +318,7 @@ function deleteTranslation() {
     return;
   }
 
-  confirmMessage(`Delete translation item "${selectedTableData.id}"?<br>You should only do this if the translation id is not used in the source code`,
+  confirmWarning(`Delete translation item "${selectedTableData.id}"?<br>You should only do this if the translation id is not used in the source code`,
     async () => {
       const serverData = {
         id: selectedTableData.id,
@@ -331,7 +337,7 @@ function deleteTranslation() {
         if (tableData.length > 0) selectTableRow(tableData[0]);
       }
     },
-    'Delete id ' + selectedTableData.id, 'Confirm', true
+    'Delete id ' + selectedTableData.id
   );
 
 }

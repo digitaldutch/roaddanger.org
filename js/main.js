@@ -77,7 +77,6 @@ async function initMain() {
     if (searchChild)         document.getElementById('searchPersonChild').classList.add('buttonSelectedBlue');
     if (searchPersons)       setPersonsFilter(searchPersons);
   }
-  setCustomRangeVisibility();
 
   addEditPersonButtons();
 
@@ -119,13 +118,13 @@ function initStatistics(){
     const searchDateTo     = url.searchParams.get('date_to');
     const searchChild      = url.searchParams.get('child');
 
-    if (period)         document.getElementById('filterStatsPeriod').value   = period;
+    if (period)         document.getElementById('searchPeriod').value   = period;
     if (searchChild)    document.getElementById('filterStatsChild').classList.add('buttonSelectedBlue');
-    if (searchDateFrom) document.getElementById('filterStatsDateFrom').value = searchDateFrom;
-    if (searchDateTo)   document.getElementById('filterStatsDateTo').value   = searchDateTo;
+    if (searchDateFrom) document.getElementById('searchDateFrom').value = searchDateFrom;
+    if (searchDateTo)   document.getElementById('searchDateTo').value   = searchDateTo;
   }
 
-  setCustomFilterVisibility();
+  setCustomRangeVisibility();
 }
 
 function initWatchPopStart(){
@@ -196,9 +195,9 @@ function showCrashVictimsGraph(crashVictims){
   };
 
   const filter = {
-    period:   document.getElementById('filterStatsPeriod').value,
-    dateFrom: document.getElementById('filterStatsDateFrom').value,
-    dateTo:   document.getElementById('filterStatsDateTo').value,
+    period:   document.getElementById('searchPeriod').value,
+    dateFrom: document.getElementById('searchDateFrom').value,
+    dateTo:   document.getElementById('searchDateTo').value,
     child:    document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue'),
   }
   graph = new CrashPartnerGraph('graphPartners', points, options, filter);
@@ -230,7 +229,7 @@ async function loadStatistics(){
   function showStatisticsTransportation(dbStats) {
     let html = '';
     for (const stat of dbStats.total) {
-      const icon = transportationModeIcon(stat.transportationmode, true);
+      const icon = transportationModeIcon(stat.transportationmode, false);
       html += `<tr>
 <td><div class="flexRow">${icon}<span class="hideOnMobile" style="margin-left: 5px;">${transportationModeText(stat.transportationmode)}</span></div></td>
 <td style="text-align: right;">${stat.dead}</td>
@@ -365,8 +364,6 @@ async function loadStatistics(){
   try {
     spinnerLoad.style.display = 'block';
 
-    setCustomFilterVisibility();
-
     const serverData = {};
 
     switch (pageType) {
@@ -377,9 +374,9 @@ async function loadStatistics(){
 
     if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
       serverData.filter = {
-        period:   document.getElementById('filterStatsPeriod').value,
-        dateFrom: document.getElementById('filterStatsDateFrom').value,
-        dateTo:   document.getElementById('filterStatsDateTo').value,
+        period:   document.getElementById('searchPeriod').value,
+        dateFrom: document.getElementById('searchDateFrom').value,
+        dateTo:   document.getElementById('searchDateTo').value,
         child:    document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue')? 1 : 0,
       };
     }
@@ -769,8 +766,8 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
       buttonEditArticle = `<span class="buttonEditPost bgTripleDots" data-userid="${article.userid}" onclick="showArticleMenu(event, ${article.id});"></span>`;
       htmlMenuEdit += `
         <div id="menuArticle${article.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
-          <div onclick="editArticle(${crash.id},  ${article.id});">Bewerken</div>
-          <div onclick="deleteArticle(${article.id})">Verwijderen</div>
+          <div onclick="editArticle(${crash.id},  ${article.id});">${translate('Edit')}</div>
+          <div onclick="deleteArticle(${article.id})">${translate('Delete')}</div>
        </div>`;
     }
 
@@ -792,7 +789,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   
     <div class="smallFont articleTitleSmall">
       <a href="${article.url}" target="article" onclick="event.stopPropagation();"><span class="cardSiteName">${escapeHtml(article.sitename)}</span></a> 
-      | ${article.publishedtime.pretty()} | toegevoegd door ${article.user}
+      | ${article.publishedtime.pretty()} | ${translate('added_by')} ${article.user}
     </div>
   
     <div class="articleTitle">${escapeHtml(article.title)}</div>
@@ -836,13 +833,13 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
   let htmlMenuEditItems = '';
   if (canEditCrash) {
     htmlMenuEditItems = `
-      <div onclick="editCrash(${crash.id});">Bewerken</div>
-      <div onclick="showMergeCrashForm(${crash.id});">Samenvoegen</div>
-      <div onclick="deleteCrash(${crash.id});">Verwijderen</div>
+      <div onclick="editCrash(${crash.id});">${translate('Edit')}</div>
+      <div onclick="showMergeCrashForm(${crash.id});">${translate('Merge')}</div>
+      <div onclick="deleteCrash(${crash.id});">${translate('Delete')}</div>
 `;
   }
 
-  if (user.moderator) htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>Plaats bovenaan stream</div>`;
+  if (user.moderator) htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>${translate('Place_at_top_of_stream')}</div>`;
 
   return `
 <div id="crash${crash.id}" class="cardCrashList" onclick="showCrashDetails(${crash.id}); event.stopPropagation();">
@@ -851,7 +848,7 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
       <span class="buttonEditPost bgTripleDots"  data-userid="${crash.userid}" onclick="showCrashMenu(event, ${crash.id});"></span>
     </span>
     <div id="menuCrash${crash.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
-      <div onclick="addArticleToCrash(${crash.id});">Artikel toevoegen</div>
+      <div onclick="addArticleToCrash(${crash.id});">${translate('Add_article')}</div>
       ${htmlMenuEditItems}
     </div>            
   </span>        
@@ -939,8 +936,8 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
         <span class="buttonEditPost bgTripleDots" data-userid="${article.userid}" onclick="showArticleMenu(event, '${articleDivID}');"></span>
       </span>
       <div id="menuArticle${articleDivID}" class="buttonPopupMenu" onclick="event.preventDefault();">
-        <div onclick="editArticle(${crash.id},  ${article.id});">Bewerken</div>
-        <div onclick="deleteArticle(${article.id})">Verwijderen</div>
+        <div onclick="editArticle(${crash.id},  ${article.id});">${translate('Edit')}</div>
+        <div onclick="deleteArticle(${article.id})">${translate('Delete')}</div>
       </div>            
     </span>   
     
@@ -948,7 +945,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   
     <div class="smallFont articleTitleSmall">
       <a href="${article.url}" target="article"><span class="cardSiteName">${escapeHtml(article.sitename)}</span></a> 
-      | ${article.publishedtime.pretty()} | toegevoegd door ${article.user}
+      | ${article.publishedtime.pretty()} | ${translate('added_by')} ${article.user}
     </div>
   
     <div class="articleTitle">${escapeHtml(article.title)}</div>
@@ -958,13 +955,12 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   }
 
   const htmlTopIcons = getCrashTopIcons(crash);
-  let titleSmall     = 'aangemaakt door ' + crash.user;
+  let titleSmall     = translate('edited_by') + ' ' + crash.user;
   let titleModified  = '';
   if (crash.streamtopuser) {
     switch (crash.streamtoptype) {
-      case TStreamTopType.edited:       titleModified = ' | aangepast door '                + crash.streamtopuser; break;
-      case TStreamTopType.articleAdded: titleModified = ' | nieuw artikel toegevoegd door ' + crash.streamtopuser; break;
-      case TStreamTopType.placedOnTop:  titleModified = ' | omhoog geplaatst door '         + crash.streamtopuser; break;
+      case TStreamTopType.edited:       titleModified = ' | ' + translate('edited_by')            + ' ' + crash.streamtopuser; break;
+      case TStreamTopType.articleAdded: titleModified = ' | ' + translate('new_article_added_by') + ' ' + crash.streamtopuser; break;
     }
   }
 
@@ -994,20 +990,20 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
   let htmlMenuEditItems = '';
   if (canEditCrash) {
     htmlMenuEditItems = `
-      <div onclick="editCrash(${crash.id});">Bewerken</div>
-      <div onclick="showMergeCrashForm(${crash.id});">Samenvoegen</div>
-      <div onclick="deleteCrash(${crash.id});">Verwijderen</div>
+      <div onclick="editCrash(${crash.id});">${translate('Edit')}</div>
+      <div onclick="showMergeCrashForm(${crash.id});">${translate('Merge')}</div>
+      <div onclick="deleteCrash(${crash.id});">${translate('Delete')}</div>
 `;
   }
 
-  if (user.moderator) htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>Plaats bovenaan stream</div>`;
+  if (user.moderator) htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>${translate('Place_at_top_of_stream')}</div>`;
 
   return `
 <div id="crash${crashDivId}" class="cardCrashDetails">
   <span class="postButtonArea" onclick="event.stopPropagation();">
     <span style="position: relative;"><span class="buttonEditPost bgTripleDots"  data-userid="${crash.userid}" onclick="showCrashMenu(event, '${crashDivId}');"></span></span>
     <div id="menuCrash${crashDivId}" class="buttonPopupMenu" onclick="event.preventDefault();">
-      <div onclick="addArticleToCrash(${crash.id});">Artikel toevoegen</div>
+      <div onclick="addArticleToCrash(${crash.id});">${translate('Add_article')}</div>
       ${htmlMenuEditItems}
     </div>            
   </span>        
@@ -1063,9 +1059,9 @@ function getCrashButtonsHTML(crash, showAllHealth=true, allowClick=false) {
     let htmlPersons        = '';
 
     for (const person of button.persons){
-      let tooltip = 'Mens ' + person.id +
-        '<br>Letsel: ' + healthText(person.health);
-      if (person.child)          tooltip += '<br>Kind';
+      let tooltip = translate('human') + ' ' + person.id +
+        '<br>' + translate('Injury') + ': ' + healthText(person.health);
+      if (person.child)          tooltip += '<br>' + translate('Child');
       if (person.underinfluence) tooltip += '<br>Onder invloed';
       if (person.hitrun)         tooltip += '<br>Doorrijden/vluchten';
 
@@ -1336,7 +1332,7 @@ function refreshCrashPersonsGUI(persons=[]) {
     const iconTransportation = transportationModeIcon(person.transportationmode);
     const iconHealth         = healthIcon(person.health);
     let buttonsOptions = '';
-    if (person.child)          buttonsOptions += '<div class="iconSmall bgChild" data-tippy-content="Kind"></div>';
+    if (person.child)          buttonsOptions += `<div class="iconSmall bgChild" data-tippy-content="${translate('Child')}"></div>`;
     if (person.underinfluence) buttonsOptions += '<div class="iconSmall bgAlcohol" data-tippy-content="Onder invloed"></div>';
     if (person.hitrun)         buttonsOptions += '<div class="iconSmall bgHitRun" data-tippy-content="Doorrijden/vluchten"></div>';
 
@@ -1431,7 +1427,7 @@ function addArticleToCrash(crashID) {
   showEditCrashForm(crashID);
   setNewArticleCrashFields(crashID);
 
-  document.getElementById('editHeader').innerText           = 'Artikel toevoegen';
+  document.getElementById('editHeader').innerText           = translate('Add_article');
   document.getElementById('editCrashSection').style.display = 'none';
 }
 
@@ -1817,7 +1813,7 @@ function deleteArticle(id) {
   closeAllPopups();
   const article = getArticleFromID(id);
 
-  confirmMessage(`Artikel "${article.title.substr(0, 100)}" verwijderen?`,
+  confirmWarning(`Artikel "${article.title.substr(0, 100)}" verwijderen?`,
     function (){deleteArticleDirect(id)},
     'Verwijder artikel', null, true);
 }
@@ -1826,9 +1822,9 @@ function deleteCrash(id) {
   closeAllPopups();
   const crash = getCrashFromID(id);
 
-  confirmMessage(`Ongeluk "${crash.title.substr(0, 100)}" verwijderen?`,
+  confirmWarning(`Ongeluk "${crash.title.substr(0, 100)}" verwijderen?`,
     function (){deleteCrashDirect(id)},
-    'Verwijder ongeluk', null, true);
+    'Verwijder ongeluk');
 }
 
 function crashRowHTML(crash, isSearch=false){
@@ -2060,6 +2056,8 @@ function toggleCheckOptions(event, id) {
 }
 
 function initSearchBar(){
+  if (! document.getElementById('searchBar')) return;
+
   let html = '';
   for (const key of Object.keys(TTransportationMode)){
     const transportationMode     =  TTransportationMode[key];
@@ -2078,20 +2076,17 @@ function initSearchBar(){
   }
 
   document.getElementById('searchSearchPersons').innerHTML = html;
+
+  setCustomRangeVisibility();
 }
 
 function setCustomRangeVisibility() {
-  const custom = document.getElementById('searchPeriod').value === 'custom';
-  document.getElementById('searchDateFrom').style.display = custom? 'block' : 'none';
-  document.getElementById('searchDateTo').style.display   = custom? 'block' : 'none';
-}
+  const elementPeriod = document.getElementById('searchPeriod');
 
-function setCustomFilterVisibility() {
-  const filterPeriod = document.getElementById('filterStatsPeriod');
-  if (filterPeriod) {
-    const custom = filterPeriod.value === 'custom';
-    document.getElementById('filterStatsDateFrom').style.display = custom? 'inline-flex' : 'none';
-    document.getElementById('filterStatsDateTo').style.display   = custom? 'inline-flex' : 'none';
+  if (elementPeriod) {
+    const custom = elementPeriod.value === 'custom';
+    document.getElementById('searchDateFrom').style.display = custom? 'block' : 'none';
+    document.getElementById('searchDateTo').style.display   = custom? 'block' : 'none';
   }
 }
 
@@ -2183,7 +2178,7 @@ function updateTransportationModeFilterInput(){
   }
 
   // Show placeholder text if no persons selected
-  if (html === '') html = 'Mensen';
+  if (html === '') html = translate('Humans');
   document.getElementById('inputSearchPersons').innerHTML = html;
   tippy('#inputSearchPersons [data-tippy-content]');
 }

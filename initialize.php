@@ -24,6 +24,8 @@ session_start();
 date_default_timezone_set('Europe/Amsterdam');
 setlocale(LC_MONETARY, 'nl_NL');
 
+mb_internal_encoding('UTF-8');
+
 require_once __DIR__ . '/config.php';
 require_once 'templates.php';
 require_once 'database.php';

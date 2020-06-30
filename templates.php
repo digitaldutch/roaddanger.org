@@ -1,6 +1,6 @@
 <?php
 
-function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $showButtonSearch=false, $showButtonAdd=false, $fullWindow=false){
+function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $addSearchBar=false, $showButtonAdd=false, $fullWindow=false){
   global $VERSION;
   global $user;
 
@@ -23,8 +23,8 @@ HTML;
   $htmlClass = $fullWindow? ' class="fullWindow"' : '';
 
   $buttons = '';
-  if ($showButtonSearch) $buttons .= '<div id="buttonSearch" class="menuButton bgSearch" onclick="toggleSearchBar(event);"></div>';
-  if ($showButtonAdd)    $buttons .= '<div id="buttonNewCrash" style="display: none;" class="menuButton buttonAdd" onclick="showNewCrashForm();"></div>';
+  if ($addSearchBar)  $buttons .= '<div id="buttonSearch" class="menuButton bgSearch" onclick="toggleSearchBar(event);"></div>';
+  if ($showButtonAdd) $buttons .= '<div id="buttonNewCrash" style="display: none;" class="menuButton buttonAdd" onclick="showNewCrashForm();"></div>';
 
   global $database;
   $languages       = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
@@ -35,6 +35,8 @@ HTML;
   }
 
   $texts = $user->translateArray(['Log_out', 'Log_in', 'The_crashes', 'Account']);
+
+  $htmlSearchBar = $addSearchBar? getHtmlSearchBar() : '';
 
   return <<<HTML
 <!DOCTYPE html>
@@ -94,41 +96,42 @@ $navigation
   
     </div>
   </div>
-  
+
+  $htmlSearchBar
+
+</div>
+
+$cookieWarning
+
+HTML;
+}
+
+function getHtmlSearchBar(){
+  global $user;
+  $texts = $user->translateArray(['Humans', 'Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source']);
+
+  $htmlSearchPeriod = getSearchPeriodHtml();
+
+  return <<<HTML
   <div id="searchBar" class="searchBar" style="border-bottom: solid 1px #aaa;">
     <div class="popupCloseCross" onclick="toggleSearchBar();"></div>
 
     <div class="toolbarItem">
-      <span id="searchPersonHealthDead" class="menuButton bgDeadBlack" data-tippy-content="Letsel: dood" onclick="selectSearchPersonDead();"></span>      
-      <span id="searchPersonHealthInjured" class="menuButton bgInjuredBlack" data-tippy-content="Letsel: gewond" onclick="selectSearchPersonInjured();"></span>      
-      <span id="searchPersonChild" class="menuButton bgChild" data-tippy-content="Kind" onclick="selectSearchPersonChild();"></span>      
+      <span id="searchPersonHealthDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Dead_(adjective)']}" onclick="selectSearchPersonDead();"></span>      
+      <span id="searchPersonHealthInjured" class="menuButton bgInjuredBlack" data-tippy-content="{$texts['Injured']}" onclick="selectSearchPersonInjured();"></span>      
+      <span id="searchPersonChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectSearchPersonChild();"></span>      
     </div>
 
     <div class="toolbarItem">
-       <input id="searchText" class="searchInput"  type="search" placeholder="Zoek tekst" onkeyup="startSearchKey(event);" autocomplete="off">  
+       <input id="searchText" class="searchInput"  type="search" placeholder="{$texts['Search']}" onkeyup="startSearchKey(event);" autocomplete="off">  
     </div>
     
-    <div class="toolbarItem">
-      <select id="searchPeriod" class="searchInput" oninput="setCustomRangeVisibility();" data-tippy-content="Periode">
-        <option value="all" selected>Altijd</option> 
-        <option value="today">Vandaag</option> 
-        <option value="yesterday">Gisteren</option> 
-        <option value="7days">7 dagen</option> 
-        <option value="30days">30 dagen</option> 
-        <option value="decorrespondent">De Correspondent week</option> 
-        <option value="2019">2019</option> 
-        <option value="2020">2020</option> 
-        <option value="custom">Handmatige periode</option> 
-      </select>
-    </div>
-    
-    <input id="searchDateFrom" class="searchInput toolbarItem" type="date" data-tippy-content="Vanaf">
-    <input id="searchDateTo" class="searchInput toolbarItem" type="date" data-tippy-content="Tot en met">
+    $htmlSearchPeriod
     
     <div class="toolbarItem">
       <div class="dropInputWrapper">
         <div class="searchInput dropInput" tabindex="0" onclick="toggleSearchPersons(event);">
-          <span id="inputSearchPersons" class="inputIcons">Mensen</span>
+          <span id="inputSearchPersons" class="inputIcons">{$texts['Humans']}</span>
           <div id="arrowSearchPersons" class="inputArrowDown"></div>  
         </div>
         
@@ -137,19 +140,15 @@ $navigation
     </div>
            
     <div class="toolbarItem">
-      <input id="searchSiteName" class="searchInput" type="search" placeholder="Bron" onkeyup="startSearchKey(event);" autocomplete="off">
+      <input id="searchSiteName" class="searchInput" type="search" placeholder="{$texts['Source']}" onkeyup="startSearchKey(event);" autocomplete="off">
     </div>
 
     <div class="toolbarItem">
-      <div class="button buttonMobileSmall" onclick="startSearch(event)">Zoek</div>
+      <div class="button buttonMobileSmall" onclick="startSearch(event)">{$texts['Search']}</div>
     </div>
   </div>      
-
-</div>
-
-$cookieWarning
-
 HTML;
+
 }
 
 function getHTMLEnd($htmlEnd='', $flexFullPage=false){
@@ -169,18 +168,22 @@ HTML;
 }
 
 function getHTMLConfirm(){
+  global $user;
+
+  $texts = $user->translateArray(['Confirm', 'Ok', 'Cancel']);
+
   $formConfirm = <<<HTML
 <div id="formConfirmOuter" class="popupOuter" style="z-index: 1000" onclick="closePopupForm();">
   <form id="formConfirm" class="floatingForm" onclick="event.stopPropagation();">
 
-    <div id="confirmHeader" class="popupHeader">Bevestigen</div>
+    <div id="confirmHeader" class="popupHeader">{$texts['Confirm']}</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
 
     <div id="confirmText" class="textMessage"></div>
 
     <div class="popupFooter">
-      <button id="buttonConfirmOK" class="button" type="submit" autofocus>OK</button>
-      <button id="buttonConfirmCancel" class="button buttonGray" type="button" onclick="closePopupForm();">Annuleren</button>
+      <button id="buttonConfirmOK" class="button" type="submit" autofocus>{$texts['Ok']}</button>
+      <button id="buttonConfirmCancel" class="button buttonGray" type="button" onclick="closePopupForm();">{$texts['Cancel']}</button>
     </div>    
 
   </form>
@@ -302,12 +305,15 @@ HTML;
 }
 
 function getFormEditCrash(){
+  global $user;
+  $texts = $user->translateArray(['add_article']);
+
   return <<<HTML
 <div id="formEditCrash" class="popupOuter">
 
   <form class="formFullPage" onclick="event.stopPropagation();">
     
-    <div id="editHeader" class="popupHeader">Nieuw artikel toevoegen</div>
+    <div id="editHeader" class="popupHeader"></div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
 
     <div id="editArticleSection" class="flexColumn">
@@ -492,7 +498,7 @@ HTML;
 function getFormEditPerson(){
   global $user;
 
-  $texts = $user->translateArray(['Transporation_mode']);
+  $texts = $user->translateArray(['Transportation_mode', 'Child', 'Injury']);
 
   return <<<HTML
 <div id="formEditPerson" class="popupOuter" style="z-index: 501;" onclick="closeEditPersonForm();">
@@ -505,19 +511,19 @@ function getFormEditPerson(){
     <input id="personIDHidden" type="hidden">
 
     <div style="margin-top: 5px;">
-      <div>${texts['Transporation_mode']}</div> 
+      <div>${texts['Transportation_mode']}</div> 
       <div id="personTransportationButtons"></div>
     </div>
             
     <div style="margin-top: 5px;">
-      <div>Letsel</div> 
+      <div>{$texts['Injury']}</div> 
       <div id="personHealthButtons"></div>
     </div>
 
     <div style="margin-top: 5px;">
       <div>Kenmerken</div> 
       <div>
-        <span id="editPersonChild" class="menuButton bgChild" data-tippy-content="Kind" onclick="toggleSelectionButton(this)"></span>            
+        <span id="editPersonChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="toggleSelectionButton(this)"></span>            
         <span id="editPersonUnderInfluence" class="menuButton bgAlcohol" data-tippy-content="Onder invloed" onclick="toggleSelectionButton(this)"></span>            
         <span id="editPersonHitRun" class="menuButton bgHitRun" data-tippy-content="Doorrijden/vluchten" onclick="toggleSelectionButton(this)"></span>            
       </div>
@@ -570,5 +576,33 @@ function getFormEditUser(){
     </div>    
   </form>
 </div>
+HTML;
+}
+
+function getSearchPeriodHtml($onInputFunctionName = ''){
+  global $user;
+  $texts = $user->translateArray(['Always', 'Today', 'Yesterday', 'days', 'The_correspondent_week', 'Custom_period', 'Period', 'Start_date', 'End_date']);
+
+  $onInputFunction = $onInputFunctionName === ''? '' : $onInputFunctionName . '();';
+  $onInputSelect   = 'oninput="setCustomRangeVisibility();' . $onInputFunction . '"';
+  $onInputDates    = $onInputFunction? 'oninput="' . $onInputFunction . '"' : '';
+
+  return <<<HTML
+<div class="toolbarItem">
+  <select id="searchPeriod" class="searchInput" $onInputSelect data-tippy-content="{$texts['Period']}">
+    <option value="all" selected>{$texts['Always']}</option> 
+    <option value="today">{$texts['Today']}</option> 
+    <option value="yesterday">{$texts['Yesterday']}</option> 
+    <option value="7days">7 {$texts['days']}</option> 
+    <option value="30days">30 {$texts['days']}</option> 
+    <option value="decorrespondent">{$texts['The_correspondent_week']}</option> 
+    <option value="2019">2019</option> 
+    <option value="2020">2020</option>
+    <option value="custom">{$texts['Custom_period']}</option>          
+  </select>
+</div>
+
+<input id="searchDateFrom" class="searchInput toolbarItem" type="date" data-tippy-content="{$texts['Start_date']}" $onInputDates>
+<input id="searchDateTo" class="searchInput toolbarItem" type="date" data-tippy-content="{$texts['End_date']}" $onInputDates>
 HTML;
 }
