@@ -1531,7 +1531,7 @@ async function getArticleMetaData() {
     if (meta.title === '') showMessage('Tarantula heeft geen gegevens gevonden in de web pagina.', 30);
   }
 
-  let urlArticle = document.getElementById('editArticleUrl').value.trim();
+  const urlArticle = document.getElementById('editArticleUrl').value.trim();
   if (! urlArticle) {
     showError('Geen artikel link (URL) ingevuld');
     return;

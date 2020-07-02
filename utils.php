@@ -94,7 +94,7 @@ function getPageMediaMetaData($url){
     ],
     'http' => [
       'follow_location'  => true,
-      'header'           => "User-agent: Googlebot-News this is not\r\n" .
+      'header'           => "User-Agent: Googlebot-News this is not\r\n" .
         "Accept-Charset: UTF-8, *;q=0\r\n" .
         "Accept-Encoding: gzip\r\n"
     ],
@@ -110,7 +110,8 @@ function getPageMediaMetaData($url){
 
   $url = str_replace('//m.', '//www.', $url);
   $html = @file_get_contents($url, false, stream_context_create($arrContextOptions));
-  if ($html === false) throw new Exception("Kan link '$url' niet openen");
+  global $user;
+  if ($html === false) throw new Exception($user->translate('unable_to_load_url') . '<br>' . $url);
 
   // Convert GZIP content if needed
   if (headerContainsGZIP($http_response_header)) $html = gzdecode($html);

@@ -306,7 +306,7 @@ HTML;
 
 function getFormEditCrash(){
   global $user;
-  $texts = $user->translateArray(['add_article']);
+  $texts = $user->translateArray(['Article', 'Fetch_article']);
 
   return <<<HTML
 <div id="formEditCrash" class="popupOuter">
@@ -317,7 +317,7 @@ function getFormEditCrash(){
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
 
     <div id="editArticleSection" class="flexColumn">
-      <div class="formSubHeader">Artikel</div>
+      <div class="formSubHeader">{$texts['Article']}</div>
 
       <input id="articleIDHidden" type="hidden">
   
@@ -328,7 +328,7 @@ function getFormEditCrash(){
 
       <div style="display: flex;">
         <input id="editArticleUrl" class="popupInput" type="url" maxlength="1000" autocomplete="off">
-        <div class="button buttonLine" onclick="getArticleMetaData();">Artikel ophalen</div>
+        <div class="button buttonLine" onclick="getArticleMetaData();">{$texts['Fetch_article']}</div>
       </div>
   
       <div id="spinnerMeta" class="spiderBackground">
