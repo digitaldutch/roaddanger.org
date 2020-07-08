@@ -1,10 +1,9 @@
 <?php
 
-function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $addSearchBar=false, $showButtonAdd=false, $fullWindow=false){
+function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $addSearchBar=false, $showButtonAdd=false, $fullPage=false){
   global $VERSION;
-  global $user;
 
-  $title = $user->translate('The_crashes');
+  $title = translate('The_crashes');
   if ($pageTitle !== '') $title = $pageTitle . ' | ' . $title;
   $initScript = ($initFunction !== '')? "<script>document.addEventListener('DOMContentLoaded', $initFunction);</script>" : '';
   $navigation = getNavigation();
@@ -20,7 +19,7 @@ function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $addSearchB
 HTML;
   } else $cookieWarning = '';
 
-  $htmlClass = $fullWindow? ' class="fullWindow"' : '';
+  $htmlClass = $fullPage? ' class="fullWindow"' : '';
 
   $buttons = '';
   if ($addSearchBar)  $buttons .= '<div id="buttonSearch" class="menuButton bgSearch" onclick="toggleSearchBar(event);"></div>';
@@ -34,15 +33,17 @@ HTML;
     $languageOptions .= "<div onclick=\"setAccountLanguage('{$language['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url($bgImage);'></div>{$language['name']}</div>";
   }
 
-  $texts = $user->translateArray(['Log_out', 'Log_in', 'The_crashes', 'Account']);
+  $texts = translateArray(['Log_out', 'Log_in', 'The_crashes', 'Account']);
 
   $htmlSearchBar = $addSearchBar? getHtmlSearchBar() : '';
+
+  global $user;
 
   return <<<HTML
 <!DOCTYPE html>
 <html lang="$user->languageId" $htmlClass>
 <head>
-<link href="https://fonts.googleapis.com/css?family=Lora|Montserrat" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Lora|Montserrat"f rel="stylesheet">
 <link href="/main.css?v=$VERSION" rel="stylesheet" type="text/css">
 <link rel="shortcut icon" type="image/png" href="/images/hetongeluk.png">
 $head
@@ -107,8 +108,7 @@ HTML;
 }
 
 function getHtmlSearchBar(){
-  global $user;
-  $texts = $user->translateArray(['Humans', 'Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source']);
+  $texts = translateArray(['Humans', 'Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source']);
 
   $htmlSearchPeriod = getSearchPeriodHtml();
 
@@ -168,9 +168,7 @@ HTML;
 }
 
 function getHTMLConfirm(){
-  global $user;
-
-  $texts = $user->translateArray(['Confirm', 'Ok', 'Cancel']);
+  $texts = translateArray(['Confirm', 'Ok', 'Cancel']);
 
   $formConfirm = <<<HTML
 <div id="formConfirmOuter" class="popupOuter" style="z-index: 1000" onclick="closePopupForm();">
@@ -197,9 +195,8 @@ function getNavigation(){
 
   global $VERSION;
   global $VERSION_DATE;
-  global $user;
 
-  $texts = $user->translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Other', 'Recent_crashes',
+  $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Other', 'Recent_crashes',
     'Child_deaths', 'Mosaic', 'The_correspondent_week', 'Map', 'The_crashes', 'General', 'deadly_crashpartners',
     'Counterparty_fatal', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
     'Version']);
@@ -257,46 +254,49 @@ HTML;
 }
 
 function getLoginForm() {
+  $texts = translateArray(['Cancel', 'Email', 'Log_in_or_register', 'First_name', 'Last_name', 'Password', 'Confirm_password', 'Log_in',
+    'Register', 'Stay_logged_in', 'Forgot_password']);
+
   return <<<HTML
 <div id="formLogin" class="popupOuter">
   <form class="formFullPage" onclick="event.stopPropagation();" onsubmit="checkLogin(); return false;">
 
-    <div class="popupHeader">Log in of registreer</div>
+    <div class="popupHeader">{$texts['Log_in_or_register']}</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
     
     <div id="spinnerLogin" class="spinner"></div>
 
-    <label for="loginEmail">Email</label>
+    <label for="loginEmail">{$texts['Email']}</label>
     <input id="loginEmail" class="popupInput" type="email" autocomplete="email">
     
     <div id="divFirstName" class="displayNone flexColumn">
-      <label for="loginFirstName">Voornaam</label>
+      <label for="loginFirstName">{$texts['First_name']}</label>
       <input id="loginFirstName" class="popupInput" autocomplete="given-name" type="text">
     </div>
   
     <div id="divLastName" class="displayNone flexColumn">
-      <label for="loginLastName">Achternaam</label>
+      <label for="loginLastName">{$texts['Last_name']}</label>
       <input id="loginLastName" class="popupInput" autocomplete="family-name" type="text">
     </div>
     
-    <label for="loginPassword">Wachtwoord</label>
+    <label for="loginPassword">{$texts['Password']}</label>
     <input id="loginPassword" class="popupInput" type="password" autocomplete="current-password">
 
     <div id="divPasswordConfirm" class="displayNone flexColumn">
-      <label for="loginPasswordConfirm">Wachtwoord bevestigen</label>
+      <label for="loginPasswordConfirm">{$texts['Confirm_password']}</label>
       <input id="loginPasswordConfirm" class="popupInput" type="password" autocomplete="new-password">
     </div>   
     
-    <label><input id="stayLoggedIn" type="checkbox" checked>Ingelogd blijven</label>
+    <label><input id="stayLoggedIn" type="checkbox" checked>{$texts['Stay_logged_in']}</label>
 
     <div id="loginError" class="formError"></div>
 
     <div class="popupFooter">
-      <input id="buttonLogin" type="submit" class="button" style="margin-left: 0;" value="Log in">
-      <input id="buttonRegistreer" type="button" class="button buttonGray" value="Registreer" onclick="checkRegistration();">
-      <input type="button" class="button buttonGray" value="Annuleren" onclick="closePopupForm();">
+      <input id="buttonLogin" type="submit" class="button" style="margin-left: 0;" value="{$texts['Log_in']}">
+      <input id="buttonRegistreer" type="button" class="button buttonGray" value="{$texts['Register']}" onclick="checkRegistration();">
+      <input type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">
 
-      <span onclick="loginForgotPassword()" style="margin-left: auto; text-decoration: underline; cursor: pointer;">Wachtwoord vergeten</span>
+      <span onclick="loginForgotPassword()" style="margin-left: auto; text-decoration: underline; cursor: pointer;">{$texts['Forgot_password']}</span>
     </div>
     
   </form>
@@ -305,8 +305,10 @@ HTML;
 }
 
 function getFormEditCrash(){
-  global $user;
-  $texts = $user->translateArray(['Article', 'Fetch_article']);
+  $texts = translateArray(['Article', 'Crash', 'Fetch_article', 'Link_url', 'Title', 'Media_source', 'Summary',
+    'Photo_link_url', 'Same_as_article', 'Add_humans',
+    'Animals', 'Traffic_jam_disruption', 'One-sided_accident',
+    'Location', 'Characteristics', 'Save', 'Cancel']);
 
   return <<<HTML
 <div id="formEditCrash" class="popupOuter">
@@ -322,7 +324,7 @@ function getFormEditCrash(){
       <input id="articleIDHidden" type="hidden">
   
       <div class="labelDiv">
-        <label for="editArticleUrl">Link (URL)</label>
+        <label for="editArticleUrl">{$texts['Link_url']}</label>
         <span class="iconTooltip" data-tippy-content="Kopieer de link uit de adresbalk van de webpagina met het artikel"></span>
       </div>
 
@@ -337,16 +339,16 @@ function getFormEditCrash(){
         <div id="tarantulaResults"></div> 
       </div>
   
-      <label for="editArticleSiteName">Mediabron</label>
+      <label for="editArticleSiteName">{$texts['Media_source']}</label>
       <input id="editArticleSiteName" class="popupInput" type="text" maxlength="200" autocomplete="off" data-readonlyhelper>
      
-      <label for="editArticleTitle">Titel</label>
+      <label for="editArticleTitle">{$texts['Title']}</label>
       <input id="editArticleTitle" class="popupInput" type="text" maxlength="500" autocomplete="off" data-readonlyhelper>
   
-      <label for="editArticleText">Samenvatting</label>
+      <label for="editArticleText">{$texts['Summary']}</label>
       <textarea id="editArticleText" maxlength="500" style="height: 50px; resize: vertical;" class="popupInput" autocomplete="off" data-readonlyhelper></textarea>
    
-      <label for="editArticleUrlImage">Foto link (URL)</label>
+      <label for="editArticleUrlImage">{$texts['Photo_link_url']}</label>
       <input id="editArticleUrlImage" class="popupInput" type="url" maxlength="1000" autocomplete="off" data-readonlyhelper>
       
       <label for="editArticleDate">Publicatiedatum</label>
@@ -360,15 +362,15 @@ function getFormEditCrash(){
     </div>
 
     <div id="editCrashSection" class="flexColumn">
-      <div class="formSubHeader">Ongeluk</div>
+      <div class="formSubHeader">{$texts['Crash']}</div>
      
       <input id="crashIDHidden" type="hidden">
   
       <div data-hidehelper class="flexColumn">
-        <label for="editCrashTitle">Titel ongeluk</label> 
+        <label for="editCrashTitle">{$texts['Title']}</label> 
         <div style="display: flex;">
           <input id="editCrashTitle" class="popupInput" type="text" maxlength="500" autocomplete="off" data-readonlyhelper>
-          <span data-hideedit class="button buttonGray buttonLine" onclick="copyCrashInfoFromArticle();">Zelfde als artikel</span>
+          <span data-hideedit class="button buttonGray buttonLine" onclick="copyCrashInfoFromArticle();">{$texts['Same_as_article']}</span>
         </div>
   
         <label for="editCrashText">Tekst</label>
@@ -381,26 +383,26 @@ function getFormEditCrash(){
       </div>
       <div style="display: flex;">
         <input id="editCrashDate" class="popupInput" type="date" autocomplete="off">
-        <span data-hideedit class="button buttonGray buttonLine" onclick="copyCrashDateFromArticle();" ">Zelfde als artikel</span>
+        <span data-hideedit class="button buttonGray buttonLine" onclick="copyCrashDateFromArticle();" ">{$texts['Same_as_article']}</span>
       </div>
           
       <div style="margin-top: 5px;">
-        <div>Betrokken mensen <span class="button buttonGray buttonLine" onclick="showEditPersonForm();">Mensen toevoegen</span></div>   
+        <div>Betrokken mensen <span class="button buttonGray buttonLine" onclick="showEditPersonForm();">{$texts['Add_humans']}</span></div>   
         <div id="editCrashPersons"></div>
       </div>
 
       <div style="margin-top: 5px;">
-        <div>Kenmerken van ongeluk</div>
+        <div>{$texts['Characteristics']}</div>
         <div>
-          <span id="editCrashUnilateral" class="menuButton bgUnilateral" data-tippy-content="Eenzijdig ongeluk" onclick="toggleSelectionButton(this);"></span>      
-          <span id="editCrashPet" class="menuButton bgPet" data-tippy-content="Dier(en)" onclick="toggleSelectionButton(this);"></span>      
-          <span id="editCrashTrafficJam" class="menuButton bgTrafficJam" data-tippy-content="File/Hinder" onclick="toggleSelectionButton(this);"></span>      
+          <span id="editCrashUnilateral" class="menuButton bgUnilateral" data-tippy-content="{$texts['One-sided_accident']}" onclick="toggleSelectionButton(this);"></span>      
+          <span id="editCrashPet" class="menuButton bgPet" data-tippy-content="{$texts['Animals']}" onclick="toggleSelectionButton(this);"></span>      
+          <span id="editCrashTrafficJam" class="menuButton bgTrafficJam" data-tippy-content="{$texts['Traffic_jam_disruption']}" onclick="toggleSelectionButton(this);"></span>      
           <span id="editCrashTree" style="display: none;" class="menuButton bgTree" data-tippy-content="Boom/Paal" onclick="toggleSelectionButton(this);"></span>
         </div>
       </div>
       
       <div style="margin-top: 5px;">
-        <div>Locatie <span class="smallFont">(Optioneel)</span> <span class="iconTooltip" data-tippy-content="Optioneel, omdat het lastig is om deze uit tekst of foto's te halen. Klik op kaart om een locatie te selecteren. Klik marker om locatie te verwijderen. Sleep marker om locatie aan te passen."></span></div>
+        <div>{$texts['Location']} <span class="smallFont">(Optioneel)</span> <span class="iconTooltip" data-tippy-content="Optioneel, omdat het lastig is om deze uit tekst of foto's te halen. Klik op kaart om een locatie te selecteren. Klik marker om locatie te verwijderen. Sleep marker om locatie aan te passen."></span></div>
             
         <label for="editArticleDate">Breedtegraad: <input id="editCrashLatitude" class="popupInput" type="number" style="width: 85px;"></label>        
         <label for="editArticleDate">Lengtegraad: <input id="editCrashLongitude" class="popupInput" type="number" style="width: 85px;"></label>
@@ -411,8 +413,8 @@ function getFormEditCrash(){
     </div>
             
     <div class="popupFooter">
-      <input id="buttonSaveArticle" type="button" class="button" value="Opslaan" onclick="saveArticleCrash();">
-      <input type="button" class="button buttonGray" value="Annuleren" onclick="closePopupForm();">
+      <input id="buttonSaveArticle" type="button" class="button" value="{$texts['Save']}" onclick="saveArticleCrash();">
+      <input type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">
     </div>    
   </form>
   
@@ -439,6 +441,9 @@ HTML;
 }
 
 function getFormMergeCrash(){
+
+  $texts = translateArray(['Cancel']);
+
   return <<<HTML
 <div id="formMergeCrash" class="popupOuter" onclick="closePopupForm();">
 
@@ -487,7 +492,7 @@ function getFormMergeCrash(){
             
     <div class="popupFooter">
       <input id="buttonMergeArticle" type="button" class="button" value="Voeg samen" onclick="mergeCrash();">
-      <input type="button" class="button buttonGray" value="Annuleren" onclick="closePopupForm();">
+      <input type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">
     </div>    
   </form>
   
@@ -496,9 +501,7 @@ HTML;
 }
 
 function getFormEditPerson(){
-  global $user;
-
-  $texts = $user->translateArray(['Transportation_mode', 'Child', 'Injury']);
+  $texts = translateArray(['Transportation_mode', 'Characteristics', 'Child', 'Intoxicated', 'Drive_on_or_flee', 'Injury']);
 
   return <<<HTML
 <div id="formEditPerson" class="popupOuter" style="z-index: 501;" onclick="closeEditPersonForm();">
@@ -521,11 +524,11 @@ function getFormEditPerson(){
     </div>
 
     <div style="margin-top: 5px;">
-      <div>Kenmerken</div> 
+      <div>{$texts['Characteristics']}</div> 
       <div>
         <span id="editPersonChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="toggleSelectionButton(this)"></span>            
-        <span id="editPersonUnderInfluence" class="menuButton bgAlcohol" data-tippy-content="Onder invloed" onclick="toggleSelectionButton(this)"></span>            
-        <span id="editPersonHitRun" class="menuButton bgHitRun" data-tippy-content="Doorrijden/vluchten" onclick="toggleSelectionButton(this)"></span>            
+        <span id="editPersonUnderInfluence" class="menuButton bgAlcohol" data-tippy-content="{$texts['Intoxicated']}" onclick="toggleSelectionButton(this)"></span>            
+        <span id="editPersonHitRun" class="menuButton bgHitRun" data-tippy-content="{$texts['Drive_on_or_flee']}" onclick="toggleSelectionButton(this)"></span>            
       </div>
     </div>
             
@@ -542,37 +545,41 @@ HTML;
 }
 
 function getFormEditUser(){
+
+  $texts = translateArray(['Save', 'Cancel', 'Helper', 'Moderator', 'Administrator', 'Email', 'First_name',
+    'Last_name', 'Permission']);
+
   return
     <<<HTML
 <div id="formEditUser" class="popupOuter" onclick="closePopupForm();">
   <form class="formFullPage" onclick="event.stopPropagation();">
     
-    <div id="editHeader" class="popupHeader">Mens gegevens aanpassen</div>
+    <div id="editHeader" class="popupHeader">Mens aanpassen</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
 
     <input id="userID" type="hidden">
 
-    <label for="userEmail">Email</label>
+    <label for="userEmail">{$texts['Email']}</label>
     <input id="userEmail" class="inputForm" style="margin-bottom: 10px;" type="text"">
       
-    <label for="userFirstName">Voornaam</label>
+    <label for="userFirstName">{$texts['First_name']}</label>
     <input id="userFirstName" class="inputForm" style="margin-bottom: 10px;" type="text"">
   
-    <label for="userLastName">Achternaam</label>
+    <label for="userLastName">{$texts['Last_name']}</label>
     <input id="userLastName" class="inputForm" style="margin-bottom: 10px;" type="text"">
 
-    <label for="userPermission">Permissie</label>
+    <label for="userPermission">{$texts['Permission']}</label>
     <select id="userPermission">
-      <option value="0">Helper (ongelukken worden gemodereerd)</option>
-      <option value="2">Moderator (kan alle ongelukken bewerken)</option>
-      <option value="1">Beheerder</option>
+      <option value="0">{$texts['Helper']} (ongelukken worden gemodereerd)</option>
+      <option value="2">{$texts['Moderator']} (kan alle ongelukken bewerken)</option>
+      <option value="1">{$texts['Administrator']}</option>
     </select>
     
     <div id="editUserError" class="formError"></div>
    
     <div class="popupFooter">
-      <input type="button" class="button" value="Opslaan" onclick="saveUser();">
-      <input type="button" class="button buttonGray" value="Annuleren" onclick="closePopupForm();">
+      <input type="button" class="button" value="{$texts['Save']}" onclick="saveUser();">
+      <input type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">
     </div>    
   </form>
 </div>
@@ -580,8 +587,7 @@ HTML;
 }
 
 function getSearchPeriodHtml($onInputFunctionName = ''){
-  global $user;
-  $texts = $user->translateArray(['Always', 'Today', 'Yesterday', 'days', 'The_correspondent_week', 'Custom_period', 'Period', 'Start_date', 'End_date']);
+  $texts = translateArray(['Always', 'Today', 'Yesterday', 'days', 'The_correspondent_week', 'Custom_period', 'Period', 'Start_date', 'End_date']);
 
   $onInputFunction = $onInputFunctionName === ''? '' : $onInputFunctionName . '();';
   $onInputSelect   = 'oninput="setCustomRangeVisibility();' . $onInputFunction . '"';

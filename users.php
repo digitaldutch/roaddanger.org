@@ -155,6 +155,8 @@ class TUser{
       foreach ($this->translations as $key => $english) {
         $textLanguage = trim($translationsLanguage[$key]);
 
+        // Translations that doe not exist yet are replaced with the English text and
+        // marked with an * to indicate that a translation is needed.
         if (! empty($textLanguage)) $this->translations[$key] = $textLanguage;
         else $this->translations[$key] .= '*';
       }
@@ -376,17 +378,10 @@ SQL;
 
     $this ->getTranslations();
 
+    // Unknown keys are marked with double **. Indicating that the developers should add them to the translations table.
     $text = $this->translations[$lowerKey]?? $key . '**';
 
     return $lowerKey === $key? $text : $this->firstCharacterUpper($text);
-  }
-
-  public function translateArray($keys){
-    $texts = [];
-
-    foreach ($keys as $key) $texts[$key] = $this->translate($key);
-
-    return $texts;
   }
 
 }

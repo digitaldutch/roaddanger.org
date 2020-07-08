@@ -1,8 +1,9 @@
 let spinnerLoad;
 
-function initAdmin(){
+async function initAdmin(){
   spinnerLoad = document.getElementById('spinnerLoad');
-  initPage();
+
+  await loadUserData();
 
   const url = new URL(location.href);
   if (url.pathname.startsWith('/admin/mensen')) {
@@ -15,10 +16,6 @@ function initAdmin(){
       const modifiedTexts = tableData.filter(d => d.modified === true);
       if (modifiedTexts.length > 0) return 'Leave site?.';
     };
-
-    function confirmExit() {
-      return "You have attempted to leave this page. Are you sure?";
-    }
 
     loadTranslations();
   }
@@ -54,7 +51,6 @@ async function loadUsers(){
     const url = '/admin/ajax.php?function=loadUsers&count=' + maxLoadCount + '&offset=' + tableData.length;
     response  = await fetchFromServer(url);
 
-    if (response.user)  updateLoginGUI(response.user);
     if (response.error) showError(response.error);
     else {
       response.users.forEach(user => {
@@ -210,10 +206,7 @@ async function loadTranslations(){
     const url = '/admin/ajaxModerator.php?function=loadTranslations';
     response = await fetchFromServer(url);
 
-    if (response.user)  {
-      updateLoginGUI(response.user);
-      document.getElementById('translationLanguage').innerText = '(' + user.language + ')';
-    }
+    document.getElementById('translationLanguage').innerText = '(' + user.language + ')';
 
     if (response.error) showError(response.error);
     else {

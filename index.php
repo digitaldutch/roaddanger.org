@@ -68,7 +68,7 @@ HTML;
 } else if ($pageType === PageType::childDeaths) {
 
   $showButtonAdd = true;
-  $texts = $user->translateArray(['Child_deaths', 'Injury', 'Dead_(adjective)', 'Injured']);
+  $texts = translateArray(['Child_deaths', 'Injury', 'Dead_(adjective)', 'Injured']);
 
   $mainHTML = <<<HTML
 <div class="pageInner">
@@ -117,7 +117,7 @@ HTML;
 
 } else if ($pageType === PageType::statisticsCrashPartners) {
 
-  $texts = $user->translateArray(['Counterparty_fatal', 'Always', 'days', 'the_correspondent_week', 'Custom_period', 'Child']);
+  $texts = translateArray(['Counterparty_fatal', 'Always', 'days', 'the_correspondent_week', 'Custom_period', 'Child']);
 
   $htmlSearchPeriod = getSearchPeriodHtml('loadStatistics');
 
@@ -160,8 +160,8 @@ HTML;
 
 } else if ($pageType === PageType::statisticsTransportationModes) {
 
-  $texts = $user->translateArray(['Statistics', 'Transportation_modes', 'Transportation_mode', 'Child',
-    'Dead_(adjective)', 'Injured', 'Unharmed', 'Unknown']);
+  $texts = translateArray(['Statistics', 'Transportation_modes', 'Transportation_mode', 'Child', 'Intoxicated',
+    'Drive_on_or_flee', 'Dead_(adjective)', 'Injured', 'Unharmed', 'Unknown']);
 
   $htmlSearchPeriod = getSearchPeriodHtml('loadStatistics');
 
@@ -190,8 +190,8 @@ HTML;
           <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnharmed" data-tippy-content="Ongedeerd"></div> <div  class="hideOnMobile">{$texts['Unharmed']}</div></div></th>
           <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnknown" data-tippy-content="Onbekend"></div> <div  class="hideOnMobile">{$texts['Unknown']}</div></div></th>
           <th style="text-align: right;"><div class="iconSmall bgChild" data-tippy-content="{$texts['Child']}"></div></th>
-          <th style="text-align: right;"><div class="iconSmall bgAlcohol" data-tippy-content="Onder invloed"></div></th>
-          <th style="text-align: right;"><div class="iconSmall bgHitRun" data-tippy-content="Doorrijden/vluchten"></div></th>
+          <th style="text-align: right;"><div class="iconSmall bgAlcohol" data-tippy-content="{$texts['Intoxicated']}"></div></th>
+          <th style="text-align: right;"><div class="iconSmall bgHitRun" data-tippy-content="{$texts['Drive_on_or_flee']}"></div></th>
         </tr>
       </thead>  
       <tbody id="tableStatsBody">
@@ -258,10 +258,10 @@ HTML;
 
   $title = '';
   switch ($pageType){
-    case PageType::stream:          $title = 'Laatst gewijzigde ongelukken'; break;
-    case PageType::deCorrespondent: $title = 'De Correspondent week<br>14 t/m 20 januari 2019'; break;
-    case PageType::moderations:     $title = 'Moderaties'; break;
-    case PageType::recent:          $title = $user->translate('Recent_crashes'); break;
+    case PageType::stream:          $title = translate('Last_modified_crashes'); break;
+    case PageType::deCorrespondent: $title = translate('The_correspondent_week') . '<br>14 t/m 20 januari 2019'; break;
+    case PageType::moderations:     $title = translate('Moderations'); break;
+    case PageType::recent:          $title = translate('Recent_crashes'); break;
   }
 
   $introText = "<div id='pageSubTitle' class='pageSubTitle'>$title</div>";

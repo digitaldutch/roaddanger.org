@@ -21,9 +21,8 @@ if ($function === 'loadTranslations') {
     ksort($translationsEnglish);
 
     $user->getTranslations();
-    $result = ['ok' => true, 'translationsEnglish' => $translationsEnglish];
-    $result['user'] = $user->info();
 
+    $result = ['ok' => true, 'translationsEnglish' => $translationsEnglish];
   } catch (Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }

@@ -119,6 +119,12 @@ a:hover {
   padding:   5px 10px;
 }
 
+.scrollPage {
+  display:        flex;
+  flex-direction: column;
+  overflow:       auto;
+}
+
 .cardCrashList {
   position:         relative;
   background-color: #ffffff;
@@ -354,7 +360,6 @@ a:hover {
   position:         fixed;
   top:              0;
   width:            100%;
-  min-height:       40px;
   background-color: #fff;
   z-index:          200;
 }
@@ -1170,6 +1175,12 @@ html.fullWindow #pageBar {
 
 .dataTable input[type='checkbox']{
   margin: 0 2px;
+}
+
+.panelTableOverflow {
+  overflow:  auto;
+  flex-grow: 1;
+  padding:   0 5px;
 }
 
 .td400 {

@@ -19,7 +19,8 @@ if ($pageType === 'account') {
     $languageOptions .= "<option value='{$language['id']}' {$selected}>{$language['name']}</option>";
   }
 
-  $texts = $user->translateArray(['First_name', 'Last_name', 'Email', 'New_password', 'Confirm_password', 'Settings', 'Language']);
+  $texts = translateArray(['First_name', 'Last_name', 'Email', 'New_password', 'Confirm_password', 'Settings',
+    'Language', 'Save']);
 
   $htmlMain = <<<HTML
   <div class="pageSubTitle">Account</div>
@@ -53,7 +54,7 @@ if ($pageType === 'account') {
     </label>
     
     <div class="buttonBar">
-      <input type="submit" class="button" style="margin-left: 0;" value="Opslaan">
+      <input type="submit" class="button" style="margin-left: 0;" value="{$texts['Save']}">
     </div>
 
   </form>  
@@ -63,22 +64,24 @@ HTML;
   $email      = $_REQUEST['email']? $_REQUEST['email'] : null;
   $recoveryId = $_REQUEST['recoveryid']? $_REQUEST['recoveryid'] : null;
 
+  $texts = translateArray(['Save', 'Reset_password', 'New_password']);
+
   if (isset($email) && isset($recoveryId)){
     $htmlMain = <<<HTML
   <div>
-    <div class="popupHeader">Reset wachtwoord</div>
+    <div class="popupHeader">{$texts['Reset_password']}</div>
     
     <div id="spinnerReset" class="spinner"></div>
 
     <input id="recoveryid" type="hidden" value="$recoveryId">
     <input id="email" type="hidden" value="$email">
 
-    <label for="newPassword">Nieuw wachtwoord</label>
+    <label for="newPassword">{$texts['New_password']}</label>
     <input id="newPassword" class="popupInput" type="password" autocomplete="current-password">
 
     <div id="loginError" class="formError"></div>
     <div class="popupFooter">
-      <input id="buttonLogin" type="button" class="button" value="Opslaan" onclick="saveNewPassword();">
+      <input id="buttonLogin" type="button" class="button" value="{$texts['Save']}" onclick="saveNewPassword();">
     </div>
   </div>
 HTML;

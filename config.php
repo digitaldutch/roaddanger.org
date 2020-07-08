@@ -1,7 +1,7 @@
 <?php
 
-$VERSION      = 333;
-$VERSION_DATE = '2 juli 2020';
+$VERSION      = 335;
+$VERSION_DATE = '8 juli 2020';
 
 require_once 'configsecret.php';
 
@@ -17,7 +17,7 @@ const DOMAIN_NAME   = 'hetongeluk.nl';
 const DOMAIN_EMAIL  = 'info@hetongeluk.nl';
 const SERVER_DOMAIN = 'https://www.' . DOMAIN_NAME;
 
-// Default interface language. Default is English except for local domain names like "hetongeluk.nl"
+// Default interface language. Default is English except for Dutch name containing "hetongeluk.nl"
 $domain = $_SERVER['SERVER_NAME'];
 if (strpos($domain, 'hetongeluk') !== false) $language = 'nl';
 else $language = 'en';

@@ -42,11 +42,6 @@ SQL;
     }
 
     $result = ['ok' => true, 'users' => $users];
-    if ($offset === 0) {
-      $user->getTranslations();
-      $result['user'] = $user->info();
-    }
-
   } catch (Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }

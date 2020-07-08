@@ -150,7 +150,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     xMouse = xMouse * scaleFactor + 25;
     yMouse = yMouse * scaleFactor - 25;
 
-    const modeText = data.partnerMode === -1? 'Eenzijdig ongeluk' : translate('Counterparty') + ': ' + transportationModeText(data.partnerMode);
+    const modeText = data.partnerMode === -1? translate('One-sided_accident') : translate('Counterparty') + ': ' + transportationModeText(data.partnerMode);
     let html = modeText + '<br>';
     html += `${data.value}&nbsp${transportationModeText(data.victimMode)}&nbsp`;
     html += data.value === 1? translate('dead_(single)') : translate('dead_(multiple)');

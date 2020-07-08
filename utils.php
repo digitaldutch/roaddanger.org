@@ -15,6 +15,20 @@ abstract class PageType {
   const childDeaths                   = 11;
 }
 
+
+function translate($key){
+  global $user;
+  return $user->translate($key);
+}
+
+function translateArray($keys){
+  $texts = [];
+
+  foreach ($keys as $key) $texts[$key] = translate($key);
+
+  return $texts;
+}
+
 function getCallerIP(){
   return (isset($_SERVER["REMOTE_ADDR"]))? $_SERVER["REMOTE_ADDR"] : '';
 }
@@ -110,8 +124,8 @@ function getPageMediaMetaData($url){
 
   $url = str_replace('//m.', '//www.', $url);
   $html = @file_get_contents($url, false, stream_context_create($arrContextOptions));
-  global $user;
-  if ($html === false) throw new Exception($user->translate('unable_to_load_url') . '<br>' . $url);
+
+  if ($html === false) throw new Exception(translate('unable_to_load_url') . '<br>' . $url);
 
   // Convert GZIP content if needed
   if (headerContainsGZIP($http_response_header)) $html = gzdecode($html);

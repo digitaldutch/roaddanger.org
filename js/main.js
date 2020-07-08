@@ -1028,10 +1028,10 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
 
 function getCrashTopIcons(crash, allowClick=false){
   let html = '';
-  if (crash.unilateral)                  html += '<div class="iconSmall bgUnilateral" data-tippy-content="Eenzijdig ongeluk"></div>';
-  if (crash.pet)                         html += '<div class="iconSmall bgPet"  data-tippy-content="Dier(en)"></div>';
-  if (crash.trafficjam)                  html += '<div class="iconSmall bgTrafficJam"  data-tippy-content="File/Hinder"></div>';
-  if (crash.longitude && crash.latitude) html += '<div class="iconSmall bgGeo" data-tippy-content="Locatie bekend"></div>';
+  if (crash.unilateral)                  html += `<div class="iconSmall bgUnilateral" data-tippy-content="${translate('One-sided_accident')}"></div>`;
+  if (crash.pet)                         html += `<div class="iconSmall bgPet"  data-tippy-content="${translate('Animals')}"></div>`;
+  if (crash.trafficjam)                  html += `<div class="iconSmall bgTrafficJam"  data-tippy-content="${translate('Traffic_jam_disruption')}"></div>`;
+  if (crash.longitude && crash.latitude) html += `<div class="iconSmall bgGeo" data-tippy-content="${translate('Location_known')}"></div>`;
 
   if (html){
     const htmlClick   = allowClick? '' : 'onclick="stopPropagation();"';
@@ -1062,8 +1062,8 @@ function getCrashButtonsHTML(crash, showAllHealth=true, allowClick=false) {
       let tooltip = translate('human') + ' ' + person.id +
         '<br>' + translate('Injury') + ': ' + healthText(person.health);
       if (person.child)          tooltip += '<br>' + translate('Child');
-      if (person.underinfluence) tooltip += '<br>Onder invloed';
-      if (person.hitrun)         tooltip += '<br>Doorrijden/vluchten';
+      if (person.underinfluence) tooltip += '<br>' + translate('Intoxicated');
+      if (person.hitrun)         tooltip += '<br>' + translate('Drive_on_or_flee');
 
       const showHealth = showAllHealth || healthVisible(person.health);
       let htmlPerson = '';
@@ -1140,7 +1140,7 @@ function showEditCrashForm() {
   }
 
   document.getElementById('editHeader').innerText       = 'Nieuw artikel en ongeluk toevoegen';
-  document.getElementById('buttonSaveArticle').value    = 'Opslaan';
+  document.getElementById('buttonSaveArticle').value    = translate('Save');
   document.getElementById('crashIDHidden').value        = '';
   document.getElementById('articleIDHidden').value      = '';
 
@@ -1202,7 +1202,7 @@ function showEditPersonForm(personID=null) {
   closeAllPopups();
   const person = getPersonFromID(personID);
 
-  document.getElementById('editPersonHeader').innerText       = person? 'Mens bewerken' : 'Nieuw mens toevoegen';
+  document.getElementById('editPersonHeader').innerText       = person? 'Mens bewerken' : translate('Add_humans');
   document.getElementById('personIDHidden').value             = person? person.id : '';
   document.getElementById('buttonDeletePerson').style.display = person? 'inline-flex' : 'none';
 
@@ -1333,8 +1333,8 @@ function refreshCrashPersonsGUI(persons=[]) {
     const iconHealth         = healthIcon(person.health);
     let buttonsOptions = '';
     if (person.child)          buttonsOptions += `<div class="iconSmall bgChild" data-tippy-content="${translate('Child')}"></div>`;
-    if (person.underinfluence) buttonsOptions += '<div class="iconSmall bgAlcohol" data-tippy-content="Onder invloed"></div>';
-    if (person.hitrun)         buttonsOptions += '<div class="iconSmall bgHitRun" data-tippy-content="Doorrijden/vluchten"></div>';
+    if (person.underinfluence) buttonsOptions += `<div class="iconSmall bgAlcohol" data-tippy-content="${translate('Intoxicated')}"></div>`;
+    if (person.hitrun)         buttonsOptions += `<div class="iconSmall bgHitRun" data-tippy-content="${translate('Drive_on_or_flee')}"></div>`;
 
     html += `<div class="editCrashPerson" onclick="showEditPersonForm(${person.id});">
 ${iconHealth} ${iconTransportation} ${buttonsOptions}
@@ -1397,8 +1397,8 @@ function editArticle(crashID, articleID) {
 
   const article = getArticleFromID(articleID);
 
-  document.getElementById('editHeader').innerText           = 'Artikel bewerken';
-  document.getElementById('buttonSaveArticle').value        = 'Opslaan';
+  document.getElementById('editHeader').innerText           = translate('Edit_article');
+  document.getElementById('buttonSaveArticle').value        = translate('Save');
 
   document.getElementById('articleIDHidden').value          = article? article.id : '';
 
@@ -1497,11 +1497,12 @@ async function articleModerateOK(articleID) {
 }
 
 function domainBlacklisted(url){
-  let domainBlacklist = [
-    {domain: 'assercourant.nl',   reason: 'Website staat foto embedding niet toe wegens buggy cookie firewall (Dec 2018).'},
+  const domainBlacklist = [
+    // {domain: 'assercourant.nl',   reason: 'Website staat foto embedding niet toe wegens buggy cookie firewall (Dec 2018).'}, // JDNOTE 8-7-2020 looks like it is working again
     {domain: 'drimble.nl',        reason: 'Drimble is geen media website, maar een nieuws verzamelwebsite. Zoek de bron op de drimble.nl pagina en plaats die.'},
-    {domain: 'onswestbrabant.nl', reason: 'Website staat vol met buggy tags (Dec 2018).'},
+    {domain: 'onswestbrabant.nl', reason: 'Website staat vol met buggy tags (Dec 2018). Zoek een andere bron.'},
   ];
+
   return domainBlacklist.find(d => url.includes(d.domain));
 }
 
@@ -2071,7 +2072,7 @@ function initSearchBar(){
   <span id="searchDeadTm${transportationMode}" class="searchIcon bgDead" data-tippy-content="Dood" onclick="searchPersonOptionClick(event, 'Dead', ${transportationMode});"></span>      
   <span id="searchInjuredTm${transportationMode}" class="searchIcon bgInjured" data-tippy-content="Gewond" onclick="searchPersonOptionClick(event, 'Injured', ${transportationMode});"></span>      
   <span id="searchRestrictedTm${transportationMode}" data-personRestricted class="searchIcon ${iconTransportationMode} mirrorHorizontally" data-tippy-content="Tegenpartij was ook ${text}" onclick="searchPersonOptionClick(event, 'Restricted', ${transportationMode});"></span>      
-  <span id="searchUnilateralTm${transportationMode}" data-personUnilateral class="searchIcon bgUnilateral" data-tippy-content="Eenzijdig ongeluk" onclick="searchPersonOptionClick(event, 'Unilateral', ${transportationMode});"></span>      
+  <span id="searchUnilateralTm${transportationMode}" data-personUnilateral class="searchIcon bgUnilateral" data-tippy-content="${translate('One-sided_accident')}" onclick="searchPersonOptionClick(event, 'Unilateral', ${transportationMode});"></span>      
 </div>`;
   }
 
@@ -2170,7 +2171,7 @@ function updateTransportationModeFilterInput(){
 
       const unilateralSelected = document.getElementById('searchUnilateralTm' + transportationMode).classList.contains('inputSelectButtonSelected');
       if (unilateralSelected){
-        html += `<span class="searchDisplayIcon bgUnilateral" data-tippy-content="Eenzijdig ongeluk"></span>`;
+        html += `<span class="searchDisplayIcon bgUnilateral" data-tippy-content="${translate('One_sided_accident')}"></span>`;
       }
 
       html += '</span>';
@@ -2406,6 +2407,7 @@ function showMapEdit(latitude, longitude) {
         accessToken: mapboxgl.accessToken,
         mapboxgl:    mapboxgl,
         clearOnBlur: true,
+        marker:      false,
       })
     ).on('click', (e) => {
       saveMarkerPosition(e.lngLat);
