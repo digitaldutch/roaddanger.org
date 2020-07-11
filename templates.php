@@ -156,7 +156,7 @@ function getHTMLEnd($htmlEnd='', $flexFullPage=false){
   $forms    = getHTMLConfirm() . getLoginForm() . getFormCrash() . getFormEditCrash() . getFormMergeCrash() . getFormEditPerson();
   return <<<HTML
     $htmlEnd 
-    <div id="floatingMessage" onclick="hideMessage();">
+    <div id="floatingMessage" onclick="closeMessage();">
       <div id="messageCloseCross" class="popupCloseCross crossWhite"></div>
       <div id="messageText"></div>
     </div>
@@ -171,17 +171,17 @@ function getHTMLConfirm(){
   $texts = translateArray(['Confirm', 'Ok', 'Cancel']);
 
   $formConfirm = <<<HTML
-<div id="formConfirmOuter" class="popupOuter" style="z-index: 1000" onclick="closePopupForm();">
+<div id="formConfirmOuter" class="popupOuter" style="z-index: 1000" onclick="closeConfirm();">
   <form id="formConfirm" class="floatingForm" onclick="event.stopPropagation();">
 
     <div id="confirmHeader" class="popupHeader">{$texts['Confirm']}</div>
-    <div class="popupCloseCross" onclick="closePopupForm();"></div>
+    <div class="popupCloseCross" onclick="closeConfirm();"></div>
 
     <div id="confirmText" class="textMessage"></div>
 
     <div class="popupFooter">
       <button id="buttonConfirmOK" class="button" type="submit" autofocus>{$texts['Ok']}</button>
-      <button id="buttonConfirmCancel" class="button buttonGray" type="button" onclick="closePopupForm();">{$texts['Cancel']}</button>
+      <button id="buttonConfirmCancel" class="button buttonGray" type="button" onclick="closeConfirm();">{$texts['Cancel']}</button>
     </div>    
 
   </form>

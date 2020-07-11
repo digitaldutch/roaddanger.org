@@ -184,10 +184,10 @@ function showMessage(text, secondsVisible=3, errorMessage=false) {
 
   divForm.style.display = 'flex';
 
-  if (secondsVisible !== -1) showMessage.timeoutMessage = setTimeout(hideMessage, secondsVisible * 1000);
+  if (secondsVisible !== -1) showMessage.timeoutMessage = setTimeout(closeMessage, secondsVisible * 1000);
 }
 
-function hideMessage() {
+function closeMessage() {
   let div = document.getElementById('floatingMessage');
   div.style.display = 'none';
   div.classList.remove('errorMessage');
@@ -212,10 +212,14 @@ function confirmMessage(text, okCallback, buttonOKText=translate('ok'), header=t
   document.getElementById('buttonConfirmOK').innerText              = buttonOKText;
   document.getElementById('buttonConfirmCancel').style.display      = 'inline-block';
   document.getElementById('buttonConfirmOK').onclick = function(){
-    hideElement('formConfirmOuter');
+    closeConfirm();
     okCallback();
     return false; // Prevent closing window
   };
+}
+
+function closeConfirm() {
+  hideElement('formConfirmOuter');
 }
 
 function escapeHtml(text) {
@@ -253,7 +257,7 @@ function inputDateToISO8601(inputDate){
 function closePopupForm() {
   document.querySelectorAll('.popupOuter').forEach(form => {if (form.style.display === 'flex') form.style.display = 'none';});
   closeAllPopups();
-  hideMessage();
+  closeMessage();
 }
 
 function closeAllPopups() {
@@ -278,7 +282,7 @@ function is_valid_url(url) {
 }
 
 function showLoginForm(){
-  hideMessage();
+  closeMessage();
   document.getElementById('loginError').style.display   = 'none';
   document.getElementById('spinnerLogin').style.display = 'none';
   document.getElementById('formLogin').style.display    = 'flex';
@@ -290,7 +294,7 @@ function showLoginError(text) {
 }
 
 async function logOut() {
-  hideMessage();
+  closeMessage();
   const url  = "/ajax.php?function=logout";
   const user = await fetchFromServer(url);
   if (! user.loggedin) {

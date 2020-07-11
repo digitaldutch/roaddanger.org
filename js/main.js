@@ -955,7 +955,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   }
 
   const htmlTopIcons = getCrashTopIcons(crash);
-  let titleSmall     = translate('edited_by') + ' ' + crash.user;
+  let titleSmall     = translate('created_by') + ' ' + crash.user;
   let titleModified  = '';
   if (crash.streamtopuser) {
     switch (crash.streamtoptype) {
