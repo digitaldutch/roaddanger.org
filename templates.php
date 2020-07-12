@@ -306,7 +306,8 @@ HTML;
 
 function getFormEditCrash(){
   $texts = translateArray(['Article', 'Crash', 'Fetch_article', 'Link_url', 'Title', 'Media_source', 'Summary',
-    'Photo_link_url', 'Same_as_article', 'Add_humans',
+    'Full_text',
+    'Photo_link_url', 'Same_as_article', 'Add_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
     'Animals', 'Traffic_jam_disruption', 'One-sided_accident',
     'Location', 'Characteristics', 'Save', 'Cancel']);
 
@@ -351,11 +352,11 @@ function getFormEditCrash(){
       <label for="editArticleUrlImage">{$texts['Photo_link_url']}</label>
       <input id="editArticleUrlImage" class="popupInput" type="url" maxlength="1000" autocomplete="off" data-readonlyhelper>
       
-      <label for="editArticleDate">Publicatiedatum</label>
+      <label for="editArticleDate">{$texts['Publication_date']}</label>
       <input id="editArticleDate" class="popupInput" type="date" autocomplete="off">
 
       <div class="labelDiv">
-        <label for="editArticleAllText">Volledige artikel tekst (niet verplicht, maar...)</label>
+        <label for="editArticleAllText">{$texts['Full_text']}</label>
         <span class="iconTooltip" data-tippy-content="Niet verplicht, maar zeer nuttig voor onze tekstanalyses. De tekst moet nu nog handmatig gekopieerd worden. Onze dank is groot als je dat wilt doen."></span>
       </div>
       <textarea id="editArticleAllText" maxlength="10000" style="height: 150px; resize: vertical;" class="popupInput" autocomplete="off"></textarea>
@@ -373,12 +374,12 @@ function getFormEditCrash(){
           <span data-hideedit class="button buttonGray buttonLine" onclick="copyCrashInfoFromArticle();">{$texts['Same_as_article']}</span>
         </div>
   
-        <label for="editCrashText">Tekst</label>
+        <label for="editCrashText">{$texts['Text']}</label>
         <textarea id="editCrashText" maxlength="500" style="height: 50px; resize: vertical;" class="popupInput" autocomplete="off" data-readonlyhelper></textarea>
       </div>        
 
       <div class="labelDiv">
-        <label for="editCrashDate">Datum ongeluk</label>
+        <label for="editCrashDate">{$texts['Date']}</label>
         <span class="iconTooltip" data-tippy-content="Vaak anders dan publicatiedatum artikel"></span>
       </div>
       <div style="display: flex;">
@@ -387,7 +388,7 @@ function getFormEditCrash(){
       </div>
           
       <div style="margin-top: 5px;">
-        <div>Betrokken mensen <span class="button buttonGray buttonLine" onclick="showEditPersonForm();">{$texts['Add_humans']}</span></div>   
+        <div>{$texts['Involved_humans']} <span class="button buttonGray buttonLine" onclick="showEditPersonForm();">{$texts['Add_humans']}</span></div>   
         <div id="editCrashPersons"></div>
       </div>
 
@@ -402,10 +403,9 @@ function getFormEditCrash(){
       </div>
       
       <div style="margin-top: 5px;">
-        <div>{$texts['Location']} <span class="smallFont">(Optioneel)</span> <span class="iconTooltip" data-tippy-content="Optioneel, omdat het lastig is om deze uit tekst of foto's te halen. Klik op kaart om een locatie te selecteren. Klik marker om locatie te verwijderen. Sleep marker om locatie aan te passen."></span></div>
+        <div>{$texts['Location']} <span class="iconTooltip" data-tippy-content="Optioneel, omdat het lastig is om deze uit tekst of foto's te halen. Klik op kaart om een locatie te selecteren. Klik marker om locatie te verwijderen. Sleep marker om locatie aan te passen."></span></div>
             
-        <label for="editArticleDate">Breedtegraad: <input id="editCrashLatitude" class="popupInput" type="number" style="width: 85px;"></label>        
-        <label for="editArticleDate">Lengtegraad: <input id="editCrashLongitude" class="popupInput" type="number" style="width: 85px;"></label>
+        <input id="editCrashLatitude" type="hidden"><input id="editCrashLongitude" type="hidden">
         
         <div id="mapEdit"></div>
       </div>      
@@ -501,7 +501,8 @@ HTML;
 }
 
 function getFormEditPerson(){
-  $texts = translateArray(['Transportation_mode', 'Characteristics', 'Child', 'Intoxicated', 'Drive_on_or_flee', 'Injury']);
+  $texts = translateArray(['Transportation_mode', 'Characteristics', 'Child', 'Intoxicated', 'Drive_on_or_flee', 'Injury',
+    'Close', 'Delete', 'Save_and_stay_open', 'Save_and_close']);
 
   return <<<HTML
 <div id="formEditPerson" class="popupOuter" style="z-index: 501;" onclick="closeEditPersonForm();">
@@ -533,10 +534,10 @@ function getFormEditPerson(){
     </div>
             
     <div class="popupFooter">
-      <input type="button" class="button" value="Opslaan en openblijven" onclick="savePerson(true);">
-      <input type="button" class="button" value="Opslaan en sluiten" onclick="savePerson();">
-      <input id="buttonCloseEditPerson" type="button" class="button buttonGray" value="Sluiten" onclick="closeEditPersonForm();">
-      <input id="buttonDeletePerson" type="button" class="button buttonRed" value="Verwijderen" onclick="deletePerson();">
+      <input type="button" class="button" value="{$texts['Save_and_stay_open']}" onclick="savePerson(true);">
+      <input type="button" class="button" value="{$texts['Save_and_close']}" onclick="savePerson();">
+      <input id="buttonCloseEditPerson" type="button" class="button buttonGray" value="{$texts['Close']}" onclick="closeEditPersonForm();">
+      <input id="buttonDeletePerson" type="button" class="button buttonRed" value="{$texts['Delete']}" onclick="deletePerson();">
     </div>    
   </div>
   

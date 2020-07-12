@@ -1139,7 +1139,7 @@ function showEditCrashForm() {
      return;
   }
 
-  document.getElementById('editHeader').innerText       = 'Nieuw artikel en ongeluk toevoegen';
+  document.getElementById('editHeader').innerText       = translate('Add_new_crash');
   document.getElementById('buttonSaveArticle').value    = translate('Save');
   document.getElementById('crashIDHidden').value        = '';
   document.getElementById('articleIDHidden').value      = '';
@@ -1435,7 +1435,7 @@ function editCrash(crashID) {
   showEditCrashForm(crashID);
   setNewArticleCrashFields(crashID);
 
-  document.getElementById('editHeader').innerText             = 'Ongeluk bewerken';
+  document.getElementById('editHeader').innerText             = translate('Edit_crash');
   document.getElementById('editArticleSection').style.display = 'none';
 
   document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'none';});
