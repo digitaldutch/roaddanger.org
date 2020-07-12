@@ -5,6 +5,8 @@ async function initAdmin(){
 
   await loadUserData();
 
+  initPage();
+
   const url = new URL(location.href);
   if (url.pathname.startsWith('/admin/mensen')) {
     initObserver(loadUsers);
