@@ -117,7 +117,7 @@ async function deleteUserDirect() {
     else {
       tableData = tableData.filter(user => user.id !== userId);
       document.getElementById('truser' + userId).remove();
-      showMessage('Mens verwijderd');
+      showMessage(translate('Deleted'), 1);
     }
   } catch (error) {
     showError(error.message);
@@ -140,10 +140,10 @@ async function adminDeleteUser() {
     permission: parseInt(document.getElementById('userPermission').value),
   };
 
-  if (! user.email)                {showError('geen email ingevuld'); return;}
-  if (! validateEmail(user.email)) {showError('geen geldig email ingevuld'); return;}
-  if (! user.firstname)            {showError('geen voornaam ingevuld'); return;}
-  if (! user.lastname)             {showError('geen achternaam ingevuld'); return;}
+  if (! user.email)                {showError(translate('Email_not_filled_in')); return;}
+  if (! validateEmail(user.email)) {showError(translate('Email_not_valid')); return;}
+  if (! user.firstname)            {showError(translate('First_name_not_filled_in')); return;}
+  if (! user.lastname)             {showError(translate('Last_name_not_filled_in')); return;}
 
   const url      = '/admin/ajax.php?function=saveUser';
   const response = await fetchFromServer(url, user);
@@ -151,7 +151,7 @@ async function adminDeleteUser() {
   if (response.error) {
     showError(response.error, 10);
   } else {
-    showMessage('Mens opgeslagen', 1);
+    showMessage(translate('Saved'), 1);
     window.location.reload();
   }
 }
@@ -171,7 +171,7 @@ async function saveOptions() {
   if (response.error) {
     showError(response.error, 10);
   } else {
-    showMessage('Options opgeslagen', 1);
+    showMessage(translate('Saved'), 1);
   }
 
 }
@@ -256,7 +256,7 @@ async function saveTranslations() {
   };
 
   if (serverData.newTranslations.length === 0) {
-    showMessage(translate('No_changes'));
+    showMessage(translate('No_changes'), 1);
     return;
   }
 
@@ -266,7 +266,7 @@ async function saveTranslations() {
   if (response.error) showError(response.error);
   else if (response.ok){
     tableData.forEach(d => d.modified = false);
-    showMessage(translate('Translations_saved'), 1);
+    showMessage(translate('Saved'), 1);
   }
 }
 
@@ -327,7 +327,7 @@ function deleteTranslation() {
         document.getElementById('tr' + serverData.id).remove();
         selectedTableData = null;
         tableData         = tableData.filter(d => d.id !== serverData.id);
-        showMessage('Translation deleted', 1);
+        showMessage(translate('Deleted'), 1);
 
         if (tableData.length > 0) selectTableRow(tableData[0]);
       }

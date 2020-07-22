@@ -59,7 +59,7 @@ async function saveUser() {
 
   if (response.error) showError(response.error);
   else {
-    showMessage('Gegevens zijn opgeslagen');
+    showMessage(translate('Saved'));
     window.location.reload();
   }
 }
@@ -69,8 +69,8 @@ async function saveNewPassword() {
   const password   = document.getElementById('newPassword').value.trim();
   const recoveryId = document.getElementById('recoveryid').value;
 
-  if (! password) {showError('Geen wachtwoord ingevuld'); return;}
-  if (password.length < 6){showError('Wachtwoord is minder dan 6 karakters'); return;}
+  if (! password) {showError(translate('No_password_filled_in')); return;}
+  if (password.length < 6){showError(translate('Password_less_than_6_characters')); return;}
 
   const url = '/ajax.php?function=saveNewPassword' +
     '&email=' + encodeURIComponent(email) +
@@ -79,6 +79,6 @@ async function saveNewPassword() {
 
   const response = await fetchFromServer(url);
   if (response.error) showError(response.error);
-  else if (response.ok) document.getElementById('main').innerHTML = '<div style="text-align: center;">Wachtwoord succesvol aangepast</div>';
-  else showError('Interne fout bij wachtwoord resetten.');
+  else if (response.ok) document.getElementById('main').innerHTML = `<div style="text-align: center;">${translate('Password_changed_successfully')}</div>`;
+  else showError('Internal error saving password');
 }

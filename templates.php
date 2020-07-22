@@ -309,7 +309,8 @@ function getFormEditCrash(){
     'Full_text',
     'Photo_link_url', 'Same_as_article', 'Add_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
     'Animals', 'Traffic_jam_disruption', 'One-sided_accident',
-    'Location', 'Characteristics', 'Save', 'Cancel']);
+    'Location', 'Characteristics', 'Save', 'Cancel',
+    'Spider_is_working']);
 
   return <<<HTML
 <div id="formEditCrash" class="popupOuter">
@@ -335,8 +336,8 @@ function getFormEditCrash(){
       </div>
   
       <div id="spinnerMeta" class="spiderBackground">
-        <div class="popupHeader">Tarantula is aan het werk...</div>
-        <div><img src="/images/tarantula.jpg" style="height: 200px;" alt="Tarantula spider"></div>
+        <div class="popupHeader">{$texts['Spider_is_working']}</div>
+        <div><img src="/images/tarantula.jpg" style="height: 200px;" alt="Spider"></div>
         <div id="tarantulaResults"></div> 
       </div>
   
@@ -388,7 +389,7 @@ function getFormEditCrash(){
       </div>
           
       <div style="margin-top: 5px;">
-        <div>{$texts['Involved_humans']} <span class="button buttonGray buttonLine" onclick="showEditPersonForm();">{$texts['Add_humans']}</span></div>   
+        <div>{$texts['Involved_humans']} <div class="button buttonGray buttonLine" role="button" onclick="showEditPersonForm();">{$texts['Add_humans']}</div></div>   
         <div id="editCrashPersons"></div>
       </div>
 
@@ -501,7 +502,7 @@ HTML;
 }
 
 function getFormEditPerson(){
-  $texts = translateArray(['Transportation_mode', 'Characteristics', 'Child', 'Intoxicated', 'Drive_on_or_flee', 'Injury',
+  $texts = translateArray(['Transportation_mode', 'Characteristics', 'Child', 'Intoxicated', 'Drive_on_or_fleeing', 'Injury',
     'Close', 'Delete', 'Save_and_stay_open', 'Save_and_close']);
 
   return <<<HTML
@@ -529,7 +530,7 @@ function getFormEditPerson(){
       <div>
         <span id="editPersonChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="toggleSelectionButton(this)"></span>            
         <span id="editPersonUnderInfluence" class="menuButton bgAlcohol" data-tippy-content="{$texts['Intoxicated']}" onclick="toggleSelectionButton(this)"></span>            
-        <span id="editPersonHitRun" class="menuButton bgHitRun" data-tippy-content="{$texts['Drive_on_or_flee']}" onclick="toggleSelectionButton(this)"></span>            
+        <span id="editPersonHitRun" class="menuButton bgHitRun" data-tippy-content="{$texts['Drive_on_or_fleeing']}" onclick="toggleSelectionButton(this)"></span>            
       </div>
     </div>
             

@@ -248,8 +248,6 @@ function getStatsDatabase($database){
   $stats['deCorrespondent']['crashesAdded'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) FROM articles WHERE DATE (`createtime`) >= '2019-01-14' AND DATE (`createtime`) <= '2019-01-20'";
   $stats['deCorrespondent']['articlesAdded'] = $database->fetchSingleValue($sql);
-  $sql = "SELECT COUNT(*) FROM users WHERE DATE (`registrationtime`) >= '2019-01-14' AND DATE (`registrationtime`) <= '2019-01-20'";
-  $stats['deCorrespondent']['users'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) FROM accidents JOIN accidentpersons a on accidents.id = a.accidentid WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' AND a.health=3";
   $stats['deCorrespondent']['dead'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) FROM accidents JOIN accidentpersons a on accidents.id = a.accidentid WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' AND a.health=2";
@@ -1125,7 +1123,7 @@ else if ($function === 'getStatistics') {
     $type   = $data['type'] ?? '';
     $filter = $data['filter'] ?? '';
 
-    if ($type === 'general') $stats = getStatsDatabase($database);
+    if ($type === 'general')            $stats = getStatsDatabase($database);
     else if ($type === 'crashPartners') $stats = getStatsCrashPartners($database, $filter);
     else                                $stats = getStatsTransportation($database, $filter);
 

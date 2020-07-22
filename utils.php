@@ -125,7 +125,7 @@ function getPageMediaMetaData($url){
   $url = str_replace('//m.', '//www.', $url);
   $html = @file_get_contents($url, false, stream_context_create($arrContextOptions));
 
-  if ($html === false) throw new Exception(translate('unable_to_load_url') . '<br>' . $url);
+  if ($html === false) throw new Exception(translate('Unable_to_load_url') . '<br>' . $url);
 
   // Convert GZIP content if needed
   if (headerContainsGZIP($http_response_header)) $html = gzdecode($html);

@@ -191,7 +191,7 @@ function showCrashVictimsGraph(crashVictims){
 
   const options = {
     xLabel: translate('Counterparty'),
-    yLabel: translate('traffic_fatalities'),
+    yLabel: translate('Traffic_fatalities'),
   };
 
   const filter = {
@@ -249,107 +249,103 @@ async function loadStatistics(){
     document.getElementById('main').innerHTML = `
     <table class="dataTable">
     
-      <tr class="trHeader"><td colspan="2">De Correspondent week (14 t/m 20 januari 2019)</td></tr>
+      <tr class="trHeader"><td colspan="2">${translate('Today')}</td></tr>
       
       <tr>
-        <td>Ongelukken</td>
-        <td style="text-align: right;">${dbStats.deCorrespondent.crashes}</td>
-      </tr>
-      <tr>
-        <td>Artikelen</td>
-        <td style="text-align: right;">${dbStats.deCorrespondent.articles}</td>
-      </tr>
-      <tr>
-        <td>Doden</td>
-        <td style="text-align: right;">${dbStats.deCorrespondent.dead}</td>
-      </tr>
-      <tr>
-        <td>Gewond</td>
-        <td style="text-align: right;">${dbStats.deCorrespondent.injured}</td>
-      </tr>
-      <tr>
-        <td>Toegevoegde ongelukken</td>
-        <td style="text-align: right;">${dbStats.deCorrespondent.crashesAdded}</td>
-      </tr>
-      <tr>
-        <td>Toegevoegde artikelen</td>
-        <td style="text-align: right;">${dbStats.deCorrespondent.articlesAdded}</td>
-      </tr>
-      <tr>
-        <td>Mensen die zich aangemeld hebben op deze site</td>
-        <td style="text-align: right;">${dbStats.deCorrespondent.users}</td>
-      </tr>
-
-      <tr class="trHeader"><td colspan="2">Vandaag</td></tr>
-      
-      <tr>
-        <td>Ongelukken</td>
+        <td>${translate('Crashes')}</td>
         <td style="text-align: right;">${dbStats.today.crashes}</td>
       </tr>
       <tr>
-        <td>Artikelen</td>
+        <td>${translate('Articles')}</td>
         <td style="text-align: right;">${dbStats.today.articles}</td>
       </tr>
       <tr>
-        <td>Doden</td>
+        <td>${translate('Dead_(multiple)')}</td>
         <td style="text-align: right;">${dbStats.today.dead}</td>
       </tr>
       <tr>
-        <td>Gewond</td>
+        <td>${translate('Injured')}</td>
         <td style="text-align: right;">${dbStats.today.injured}</td>
       </tr>        
       <tr>
-        <td>Toegevoegde Ongelukken</td>
+        <td>${translate('Added_crashes')}</td>
         <td style="text-align: right;">${dbStats.today.crashesAdded}</td>
       </tr>
       <tr>
-        <td>Toegevoegde Artikelen</td>
+        <td>${translate('Added_articles')}</td>
         <td style="text-align: right;">${dbStats.today.articlesAdded}</td>
       </tr>
 
-      <tr class="trHeader"><td colspan="2">7 dagen</td></tr>
+      <tr class="trHeader"><td colspan="2">7 {$texts['days']}</td></tr>
 
       <tr>
-        <td>Ongelukken</td>
+        <td>${translate('Crashes')}</td>
         <td style="text-align: right;">${dbStats.sevenDays.crashes}</td>
       </tr>
       <tr>
-        <td>Artikelen</td>
+        <td>${translate('Articles')}</td>
         <td style="text-align: right;">${dbStats.sevenDays.articles}</td>
       </tr>
       <tr>
-        <td>Doden</td>
+        <td>${translate('Dead_(multiple)')}</td>
         <td style="text-align: right;">${dbStats.sevenDays.dead}</td>
       </tr>
       <tr>
-        <td>Gewond</td>
+        <td>${translate('Injured')}</td>
         <td style="text-align: right;">${dbStats.sevenDays.injured}</td>
       </tr>        
       <tr>
-        <td>Toegevoegde Ongelukken</td>
+        <td>${translate('Added_crashes')}</td>
         <td style="text-align: right;">${dbStats.sevenDays.crashesAdded}</td>
       </tr>
       <tr>
-        <td>Toegevoegde Artikelen</td>
+        <td>${translate('Added_articles')}</td>
         <td style="text-align: right;">${dbStats.sevenDays.articlesAdded}</td>
       </tr>
 
-      <tr class="trHeader"><td colspan="2">Totaal in database</td></tr>
+      <tr class="trHeader"><td colspan="2">${translate('The_correspondent_week')} (14-20 jan. 2019)</td></tr>
+      
+      <tr>
+        <td>${translate('Crashes')}</td>
+        <td style="text-align: right;">${dbStats.deCorrespondent.crashes}</td>
+      </tr>
+      <tr>
+        <td>${translate('Articles')}</td>
+        <td style="text-align: right;">${dbStats.deCorrespondent.articles}</td>
+      </tr>
+      <tr>
+        <td>${translate('Dead_(multiple)')}</td>
+        <td style="text-align: right;">${dbStats.deCorrespondent.dead}</td>
+      </tr>
+      <tr>
+        <td>${translate('Injured')}</td>
+        <td style="text-align: right;">${dbStats.deCorrespondent.injured}</td>
+      </tr>
+      <tr>
+        <td>${translate('Added_crashes')}</td>
+        <td style="text-align: right;">${dbStats.deCorrespondent.crashesAdded}</td>
+      </tr>
+      <tr>
+        <td>${translate('Added_articles')}</td>
+        <td style="text-align: right;">${dbStats.deCorrespondent.articlesAdded}</td>
+      </tr>
+
+      <tr class="trHeader"><td colspan="2">${translate('Total')}</td></tr>
 
       <tr>
-        <td>Ongelukken</td>
+        <td>${translate('Crashes')}</td>
         <td style="text-align: right;">${dbStats.total.crashes}</td>
       </tr>
       <tr>
-        <td>Artikelen</td>
+        <td>${translate('Articles')}</td>
         <td style="text-align: right;">${dbStats.total.articles}</td>
       </tr>
       <tr>
-        <td>Doden</td>
+        <td>${translate('Dead_(multiple)')}</td>
         <td style="text-align: right;">${dbStats.total.dead}</td>
       </tr>
       <tr>
-        <td>Gewond</td>
+        <td>${translate('Injured')}</td>
         <td style="text-align: right;">${dbStats.total.injured}</td>
       </tr>                
       <tr>
@@ -1059,11 +1055,11 @@ function getCrashButtonsHTML(crash, showAllHealth=true, allowClick=false) {
     let htmlPersons        = '';
 
     for (const person of button.persons){
-      let tooltip = translate('human') + ' ' + person.id +
+      let tooltip = translate('Human') + ' ' + person.id +
         '<br>' + translate('Injury') + ': ' + healthText(person.health);
       if (person.child)          tooltip += '<br>' + translate('Child');
       if (person.underinfluence) tooltip += '<br>' + translate('Intoxicated');
-      if (person.hitrun)         tooltip += '<br>' + translate('Drive_on_or_flee');
+      if (person.hitrun)         tooltip += '<br>' + translate('Drive_on_or_fleeing');
 
       const showHealth = showAllHealth || healthVisible(person.health);
       let htmlPerson = '';
@@ -1285,8 +1281,8 @@ function closeEditPersonForm(){
 function savePerson(stayOpen=false) {
   const selectedTransportationMode = getSelectedPersonTransportationMode();
   const selectedHealth             = getSelectedPersonHealth();
-  if (selectedTransportationMode === null) {showError('Geen vervoertype geselecteerd', 3); return;}
-  if (selectedHealth             === null) {showError('Geen letsel geselecteerd', 3); return;}
+  if (selectedTransportationMode === null) {showError(translate('No_transportation_mode_selected'), 3); return;}
+  if (selectedHealth             === null) {showError(translate('No_injury_selected'), 3); return;}
 
   const personID = parseInt(document.getElementById('personIDHidden').value);
   let person;
@@ -1312,7 +1308,7 @@ function savePerson(stayOpen=false) {
   refreshCrashPersonsGUI(editCrashPersons);
 
   if (stayOpen !== true) closeEditPersonForm();
-  else showMessage('Mens opgeslagen', 0.5);
+  else showMessage(translate('Saved'), 0.5);
 }
 
 function deletePerson() {
@@ -1334,7 +1330,7 @@ function refreshCrashPersonsGUI(persons=[]) {
     let buttonsOptions = '';
     if (person.child)          buttonsOptions += `<div class="iconSmall bgChild" data-tippy-content="${translate('Child')}"></div>`;
     if (person.underinfluence) buttonsOptions += `<div class="iconSmall bgAlcohol" data-tippy-content="${translate('Intoxicated')}"></div>`;
-    if (person.hitrun)         buttonsOptions += `<div class="iconSmall bgHitRun" data-tippy-content="${translate('Drive_on_or_flee')}"></div>`;
+    if (person.hitrun)         buttonsOptions += `<div class="iconSmall bgHitRun" data-tippy-content="${translate('Drive_on_or_fleeing')}"></div>`;
 
     html += `<div class="editCrashPerson" onclick="showEditPersonForm(${person.id});">
 ${iconHealth} ${iconTransportation} ${buttonsOptions}
@@ -1498,9 +1494,8 @@ async function articleModerateOK(articleID) {
 
 function domainBlacklisted(url){
   const domainBlacklist = [
-    // {domain: 'assercourant.nl',   reason: 'Website staat foto embedding niet toe wegens buggy cookie firewall (Dec 2018).'}, // JDNOTE 8-7-2020 looks like it is working again
     {domain: 'drimble.nl',        reason: 'Drimble is geen media website, maar een nieuws verzamelwebsite. Zoek de bron op de drimble.nl pagina en plaats die.'},
-    {domain: 'onswestbrabant.nl', reason: 'Website staat vol met buggy tags (Dec 2018). Zoek een andere bron.'},
+    // {domain: 'onswestbrabant.nl', reason: 'Website staat vol met buggy tags (Dec 2018). Zoek een andere bron.'},
   ];
 
   return domainBlacklist.find(d => url.includes(d.domain));
@@ -1529,12 +1524,12 @@ async function getArticleMetaData() {
         // Do nothing
       }
     }
-    if (meta.title === '') showMessage('Tarantula heeft geen gegevens gevonden in de web pagina.', 30);
+    if (meta.title === '') showMessage(translate('no_data_found_on_web_page'), 30);
   }
 
   const urlArticle = document.getElementById('editArticleUrl').value.trim();
   if (! urlArticle) {
-    showError('Geen artikel link (URL) ingevuld');
+    showError(translate('Article_link_not_filled_in'));
     return;
   }
 
@@ -1554,10 +1549,10 @@ async function getArticleMetaData() {
 
     if (response.error) showError(response.error);
     else {
-      if (response.urlExists) showMessage(`Bericht is al toegevoegd aan database.<br><a href='/${response.urlExists.crashId}' style='text-decoration: underline;'>Klik hier.</a>`, 30);
+      if (response.urlExists) showMessage(translate('article_has_already_been_added') + `<br><a href='/${response.urlExists.crashId}' style='text-decoration: underline;'>${translate('Article')}</a>`, 30);
       else showMetaData(response.media);
 
-      document.getElementById('tarantulaResults').innerHTML = `Gevonden:<br>
+      document.getElementById('tarantulaResults').innerHTML = `
 Open Graph Facebook tags: ${response.tagcount.og}<br>
 Twitter tags: ${response.tagcount.twitter}<br>
 article tags: ${response.tagcount.article}<br>
@@ -1592,16 +1587,16 @@ async function saveArticleCrash(){
 
     const domain = domainBlacklisted(articleEdited.url);
     if (domain) {
-      showError(`Website ${domain.domain} kan niet worden toegevoegd. Reden: ${domain.reason}`);
+      showError(`Website ${domain.domain} can not be added. ${domain.reason}`);
       return
     }
 
-    if (! articleEdited.url)                          {showError('Geen artikel link ingevuld'); return;}
-    if (! articleEdited.title)                        {showError('Geen artikel titel ingevuld'); return;}
-    if (! articleEdited.text)                         {showError('Geen artikel tekst ingevuld'); return;}
-    if (articleEdited.urlimage.startsWith('http://')) {showError('Artikel foto link is onveilig. Begint met "http:". Probeer of de "https:" versie werkt. Laat anders dit veld leeg.'); return;}
-    if (! articleEdited.sitename)                     {showError('Geen artikel mediabron ingevuld'); return;}
-    if (! articleEdited.date)                         {showError('Geen artikel datum ingevuld'); return;}
+    if (! articleEdited.url)                          {showError(translate('Article_link_not_filled_in')); return;}
+    if (! articleEdited.title)                        {showError(translate('Article_title_not_filled_in')); return;}
+    if (! articleEdited.text)                         {showError(translate('Article_summary_not_filled_in')); return;}
+    if (articleEdited.urlimage.startsWith('http://')) {showError(translate('Article_photo_link_unsafe')); return;}
+    if (! articleEdited.sitename)                     {showError(translate('Article_media_source_not_filled_in')); return;}
+    if (! articleEdited.date)                         {showError(translate('Article_date_not_filled_in')); return;}
   }
 
   let latitude  = document.getElementById('editCrashLatitude').value;
@@ -1631,9 +1626,9 @@ async function saveArticleCrash(){
   const saveCrash = document.getElementById('editCrashSection').style.display !== 'none';
   if (saveCrash){
     if (saveArticle && (! user.moderator)) crashEdited.title = articleEdited.title;
-    if (!crashEdited.title)               {showError('Geen ongeluk titel ingevuld'); return;}
-    if (!crashEdited.date)                {showError('Geen ongeluk datum ingevuld'); return;}
-    if (crashEdited.persons.length === 0) {showError('Geen personen toegevoegd'); return;}
+    if (!crashEdited.title)               {showError(translate('Accident_title_not_filled_in')); return;}
+    if (!crashEdited.date)                {showError(translate('Accident_date_not_filled_in')); return;}
+    if (crashEdited.persons.length === 0) {showError(translate('No_involved_humans_added')); return;}
   }
 
   const url = '/ajax.php?function=saveArticleCrash';
@@ -1691,11 +1686,7 @@ async function saveArticleCrash(){
     } else {
       // New crash
       window.location.href = createCrashURL(response.crashId, crashEdited.title);
-      let text = '';
-      if (articleEdited) {
-        text = articleEdited.id? 'Artikel opgeslagen' : 'Artikel toegevoegd';
-      } else text = 'Ongeluk opgeslagen';
-      showMessage(text, 1);
+      showMessage(translate('Saved'), 1);
     }
     hideElement('formEditCrash');
   }
@@ -1763,7 +1754,7 @@ async function deleteArticleDirect(articleID) {
       deleteElement('article' + articleID);
       deleteElement('articledetails' + articleID);
 
-      showMessage('Artikel verwijderd');
+      showMessage(translate('Deleted'), 1);
     }
   } catch (error) {
     showError(error.message);
@@ -1784,7 +1775,7 @@ async function deleteCrashDirect(crashID) {
       deleteElement('crash' + crashID);
       deleteElement('crashdetails' + crashID);
 
-      showMessage('Ongeluk verwijderd');
+      showMessage(translate('Deleted'), 1);
     }
   } catch (error) {
     showError(error.message);
@@ -1945,7 +1936,7 @@ function mergeSearchResultClick(crashID) {
 function mergeCrash() {
   const fromID = parseInt(document.getElementById('mergeFromCrashIDHidden').value);
   const toID   = parseInt(document.getElementById('mergeToCrashIDHidden').value);
-  if (! toID) showError('Geen samenvoeg crash geselecteerd');
+  if (! toID) showError(translate('No_merge_crash_selected'));
 
   const crashFrom = getCrashFromID(parseInt(fromID));
   const crashTo   = crashesFound.find(crash => crash.id === toID);

@@ -55,9 +55,11 @@ HTML;
 
 
 if ($pageType === PageType::statisticsGeneral) {
+  $texts = translateArray(['Statistics', 'General']);
+
   $mainHTML = <<<HTML
 <div class="pageInner">
-  <div class="pageSubTitle">Statistieken - algemeen</div>
+  <div class="pageSubTitle">{$texts['Statistics']} - {$texts['General']}</div>
 
   <div id="main">
   </div>
@@ -161,7 +163,7 @@ HTML;
 } else if ($pageType === PageType::statisticsTransportationModes) {
 
   $texts = translateArray(['Statistics', 'Transportation_modes', 'Transportation_mode', 'Child', 'Intoxicated',
-    'Drive_on_or_flee', 'Dead_(adjective)', 'Injured', 'Unharmed', 'Unknown']);
+    'Drive_on_or_fleeing', 'Dead_(adjective)', 'Injured', 'Unharmed', 'Unknown']);
 
   $htmlSearchPeriod = getSearchPeriodHtml('loadStatistics');
 
@@ -191,7 +193,7 @@ HTML;
           <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnknown" data-tippy-content="Onbekend"></div> <div  class="hideOnMobile">{$texts['Unknown']}</div></div></th>
           <th style="text-align: right;"><div class="iconSmall bgChild" data-tippy-content="{$texts['Child']}"></div></th>
           <th style="text-align: right;"><div class="iconSmall bgAlcohol" data-tippy-content="{$texts['Intoxicated']}"></div></th>
-          <th style="text-align: right;"><div class="iconSmall bgHitRun" data-tippy-content="{$texts['Drive_on_or_flee']}"></div></th>
+          <th style="text-align: right;"><div class="iconSmall bgHitRun" data-tippy-content="{$texts['Drive_on_or_fleeing']}"></div></th>
         </tr>
       </thead>  
       <tbody id="tableStatsBody">
@@ -259,7 +261,7 @@ HTML;
   $title = '';
   switch ($pageType){
     case PageType::stream:          $title = translate('Last_modified_crashes'); break;
-    case PageType::deCorrespondent: $title = translate('The_correspondent_week') . '<br>14 t/m 20 januari 2019'; break;
+    case PageType::deCorrespondent: $title = translate('The_correspondent_week') . '<br>14-20 jan. 2019'; break;
     case PageType::moderations:     $title = translate('Moderations'); break;
     case PageType::recent:          $title = translate('Recent_crashes'); break;
   }

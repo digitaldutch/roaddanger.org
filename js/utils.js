@@ -194,11 +194,11 @@ function closeMessage() {
   document.getElementById('messageText').innerHTML = '';
 }
 
-function confirmWarning(text, okCallback, buttonOKText=translate('ok'), header=translate('Confirm')){
+function confirmWarning(text, okCallback, buttonOKText=translate('Ok'), header=translate('Confirm')){
   confirmMessage(text, okCallback, buttonOKText, header, true);
 }
 
-function confirmMessage(text, okCallback, buttonOKText=translate('ok'), header=translate('Confirm'), isWarning=false){
+function confirmMessage(text, okCallback, buttonOKText=translate('Ok'), header=translate('Confirm'), isWarning=false){
   if (isWarning) {
     document.getElementById('buttonConfirmOK').className            = 'button buttonWarning';
     document.getElementById('formConfirm').style.backgroundColor    = '#ffdb9d';
@@ -298,9 +298,9 @@ async function logOut() {
   const url  = "/ajax.php?function=logout";
   const user = await fetchFromServer(url);
   if (! user.loggedin) {
-    showMessage('Uitloggen succesvol', 1);
+    showMessage(translate('Logged_out_successfully'), 1);
     window.location.reload();
-  } else showError('Interne fout bij uitloggen.');
+  } else showError('Interne error while logging out');
 }
 
 async function loginIntern(email, password, stayLoggedIn=0) {
@@ -314,8 +314,8 @@ async function loginIntern(email, password, stayLoggedIn=0) {
   const user = await fetchFromServer(url);
   if (user.error) showLoginError(user.error);
   else {
-    if      (! user.emailexists) showLoginError('Email adres onbekend');
-    else if (! user.loggedin)    showLoginError('Wachtwoord verkeerd');
+    if      (! user.emailexists) showLoginError(translate('Email_adres_unknown'));
+    else if (! user.loggedin)    showLoginError(translate('Password_incorrect'));
     return user;
   }
 }
@@ -384,8 +384,8 @@ async function checkLogin() {
   const password     = document.getElementById('loginPassword').value;
   const stayLoggedIn = document.getElementById('stayLoggedIn').checked? 1 : 0;
 
-  if (! validateEmail(email))     showLoginError('Geen geldig email ingevuld');
-  else if (password.length === 0) showLoginError('Geen wachtwoord ingevuld');
+  if (! validateEmail(email))     showLoginError(translate('Email_not_valid'));
+  else if (password.length === 0) showLoginError(translate('Password_not_filled_in'));
   else {
     document.getElementById('spinnerLogin').style.display = 'block';
 
@@ -396,7 +396,7 @@ async function checkLogin() {
         updateLoginGUI(user);
 
         hideElement('formLogin');
-        showMessage('Inloggen succesvol', 1);
+        showMessage(translate('Log_in_successful'), 1);
         window.location.reload();
       } else document.getElementById('spinnerLogin').style.display = 'none';
 
@@ -423,11 +423,11 @@ async function checkRegistration(){
     passwordconfirm: document.getElementById('loginPasswordConfirm').value.trim(),
   };
 
-  if (! validateEmail(userNew.email))            showLoginError('Geen geldig email ingevuld.');
-  else if (userNew.firstname.length < 1)         showLoginError('Geen voornaam ingevuld');
-  else if (userNew.lastname.length < 1)          showLoginError('Geen achternaam ingevuld');
-  else if (userNew.password.length < 6)          showLoginError('Wachtwoord moet minimaal 6 karakters lang zijn.');
-  else if (userNew.password !== userNew.passwordconfirm) showLoginError('Wachtwoorden zijn niet gelijk.');
+  if (! validateEmail(userNew.email))            showLoginError(translate('Email_not_valid'));
+  else if (userNew.firstname.length < 1)         showLoginError(translate('First_name_not_filled_in'));
+  else if (userNew.lastname.length < 1)          showLoginError(translate('Last_name_not_filled_in'));
+  else if (userNew.password.length < 6)          showLoginError(translate('Password_less_than_6_characters'));
+  else if (userNew.password !== userNew.passwordconfirm) showLoginError(translate('Passwords_not_same'));
   else {
 
     document.getElementById('spinnerLogin').style.display = 'block';
@@ -452,7 +452,7 @@ async function checkRegistration(){
             document.getElementById('loginPassword').value        = '';
             document.getElementById('loginPasswordConfirm').value = '';
 
-            showMessage('Registratie succesvol', 1);
+            showMessage(translate('Registration_successful'), 1);
 
             window.location.reload();
           }
@@ -469,8 +469,8 @@ async function checkRegistration(){
 function loginForgotPassword() {
   let email = document.getElementById('loginEmail').value.trim().toLowerCase();
 
-  if (! email)                     showLoginError('Geen email adres ingevuld');
-  else if (! validateEmail(email)) showLoginError('Geen geldig email adres ingevuld');
+  if (! email)                     showLoginError(translate('Email_not_filled_in'));
+  else if (! validateEmail(email)) showLoginError(translate('Email_not_valid'));
   else sendResetPasswordInstructions(email);
 }
 
@@ -480,8 +480,8 @@ async function sendResetPasswordInstructions(email) {
 
   if (response.error) showError(response.error);
   else if (response.ok) {
-    showMessage('Email met wachtwoord reset instructies is verzonden naar ' + email + '.', 3);
-  } else showError('Interne fout bij wachtwoord resetten.');
+    showMessage(translate('Email_with_reset_password_instructions_sent') + ' ' + email + '.', 3);
+  } else showError('Interne error while resetting password');
 }
 
 function scrollIntoViewIfNeeded(target) {
@@ -690,22 +690,22 @@ function closeNavigation() {
 
 function transportationModeText(transportationMode) {
   switch (transportationMode) {
-    case TTransportationMode.unknown:          return translate('unknown');
-    case TTransportationMode.pedestrian:       return translate('pedestrian');
-    case TTransportationMode.bicycle:          return translate('bicycle');
-    case TTransportationMode.scooter:          return translate('scooter');
-    case TTransportationMode.motorcycle:       return translate('motorcycle');
-    case TTransportationMode.car:              return translate('car');
-    case TTransportationMode.taxi:             return translate('taxi');
-    case TTransportationMode.emergencyVehicle: return translate('emergency_vehicle');
-    case TTransportationMode.deliveryVan:      return translate('delivery_van');
-    case TTransportationMode.tractor:          return translate('agricultural_vehicle');
-    case TTransportationMode.bus:              return translate('bus');
-    case TTransportationMode.tram:             return translate('tram');
-    case TTransportationMode.truck:            return translate('truck');
-    case TTransportationMode.train:            return translate('train');
-    case TTransportationMode.wheelchair:       return translate('mobility_scooter');
-    case TTransportationMode.mopedCar:         return translate('moped_car');
+    case TTransportationMode.unknown:          return translate('Unknown');
+    case TTransportationMode.pedestrian:       return translate('Pedestrian');
+    case TTransportationMode.bicycle:          return translate('Bicycle');
+    case TTransportationMode.scooter:          return translate('Scooter');
+    case TTransportationMode.motorcycle:       return translate('Motorcycle');
+    case TTransportationMode.car:              return translate('Car');
+    case TTransportationMode.taxi:             return translate('Taxi');
+    case TTransportationMode.emergencyVehicle: return translate('Emergency_vehicle');
+    case TTransportationMode.deliveryVan:      return translate('Delivery_van');
+    case TTransportationMode.tractor:          return translate('Agricultural_vehicle');
+    case TTransportationMode.bus:              return translate('Bus');
+    case TTransportationMode.tram:             return translate('Tram');
+    case TTransportationMode.truck:            return translate('Truck');
+    case TTransportationMode.train:            return translate('Train');
+    case TTransportationMode.wheelchair:       return translate('Mobility_scooter');
+    case TTransportationMode.mopedCar:         return translate('Moped_car');
     default:                                   return '';
   }
 }
