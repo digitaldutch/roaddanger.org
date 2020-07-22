@@ -98,7 +98,7 @@ HTML;
   $texts  = translateArray(['Translations', 'Translation', 'Admin', 'Id', 'English', 'New', 'Delete', 'Save']);
 
   $mainHTML = <<<HTML
-<div id="main" class="pageInner scrollPage">
+<div id="main" class="pageInner scrollPage" style="max-width: fit-content;">
   <div class="pageSubTitle">{$texts['Admin']} - {$texts['Translations']}</div>
 
   <div style="margin-bottom: 5px;">

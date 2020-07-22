@@ -276,7 +276,7 @@ async function loadStatistics(){
         <td style="text-align: right;">${dbStats.today.articlesAdded}</td>
       </tr>
 
-      <tr class="trHeader"><td colspan="2">7 {$texts['days']}</td></tr>
+      <tr class="trHeader"><td colspan="2">7 ${translate('days')}</td></tr>
 
       <tr>
         <td>${translate('Crashes')}</td>
