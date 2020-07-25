@@ -47,7 +47,7 @@ if (containsText($_SERVER['REQUEST_URI'], '/mensen')) {
         <th></th>
       </tr>
     </thead>  
-    <tbody id="tableBody" onclick="tableDataClick(event);">        
+    <tbody id="tableBody" onclick="tableDataClick(event);" ondblclick="adminEditUser();">        
     </tbody>
   </table>    
   

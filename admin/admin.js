@@ -77,7 +77,7 @@ function tableDataClick(event){
 
   const tr = event.target.closest('tr');
   if (tr) {
-    const id = tr.id.substr(2);
+    const id = parseInt(tr.id.substr(2));
     selectTableRow(id);
   }
 

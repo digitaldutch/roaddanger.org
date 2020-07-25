@@ -90,7 +90,7 @@ async function initMain() {
   } else if (pageType === PageType.childDeaths){
     initObserver(loadChildDeaths);
 
-    document.getElementById('filterChildDead').classList.add('buttonSelectedBlue'); // Dead is always selected
+    document.getElementById('filterChildDead').classList.add('buttonSelectedBlue'); // Dead is selected by default
     if (searchHealthInjured) document.getElementById('filterChildInjured').classList.add('buttonSelectedBlue');
 
     loadChildDeaths();
