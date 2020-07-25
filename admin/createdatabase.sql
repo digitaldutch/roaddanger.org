@@ -1,6 +1,18 @@
-create schema hetongeluk collate utf8mb4_general_ci;
+create or replace schema hetongeluk collate utf8mb4_general_ci;
 
-create table logins
+create or replace table languages
+(
+    id char(2) not null,
+    name varchar(50) null,
+    translations mediumtext null,
+    constraint languages_id_uindex
+        unique (id)
+);
+
+alter table languages
+    add primary key (id);
+
+create or replace table logins
 (
     id int auto_increment
         primary key,
@@ -10,7 +22,7 @@ create table logins
 )
     charset=utf8;
 
-create table logs
+create or replace table logs
 (
     id int auto_increment,
     userid int null,
@@ -26,7 +38,7 @@ create table logs
 alter table logs
     add primary key (id);
 
-create table options
+create or replace table options
 (
     name varchar(50) not null,
     value varchar(10000) null,
@@ -38,18 +50,19 @@ create table options
 alter table options
     add primary key (name);
 
-create table users
+create or replace table users
 (
     id int auto_increment,
     email varchar(254) charset latin1 not null,
     firstname varchar(100) charset latin1 null,
     lastname varchar(100) charset latin1 null,
-    permission tinyint default 0 null,
+    language char(2) null,
     lastactive timestamp default CURRENT_TIMESTAMP not null,
     registrationtime timestamp default CURRENT_TIMESTAMP not null,
     passwordhash varchar(60) null,
     passwordrecoveryid varchar(16) charset latin1 null,
     passwordrecoverytime timestamp null,
+    permission tinyint default 0 null,
     constraint users_email_uindex
         unique (email),
     constraint users_id_uindex
@@ -60,7 +73,7 @@ create table users
 alter table users
     add primary key (id);
 
-create table accidents
+create or replace table accidents
 (
     id int auto_increment,
     userid int null,
@@ -90,25 +103,25 @@ create table accidents
 )
     comment 'streamtoptype: 1: edited, 2: article added, 3: placed on top' charset=utf8;
 
-create index accidents__date_streamdate_index
+create or replace index accidents__date_streamdate_index
     on accidents (date, streamdatetime);
 
-create index accidents__index_date
+create or replace index accidents__index_date
     on accidents (date);
 
-create index accidents__index_streamdatetime
+create or replace index accidents__index_streamdatetime
     on accidents (streamdatetime);
 
-create index accidents__index_title
+create or replace index accidents__index_title
     on accidents (title);
 
-create fulltext index title
+create or replace fulltext index title
     on accidents (title, text);
 
 alter table accidents
     add primary key (id);
 
-create table accidentpersons
+create or replace table accidentpersons
 (
     id int auto_increment
         primary key,
@@ -125,10 +138,10 @@ create table accidentpersons
 )
     comment 'health: unknown: 0, unharmed: 1, injured: 2, dead: 3 | transportationmode: unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15' charset=utf8;
 
-create index accidentpersons___fkgroup
+create or replace index accidentpersons___fkgroup
     on accidentpersons (groupid);
 
-create table articles
+create or replace table articles
 (
     id int auto_increment,
     accidentid int null,
@@ -154,10 +167,10 @@ create table articles
 )
     charset=utf8;
 
-create index articles__index_accidentid
+create or replace index articles__index_accidentid
     on articles (accidentid);
 
-create fulltext index title
+create or replace fulltext index title
     on articles (title, text);
 
 alter table articles
