@@ -3,52 +3,55 @@
 function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   let widthContainer   = 700;
   let heightContainer  = 500;
-  let margin           = {top: 50, left: 50, right: 10, bottom: 10};
   let xLabel           = '';
   let yLabel           = '';
+  let showTotals       = false
+  const margin         = {top: 60, left: 50, right: 10, bottom: 10};
   const iconWidth      = 30;
 
   if (optionsUser) {
-    if (optionsUser.width       !== undefined) widthContainer  = optionsUser.width;
-    if (optionsUser.height      !== undefined) heightContainer = optionsUser.height;
-    if (optionsUser.xLabel      !== undefined) xLabel          = optionsUser.xLabel;
-    if (optionsUser.yLabel      !== undefined) yLabel          = optionsUser.yLabel;
+    if (optionsUser.width)  widthContainer  = optionsUser.width;
+    if (optionsUser.height) heightContainer = optionsUser.height;
+    if (optionsUser.xLabel) xLabel          = optionsUser.xLabel;
+    if (optionsUser.yLabel) yLabel          = optionsUser.yLabel;
   }
-
-  let widthGraph  = widthContainer  - margin.left - margin.right;
-  let heightGraph = heightContainer - margin.top  - margin.bottom;
 
   // Clear current chart
   d3.select('#' + divID).selectAll('svg').remove();
 
   // Create new graph
-  let svg = d3.select('#' + divID)
+  const svg = d3.select('#' + divID)
     .append('svg')
     .attr('id', 'svgGraph')
     // Make SVG responsive by preserving aspect ratio,  adding viewbox and omitting width and height attributes
     .attr("preserveAspectRatio", "xMinYMin meet")
     .attr("viewBox", `0 0 ${widthContainer} ${heightContainer}`)
 
-  let layerGraph = svg.append('svg')
-    .attr('x', margin.left)
-    .attr('y', margin.top)
-    .attr('width',  widthGraph)
-    .attr('height', heightGraph)
-    .append('g');
+  const victimModes  = d3.map(data, d => d.victimMode).keys();
+  const partnerModes = d3.map(data, d => d.partnerMode).keys();
+  const valueExtent  = d3.extent(data.map(d => d.value));
 
-  let victimModes  = d3.map(data, d => d.victimMode).keys();
-  let partnerModes = d3.map(data, d => d.partnerMode).keys();
-  let valueExtent  = d3.extent(data.map(p => p.value));
+  const victimTotals  = [];
+  const partnerTotals = [];
+  victimModes.forEach(v => victimTotals[v] = 0);
+  partnerModes.forEach(p => partnerTotals[p] = 0);
 
-  let xScale = d3.scaleBand()
+  data.forEach(d => {
+    if (d.value) {
+      victimTotals[d.victimMode]   += d.value;
+      partnerTotals[d.partnerMode] += d.value;
+    }
+  });
+
+  const xScale = d3.scaleBand()
     .domain(partnerModes)
     .range([margin.left, widthContainer - margin.right]);
 
-  let yScale = d3.scaleBand()
+  const yScale = d3.scaleBand()
     .domain(victimModes.reverse())
     .range([heightContainer - margin.bottom, margin.top]);
 
-  let colorScale = d3.scaleLinear()
+  const colorScale = d3.scaleLinear()
     .domain(valueExtent)
     .range(["#f5977b", "#ff0000"]);
 
@@ -56,7 +59,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   svg.append('g')
     .attr('class', 'x-axis')
     .style('font-size', 12)
-    .attr('transform', `translate(0, ${margin.top})`)
+    .attr('transform', `translate(0, ${margin.top - 15})`)
     .call(d3.axisTop(xScale).tickSize(0))
     .select('.domain').remove();
 
@@ -69,14 +72,30 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .select('.domain').remove();
 
   // x-axis image ticks
+  // Remove mode texts
   svg.select('.x-axis').selectAll('text').remove();
-  svg.selectAll('.x-axis .tick').data(partnerModes)
+
+  // x-axis
+  const x_tick = svg.selectAll('.x-axis .tick').data(partnerModes);
+
+  // x-axis icons
+  x_tick
     .append('image')
     .attr('xlink:href', d => '/images/' + getModeImage(parseInt(d)))
     .attr('x',          (-iconWidth / 2) + 'px')
     .attr('y',          (-iconWidth + 5) + 'px')
     .attr('width',      iconWidth)
     .attr('height',     iconWidth);
+
+  // x-axis total texts
+  x_tick
+    .append("text")
+    .attr('class', 'data-text')
+    .attr('dx', 0)
+    .attr('dy', '12px')
+    .style('font-size', '10px')
+    .style('fill', '#000000')
+    .text(d => partnerTotals[parseInt(d)]);
 
   // y-axis image ticks
   svg.select('.y-axis').selectAll('text').remove();
@@ -89,7 +108,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .attr('height',iconWidth);
 
   // Square root scale, because value = area πr2
-  let rScale = d3.scaleSqrt()
+  const rScale = d3.scaleSqrt()
     .domain(valueExtent)
     .range([1, 0.7 * yScale.bandwidth()]);
 
@@ -114,7 +133,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   }
 
   // create a tooltip
-  let tooltip = d3.select('#' + divID)
+  const tooltip = d3.select('#' + divID)
     .append('div')
     .attr('class',             'tooltip')
     .style('display',          'none')
@@ -129,7 +148,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     return value === -1? 'unilateral.svg' : transportationImageFileName(value);
   }
 
-  let mouseover = function(data) {
+  const mouseover = function(data) {
     tooltip.style('display', 'flex');
 
     d3.select(this)
@@ -141,25 +160,28 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
       .attr('r', d => d.value > 0? 1.4 * rScale(d.value) : 1);
   };
 
-  let mousemove = function(data) {
-    const pointMouse = d3.mouse(this);
-    const svgWidth = d3.select('#' + divID).node().getBoundingClientRect().width;
+  const mousemove = function(data) {
+    const pointMouse  = d3.mouse(this);
+    const svgWidth    = d3.select('#' + divID).node().getBoundingClientRect().width;
     const scaleFactor = svgWidth / widthContainer;
+
     let xMouse = xScale(data.partnerMode) + pointMouse[0];
     let yMouse = yScale(data.victimMode) + pointMouse[1];
     xMouse = xMouse * scaleFactor + 25;
     yMouse = yMouse * scaleFactor - 25;
 
     const modeText = data.partnerMode === -1? translate('One-sided_accident') : translate('Counterparty') + ': ' + transportationModeText(data.partnerMode);
+
     let html = modeText + '<br>';
     html += `${data.value}&nbsp${transportationModeText(data.victimMode)}&nbsp`;
     html += data.value === 1? translate('dead_(single)') : translate('dead_(multiple)');
+
     tooltip.html(html)
       .style('left', xMouse + 'px')
       .style('top',  yMouse + 'px');
   };
 
-  let mouseleave = function(data) {
+  const mouseleave = function(data) {
     tooltip.style('display', 'none');
 
     d3.select(this)
@@ -174,13 +196,13 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
   // Data item
-  var dataElement = svg.selectAll()
+  const dataElement = svg.selectAll()
     .data(data)
     .enter()
     .append("a")
     .attr("xlink:href", d => {
       let url = '/?search=&persons=' + d.victimMode + 'd';
-      if (d.victimMode === d.partnerMode) url += 'r'; // Restricted
+      if      (d.victimMode === d.partnerMode) url += 'r'; // Restricted
       else if (d.partnerMode === -1) url += 'u'; // Unilateral
       else url += `,${d.partnerMode}`;
 

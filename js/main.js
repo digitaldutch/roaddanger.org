@@ -200,6 +200,7 @@ function showCrashVictimsGraph(crashVictims){
     dateTo:   document.getElementById('searchDateTo').value,
     child:    document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue'),
   }
+
   graph = new CrashPartnerGraph('graphPartners', points, options, filter);
 }
 
