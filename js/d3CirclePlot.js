@@ -6,7 +6,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   let xLabel           = '';
   let yLabel           = '';
   let showTotals       = false
-  const margin         = {top: 60, left: 50, right: 10, bottom: 10};
+  const margin         = {top: 60, left: 70, right: 10, bottom: 10};
   const iconWidth      = 30;
 
   if (optionsUser) {
@@ -71,7 +71,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .call(d3.axisLeft(yScale).tickSize(0))
     .select('.domain').remove();
 
-  // x-axis image ticks
+  // x-axis
   // Remove mode texts
   svg.select('.x-axis').selectAll('text').remove();
 
@@ -92,20 +92,36 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .append("text")
     .attr('class', 'data-text')
     .attr('dx', 0)
-    .attr('dy', '12px')
+    .attr('dy', '13px')
     .style('font-size', '10px')
     .style('fill', '#000000')
-    .text(d => partnerTotals[parseInt(d)]);
+    .text(d => d3.format('~s')(partnerTotals[parseInt(d)]));
+
+  // y-axis
+  // Remove mode texts
+  svg.select('.y-axis').selectAll('text').remove();
+
+  const y_tick = svg.selectAll('.y-axis .tick').data(victimModes);
 
   // y-axis image ticks
-  svg.select('.y-axis').selectAll('text').remove();
-  svg.selectAll('.y-axis .tick').data(victimModes)
+  y_tick
     .append('image')
     .attr('xlink:href', d => '/images/' + getModeImage(parseInt(d)))
-    .attr('x', (-iconWidth / 2 - 10) + 'px')
+    .attr('x', (-iconWidth / 2 - 35) + 'px')
     .attr('y', (-iconWidth / 2) + 'px')
     .attr('width', iconWidth)
     .attr('height',iconWidth);
+
+  // y-axis total texts
+  y_tick
+    .append("text")
+    .attr('class', 'data-text')
+    .attr('dx', '8px')
+    .attr('dy', '3px')
+    .style('font-size', '10px')
+    .style('fill', '#000000')
+    .text(d => d3.format('~s')(victimTotals[parseInt(d)]));
+
 
   // Square root scale, because value = area πr2
   const rScale = d3.scaleSqrt()
