@@ -119,7 +119,7 @@ HTML;
 
 } else if ($pageType === PageType::statisticsCrashPartners) {
 
-  $texts = translateArray(['Counterparty_fatal', 'Always', 'days', 'the_correspondent_week', 'Custom_period', 'Child']);
+  $texts = translateArray(['Counterparty_fatal', 'Always', 'days', 'the_correspondent_week', 'Custom_period', 'Child', 'Injury', 'Injured', 'Dead_(adjective)']);
 
   $htmlSearchPeriod = getSearchPeriodHtml('loadStatistics');
 
@@ -146,7 +146,9 @@ Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar
     <div class="searchBar" style="display: flex;">
 
       <div class="toolbarItem">
-        <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterChild();"></span>      
+        <span id="filterStatsDead" class="menuButton bgDeadBlack buttonSelectedBlue" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}"></span>      
+        <span id="filterStatsInjured" class="menuButton bgInjuredBlack" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterStats();"></span>      
+        <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
       </div>
 
       $htmlSearchPeriod
@@ -176,7 +178,7 @@ HTML;
     <div class="searchBar" style="display: flex;">
 
       <div class="toolbarItem">
-        <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterChild();"></span>      
+        <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
       </div>
 
       $htmlSearchPeriod   

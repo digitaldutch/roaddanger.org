@@ -117,9 +117,11 @@ function initStatistics(){
     const searchDateFrom   = url.searchParams.get('date_from');
     const searchDateTo     = url.searchParams.get('date_to');
     const searchChild      = url.searchParams.get('child');
+    const searchInjured    = url.searchParams.get('hi');
 
     if (period)         document.getElementById('searchPeriod').value   = period;
     if (searchChild)    document.getElementById('filterStatsChild').classList.add('buttonSelectedBlue');
+    if (searchInjured)  document.getElementById('filterStatsInjured').classList.add('buttonSelectedBlue');
     if (searchDateFrom) document.getElementById('searchDateFrom').value = searchDateFrom;
     if (searchDateTo)   document.getElementById('searchDateTo').value   = searchDateTo;
   }
@@ -195,17 +197,19 @@ function showCrashVictimsGraph(crashVictims){
   };
 
   const filter = {
-    period:   document.getElementById('searchPeriod').value,
-    dateFrom: document.getElementById('searchDateFrom').value,
-    dateTo:   document.getElementById('searchDateTo').value,
-    child:    document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue'),
+    period:        document.getElementById('searchPeriod').value,
+    dateFrom:      document.getElementById('searchDateFrom').value,
+    dateTo:        document.getElementById('searchDateTo').value,
+    child:         document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue'),
+    healthInjured: document.getElementById('filterStatsInjured').classList.contains('buttonSelectedBlue'),
   }
 
   graph = new CrashPartnerGraph('graphPartners', points, options, filter);
 }
 
-function selectFilterChild() {
-  document.getElementById('filterStatsChild').classList.toggle('buttonSelectedBlue');
+function selectFilterStats() {
+  event.target.classList.toggle('buttonSelectedBlue');
+
   loadStatistics();
 }
 
@@ -369,12 +373,14 @@ async function loadStatistics(){
       case PageType.statisticsCrashPartners:       {serverData.type = 'crashPartners';       break;}
     }
 
+    const buttonInjured = document.getElementById('filterStatsInjured');
     if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
       serverData.filter = {
-        period:   document.getElementById('searchPeriod').value,
-        dateFrom: document.getElementById('searchDateFrom').value,
-        dateTo:   document.getElementById('searchDateTo').value,
-        child:    document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue')? 1 : 0,
+        period:        document.getElementById('searchPeriod').value,
+        dateFrom:      document.getElementById('searchDateFrom').value,
+        dateTo:        document.getElementById('searchDateTo').value,
+        child:         document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue')? 1 : 0,
+        healthInjured: buttonInjured && document.getElementById('filterStatsInjured').classList.contains('buttonSelectedBlue')? 1 : 0,
       };
     }
 
@@ -395,6 +401,7 @@ async function loadStatistics(){
       if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
         url += '?period=' + serverData.filter.period;
         if (serverData.filter.child) url += '&child=1';
+        if (serverData.filter.healthInjured) url += '&hi=1';
         if (serverData.filter.period === 'custom') {
           if (serverData.filter.dateFrom) url += '&date_from=' + serverData.filter.dateFrom;
           if (serverData.filter.dateTo)   url += '&date_to='   + serverData.filter.dateTo;

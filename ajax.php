@@ -4,6 +4,9 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once 'initialize.php';
 
+global $database;
+global $user;
+
 $function = $_REQUEST['function'];
 
 function addPeriodWhereSql(&$sqlWhere, &$params, $filter){
@@ -44,6 +47,18 @@ function addPeriodWhereSql(&$sqlWhere, &$params, $filter){
 
       break;
     }
+  }
+}
+
+function addHealthWhereSql(&$sqlWhere, &$joinPersonsTable, $filter){
+
+  if (($filter['healthDead'] === 1) || ($filter['healthInjured'] === 1)){
+    $joinPersonsTable = true;
+    $values = [];
+    if ($filter['healthDead']    === 1) $values[] = 3;
+    if ($filter['healthInjured'] === 1) $values[] = 2;
+    $valuesText = implode(", ", $values);
+    addSQLWhere($sqlWhere, " ap.health IN ($valuesText) ");
   }
 }
 
@@ -98,17 +113,19 @@ SQL;
 
 /**
  * @param TDatabase $database
+ * @param $filter
  * @return array
  */
 function getStatsCrashPartners($database, $filter){
 
-  $SQLWhere = ' WHERE ap.health=3 ';
-  $params   = [];
+  $SQLWhere         = '';
+  $params           = [];
+  $joinPersonsTable = true;
+
+  addHealthWhereSql($SQLWhere, $joinPersonsTable, $filter);
   addPeriodWhereSql($SQLWhere, $params, $filter);
 
-  if ($filter['child'] === 1){
-    addSQLWhere($SQLWhere, " ap.child=1 ");
-  }
+  if ($filter['child'] === 1) addSQLWhere($SQLWhere, " ap.child=1 ");
 
   $sqlCrashesWithDeath = <<<SQL
   SELECT
@@ -132,11 +149,10 @@ where
   a.id IN ($sqlCrashesWithDeath);
 SQL;
 
-
   $crashVictims = [];
   $crashes = $database->fetchAllGroup($sql, $params);
   foreach ($crashes as $crashPersons) {
-    $crashDeaths              = [];
+    $crashInjured              = [];
     $crashTransportationModes = [];
     $unilateralCrash          = false;
 
@@ -148,26 +164,27 @@ SQL;
       $person['unilateral']         = (int)$person['unilateral'] === 1;
       if ($person['unilateral'] === true) $unilateralCrash = true;
 
-      if ($person['health'] === 3) $crashDeaths[] = $person;
+      if ($person['health'] === 3) $crashInjured[] = $person;
+      else if (($filter['healthInjured'] === 1) && ($person['health'] === 2)) $crashInjured[] = $person;
       if (! in_array($person['transportationmode'], $crashTransportationModes)) $crashTransportationModes[] = $person['transportationmode'];
     }
 
-    foreach ($crashDeaths as $personDead){
-      if (! isset($crashVictims[$personDead['transportationmode']])) $crashVictims[$personDead['transportationmode']] = [];
+    foreach ($crashInjured as $personInjured){
+      if (! isset($crashVictims[$personInjured['transportationmode']])) $crashVictims[$personInjured['transportationmode']] = [];
 
       // Add crash partner
       if ($unilateralCrash){
         // Unilateral transportationMode = -1
-        if (! isset($crashVictims[$personDead['transportationmode']][-1])) $crashVictims[$personDead['transportationmode']][-1] = 0;
-        $crashVictims[$personDead['transportationmode']][-1] += 1;
+        if (! isset($crashVictims[$personInjured['transportationmode']][-1])) $crashVictims[$personInjured['transportationmode']][-1] = 0;
+        $crashVictims[$personInjured['transportationmode']][-1] += 1;
       } else if (count($crashTransportationModes) === 1){
-        if (! isset($crashVictims[$personDead['transportationmode']][$personDead['transportationmode']])) $crashVictims[$personDead['transportationmode']][$personDead['transportationmode']] = 0;
-        $crashVictims[$personDead['transportationmode']][$personDead['transportationmode']] += 1;
+        if (! isset($crashVictims[$personInjured['transportationmode']][$personInjured['transportationmode']])) $crashVictims[$personInjured['transportationmode']][$personInjured['transportationmode']] = 0;
+        $crashVictims[$personInjured['transportationmode']][$personInjured['transportationmode']] += 1;
       } else {
         foreach ($crashTransportationModes as $transportationMode){
-          if ($transportationMode !== $personDead['transportationmode']) {
-            if (! isset($crashVictims[$personDead['transportationmode']][$transportationMode])) $crashVictims[$personDead['transportationmode']][$transportationMode] = 0;
-            $crashVictims[$personDead['transportationmode']][$transportationMode] += 1;
+          if ($transportationMode !== $personInjured['transportationmode']) {
+            if (! isset($crashVictims[$personInjured['transportationmode']][$transportationMode])) $crashVictims[$personInjured['transportationmode']][$transportationMode] = 0;
+            $crashVictims[$personInjured['transportationmode']][$transportationMode] += 1;
           }
         }
       }
@@ -550,14 +567,7 @@ SQL;
         $params[':sitename'] = "%{$filter['siteName']}%";
       }
 
-      if (($filter['healthDead'] === 1) || ($filter['healthInjured'] === 1)){
-        $joinPersonsTable = true;
-        $values = [];
-        if ($filter['healthDead']    === 1) $values[] = 3;
-        if ($filter['healthInjured'] === 1) $values[] = 2;
-        $valuesText = implode(", ", $values);
-        addSQLWhere($SQLWhere, " ap.health IN ($valuesText) ");
-      }
+      addHealthWhereSql($SQLWhere, $joinPersonsTable, $filter);
 
       if ($filter['child'] === 1){
         $joinPersonsTable = true;
