@@ -146,7 +146,6 @@ Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar
     <div class="searchBar" style="display: flex;">
 
       <div class="toolbarItem">
-        <span id="filterStatsDead" class="menuButton bgDeadBlack buttonSelectedBlue" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}"></span>      
         <span id="filterStatsInjured" class="menuButton bgInjuredBlack" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterStats();"></span>      
         <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
       </div>
