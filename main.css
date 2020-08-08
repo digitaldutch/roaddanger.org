@@ -1163,6 +1163,10 @@ html.fullWindow #pageBar {
 }
 
 .dataTable th {
+  position:         sticky;
+  top:              0;
+  z-index:          1;
+  background-color: #eeeeee;
   border-bottom:    solid 1px #d1d1d1;
   padding:          6px 6px;
   font-weight:      bold;

@@ -119,7 +119,7 @@ HTML;
 
 } else if ($pageType === PageType::statisticsCrashPartners) {
 
-  $texts = translateArray(['Counterparty_fatal', 'Always', 'days', 'the_correspondent_week', 'Custom_period', 'Child', 'Injury', 'Injured', 'Dead_(adjective)']);
+  $texts = translateArray(['Counterparty_in_crashes', 'Always', 'days', 'the_correspondent_week', 'Custom_period', 'Child', 'Injury', 'Injured', 'Dead_(adjective)']);
 
   $htmlSearchPeriod = getSearchPeriodHtml('loadStatistics');
 
@@ -128,7 +128,7 @@ HTML;
 
   <div style="display: flex; flex-direction: column; align-items: center">
     <div style="text-align: left;">
-      <div class="pageSubTitleFont">{$texts['Counterparty_fatal']}</div>
+      <div class="pageSubTitleFont">{$texts['Counterparty_in_crashes']}</div>
       <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">Zo help je de representativiteit van deze tabel te verbeteren.</div>
     </div>
   </div>

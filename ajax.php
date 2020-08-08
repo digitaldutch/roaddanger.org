@@ -111,7 +111,7 @@ SQL;
   return $stats;
 }
 
-/**
+/**c
  * @param TDatabase $database
  * @param $filter
  * @return array

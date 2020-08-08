@@ -46,13 +46,13 @@ HTML;
 <link href="https://fonts.googleapis.com/css?family=Lora|Montserrat"f rel="stylesheet">
 <link href="/main.css?v=$VERSION" rel="stylesheet" type="text/css">
 <link rel="shortcut icon" type="image/png" href="/images/hetongeluk.png">
+<script src='/scripts/tippy.all.min.js'></script>
+<script src='/js/utils.js?v=$VERSION'></script>
 $head
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="block-all-mixed-content">
 <meta charset="utf-8">
 <title>$title</title>
-<script src="/scripts/tippy.all.min.js"></script>
-<script src="/js/utils.js?v=$VERSION"></script>
 
 $initScript
 
@@ -198,7 +198,7 @@ function getNavigation(){
 
   $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Other', 'Recent_crashes',
     'Child_deaths', 'Mosaic', 'The_correspondent_week', 'Map', 'The_crashes', 'General', 'deadly_crashpartners',
-    'Counterparty_fatal', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
+    'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
     'Version']);
 
   return <<<HTML
@@ -221,7 +221,7 @@ function getNavigation(){
 
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Statistics']}</div>
-      <a href="/statistieken/andere_partij" class="navItem">{$texts['Counterparty_fatal']}</a>
+      <a href="/statistieken/andere_partij" class="navItem">{$texts['Counterparty_in_crashes']}</a>
       <a href="/statistieken/vervoertypes" class="navItem">{$texts['Transportation_modes']}</a>
       <a href="/statistieken/algemeen" class="navItem">{$texts['General']}</a>
     </div>
@@ -237,7 +237,7 @@ function getNavigation(){
       <div class="navigationSectionHeader">{$texts['Admin']}</div>
   
       <div class="navigationSection">
-        <a href="/admin/mensen" class="navItem" data-admin-inline>{$texts['Humans']}</a>
+        <a href="/admin/humans" class="navItem" data-admin-inline>{$texts['Humans']}</a>
         <a href="/moderaties/" class="navItem">{$texts['Moderations']}</a>
         <a href="/stream" class="navItem">{$texts['Last_modified_crashes']}</a>
         <a href="/admin/options/" class="navItem">{$texts['Options']}</a>

@@ -8,7 +8,7 @@ async function initAdmin(){
   initPage();
 
   const url = new URL(location.href);
-  if (url.pathname.startsWith('/admin/mensen')) {
+  if (url.pathname.startsWith('/admin/humans')) {
     initObserver(loadUsers);
 
     loadUsers();
@@ -77,7 +77,7 @@ function tableDataClick(event){
 
   const tr = event.target.closest('tr');
   if (tr) {
-    const id = parseInt(tr.id.substr(2));
+    const id = tr.id.substr(2);
     selectTableRow(id);
   }
 
@@ -231,7 +231,7 @@ async function loadTranslations(){
 
       showTranslations(tableData);
 
-      if ((tableData.length > 0) && (! selectedTableData)) selectTableRow(tableData[0]);
+      if ((tableData.length > 0) && (! selectedTableData)) selectTableRow(tableData[0].id);
     }
 
   } catch (error) {

@@ -169,8 +169,16 @@ function showCrashVictimsGraph(crashVictims){
     return partner? partner.victimCount : 0;
   }
 
+  const filter = {
+    period:        document.getElementById('searchPeriod').value,
+    dateFrom:      document.getElementById('searchDateFrom').value,
+    dateTo:        document.getElementById('searchDateTo').value,
+    child:         document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue'),
+    healthInjured: document.getElementById('filterStatsInjured').classList.contains('buttonSelectedBlue'),
+  }
+
   // Put data in heatmap points layout
-  let victimModes = [];
+  let victimModes  = [];
   let partnerModes = [];
   for (const key of Object.keys(TTransportationMode)) {
     victimModes.push(TTransportationMode[key]);
@@ -193,16 +201,11 @@ function showCrashVictimsGraph(crashVictims){
 
   const options = {
     xLabel: translate('Counterparty'),
-    yLabel: translate('Traffic_fatalities'),
+    yLabel: translate('Dead_(adjective)'),
   };
 
-  const filter = {
-    period:        document.getElementById('searchPeriod').value,
-    dateFrom:      document.getElementById('searchDateFrom').value,
-    dateTo:        document.getElementById('searchDateTo').value,
-    child:         document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue'),
-    healthInjured: document.getElementById('filterStatsInjured').classList.contains('buttonSelectedBlue'),
-  }
+  if (filter.healthInjured) options.yLabel += ' / ' + translate('Injured');
+  if (filter.child) options.yLabel += ' (' + translate('Children') + ')';
 
   graph = new CrashPartnerGraph('graphPartners', points, options, filter);
 }

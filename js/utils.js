@@ -904,6 +904,8 @@ function selectTableRow(id=null) {
 
   selectedTableData = getSelectedTableData(id);
 
+  if (! selectedTableData) showError(`Data row id ${id} not found`)
+
   if ((! selectedTableData) && (tableData.length > 0)) selectedTableData = tableData[0];
 
   showSelectedTableRow();
@@ -914,5 +916,6 @@ function showSelectedTableRow(){
 }
 
 function getSelectedTableData(id){
-  return tableData.find(d => d.id === id);
+  // == operator used on purpose as sometimes integers are compared with strings
+  return tableData.find(d => d.id == id);
 }

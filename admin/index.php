@@ -27,29 +27,33 @@ HTML;
 $htmlEnd    = '';
 $fullPage = false;
 
-if (containsText($_SERVER['REQUEST_URI'], '/mensen')) {
+if (containsText($_SERVER['REQUEST_URI'], '/humans')) {
   if (! $user->admin) $mainHTML = htmlNoAdmin();
   else {
+
+    $fullPage = true;
 
     $texts = translateArray(['Admin', 'Humans', 'Id', 'Name', 'Last_active', 'Permission']);
 
     $mainHTML = <<<HTML
-<div id="main" class="pageInner">
+<div id="main" class="pageInner scrollPage" style="max-width: fit-content;">
   <div class="pageSubTitle">{$texts['Admin']} - {$texts['Humans']}</div>
   
-  <table id="tableData" class="dataTable">
-    <thead>
-      <tr>
-        <th>{$texts['Id']}</th>
-        <th>{$texts['Name']}</th>
-        <th>{$texts['Last_active']}</th>
-        <th>{$texts['Permission']}</th>
-        <th></th>
-      </tr>
-    </thead>  
-    <tbody id="tableBody" onclick="tableDataClick(event);" ondblclick="adminEditUser();">        
-    </tbody>
-  </table>    
+  <div class="panelTableOverflow">
+    <table id="tableData" class="dataTable">
+      <thead>
+        <tr>
+          <th>{$texts['Id']}</th>
+          <th>{$texts['Name']}</th>
+          <th>{$texts['Last_active']}</th>
+          <th>{$texts['Permission']}</th>
+          <th></th>
+        </tr>
+      </thead>  
+      <tbody id="tableBody" onclick="tableDataClick(event);" ondblclick="adminEditUser();">        
+      </tbody>
+    </table>    
+  </div>
   
   <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
 </div>
