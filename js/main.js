@@ -641,7 +641,7 @@ async function loadMapDataFromServer(){
           .addTo(mapMain));
 
         crashes.push(crash);
-        const crashArticles = response.articles.filter(a => a.accidentid === crash.id);
+        const crashArticles = response.articles.filter(a => a.crashid === crash.id);
         articles = articles.concat(crashArticles);
       }
     }
@@ -823,7 +823,7 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
 
   let htmlModeration = '';
   if (crash.awaitingmoderation){
-    let modHTML = '';
+    let modHTML;
     if (user.moderator) modHTML = `
 Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
 <div style="margin: 10px;">
@@ -1035,7 +1035,7 @@ Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
 
 function getCrashTopIcons(crash, allowClick=false){
   let html = '';
-  if (crash.unilateral)                  html += `<div class="iconSmall bgUnilateral" data-tippy-content="${translate('One-sided_accident')}"></div>`;
+  if (crash.unilateral)                  html += `<div class="iconSmall bgUnilateral" data-tippy-content="${translate('One-sided_crash')}"></div>`;
   if (crash.pet)                         html += `<div class="iconSmall bgPet"  data-tippy-content="${translate('Animals')}"></div>`;
   if (crash.trafficjam)                  html += `<div class="iconSmall bgTrafficJam"  data-tippy-content="${translate('Traffic_jam_disruption')}"></div>`;
   if (crash.longitude && crash.latitude) html += `<div class="iconSmall bgGeo" data-tippy-content="${translate('Location_known')}"></div>`;
@@ -1637,8 +1637,8 @@ async function saveArticleCrash(){
   const saveCrash = document.getElementById('editCrashSection').style.display !== 'none';
   if (saveCrash){
     if (saveArticle && (! user.moderator)) crashEdited.title = articleEdited.title;
-    if (!crashEdited.title)               {showError(translate('Accident_title_not_filled_in')); return;}
-    if (!crashEdited.date)                {showError(translate('Accident_date_not_filled_in')); return;}
+    if (!crashEdited.title)               {showError(translate('Crash_title_not_filled_in')); return;}
+    if (!crashEdited.date)                {showError(translate('Crash_date_not_filled_in')); return;}
     if (crashEdited.persons.length === 0) {showError(translate('No_involved_humans_added')); return;}
   }
 
@@ -1744,7 +1744,7 @@ function getArticleFromID(id){
 }
 
 function getCrashArticles(crashID, articles){
-  let list = articles.filter(article => article.accidentid === crashID);
+  let list = articles.filter(article => article.crashid === crashID);
 
   // Sort on publication time
   list.sort(function(a, b) {return b.publishedtime - a.publishedtime;});
@@ -1958,7 +1958,7 @@ function mergeCrash() {
 
     if (response.error) showError(response.error);
     else {
-      articles.forEach(article => {if (article.accidentid === fromID) article.accidentid = toID;});
+      articles.forEach(article => {if (article.crashid === fromID) article.crashid = toID;});
       crashes.filter(crash => crash.id !== fromID);
 
       // Update GUI
@@ -2074,7 +2074,7 @@ function initSearchBar(){
   <span id="searchDeadTm${transportationMode}" class="searchIcon bgDead" data-tippy-content="Dood" onclick="searchPersonOptionClick(event, 'Dead', ${transportationMode});"></span>      
   <span id="searchInjuredTm${transportationMode}" class="searchIcon bgInjured" data-tippy-content="Gewond" onclick="searchPersonOptionClick(event, 'Injured', ${transportationMode});"></span>      
   <span id="searchRestrictedTm${transportationMode}" data-personRestricted class="searchIcon ${iconTransportationMode} mirrorHorizontally" data-tippy-content="Tegenpartij was ook ${text}" onclick="searchPersonOptionClick(event, 'Restricted', ${transportationMode});"></span>      
-  <span id="searchUnilateralTm${transportationMode}" data-personUnilateral class="searchIcon bgUnilateral" data-tippy-content="${translate('One-sided_accident')}" onclick="searchPersonOptionClick(event, 'Unilateral', ${transportationMode});"></span>      
+  <span id="searchUnilateralTm${transportationMode}" data-personUnilateral class="searchIcon bgUnilateral" data-tippy-content="${translate('One-sided_crash')}" onclick="searchPersonOptionClick(event, 'Unilateral', ${transportationMode});"></span>      
 </div>`;
   }
 
@@ -2173,7 +2173,7 @@ function updateTransportationModeFilterInput(){
 
       const unilateralSelected = document.getElementById('searchUnilateralTm' + transportationMode).classList.contains('inputSelectButtonSelected');
       if (unilateralSelected){
-        html += `<span class="searchDisplayIcon bgUnilateral" data-tippy-content="${translate('One_sided_accident')}"></span>`;
+        html += `<span class="searchDisplayIcon bgUnilateral" data-tippy-content="${translate('One_sided_crash')}"></span>`;
       }
 
       html += '</span>';
@@ -2372,7 +2372,7 @@ function showMapEdit(latitude, longitude) {
       markerEdit = new mapboxgl.Marker(markerElement, {anchor: 'bottom', draggable: true})
         .setLngLat([longitude, latitude])
         .addTo(mapEdit)
-        .on('dragend', function(e) {
+        .on('dragend', function() {
           const lngLat = markerEdit.getLngLat();
           saveMarkerPosition(lngLat);
         })
@@ -2443,7 +2443,7 @@ function showMapCrash(latitude, longitude) {
   const markerElement = document.createElement('div');
   markerElement.innerHTML = `<img class="mapMarker" src="/images/pin.svg" alt="marker">`;
 
-  const mapMarker = new mapboxgl.Marker(markerElement, {anchor: 'bottom'})
+  new mapboxgl.Marker(markerElement, {anchor: 'bottom'})
     .setLngLat([longitude, latitude])
     .addTo(mapCrash);
 

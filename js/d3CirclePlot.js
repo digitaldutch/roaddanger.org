@@ -163,7 +163,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     return value === -1? 'unilateral.svg' : transportationImageFileName(value);
   }
 
-  const mouseoverItem = function(data) {
+  const mouseoverItem = function() {
     tooltip.style('display', 'flex');
 
     d3.select(this)
@@ -191,7 +191,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     xMouse = xMouse * scaleFactor + 25;
     yMouse = yMouse * scaleFactor - 25;
 
-    const modeText = data.partnerMode === -1? translate('One-sided_accident') : translate('Counterparty') + ': ' + transportationModeText(data.partnerMode);
+    const modeText = data.partnerMode === -1? translate('One-sided_crash') : translate('Counterparty') + ': ' + transportationModeText(data.partnerMode);
 
     let html = modeText + '<br>';
     html += `${data.value}&nbsp${transportationModeText(data.victimMode)}&nbsp`;
@@ -203,7 +203,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
       .style('top',  yMouse + 'px');
   };
 
-  const mouseleaveItem = function(data) {
+  const mouseleaveItem = function() {
     tooltip.style('display', 'none');
 
     d3.select(this)

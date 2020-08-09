@@ -89,8 +89,8 @@ SELECT
   sum(ap.health=1)         AS unharmed,
   sum(ap.health=0)         AS healthunknown,
   COUNT(*) AS total
-FROM accidentpersons ap
-JOIN accidents ac ON ap.accidentid = ac.id
+FROM crashpersons ap
+JOIN crashes ac ON ap.crashid = ac.id
   $SQLWhere
 GROUP BY transportationmode
 ORDER BY dead DESC, injured DESC
@@ -130,21 +130,21 @@ function getStatsCrashPartners($database, $filter){
   $sqlCrashesWithDeath = <<<SQL
   SELECT
     ac.id
-  FROM accidentpersons ap
-  JOIN accidents ac ON ap.accidentid = ac.id
+  FROM crashpersons ap
+  JOIN crashes ac ON ap.crashid = ac.id
   $SQLWhere
 SQL;
 
   // Get all persons from crashes with dead
   $sql = <<<SQL
 select
-  a.id AS accidentid,
+  a.id AS crashid,
   a.unilateral,
   ap.id,
   transportationmode,
   health
-from accidentpersons ap
-JOIN accidents a ON ap.accidentid = a.id
+from crashpersons ap
+JOIN crashes a ON ap.crashid = a.id
 where
   a.id IN ($sqlCrashesWithDeath);
 SQL;
@@ -215,59 +215,59 @@ function getStatsDatabase($database){
   $stats = [];
 
   $stats['total'] = [];
-  $sql = "SELECT COUNT(*) AS count FROM accidents";
+  $sql = "SELECT COUNT(*) AS count FROM crashes";
   $stats['total']['crashes'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) AS count FROM articles";
   $stats['total']['articles'] = $database->fetchSingleValue($sql);
-  $sql = "SELECT COUNT(*) FROM accidents JOIN accidentpersons a on accidents.id = a.accidentid WHERE a.health=3";
+  $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE a.health=3";
   $stats['total']['dead'] = $database->fetchSingleValue($sql);
-  $sql = "SELECT COUNT(*) FROM accidents JOIN accidentpersons a on accidents.id = a.accidentid WHERE a.health=2";
+  $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE a.health=2";
   $stats['total']['injured'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) AS count FROM users";
   $stats['total']['users'] = $database->fetchSingleValue($sql);
 
 
   $stats['today'] = [];
-  $sql = "SELECT COUNT(*) AS count FROM accidents WHERE DATE(`date`) = CURDATE()";
+  $sql = "SELECT COUNT(*) AS count FROM crashes WHERE DATE(`date`) = CURDATE()";
   $stats['today']['crashes'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) AS count FROM articles WHERE DATE(`publishedtime`) = CURDATE()";
   $stats['today']['articles'] = $database->fetchSingleValue($sql);
   $stats['today']['users'] = $database->fetchSingleValue($sql);
-  $sql = "SELECT COUNT(*) FROM accidents JOIN accidentpersons a on accidents.id = a.accidentid WHERE DATE(`date`) = CURDATE() AND a.health=3";
+  $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE(`date`) = CURDATE() AND a.health=3";
   $stats['today']['dead'] = $database->fetchSingleValue($sql);
-  $sql = "SELECT COUNT(*) FROM accidents JOIN accidentpersons a on accidents.id = a.accidentid WHERE DATE(`date`) = CURDATE() AND a.health=2";
+  $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE(`date`) = CURDATE() AND a.health=2";
   $stats['today']['injured'] = $database->fetchSingleValue($sql);
-  $sql = "SELECT COUNT(*) AS count FROM accidents WHERE DATE(`createtime`) = CURDATE()";
+  $sql = "SELECT COUNT(*) AS count FROM crashes WHERE DATE(`createtime`) = CURDATE()";
   $stats['today']['crashesAdded'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) AS count FROM articles WHERE DATE(`createtime`) = CURDATE()";
   $stats['today']['articlesAdded'] = $database->fetchSingleValue($sql);
 
   $stats['sevenDays'] = [];
-  $sql = "SELECT COUNT(*) AS count FROM accidents WHERE DATE(`date`) >= SUBDATE(CURDATE(), 7)";
+  $sql = "SELECT COUNT(*) AS count FROM crashes WHERE DATE(`date`) >= SUBDATE(CURDATE(), 7)";
   $stats['sevenDays']['crashes'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) AS count FROM articles WHERE DATE(`publishedtime`) >= SUBDATE(CURDATE(), 7)";
   $stats['sevenDays']['articles'] = $database->fetchSingleValue($sql);
-  $sql = "SELECT COUNT(*) FROM accidents JOIN accidentpersons a on accidents.id = a.accidentid WHERE DATE(`date`) >= SUBDATE(CURDATE(), 7) AND a.health=3";
+  $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE(`date`) >= SUBDATE(CURDATE(), 7) AND a.health=3";
   $stats['sevenDays']['dead'] = $database->fetchSingleValue($sql);
-  $sql = "SELECT COUNT(*) FROM accidents JOIN accidentpersons a on accidents.id = a.accidentid WHERE DATE(`date`) >= SUBDATE(CURDATE(), 7) AND a.health=2";
+  $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE(`date`) >= SUBDATE(CURDATE(), 7) AND a.health=2";
   $stats['sevenDays']['injured'] = $database->fetchSingleValue($sql);
-  $sql = "SELECT COUNT(*) AS count FROM accidents WHERE DATE(`createtime`) >= SUBDATE(CURDATE(), 7)";
+  $sql = "SELECT COUNT(*) AS count FROM crashes WHERE DATE(`createtime`) >= SUBDATE(CURDATE(), 7)";
   $stats['sevenDays']['crashesAdded'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) AS count FROM articles WHERE DATE(`createtime`) >= SUBDATE(CURDATE(), 7)";
   $stats['sevenDays']['articlesAdded'] = $database->fetchSingleValue($sql);
 
   $stats['deCorrespondent'] = [];
-  $sql = "SELECT COUNT(*) FROM accidents WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20'";
+  $sql = "SELECT COUNT(*) FROM crashes WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20'";
   $stats['deCorrespondent']['crashes'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) FROM articles WHERE DATE (`publishedtime`) >= '2019-01-14' AND DATE (`publishedtime`) <= '2019-01-20'";
   $stats['deCorrespondent']['articles'] = $database->fetchSingleValue($sql);
-  $sql = "SELECT COUNT(*) FROM accidents WHERE DATE (`createtime`) >= '2019-01-14' AND DATE (`createtime`) <= '2019-01-20'";
+  $sql = "SELECT COUNT(*) FROM crashes WHERE DATE (`createtime`) >= '2019-01-14' AND DATE (`createtime`) <= '2019-01-20'";
   $stats['deCorrespondent']['crashesAdded'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) FROM articles WHERE DATE (`createtime`) >= '2019-01-14' AND DATE (`createtime`) <= '2019-01-20'";
   $stats['deCorrespondent']['articlesAdded'] = $database->fetchSingleValue($sql);
-  $sql = "SELECT COUNT(*) FROM accidents JOIN accidentpersons a on accidents.id = a.accidentid WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' AND a.health=3";
+  $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' AND a.health=3";
   $stats['deCorrespondent']['dead'] = $database->fetchSingleValue($sql);
-  $sql = "SELECT COUNT(*) FROM accidents JOIN accidentpersons a on accidents.id = a.accidentid WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' AND a.health=2";
+  $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' AND a.health=2";
   $stats['deCorrespondent']['injured'] = $database->fetchSingleValue($sql);
 
   return $stats;
@@ -280,13 +280,13 @@ function getStatsDatabase($database){
  * @return array | false
  */
 function urlExists($database, $url){
-  $sql = "SELECT id, accidentid FROM articles WHERE url=:url LIMIT 1;";
+  $sql = "SELECT id, crashid FROM articles WHERE url=:url LIMIT 1;";
   $params = [':url' => $url];
   $DBResults = $database->fetchAll($sql, $params);
   foreach ($DBResults as $found) {
     return [
       'articleId' => (int)$found['id'],
-      'crashId'   => (int)$found['accidentid'],
+      'crashId'   => (int)$found['crashid'],
       ];
   }
   return false;
@@ -300,7 +300,7 @@ function urlExists($database, $url){
  */
 function setCrashStreamTop($database, $crashId, $userId, $streamTopType){
   $sql = <<<SQL
-  UPDATE accidents SET
+  UPDATE crashes SET
     streamdatetime  = current_timestamp,
     streamtoptype   = $streamTopType, 
     streamtopuserid = :userid
@@ -316,7 +316,7 @@ SELECT
   ar.id,
   ar.userid,
   ar.awaitingmoderation,
-  ar.accidentid,
+  ar.crashid,
   ar.title,
   ar.text,
   IF(ar.alltext > '', 1, 0) AS hasalltext,
@@ -337,7 +337,7 @@ function cleanArticleDBRow($article){
   $article['userid']             = (int)$article['userid'];
   $article['awaitingmoderation'] = $article['awaitingmoderation'] == 1;
   $article['hasalltext']         = $article['hasalltext'] == 1;
-  $article['accidentid']         = (int)$article['accidentid'];
+  $article['crashid']         = (int)$article['crashid'];
   $article['createtime']         = datetimeDBToISO8601($article['createtime']);
   $article['publishedtime']      = datetimeDBToISO8601($article['publishedtime']);
   $article['streamdatetime']     = datetimeDBToISO8601($article['streamdatetime']);
@@ -493,7 +493,7 @@ else if ($function === 'loadCrashes') {
     $params       = [];
     $sqlModerated = '';
     if ($moderations) {
-      $sqlModerated = ' (ac.awaitingmoderation=1) OR (ac.id IN (SELECT accidentid FROM articles WHERE awaitingmoderation=1)) ';
+      $sqlModerated = ' (ac.awaitingmoderation=1) OR (ac.id IN (SELECT crashid FROM articles WHERE awaitingmoderation=1)) ';
     } else if ($crashId === null) {
       // Individual pages are always shown and *not* moderated.
       $sqlModerated = $user->isModerator()? '':  ' ((ac.awaitingmoderation=0) || (ac.userid=:useridModeration)) ';
@@ -509,8 +509,8 @@ SELECT
   child,
   underinfluence,
   hitrun
-FROM accidentpersons
-WHERE accidentid=:accidentid
+FROM crashpersons
+WHERE crashid=:crashid
 ORDER BY health IS NULL, FIELD(health, 3, 2, 0, 1);
 SQL;
 
@@ -536,14 +536,14 @@ SELECT DISTINCT
   ac.tree,
   CONCAT(u.firstname, ' ', u.lastname) AS user, 
   CONCAT(tu.firstname, ' ', tu.lastname) AS streamtopuser 
-FROM accidents ac
+FROM crashes ac
 LEFT JOIN users u  on u.id  = ac.userid 
 LEFT JOIN users tu on tu.id = ac.streamtopuserid
 SQL;
 
     $SQLWhere = '';
     if ($crashId !== null) {
-      // Single accident
+      // Single crash
       $params = [':id' => $crashId];
       $SQLWhere = " WHERE ac.id=:id ";
     } else {
@@ -588,8 +588,8 @@ SQL;
 
       if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);
 
-      if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON ac.id = ar.accidentid ';
-      if ($joinPersonsTable)  $SQLJoin .= ' JOIN accidentpersons ap on ac.id = ap.accidentid ';
+      if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON ac.id = ar.crashid ';
+      if ($joinPersonsTable)  $SQLJoin .= ' JOIN crashpersons ap on ac.id = ap.crashid ';
 
       if (count($filter['persons']) > 0){
         foreach ($filter['persons'] as $person){
@@ -599,7 +599,7 @@ SQL;
           $personInjured      = containsText($person, 'i');
           $restricted         = containsText($person, 'r');
           $unilateral         = containsText($person, 'u');
-          $SQLJoin .= " JOIN accidentpersons $tableName ON ac.id = $tableName.accidentid AND $tableName.transportationmode=$transportationMode ";
+          $SQLJoin .= " JOIN crashpersons $tableName ON ac.id = $tableName.crashid AND $tableName.transportationmode=$transportationMode ";
           if ($personDead || $personInjured ) {
             $healthValues = [];
             if ($personDead)    $healthValues[] = 3;
@@ -607,7 +607,7 @@ SQL;
             $healthValues = implode(',', $healthValues);
             $SQLJoin .= " AND $tableName.health IN ($healthValues) ";
           }
-          if ($restricted) addSQLWhere($SQLWhere, "(ac.unilateral is null OR ac.unilateral != 1) AND (ac.id not in (select au.id from accidents au LEFT JOIN accidentpersons apu ON au.id = apu.accidentid WHERE apu.transportationmode != $transportationMode))");
+          if ($restricted) addSQLWhere($SQLWhere, "(ac.unilateral is null OR ac.unilateral != 1) AND (ac.id not in (select au.id from crashes au LEFT JOIN crashpersons apu ON au.id = apu.crashid WHERE apu.transportationmode != $transportationMode))");
           if ($unilateral) addSQLWhere($SQLWhere, "ac.unilateral = 1");
         }
       }
@@ -641,7 +641,7 @@ SQL;
 
       // Load crash persons
       $crash['persons'] = [];
-      $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['accidentid' => $crash['id']]);
+      $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['crashid' => $crash['id']]);
       foreach ($DBPersons as $person) {
         $person['groupid']            = isset($person['groupid'])? (int)$person['groupid'] : null;
         $person['transportationmode'] = (int)$person['transportationmode'];
@@ -671,7 +671,7 @@ SQL;
       $sqlArticleSelect = getArticleSelect();
       $sqlArticles = <<<SQL
 $sqlArticleSelect
-WHERE ar.accidentid IN ($commaArrays)
+WHERE ar.crashid IN ($commaArrays)
  $sqlModerated
 ORDER BY ar.streamdatetime DESC
 SQL;
@@ -703,7 +703,7 @@ SELECT
   id, 
   ST_X(location) as longitude, 
   ST_Y(location) as latitude
-FROM accidents
+FROM crashes
 WHERE 
   latitude BETWEEN :latMin AND :latMax
 AND
@@ -830,7 +830,7 @@ else if ($function === 'saveArticleCrash'){
         // We don't set awaitingmoderation for updates because it is unfriendly for helpers. We may need to come back on this policy if it is misused.
         $sqlANDOwnOnly = (! $user->isModerator())? ' AND userid=:useridwhere ' : '';
         $sql = <<<SQL
-    UPDATE accidents SET
+    UPDATE crashes SET
       streamdatetime  = current_timestamp,
       streamtoptype   = 1, 
       streamtopuserid = :userid,
@@ -869,7 +869,7 @@ SQL;
         // New crash
 
         $sql = <<<SQL
-    INSERT INTO accidents (userid, awaitingmoderation, title, text, date, location, latitude, longitude, unilateral, pet, trafficjam, tree)
+    INSERT INTO crashes (userid, awaitingmoderation, title, text, date, location, latitude, longitude, unilateral, pet, trafficjam, tree)
     VALUES (:userid, :awaitingmoderation, :title, :text, :date, POINT(:longitude2, :latitude2), :latitude, :longitude, :unilateral, :pet, :trafficjam, :tree);
 SQL;
 
@@ -893,12 +893,12 @@ SQL;
       }
 
       // Save crash persons
-      $sql    = "DELETE FROM accidentpersons WHERE accidentid=:crashId;";
+      $sql    = "DELETE FROM crashpersons WHERE crashid=:crashId;";
       $params = ['crashId' => $crash['id']];
       $database->execute($sql, $params);
 
     $sql         = <<<SQL
-INSERT INTO accidentpersons (accidentid, groupid, transportationmode, health, child, underinfluence, hitrun) 
+INSERT INTO crashpersons (crashid, groupid, transportationmode, health, child, underinfluence, hitrun) 
 VALUES (:crashId, :groupid, :transportationmode, :health, :child, :underinfluence, :hitrun);
 SQL;
       $dbStatement = $database->prepare($sql);
@@ -926,7 +926,7 @@ SQL;
 
         $sql = <<<SQL
     UPDATE articles SET
-      accidentid    = :crashId,
+      crashid    = :crashId,
       url           = :url,
       title         = :title,
       text          = :text,
@@ -956,17 +956,17 @@ SQL;
       } else {
         // New article
         $sql = <<<SQL
-    INSERT INTO articles (userid, awaitingmoderation, accidentid, url, title, text, alltext, publishedtime, sitename, urlimage)
-    VALUES (:userid, :awaitingmoderation, :accidentid, :url, :title, :text, :alltext, :publishedtime, :sitename, :urlimage);
+    INSERT INTO articles (userid, awaitingmoderation, crashid, url, title, text, alltext, publishedtime, sitename, urlimage)
+    VALUES (:userid, :awaitingmoderation, :crashid, :url, :title, :text, :alltext, :publishedtime, :sitename, :urlimage);
 SQL;
         // Article moderation is only required if the crash is not awaiting moderation
         $article['userid']             = $user->id;
-        $article['accidentid']         = $crash['id'];
+        $article['crashid']         = $crash['id'];
         $article['awaitingmoderation'] = $articleIsAwaitingModeration;
         $params = [
           ':userid'             => $article['userid'],
           ':awaitingmoderation' => $article['awaitingmoderation'],
-          ':accidentid'         => $article['accidentid'],
+          ':crashid'            => $article['crashid'],
           ':url'                => $article['url'],
           ':title'              => $article['title'],
           ':text'               => $article['text'],
@@ -1006,15 +1006,15 @@ else if ($function === 'mergeCrashes'){
     $idTo   = (int)$_REQUEST['idTo'];
 
     // Move articles to other crash
-    $sql    = "UPDATE articles set accidentid=:idTo WHERE accidentid=:idFrom;";
+    $sql    = "UPDATE articles set crashid=:idTo WHERE crashid=:idFrom;";
     $params = [':idFrom' => $idFrom, ':idTo' => $idTo];
     $database->execute($sql, $params);
 
-    $sql    = "DELETE FROM accidents WHERE id=:idFrom;";
+    $sql    = "DELETE FROM crashes WHERE id=:idFrom;";
     $params = [':idFrom' => $idFrom];
     $database->execute($sql, $params);
 
-    $sql = "UPDATE accidents SET streamdatetime=current_timestamp, streamtoptype=1, streamtopuserid=:userId WHERE id=:id";
+    $sql = "UPDATE crashes SET streamdatetime=current_timestamp, streamtoptype=1, streamtopuserid=:userId WHERE id=:id";
     $params = [':id' => $idTo, ':userId' => $user->id];
     $database->execute($sql, $params);
 
@@ -1047,7 +1047,7 @@ else if ($function === 'deleteCrash'){
     $crashId = (int)$_REQUEST['id'];
     if ($crashId > 0){
       $sqlANDOwnOnly = (! $user->isModerator())? ' AND userid=:useridwhere ' : '';
-      $sql = "DELETE FROM accidents WHERE id=:id $sqlANDOwnOnly ;";
+      $sql = "DELETE FROM crashes WHERE id=:id $sqlANDOwnOnly ;";
       $params = [':id' => $crashId];
       if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
@@ -1078,7 +1078,7 @@ else if ($function === 'crashModerateOK'){
 
     $crashId = (int)$_REQUEST['id'];
     if ($crashId > 0){
-      $sql    = "UPDATE accidents SET awaitingmoderation=0 WHERE id=:id;";
+      $sql    = "UPDATE crashes SET awaitingmoderation=0 WHERE id=:id;";
       $params = [':id' => $crashId];
       $database->execute($sql, $params);
     }

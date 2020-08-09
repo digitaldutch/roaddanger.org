@@ -2,6 +2,7 @@
 
 require_once '../initialize.php';
 
+global $database;
 global $user;
 
 $function = $_REQUEST['function'];
@@ -31,8 +32,8 @@ SELECT
   child,
   underinfluence,
   hitrun
-FROM accidentpersons
-WHERE accidentid=:accidentid
+FROM crashpersons
+WHERE crashid=:crashid
 SQL;
       $DBStatementPersons = $database->prepare($sql);
 
@@ -46,9 +47,9 @@ SELECT
   urlimage,
   title,
   $allText       
-  text AS summary
+  text AS 'summary'
 FROM articles
-WHERE accidentid=:accidentid
+WHERE crashid=:crashid
 SQL;
       $DBStatementArticles = $database->prepare($sql);
 
@@ -63,7 +64,7 @@ SELECT DISTINCT
   ac.unilateral, 
   ac.pet, 
   ac.trafficjam 
-FROM accidents ac
+FROM crashes ac
 ORDER BY date DESC 
 LIMIT 0, $maxRows
 SQL;
@@ -80,7 +81,7 @@ SQL;
 
         // Load persons
         $crash['persons'] = [];
-        $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['accidentid' => $crash['id']]);
+        $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['crashid' => $crash['id']]);
         foreach ($DBPersons as $person) {
           $person['groupid']            = isset($person['groupid'])? (int)$person['groupid'] : null;
           $person['transportationmode'] = (int)$person['transportationmode'];
@@ -94,7 +95,7 @@ SQL;
 
         // Load articles
         $crash['articles'] = [];
-        $DBArticles = $database->fetchAllPrepared($DBStatementArticles, ['accidentid' => $crash['id']]);
+        $DBArticles = $database->fetchAllPrepared($DBStatementArticles, ['crashid' => $crash['id']]);
         foreach ($DBArticles as $article) {
           $article['id']          = (int)$article['id'];
           $crash['publishedtime'] = datetimeDBToISO8601($crash['publishedtime']);
@@ -135,8 +136,8 @@ SELECT
   child,
   underinfluence,
   hitrun
-FROM accidentpersons
-WHERE accidentid=:accidentid
+FROM crashpersons
+WHERE crashid=:crashid
 SQL;
       $DBStatementPersons = $database->prepare($sql);
 
@@ -148,7 +149,7 @@ SELECT DISTINCT
   ac.unilateral, 
   ac.pet, 
   ac.trafficjam 
-FROM accidents ac
+FROM crashes ac
 WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20'
 ORDER BY date DESC 
 LIMIT 0, $maxRows
@@ -185,7 +186,7 @@ SQL;
         $crash['wheelchair']       = 0;
         $crash['mopedCar']         = 0;
 
-        $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['accidentid' => $crash['id']]);
+        $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['crashid' => $crash['id']]);
         foreach ($DBPersons as $person) {
           $person['groupid']            = isset($person['groupid'])? (int)$person['groupid'] : null;
           $person['transportationmode'] = (int)$person['transportationmode'];
@@ -273,14 +274,14 @@ SQL;
       $sql = <<<SQL
 SELECT DISTINCT 
   a.id,
-  a.accidentid,
+  a.crashid,
   a.publishedtime,
   a.title,
   a.sitename, 
   a.url, 
   a.urlimage 
 FROM articles a
-JOIN accidents ac on a.accidentid = ac.id
+JOIN crashes ac on a.crashid = ac.id
 WHERE DATE (ac.date) >= '2019-01-14' AND DATE (ac.date) <= '2019-01-20'
 ORDER BY publishedtime DESC 
 LIMIT 0, $maxRows
@@ -290,17 +291,17 @@ SQL;
       $DBResults = $database->fetchAll($sql);
       foreach ($DBResults as $article) {
         $article['id']         = (int)$article['id'];
-        $article['accidentid'] = (int)$article['accidentid'];
+        $article['crashid'] = (int)$article['crashid'];
         $article['publishedtime'] = datetimeDBToISO8601($article['publishedtime']);
 
         $articles[] = $article;
       }
 
-      $csv = 'id,accidentid,publishedtime,title,sitename,url,urlimage' . "\r\n";
+      $csv = 'id,crashid,publishedtime,title,sitename,url,urlimage' . "\r\n";
       foreach ($articles as $article){
         $csv .=
           $article['id']                        . ',' .
-          $article['accidentid']                . ',' .
+          $article['crashid']                . ',' .
           $article['publishedtime']             . ',' .
           '"' . removeCommas($article['title']) . '",' .
           removeCommas($article['sitename'])    . ',' .

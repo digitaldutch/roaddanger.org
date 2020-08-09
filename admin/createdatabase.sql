@@ -1,6 +1,4 @@
-create or replace schema hetongeluk collate utf8mb4_general_ci;
-
-create or replace table languages
+create table languages
 (
     id char(2) not null,
     name varchar(50) null,
@@ -12,7 +10,7 @@ create or replace table languages
 alter table languages
     add primary key (id);
 
-create or replace table logins
+create table logins
 (
     id int auto_increment
         primary key,
@@ -22,7 +20,7 @@ create or replace table logins
 )
     charset=utf8;
 
-create or replace table logs
+create table logs
 (
     id int auto_increment,
     userid int null,
@@ -38,7 +36,7 @@ create or replace table logs
 alter table logs
     add primary key (id);
 
-create or replace table options
+create table options
 (
     name varchar(50) not null,
     value varchar(10000) null,
@@ -50,7 +48,7 @@ create or replace table options
 alter table options
     add primary key (name);
 
-create or replace table users
+create table users
 (
     id int auto_increment,
     email varchar(254) charset latin1 not null,
@@ -73,7 +71,7 @@ create or replace table users
 alter table users
     add primary key (id);
 
-create or replace table accidents
+create table crashes
 (
     id int auto_increment,
     userid int null,
@@ -103,48 +101,25 @@ create or replace table accidents
 )
     comment 'streamtoptype: 1: edited, 2: article added, 3: placed on top' charset=utf8;
 
-create or replace index accidents__date_streamdate_index
-    on accidents (date, streamdatetime);
+create index crashes__date_streamdate_index
+    on crashes (date, streamdatetime);
 
-create or replace index accidents__index_date
-    on accidents (date);
+create index crashes__index_date
+    on crashes (date);
 
-create or replace index accidents__index_streamdatetime
-    on accidents (streamdatetime);
+create index crashes__index_streamdatetime
+    on crashes (streamdatetime);
 
-create or replace index accidents__index_title
-    on accidents (title);
+create fulltext index title
+    on crashes (title, text);
 
-create or replace fulltext index title
-    on accidents (title, text);
-
-alter table accidents
+alter table crashes
     add primary key (id);
 
-create or replace table accidentpersons
-(
-    id int auto_increment
-        primary key,
-    accidentid int not null,
-    transportationmode smallint default 0 null,
-    health smallint null,
-    child smallint null,
-    underinfluence tinyint(1) null,
-    hitrun tinyint(1) null,
-    groupid int null,
-    constraint accidentpersons___fkaccident
-        foreign key (accidentid) references accidents (id)
-            on update cascade on delete cascade
-)
-    comment 'health: unknown: 0, unharmed: 1, injured: 2, dead: 3 | transportationmode: unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15' charset=utf8;
-
-create or replace index accidentpersons___fkgroup
-    on accidentpersons (groupid);
-
-create or replace table articles
+create table articles
 (
     id int auto_increment,
-    accidentid int null,
+    crashid int null,
     userid int null,
     awaitingmoderation tinyint(1) default 1 null,
     createtime timestamp default CURRENT_TIMESTAMP null,
@@ -158,8 +133,8 @@ create or replace table articles
     sitename varchar(200) not null,
     constraint articles_id_uindex
         unique (id),
-    constraint articles___fk_accidents
-        foreign key (accidentid) references accidents (id)
+    constraint articles___fk_crashes
+        foreign key (crashid) references crashes (id)
             on update cascade on delete cascade,
     constraint articles___fk_user
         foreign key (userid) references users (id)
@@ -167,12 +142,35 @@ create or replace table articles
 )
     charset=utf8;
 
-create or replace index articles__index_accidentid
-    on articles (accidentid);
+create index articles__index_crashid
+    on articles (crashid);
 
-create or replace fulltext index title
+create fulltext index title
     on articles (title, text);
 
 alter table articles
     add primary key (id);
+
+create table crashpersons
+(
+    id int auto_increment
+        primary key,
+    crashid int not null,
+    transportationmode smallint default 0 null,
+    health smallint null,
+    child smallint null,
+    underinfluence tinyint(1) null,
+    hitrun tinyint(1) null,
+    groupid int null,
+    constraint crashpersons___fkcrashes
+        foreign key (crashid) references crashes (id)
+            on update cascade on delete cascade
+)
+    comment 'health: unknown: 0, unharmed: 1, injured: 2, dead: 3 | transportationmode: unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15' charset=utf8;
+
+create index crashpersons___fkcrash
+    on crashpersons (crashid);
+
+create index crashpersons___fkgroup
+    on crashpersons (groupid);
 

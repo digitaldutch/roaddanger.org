@@ -308,7 +308,7 @@ function getFormEditCrash(){
   $texts = translateArray(['Article', 'Crash', 'Fetch_article', 'Link_url', 'Title', 'Media_source', 'Summary',
     'Full_text',
     'Photo_link_url', 'Same_as_article', 'Add_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
-    'Animals', 'Traffic_jam_disruption', 'One-sided_accident',
+    'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
     'Location', 'Characteristics', 'Save', 'Cancel',
     'Spider_is_working']);
 
@@ -396,7 +396,7 @@ function getFormEditCrash(){
       <div style="margin-top: 5px;">
         <div>{$texts['Characteristics']}</div>
         <div>
-          <span id="editCrashUnilateral" class="menuButton bgUnilateral" data-tippy-content="{$texts['One-sided_accident']}" onclick="toggleSelectionButton(this);"></span>      
+          <span id="editCrashUnilateral" class="menuButton bgUnilateral" data-tippy-content="{$texts['One-sided_crash']}" onclick="toggleSelectionButton(this);"></span>      
           <span id="editCrashPet" class="menuButton bgPet" data-tippy-content="{$texts['Animals']}" onclick="toggleSelectionButton(this);"></span>      
           <span id="editCrashTrafficJam" class="menuButton bgTrafficJam" data-tippy-content="{$texts['Traffic_jam_disruption']}" onclick="toggleSelectionButton(this);"></span>      
           <span id="editCrashTree" style="display: none;" class="menuButton bgTree" data-tippy-content="Boom/Paal" onclick="toggleSelectionButton(this);"></span>
