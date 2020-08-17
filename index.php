@@ -3,6 +3,7 @@
 require_once 'initialize.php';
 
 global $VERSION;
+global $database;
 global $user;
 
 $uri = urldecode($_SERVER['REQUEST_URI']);

@@ -10,38 +10,38 @@ global $user;
 $function = $_REQUEST['function'];
 
 function addPeriodWhereSql(&$sqlWhere, &$params, $filter){
-  if ($filter['period'] === '') return;
+  if ((! isset($filter['period'])) || ($filter['period'] === '')) return;
 
   switch ($filter['period']) {
     case 'today':
-      addSQLWhere($sqlWhere, ' DATE(ac.date) = CURDATE() ');
+      addSQLWhere($sqlWhere, ' DATE(c.date) = CURDATE() ');
       break;
     case 'yesterday':
-      addSQLWhere($sqlWhere, ' DATE(ac.date) = SUBDATE(CURDATE(), 1) ');
+      addSQLWhere($sqlWhere, ' DATE(c.date) = SUBDATE(CURDATE(), 1) ');
       break;
     case '7days':
-      addSQLWhere($sqlWhere, ' DATE(ac.date) > SUBDATE(CURDATE(), 7) ');
+      addSQLWhere($sqlWhere, ' DATE(c.date) > SUBDATE(CURDATE(), 7) ');
       break;
     case 'decorrespondent':
-      addSQLWhere($sqlWhere, " DATE(ac.date) >= '2019-01-14' AND DATE (ac.date) <= '2019-01-20' ");
+      addSQLWhere($sqlWhere, " DATE(c.date) >= '2019-01-14' AND DATE (c.date) <= '2019-01-20' ");
       break;
     case '30days':
-      addSQLWhere($sqlWhere, ' DATE(ac.date) > SUBDATE(CURDATE(), 30) ');
+      addSQLWhere($sqlWhere, ' DATE(c.date) > SUBDATE(CURDATE(), 30) ');
       break;
     case '2019':
-      addSQLWhere($sqlWhere, ' YEAR(ac.date) = 2019 ');
+      addSQLWhere($sqlWhere, ' YEAR(c.date) = 2019 ');
       break;
     case '2020':
-      addSQLWhere($sqlWhere, ' YEAR(ac.date) = 2020 ');
+      addSQLWhere($sqlWhere, ' YEAR(c.date) = 2020 ');
       break;
     case 'custom': {
       if ($filter['dateFrom'] !== '') {
-        addSQLWhere($sqlWhere, " DATE(ac.date) >= :searchDateFrom ");
+        addSQLWhere($sqlWhere, " DATE(c.date) >= :searchDateFrom ");
         $params[':searchDateFrom'] = date($filter['dateFrom']);
       }
 
       if ($filter['dateTo'] !== '') {
-        addSQLWhere($sqlWhere, " DATE(ac.date) <= :searchDateTo ");
+        addSQLWhere($sqlWhere, " DATE(c.date) <= :searchDateTo ");
         $params[':searchDateTo'] = date($filter['dateTo']);
       }
 
@@ -52,13 +52,14 @@ function addPeriodWhereSql(&$sqlWhere, &$params, $filter){
 
 function addHealthWhereSql(&$sqlWhere, &$joinPersonsTable, $filter){
 
-  if (($filter['healthDead'] === 1) || ($filter['healthInjured'] === 1)){
+  if ((isset($filter['healthDead'])    && ($filter['healthDead'] === 1)) ||
+      (isset($filter['healthInjured']) && ($filter['healthInjured'] === 1))) {
     $joinPersonsTable = true;
     $values = [];
     if ($filter['healthDead']    === 1) $values[] = 3;
     if ($filter['healthInjured'] === 1) $values[] = 2;
     $valuesText = implode(", ", $values);
-    addSQLWhere($sqlWhere, " ap.health IN ($valuesText) ");
+    addSQLWhere($sqlWhere, " cp.health IN ($valuesText) ");
   }
 }
 
@@ -75,22 +76,22 @@ function getStatsTransportation($database, $filter){
   addPeriodWhereSql($SQLWhere, $params, $filter);
 
   if ($filter['child'] === 1){
-    addSQLWhere($SQLWhere, " ap.child=1 ");
+    addSQLWhere($SQLWhere, " cp.child=1 ");
   }
 
   $sql = <<<SQL
 SELECT
   transportationmode,
-  sum(ap.underinfluence=1) AS underinfluence,
-  sum(ap.hitrun=1)         AS hitrun,
-  sum(ap.child=1)          AS child,
-  sum(ap.health=3)         AS dead,
-  sum(ap.health=2)         AS injured,
-  sum(ap.health=1)         AS unharmed,
-  sum(ap.health=0)         AS healthunknown,
+  sum(cp.underinfluence=1) AS underinfluence,
+  sum(cp.hitrun=1)         AS hitrun,
+  sum(cp.child=1)          AS child,
+  sum(cp.health=3)         AS dead,
+  sum(cp.health=2)         AS injured,
+  sum(cp.health=1)         AS unharmed,
+  sum(cp.health=0)         AS healthunknown,
   COUNT(*) AS total
-FROM crashpersons ap
-JOIN crashes ac ON ap.crashid = ac.id
+FROM crashpersons cp
+JOIN crashes c ON cp.crashid = c.id
   $SQLWhere
 GROUP BY transportationmode
 ORDER BY dead DESC, injured DESC
@@ -125,28 +126,28 @@ function getStatsCrashPartners($database, $filter){
   addHealthWhereSql($SQLWhere, $joinPersonsTable, $filter);
   addPeriodWhereSql($SQLWhere, $params, $filter);
 
-  if ($filter['child'] === 1) addSQLWhere($SQLWhere, " ap.child=1 ");
+  if ($filter['child'] === 1) addSQLWhere($SQLWhere, " cp.child=1 ");
 
   $sqlCrashesWithDeath = <<<SQL
   SELECT
-    ac.id
-  FROM crashpersons ap
-  JOIN crashes ac ON ap.crashid = ac.id
+    c.id
+  FROM crashpersons cp
+  JOIN crashes c ON cp.crashid = c.id
   $SQLWhere
 SQL;
 
   // Get all persons from crashes with dead
   $sql = <<<SQL
 select
-  a.id AS crashid,
-  a.unilateral,
-  ap.id,
+  c.id AS crashid,
+  c.unilateral,
+  cp.id,
   transportationmode,
   health
-from crashpersons ap
-JOIN crashes a ON ap.crashid = a.id
+from crashpersons cp
+JOIN crashes c ON cp.crashid = c.id
 where
-  a.id IN ($sqlCrashesWithDeath);
+  c.id IN ($sqlCrashesWithDeath);
 SQL;
 
   $crashVictims = [];
@@ -461,6 +462,19 @@ else if ($function == 'saveAccount') {
 
   echo json_encode($result);
 } // ====================
+else if ($function == 'saveAccountCountry') {
+  try {
+    $countryId = getRequest('id');
+
+    $user->saveCountry($countryId);
+
+    $result = ['ok' => true];
+  } catch (Exception $e) {
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+
+  echo json_encode($result);
+} // ====================
 else if ($function == 'saveAccountLanguage') {
   try {
     $languageId = getRequest('id');
@@ -481,7 +495,7 @@ else if ($function === 'loadCrashes') {
     $offset      = (int)$data['offset']?? 0;
     $count       = (int)$data['count']?? 20;
     $crashId     = $data['id']?? null;
-    $moderations = (int)$data['moderations']?? 0;
+    $moderations = isset($data['moderations'])? (int)$data['moderations'] : 0;
     $sort        = $data['sort']?? '';
     $filter      = $data['filter'];
 
@@ -493,10 +507,10 @@ else if ($function === 'loadCrashes') {
     $params       = [];
     $sqlModerated = '';
     if ($moderations) {
-      $sqlModerated = ' (ac.awaitingmoderation=1) OR (ac.id IN (SELECT crashid FROM articles WHERE awaitingmoderation=1)) ';
+      $sqlModerated = ' (c.awaitingmoderation=1) OR (c.id IN (SELECT crashid FROM articles WHERE awaitingmoderation=1)) ';
     } else if ($crashId === null) {
       // Individual pages are always shown and *not* moderated.
-      $sqlModerated = $user->isModerator()? '':  ' ((ac.awaitingmoderation=0) || (ac.userid=:useridModeration)) ';
+      $sqlModerated = $user->isModerator()? '':  ' ((c.awaitingmoderation=0) || (c.userid=:useridModeration)) ';
       if ($sqlModerated) $params[':useridModeration'] = $user->id;
     }
 
@@ -518,42 +532,45 @@ SQL;
 
     $sql = <<<SQL
 SELECT DISTINCT 
-  ac.id,
-  ac.userid,
-  ac.createtime,
-  ac.streamdatetime,
-  ac.streamtopuserid,     
-  ac.streamtoptype,
-  ac.awaitingmoderation,
-  ac.title,
-  ac.text,
-  ac.date,
-  ST_X(ac.location) AS longitude,
-  ST_Y(ac.location) AS latitude,
-  ac.unilateral,
-  ac.pet, 
-  ac.trafficjam, 
-  ac.tree,
+  c.id,
+  c.userid,
+  c.createtime,
+  c.streamdatetime,
+  c.streamtopuserid,     
+  c.streamtoptype,
+  c.awaitingmoderation,
+  c.title,
+  c.text,
+  c.date,
+  ST_X(c.location) AS longitude,
+  ST_Y(c.location) AS latitude,
+  c.unilateral,
+  c.pet, 
+  c.trafficjam, 
+  c.tree,
   CONCAT(u.firstname, ' ', u.lastname) AS user, 
   CONCAT(tu.firstname, ' ', tu.lastname) AS streamtopuser 
-FROM crashes ac
-LEFT JOIN users u  on u.id  = ac.userid 
-LEFT JOIN users tu on tu.id = ac.streamtopuserid
+FROM crashes c
+LEFT JOIN users u  on u.id  = c.userid 
+LEFT JOIN users tu on tu.id = c.streamtopuserid
 SQL;
 
     $SQLWhere = '';
     if ($crashId !== null) {
       // Single crash
       $params = [':id' => $crashId];
-      $SQLWhere = " WHERE ac.id=:id ";
+      $SQLWhere = " WHERE c.id=:id ";
     } else {
 
       $joinArticlesTable = false;
       $joinPersonsTable  = false;
       $SQLJoin = '';
+
+      addSQLWhere($SQLWhere, "c.countryid='$user->countryId'");
+
       // Only do full text search if text has 3 characters or more
-      if (strlen($filter['text']) > 2){
-        addSQLWhere($SQLWhere, "(MATCH(ac.title, ac.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))");
+      if (isset($filter['text']) && strlen($filter['text']) > 2){
+        addSQLWhere($SQLWhere, "(MATCH(c.title, c.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))");
         $joinArticlesTable = true;
         $params[':search']  = $filter['text'];
         $params[':search2'] = $filter['text'];
@@ -569,9 +586,9 @@ SQL;
 
       addHealthWhereSql($SQLWhere, $joinPersonsTable, $filter);
 
-      if ($filter['child'] === 1){
+      if (isset($filter['child']) && ($filter['child'] === 1)){
         $joinPersonsTable = true;
-        addSQLWhere($SQLWhere, " ap.child=1 ");
+        addSQLWhere($SQLWhere, " cp.child=1 ");
       }
 
       if (isset($filter['area'])) {
@@ -584,14 +601,14 @@ SQL;
         $params[':lonMax'] = $filter['area']['lonMax'];
       }
 
-      if (count($filter['persons']) > 0) $joinPersonsTable = true;
+      if (isset($filter['persons']) && (count($filter['persons'])) > 0) $joinPersonsTable = true;
 
       if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);
 
-      if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON ac.id = ar.crashid ';
-      if ($joinPersonsTable)  $SQLJoin .= ' JOIN crashpersons ap on ac.id = ap.crashid ';
+      if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
+      if ($joinPersonsTable)  $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
 
-      if (count($filter['persons']) > 0){
+      if (isset($filter['persons']) && (count($filter['persons']) > 0)){
         foreach ($filter['persons'] as $person){
           $tableName          = 'p' . $person;
           $transportationMode = (int)$person;
@@ -599,7 +616,7 @@ SQL;
           $personInjured      = containsText($person, 'i');
           $restricted         = containsText($person, 'r');
           $unilateral         = containsText($person, 'u');
-          $SQLJoin .= " JOIN crashpersons $tableName ON ac.id = $tableName.crashid AND $tableName.transportationmode=$transportationMode ";
+          $SQLJoin .= " JOIN crashpersons $tableName ON c.id = $tableName.crashid AND $tableName.transportationmode=$transportationMode ";
           if ($personDead || $personInjured ) {
             $healthValues = [];
             if ($personDead)    $healthValues[] = 3;
@@ -607,12 +624,12 @@ SQL;
             $healthValues = implode(',', $healthValues);
             $SQLJoin .= " AND $tableName.health IN ($healthValues) ";
           }
-          if ($restricted) addSQLWhere($SQLWhere, "(ac.unilateral is null OR ac.unilateral != 1) AND (ac.id not in (select au.id from crashes au LEFT JOIN crashpersons apu ON au.id = apu.crashid WHERE apu.transportationmode != $transportationMode))");
-          if ($unilateral) addSQLWhere($SQLWhere, "ac.unilateral = 1");
+          if ($restricted) addSQLWhere($SQLWhere, "(c.unilateral is null OR c.unilateral != 1) AND (c.id not in (select au.id from crashes au LEFT JOIN crashpersons apu ON au.id = apu.crashid WHERE apu.transportationmode != $transportationMode))");
+          if ($unilateral) addSQLWhere($SQLWhere, "c.unilateral = 1");
         }
       }
 
-      $orderField = ($sort === 'crashDate')? 'ac.date DESC, ac.streamdatetime DESC' : 'ac.streamdatetime DESC';
+      $orderField = ($sort === 'crashDate')? 'c.date DESC, c.streamdatetime DESC' : 'c.streamdatetime DESC';
 
       $SQLWhere = <<<SQL
    $SQLJoin      
@@ -808,7 +825,7 @@ else if ($function === 'getPageMetaData'){
 else if ($function === 'saveArticleCrash'){
   try {
     $data                         = json_decode(file_get_contents('php://input'), true);
-    $article                      = $data['article'];
+    $article                      = $data['article']?? null;
     $crash                        = $data['crash'];
     $saveArticle                  = $data['saveArticle'];
     $saveCrash                    = $data['saveCrash'];
@@ -837,6 +854,7 @@ else if ($function === 'saveArticleCrash'){
       title           = :title,
       text            = :text,
       date            = :date,
+      countryid       = :countryId,
       latitude        = :latitude,
       longitude       = :longitude,
       location        = POINT(:longitude2, :latitude2), 
@@ -852,6 +870,7 @@ SQL;
           ':title'                 => $crash['title'],
           ':text'                  => $crash['text'],
           ':date'                  => $crash['date'],
+          ':countryId'             => $user->countryId,
           ':latitude'              => empty($crash['latitude'])?  null : $crash['latitude'],
           ':longitude'             => empty($crash['longitude'])? null : $crash['longitude'],
           ':latitude2'             => empty($crash['latitude'])?  null : $crash['latitude'],
@@ -869,8 +888,8 @@ SQL;
         // New crash
 
         $sql = <<<SQL
-    INSERT INTO crashes (userid, awaitingmoderation, title, text, date, location, latitude, longitude, unilateral, pet, trafficjam, tree)
-    VALUES (:userid, :awaitingmoderation, :title, :text, :date, POINT(:longitude2, :latitude2), :latitude, :longitude, :unilateral, :pet, :trafficjam, :tree);
+    INSERT INTO crashes (userid, awaitingmoderation, title, text, date, countryid, location, latitude, longitude, unilateral, pet, trafficjam, tree)
+    VALUES (:userid, :awaitingmoderation, :title, :text, :date, :countryId, POINT(:longitude2, :latitude2), :latitude, :longitude, :unilateral, :pet, :trafficjam, :tree);
 SQL;
 
         $params = [
@@ -879,6 +898,7 @@ SQL;
           ':title'                 => $crash['title'],
           ':text'                  => $crash['text'],
           ':date'                  => $crash['date'],
+          ':countryId'             => $user->countryId,
           ':latitude'              => $crash['latitude'],
           ':longitude'             => $crash['longitude'],
           ':latitude2'             => $crash['latitude'],

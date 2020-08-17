@@ -26,18 +26,27 @@ HTML;
   if ($showButtonAdd) $buttons .= '<div id="buttonNewCrash" style="display: none;" class="menuButton buttonAdd" onclick="showNewCrashForm();"></div>';
 
   global $database;
+  global $user;
+
+  $countries      = $database->fetchAll("SELECT id, name FROM countries ORDER BY id;");
+  $countryOptions = '';
+  foreach ($countries as $country) {
+    $flagFileName = strtolower($country['id']);
+    $bgImage      = "/images/flags/{$flagFileName}.svg";
+    $class        = $country['id'] === $user->countryId? "class='menuSelected'" : '';
+    $countryOptions .= "<div $class onclick=\"setAccountCountry('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url($bgImage);'></div>{$country['name']}</div>";
+  }
+
   $languages       = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
   $languageOptions = '';
   foreach ($languages as $language) {
-    $bgImage = "/images/flags/{$language['id']}.svg";
-    $languageOptions .= "<div onclick=\"setAccountLanguage('{$language['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url($bgImage);'></div>{$language['name']}</div>";
+    $class = $language['id'] === $user->languageId? "class='menuSelected'" : '';
+    $languageOptions .= "<div $class onclick=\"setAccountLanguage('{$language['id']}')\">{$language['name']}</div>";
   }
 
-  $texts = translateArray(['Log_out', 'Log_in', 'The_crashes', 'Account']);
+  $texts = translateArray(['Log_out', 'Log_in', 'The_crashes', 'Account', 'Country', 'Language']);
 
   $htmlSearchBar = $addSearchBar? getHtmlSearchBar() : '';
-
-  global $user;
 
   return <<<HTML
 <!DOCTYPE html>
@@ -64,7 +73,12 @@ $navigation
   <div id="topBar">
     <span class="menuButton bgMenu" onclick="toggleNavigation(event);"></span>
   
-    <div class="headerMain pageTitle"><span><a href="/">{$texts['The_crashes']}</a><img id="spinnerTitle" src="/images/spinner.svg" style="display: none; height: 17px; margin-left: 5px;"></span></div>
+    <div class="headerMain pageTitle">
+      <span>
+        <a href="/">{$texts['The_crashes']}<span id="titleCountry" class="hideOnMobile"></span></a>        
+        <img id="spinnerTitle" src="/images/spinner.svg" style="display: none; height: 17px; margin-left: 5px;" alt="Spinner">
+      </span>
+    </div>
    
     <div style="display: flex; position: relative;">
       $buttons
@@ -72,7 +86,7 @@ $navigation
       <span style="position: relative;">
         <div class="buttonLight" onclick="loginClick(event);">
           <div id="buttonPerson" class="buttonIcon bgPerson"></div>
-          <div id="loginText">...</div>
+          <div id="loginText" class="hideOnMobile">...</div>
           <div id="loginName" class="hideOnMobile"></div>
         </div>
   
@@ -91,6 +105,9 @@ $navigation
         </div>
         
         <div id="menuCountries" class="buttonPopupMenu">
+          <div class="navigationSectionHeader">{$texts['Country']}</div>
+          $countryOptions
+          <div class="navigationSectionHeader">{$texts['Language']}</div>
           $languageOptions
         </div>
       </span>
@@ -407,7 +424,7 @@ function getFormEditCrash(){
         <div>{$texts['Location']} <span class="iconTooltip" data-tippy-content="Optioneel, omdat het lastig is om deze uit tekst of foto's te halen. Klik op kaart om een locatie te selecteren. Klik marker om locatie te verwijderen. Sleep marker om locatie aan te passen."></span></div>
             
         <input id="editCrashLatitude" type="hidden"><input id="editCrashLongitude" type="hidden">
-        
+               
         <div id="mapEdit"></div>
       </div>      
       

@@ -1,3 +1,13 @@
+create table countries
+(
+    id char(2) not null,
+    constraint countries_id_uindex
+        unique (id)
+);
+
+alter table countries
+    add primary key (id);
+
 create table languages
 (
     id char(2) not null,
@@ -15,10 +25,9 @@ create table logins
     id int auto_increment
         primary key,
     userid int null,
-    tokenhash varchar(60) null,
+    tokenhash varchar(60) charset utf8 null,
     lastlogin timestamp null
-)
-    charset=utf8;
+);
 
 create table logs
 (
@@ -26,12 +35,11 @@ create table logs
     userid int null,
     timestamp timestamp default CURRENT_TIMESTAMP null,
     level tinyint null,
-    ip varchar(45) charset latin1 null,
+    ip varchar(45) null,
     info varchar(255) not null,
     constraint logs_id_uindex
         unique (id)
-)
-    charset=utf8;
+);
 
 alter table logs
     add primary key (id);
@@ -42,8 +50,7 @@ create table options
     value varchar(10000) null,
     constraint options_name_uindex
         unique (name)
-)
-    charset=utf8;
+);
 
 alter table options
     add primary key (name);
@@ -51,22 +58,29 @@ alter table options
 create table users
 (
     id int auto_increment,
-    email varchar(254) charset latin1 not null,
-    firstname varchar(100) charset latin1 null,
-    lastname varchar(100) charset latin1 null,
+    email varchar(254) charset utf8 not null,
+    firstname varchar(100) null,
+    lastname varchar(100) null,
     language char(2) null,
-    lastactive timestamp default CURRENT_TIMESTAMP not null,
+    country char(2) null,
     registrationtime timestamp default CURRENT_TIMESTAMP not null,
     passwordhash varchar(60) null,
-    passwordrecoveryid varchar(16) charset latin1 null,
+    passwordrecoveryid varchar(16) null,
     passwordrecoverytime timestamp null,
     permission tinyint default 0 null,
+    lastactive timestamp default CURRENT_TIMESTAMP not null,
     constraint users_email_uindex
         unique (email),
     constraint users_id_uindex
-        unique (id)
+        unique (id),
+    constraint users_FK
+        foreign key (language) references languages (id)
+            on update cascade on delete set null,
+    constraint users_FK_country
+        foreign key (country) references countries (id)
+            on update cascade on delete set null
 )
-    comment 'permission: 0=helper; 1=admin; 2=moderator' charset=utf8;
+    comment 'permission: 0=helper; 1=admin; 2=moderator';
 
 alter table users
     add primary key (id);
@@ -81,8 +95,8 @@ create table crashes
     streamdatetime timestamp default CURRENT_TIMESTAMP not null,
     streamtopuserid int null,
     streamtoptype smallint null,
-    title varchar(500) not null,
-    text varchar(500) null,
+    title varchar(500) charset utf8 not null,
+    text varchar(500) charset utf8 null,
     date date null,
     location point null,
     latitude decimal(9,6) null,
@@ -91,7 +105,7 @@ create table crashes
     trafficjam tinyint(1) default 0 null,
     unilateral tinyint(1) null,
     hitrun tinyint(1) default 0 null,
-    website varchar(1000) null,
+    website varchar(1000) charset utf8 null,
     pet tinyint(1) default 0 null,
     constraint posts_id_uindex
         unique (id),
@@ -99,7 +113,7 @@ create table crashes
         foreign key (userid) references users (id)
             on update cascade on delete cascade
 )
-    comment 'streamtoptype: 1: edited, 2: article added, 3: placed on top' charset=utf8;
+    comment 'streamtoptype: 1: edited, 2: article added, 3: placed on top';
 
 create index crashes__date_streamdate_index
     on crashes (date, streamdatetime);
@@ -125,12 +139,12 @@ create table articles
     createtime timestamp default CURRENT_TIMESTAMP null,
     streamdatetime timestamp default CURRENT_TIMESTAMP not null,
     publishedtime timestamp default '0000-00-00 00:00:00' not null,
-    title varchar(500) not null,
-    text varchar(500) not null,
-    alltext varchar(10000) default '' null,
-    url varchar(1000) not null,
-    urlimage varchar(1000) not null,
-    sitename varchar(200) not null,
+    title varchar(500) charset utf8 not null,
+    text varchar(500) charset utf8 not null,
+    alltext varchar(10000) charset utf8 default '' null,
+    url varchar(1000) charset utf8 not null,
+    urlimage varchar(1000) charset utf8 not null,
+    sitename varchar(200) charset utf8 not null,
     constraint articles_id_uindex
         unique (id),
     constraint articles___fk_crashes
@@ -139,8 +153,7 @@ create table articles
     constraint articles___fk_user
         foreign key (userid) references users (id)
             on update cascade on delete cascade
-)
-    charset=utf8;
+);
 
 create index articles__index_crashid
     on articles (crashid);
@@ -166,7 +179,7 @@ create table crashpersons
         foreign key (crashid) references crashes (id)
             on update cascade on delete cascade
 )
-    comment 'health: unknown: 0, unharmed: 1, injured: 2, dead: 3 | transportationmode: unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15' charset=utf8;
+    comment 'health: unknown: 0, unharmed: 1, injured: 2, dead: 3 | transportationmode: unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15';
 
 create index crashpersons___fkcrash
     on crashpersons (crashid);

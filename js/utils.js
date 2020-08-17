@@ -348,7 +348,9 @@ function updateLoginGUI(userNew){
     buttonPerson.classList.remove('bgPersonLoggedIn');
   }
 
-  document.getElementById('iconCountry').style.backgroundImage = `url(/images/flags/${user.language}.svg)`;
+  document.getElementById('iconCountry').style.backgroundImage = `url(/images/flags/${user.countryid.toLowerCase()}.svg)`;
+
+  document.getElementById('titleCountry').innerHTML = ' | ' + user.country;
 
   document.querySelectorAll('.buttonEditPost').forEach(
     button => {
@@ -364,6 +366,18 @@ function updateLoginGUI(userNew){
   document.querySelectorAll('[data-inline-admin]').forEach(d => {d.style.display = user.admin? 'inline-block' : 'none'});
 }
 
+async function setAccountCountry(countryId){
+  const url        = '/ajax.php?function=saveAccountCountry&id=' + countryId;
+  const response   = await fetchFromServer(url);
+
+  if (response.error) {
+    showError(response.error);
+    return;
+  }
+
+  window.location.reload();
+}
+
 async function setAccountLanguage(languageId){
   const url        = '/ajax.php?function=saveAccountLanguage&id=' + languageId;
   const response   = await fetchFromServer(url);
@@ -374,7 +388,6 @@ async function setAccountLanguage(languageId){
   }
 
   window.location.reload();
-
 }
 
 async function checkLogin() {
@@ -654,10 +667,13 @@ function loginClick(event) {
 
 function countryClick(event){
   event.stopPropagation();
+
+  const div    = document.getElementById('menuCountries');
+  const isOpen = div.style.display === 'block';
+
   closeAllPopups();
 
-  const div = document.getElementById('menuCountries');
-  div.style.display = div.style.display === 'block'? 'none' : 'block';
+  div.style.display = isOpen? 'none' : 'block';
 }
 
 function togglePersonMenu(){

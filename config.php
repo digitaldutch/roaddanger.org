@@ -1,7 +1,7 @@
 <?php
 
-$VERSION      = 350;
-$VERSION_DATE = '9 August 2020';
+$VERSION      = 354;
+$VERSION_DATE = '16 August 2020';
 
 require_once 'configsecret.php';
 
@@ -19,8 +19,13 @@ const SERVER_DOMAIN = 'https://www.' . DOMAIN_NAME;
 
 // Default interface language. Default is English except for Dutch name containing "hetongeluk.nl"
 $domain = $_SERVER['SERVER_NAME'];
-if (strpos($domain, 'hetongeluk') !== false) $language = 'nl';
-else $language = 'en';
+if (strpos($domain, 'hetongeluk') !== false) {
+  $language = 'nl';
+} else {
+  $language = 'en';
+}
 
 define('DEFAULT_LANGUAGE_ID', $language);
+define('DEFAULT_COUNTRY_ID', 'NL');
+define('DEFAULT_COUNTRY', 'Nederland');
 

@@ -436,7 +436,7 @@ async function loadChildDeaths(){
 
   let newCrashes = [];
   const serverData = {
-    count:   20,
+    count:   50,
     offset:  crashes.length,
     sort:    'crashDate',
     filter: {
@@ -514,12 +514,12 @@ async function loadCrashesFromServer(serverData){
 
 async function loadCrashes(crashID=null, articleID=null){
 
-  function showCrashes(newCrashes){
+  function showCrashes(newCrashes) {
     let html = '';
     if (newCrashes.length === 0) {
       let text = '';
-      if (pageType === PageType.moderations) text = 'Geen moderaties gevonden';
-      else text = 'Geen ongelukken gevonden';
+      if (pageType === PageType.moderations) text = translate('no_moderations_found');
+      else text = translate('no_crashes_found');
 
       html = `<div style="text-align: center;">${text}</div>`;
     } else if (pageType === PageType.mosaic) html = getMosaicHTML(newCrashes);
@@ -2334,7 +2334,7 @@ function downloadCorrespondentDataArticles() {
     spinner.style.display = 'block';
     try {
       let url        = '/admin/exportdata.php?function=downloadCorrespondentWeekArticles';
-      const response = fetchFromServer(url);
+      const response = await fetchFromServer(url);
 
       url = '/admin/' + response.filename;
       download(url, response.filename);

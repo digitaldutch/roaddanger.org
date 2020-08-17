@@ -1,3 +1,10 @@
+:root {
+  --bg-color-hover:    #4d90fe;
+  --bg-color-selected: #bfd4fe;
+  --click-color:       #df5b57;
+  --fancy-font:        'Playfair Display', serif;
+}
+
 /* playfair-display-400 */
 @font-face {
   font-family: 'Playfair Display';
@@ -77,7 +84,7 @@ html.fullWindow body{
 }
 
 a {
-  color:           #df5b57;
+  color:           var(--click-color);
   font-family:     inherit;
   text-decoration: none;
 }
@@ -85,10 +92,10 @@ a:hover {
   text-decoration: underline;
 }
 
-.pageTitle, .pageTitle a {
-  font-size:       25px;
-  font-family:    'Playfair Display', serif;
-  white-space:     nowrap;
+.pageTitle, .pageTitle * {
+  font-size:   25px;
+  font-family: var(--fancy-font);
+  white-space: nowrap;
 }
 
 .postText {
@@ -346,7 +353,7 @@ a:hover {
 
 .cardSiteName {
   font-weight: bold;
-  color:       #df5b57;
+  color:       var(--click-color);
 }
 
 #pageFooter {
@@ -497,6 +504,10 @@ html.fullWindow #pageBar {
   background-repeat:   no-repeat;
   background-position: center;
   border-radius:       5px;
+}
+
+.menuSelected {
+  background-color: var(--bg-color-selected);
 }
 
 .buttonIcon {
@@ -773,7 +784,7 @@ html.fullWindow #pageBar {
 
 #floatingMessage,  #floatingMessage a, .notice {
   color:            #fff;
-  background-color: #4D90FE;
+  background-color: #4d90fe;
 }
 
 .notice {
@@ -787,7 +798,7 @@ html.fullWindow #pageBar {
   right:            0;
   z-index:          1000;
   color:            #fff;
-  background-color: #4D90FE;
+  background-color: #4d90fe;
   padding:         20px;
   justify-content: space-between;
 }
@@ -823,7 +834,7 @@ html.fullWindow #pageBar {
 }
 
 .popupHeader {
-  font-family:   'Playfair Display', serif;
+  font-family:   var(--fancy-font);
   font-size:     20px;
   text-align:    center;
   margin-bottom: 10px;
@@ -927,7 +938,7 @@ html.fullWindow #pageBar {
 }
 
 .button:hover {
-  color:            #df5b57;
+  color:            var(--click-color);
   background-color: #000;
 }
 
@@ -1146,7 +1157,7 @@ html.fullWindow #pageBar {
 
 .navItem:hover, .itemSelected {
   color:            #ffffff;
-  background-color: #4D90FE;
+  background-color: var(--bg-color-hover);
 }
 
 .dataTable {
@@ -1174,7 +1185,7 @@ html.fullWindow #pageBar {
 }
 
 .dataTable tbody tr:hover {
-  background-color: #4D90FE;
+  background-color: var(--bg-color-hover);
 }
 
 .dataTable input[type='checkbox']{
@@ -1204,12 +1215,12 @@ html.fullWindow #pageBar {
 
 .tableClickRows td {
   cursor: pointer;
-  color:  #df5b57;
+  color:  var(--click-color);
 }
 
 .trSelected td, .optionCheckImage:hover {
   color:            #ffffff;
-  background-color: #4D90FE;
+  background-color: var(--bg-color-hover);
 }
 
 .editDetails {
@@ -1219,7 +1230,7 @@ html.fullWindow #pageBar {
 }
 
 .editDetails:hover {
-  color: #df5b57;
+  color: var(--click-color);
 }
 
 .filterIcon{
@@ -1285,7 +1296,7 @@ html.fullWindow #pageBar {
 
 .searchRow:hover {
   color:            #ffffff;
-  background-color: #4D90FE;
+  background-color: var(--bg-color-hover);
 }
 
 .textArea{

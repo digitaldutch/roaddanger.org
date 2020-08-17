@@ -17,6 +17,8 @@ class TUser{
   public $email;
   public $emailExists = false;
   public $languageId = DEFAULT_LANGUAGE_ID;
+  public $countryId = DEFAULT_COUNTRY_ID;
+  public $country;
   public $translations;
   public $admin = false;
   public $permission;
@@ -42,6 +44,10 @@ class TUser{
 
       // Load default language from cookie if it exists
       if (isset($_COOKIE['language_id'])) $this->languageId = $_COOKIE['language_id'];
+      if (isset($_COOKIE['country_id']))  {
+        $this->countryId  = $_COOKIE['country_id'];
+        $this->loadCountryData();
+      }
     }
   }
 
@@ -56,20 +62,26 @@ class TUser{
     $this->lastName     = '';
     $this->email        = '';
     $this->languageId   = DEFAULT_LANGUAGE_ID;
+    $this->countryId    = DEFAULT_COUNTRY_ID;
+    $this->country      = DEFAULT_COUNTRY;
     $this->translations = '';
     $this->emailExists  = false;
     $this->admin        = false;
     $this->permission   = TUserPermission::newuser;
   }
 
+  private function loadCountryData(){
+    $this->country = $this->database->fetchSingleValue("SELECT name FROM countries WHERE id=:id;", [':id' => $this->countryId]);
+  }
+
   private function loadUserFromDBIntern($id='', $email='', $password='') {
     $this->clearData();
 
     if ($id !== ''){
-      $sql = "SELECT u.id, firstname, lastname, email, passwordhash, permission, language FROM users u WHERE id=:id;";
+      $sql = "SELECT u.id, firstname, lastname, email, passwordhash, permission, language, countryid FROM users u WHERE id=:id;";
       $params = [':id' => $id];
     } else {
-      $sql = "SELECT u.id, firstname, lastname, email, passwordhash, permission, language FROM users u WHERE email=:email;";
+      $sql = "SELECT u.id, firstname, lastname, email, passwordhash, permission, language, countryid FROM users u WHERE email=:email;";
       $params = [':email' => $email];
     }
 
@@ -81,15 +93,18 @@ class TUser{
         $this->firstName  = $user['firstname'];
         $this->lastName   = $user['lastname'];
         $this->email      = $user['email'];
-        $this->languageId   = $user['language']?? DEFAULT_LANGUAGE_ID;
+        $this->languageId = $user['language']?? DEFAULT_LANGUAGE_ID;
+        $this->countryId  = $user['countryid']??  DEFAULT_COUNTRY_ID;
         $this->permission = (int)$user['permission'];
         $this->admin      = $this->permission == 1;
         $this->loggedIn   = true;
       }
     }
 
+    $this->loadCountryData();
+
     if ($this->loggedIn) {
-      $sql = 'UPDATE users SET lastactive=CURRENT_TIMESTAMP WHERE id=:id;';
+      $sql    = 'UPDATE users SET lastactive=CURRENT_TIMESTAMP WHERE id=:id;';
       $params = [':id' => $this->id];
       $this->database->execute($sql, $params);
 
@@ -312,6 +327,33 @@ SQL;
    * @return bool
    * @throws Exception
    */
+  public function saveCountry($countryId){
+    if ($this->loggedIn) {
+      $sql = <<<SQL
+UPDATE users SET
+  countryid = :countryid                 
+WHERE id = :id
+SQL;
+
+      $params = [
+        ':countryid' => $countryId,
+        ':id'        => $this->id,
+      ];
+      $this->database->execute($sql, $params);
+    }
+
+    // Also save language id in cookie in case user is not logged in.
+    $NowPlus10Years = time() + 60*60*24*3650; // 3650 dagen cookie expiration time
+    setcookie('country_id', $countryId,  ['expires' => $NowPlus10Years, 'path' => '/', 'secure' => true, 'samesite' => 'Lax']);
+
+    return true;
+  }
+
+  /**
+   * @param $newUser
+   * @return bool
+   * @throws Exception
+   */
   public function saveLanguage($languageId){
 
     if ($this->loggedIn) {
@@ -347,6 +389,8 @@ SQL;
         'firstname'    => $this->firstName,
         'lastname'     => $this->lastName,
         'email'        => $this->email,
+        'countryid'    => $this->countryId,
+        'country'      => $this->country,
         'language'     => $this->languageId,
         'translations' => $this->translations,
         'emailexists'  => $this->emailExists,
@@ -356,6 +400,8 @@ SQL;
       ];
     else $info = [
       'loggedin'     => false,
+      'countryid'    => $this->countryId,
+      'country'      => $this->country,
       'language'     => $this->languageId,
       'translations' => $this->translations,
       'emailexists'  => $this->emailExists,
@@ -364,7 +410,7 @@ SQL;
   }
 
   private function firstCharacterUpper($text) {
-    // ucfirst does not support Unicode
+    // Note: ucfirst() does not support Unicode
     if (strlen($text) > 1) return mb_convert_case(mb_substr($text, 0, 1), MB_CASE_TITLE) . mb_substr($text, 1, mb_strlen($text));
     else return $text;
   }
