@@ -55,29 +55,6 @@ function pageWithMap($pageType){
   return pageWithEditMap($pageType) || in_array($pageType, [PageType::map]);
 }
 
-function showIntroMessagePage($pageType){
-  return in_array($pageType, [PageType::recent, PageType::stream, PageType::deCorrespondent]);
-}
-
-function headerContainsGZIP($headersRaw){
-  function parseHeaders($headers) {
-    $headerArray = [];
-    foreach($headers as $header) {
-      $headerParts = explode(':', $header,2);
-      if(isset($headerParts[1])) $headerArray[trim($headerParts[0])] = trim($headerParts[1]);
-      else {
-        $headerArray[] = $header;
-        if(preg_match( "#HTTP/[0-9\.]+\s+([0-9]+)#",$header, $out))
-          $headerArray['reponse_code'] = intval($out[1]);
-      }
-    }
-    return $headerArray;
-  }
-  $headers = parseHeaders($headersRaw);
-
-  return isset($headers['Content-Encoding']) && $headers['Content-Encoding'] == 'gzip';
-}
-
 function parse_url_all($url){
   $url = substr($url,0,4)=='http'? $url: 'http://'.$url;
   $d = parse_url($url);
@@ -95,26 +72,64 @@ function parse_url_all($url){
   return $d;
 }
 
+function curlDownload($url){
+  $headers = [
+    "User-Agent:Googlebot-News this is not",
+    "Accept-Encoding:gzip,deflate",
+  ];
+
+  $curl = curl_init();
+  curl_setopt($curl, CURLOPT_URL, $url);
+  curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+  curl_setopt($curl, CURLOPT_ENCODING,"gzip");
+  curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($curl, CURLOPT_FOLLOWLOCATION,true);
+  curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,false); // Don't verify authenticity of peer
+
+  $data = curl_exec($curl);
+
+  curl_close($curl);
+  return $data;
+}
+
+function parseLdObject(&$result, $data) {
+  if (isset($data->headline))      $result['headline']      = $data->headline;
+  if (isset($data->articleBody))   $result['articleBody']   = $data->articleBody;
+  if (isset($data->description))   $result['description'] = $data->description;
+  if (isset($data->datePublished)) $result['datePublished'] = $data->datePublished;
+  if (isset($data->image)) {
+    if (is_string($data->image)) $result['image'] = $data->image;
+    else if (is_object($data->image) && isset($data->image->url)) $result['image'] = $data->image->url;
+  }
+  if (isset($data->publisher) && isset($data->publisher->name)) $result['publisher'] = $data->publisher->name;
+}
+
+function parse_ld_json($json, &$result) {
+  $ldJson = trim($json);
+  if (! isset($ldJson)) return;
+
+  if (! isset($result)) $result = [];
+  $ld = json_decode($ldJson);
+  if (! isset($ld)) return;
+
+  if (is_array($ld)) foreach ($ld as $entry) parseLdObject($result, $entry);
+  else parseLdObject($result, $ld);
+}
+
 /**
  * @param string $url
  * @return array
  * @throws Exception
  */
 function getPageMediaMetaData($url){
-  $arrContextOptions = [
-    'ssl' => [
-      'verify_peer'      => false,
-      'verify_peer_name' => false,
-    ],
-    'http' => [
-      'follow_location'  => true,
-      'header'           => "User-Agent: Googlebot-News this is not\r\n" .
-        "Accept-Charset: UTF-8, *;q=0\r\n" .
-        "Accept-Encoding: gzip\r\n"
-    ],
+  $meta = [
+    'json-ld'  => [],
+    'og'       => [],
+    'twitter'  => [],
+    'article'  => [],
+    'itemprop' => [],
+    'other'    => []
   ];
-
-  $meta = ['og' => [], 'twitter' => [], 'article' => [], 'itemprop' => [], 'other' => []];
 
   // If mobiele website: Use desktop website instead
   if (strpos($url, '//m.') !== false){
@@ -123,17 +138,23 @@ function getPageMediaMetaData($url){
   }
 
   $url = str_replace('//m.', '//www.', $url);
-  $html = @file_get_contents($url, false, stream_context_create($arrContextOptions));
+
+  $html = curlDownload($url);
 
   if ($html === false) throw new Exception(translate('Unable_to_load_url') . '<br>' . $url);
-
-  // Convert GZIP content if needed
-  if (headerContainsGZIP($http_response_header)) $html = gzdecode($html);
 
   // Handle UTF 8 properly
   $html = mb_convert_encoding($html, 'UTF-8',  mb_detect_encoding($html, 'UTF-8, ISO-8859-1', true));
 
   // See Google structured data guidelines https://developers.google.com/search/docs/guides/intro-structured-data#structured-data-guidelines
+  // json-ld tags. Used by Google.
+  $matches = null;
+  // Check for both property and name attributes. nu.nl uses incorrectly name
+  preg_match_all('~<\s*script\s+[^<>]*ld\+json[^<>]*>(.*)<\/script>~iUs', $html, $matches);
+  for ($i=0; $i<count($matches[1]); $i++) {
+    $ldJson = trim($matches[1][$i]);
+    parse_ld_json($ldJson, $meta['json-ld']);
+  }
 
   // Open Graph tags
   $matches = null;

@@ -777,11 +777,13 @@ else if ($function === 'getPageMetaData'){
     }
 
     $metaData     = getPageMediaMetaData($url);
+    $ldJsonTags   = $metaData['json-ld'];
     $ogTags       = $metaData['og'];
     $twitterTags  = $metaData['twitter'];
     $articleTags  = $metaData['article'];
     $itemPropTags = $metaData['itemprop'];
     $tagCount     = [
+      'json_ld'  => count($metaData['json-ld']),
       'og'       => count($metaData['og']),
       'twitter'  => count($metaData['twitter']),
       'article'  => count($metaData['article']),
@@ -795,8 +797,9 @@ else if ($function === 'getPageMetaData'){
       'urlimage'       => getFirstAvailableTag([$ogTags['og:image']]),
       'title'          => html_entity_decode(htmlspecialchars_decode(strip_tags(getFirstAvailableTag([$ogTags['og:title'], $twitterTags['twitter:title']]))),ENT_QUOTES),
       'description'    => html_entity_decode(strip_tags(htmlspecialchars_decode(getFirstAvailableTag([$ogTags['og:description'], $twitterTags['twitter:description'], $metaData['other']['description']]))),ENT_QUOTES),
+      'article_body'   => html_entity_decode(strip_tags(htmlspecialchars_decode(getFirstAvailableTag([$ldJsonTags['articleBody']]))),ENT_QUOTES),
       'sitename'       => html_entity_decode(htmlspecialchars_decode(getFirstAvailableTag([$ogTags['og:site_name'], $metaData['other']['domain']])),ENT_QUOTES),
-      'published_time' => getFirstAvailableTag([$ogTags['og:article:published_time'], $articleTags['article:published_time'], $itemPropTags['datePublished'], $articleTags['article:modified_time']]),
+      'published_time' => getFirstAvailableTag([$ldJsonTags['datePublished'], $ogTags['og:article:published_time'], $articleTags['article:published_time'], $itemPropTags['datePublished'], $articleTags['article:modified_time']]),
     ];
 
     // Replace http with https on image tags. Hart van Nederland sends unsecure links

@@ -1527,6 +1527,9 @@ async function getArticleMetaData() {
     document.getElementById('editArticleText').value     = meta.description;
     document.getElementById('editArticleUrlImage').value = meta.urlimage;
     document.getElementById('editArticleSiteName').value = meta.sitename;
+
+    if (meta.article_body) document.getElementById('editArticleAllText').value  = meta.description + '\n\n' +  meta.article_body;
+
     if (meta.published_time){
       try {
         const datetime = new Date(meta.published_time);
@@ -1564,6 +1567,7 @@ async function getArticleMetaData() {
       else showMetaData(response.media);
 
       document.getElementById('tarantulaResults').innerHTML = `
+JSON-LD: ${response.tagcount.json_ld}<br>
 Open Graph Facebook tags: ${response.tagcount.og}<br>
 Twitter tags: ${response.tagcount.twitter}<br>
 article tags: ${response.tagcount.article}<br>
