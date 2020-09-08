@@ -1169,4 +1169,22 @@ else if ($function === 'getStatistics') {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
+} //==========
+else if ($function === 'loadCountryOptions') {
+  try {
+
+    $sql         = 'SELECT options from countries WHERE id=:id;';
+    $params      = [':id' => $user->countryId];
+    $optionsJson = $database->fetchSingleValue($sql, $params);
+
+    if (! isset($optionsJson)) throw new Exception('No country options found for ' . $user->countryId);
+    $options     = json_decode($optionsJson);
+
+    $result = ['ok' => true,
+      'options' => $options,
+    ];
+  } catch (Exception $e) {
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
 }

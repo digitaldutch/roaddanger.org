@@ -661,15 +661,24 @@ async function loadMapDataFromServer(){
 
 }
 
+async function getCountryOptions(){
+  const urlServer = '/ajax.php?function=loadCountryOptions';
+  const response  = await fetchFromServer(urlServer);
+
+  if (response.error) {
+    showError(response.error);
+  }
+
+  return response.options;
+}
+
 async function loadMap() {
-  const latitudeNL  = 52.16;
-  const longitudeNL = 5.41;
-  const zoomNL      = 6;
+  const options = await getCountryOptions();
 
   const url = new URL(location.href);
-  const longitude        = url.searchParams.get('lng')  || longitudeNL;
-  const latitude         = url.searchParams.get('lat')  || latitudeNL;
-  const zoom             = url.searchParams.get('zoom') || zoomNL;
+  const longitude = url.searchParams.get('lng')  || options.map.longitude;
+  const latitude  = url.searchParams.get('lat')  || options.map.latitude;
+  const zoom      = url.searchParams.get('zoom') || options.map.zoom;
 
   if (! mapMain){
     mapboxgl.accessToken = mapboxKey;
@@ -2350,7 +2359,7 @@ function downloadCorrespondentDataArticles() {
   confirmMessage('Artikels uit De Correspondent week exporteren in *.csv formaat?', doDownload, 'Download');
 }
 
-function showMapEdit(latitude, longitude) {
+async function showMapEdit(latitude, longitude) {
 
   function saveMarkerPosition(lngLat){
     document.getElementById('editCrashLatitude').value  = lngLat.lat.toFixed(6);
@@ -2390,13 +2399,14 @@ function showMapEdit(latitude, longitude) {
     }
   }
 
-  const latitudeNL  = 52.16;
-  const longitudeNL = 5.41;
-  const zoomLevel   = 6;
+  const options = await getCountryOptions();
+  // Zoom out to fit into landscape map view
+  options.map.zoom -= 1;
+
   let showMarker = true;
   if (! latitude || ! longitude) {
-    latitude   = latitudeNL;
-    longitude  = longitudeNL;
+    latitude   = options.map.latitude;
+    longitude  = options.map.longitude;
     showMarker = false;
     deleteCrashMarker();
   }
@@ -2407,7 +2417,7 @@ function showMapEdit(latitude, longitude) {
       container: 'mapEdit',
       style:     'mapbox://styles/mapbox/streets-v9',
       center:    [longitude, latitude],
-      zoom:      zoomLevel,
+      zoom:      options.map.zoom,
     }).addControl(
       new MapboxGeocoder({
         accessToken: mapboxgl.accessToken,
@@ -2422,7 +2432,7 @@ function showMapEdit(latitude, longitude) {
 
   } else {
     mapEdit.setCenter([longitude, latitude]);
-    mapEdit.setZoom(zoomLevel);
+    mapEdit.setZoom(options.map.zoom);
   }
 
   if (showMarker) setCrashMarker(latitude, longitude);

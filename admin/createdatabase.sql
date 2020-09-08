@@ -1,6 +1,8 @@
-create table countries
+create or replace table countries
 (
     id char(2) not null,
+    name varchar(50) null,
+    options text null,
     constraint countries_id_uindex
         unique (id)
 );
@@ -8,7 +10,7 @@ create table countries
 alter table countries
     add primary key (id);
 
-create table languages
+create or replace table languages
 (
     id char(2) not null,
     name varchar(50) null,
@@ -20,7 +22,7 @@ create table languages
 alter table languages
     add primary key (id);
 
-create table logins
+create or replace table logins
 (
     id int auto_increment
         primary key,
@@ -29,7 +31,7 @@ create table logins
     lastlogin timestamp null
 );
 
-create table logs
+create or replace table logs
 (
     id int auto_increment,
     userid int null,
@@ -44,7 +46,7 @@ create table logs
 alter table logs
     add primary key (id);
 
-create table options
+create or replace table options
 (
     name varchar(50) not null,
     value varchar(10000) null,
@@ -55,14 +57,14 @@ create table options
 alter table options
     add primary key (name);
 
-create table users
+create or replace table users
 (
     id int auto_increment,
     email varchar(254) charset utf8 not null,
     firstname varchar(100) null,
     lastname varchar(100) null,
     language char(2) null,
-    country char(2) null,
+    countryid char(2) null,
     registrationtime timestamp default CURRENT_TIMESTAMP not null,
     passwordhash varchar(60) null,
     passwordrecoveryid varchar(16) null,
@@ -77,7 +79,7 @@ create table users
         foreign key (language) references languages (id)
             on update cascade on delete set null,
     constraint users_FK_country
-        foreign key (country) references countries (id)
+        foreign key (countryid) references countries (id)
             on update cascade on delete set null
 )
     comment 'permission: 0=helper; 1=admin; 2=moderator';
@@ -85,19 +87,19 @@ create table users
 alter table users
     add primary key (id);
 
-create table crashes
+create or replace table crashes
 (
     id int auto_increment,
     userid int null,
     awaitingmoderation tinyint(1) default 1 null,
     createtime timestamp default CURRENT_TIMESTAMP not null,
     updatetime timestamp default CURRENT_TIMESTAMP not null,
-    streamdatetime timestamp default CURRENT_TIMESTAMP not null,
+    date date null,
     streamtopuserid int null,
     streamtoptype smallint null,
-    title varchar(500) charset utf8 not null,
-    text varchar(500) charset utf8 null,
-    date date null,
+    title varchar(500) not null,
+    text varchar(500) null,
+    countryid char(2) null,
     location point null,
     latitude decimal(9,6) null,
     longitude decimal(9,6) null,
@@ -107,30 +109,34 @@ create table crashes
     hitrun tinyint(1) default 0 null,
     website varchar(1000) charset utf8 null,
     pet tinyint(1) default 0 null,
+    streamdatetime timestamp default CURRENT_TIMESTAMP not null,
     constraint posts_id_uindex
         unique (id),
+    constraint crashes_countries_id_fk
+        foreign key (countryid) references countries (id)
+            on update cascade on delete set null,
     constraint posts___fk_user
         foreign key (userid) references users (id)
             on update cascade on delete cascade
 )
     comment 'streamtoptype: 1: edited, 2: article added, 3: placed on top';
 
-create index crashes__date_streamdate_index
+create or replace index crashes__date_streamdate_index
     on crashes (date, streamdatetime);
 
-create index crashes__index_date
+create or replace index crashes__index_date
     on crashes (date);
 
-create index crashes__index_streamdatetime
+create or replace index crashes__index_streamdatetime
     on crashes (streamdatetime);
 
-create fulltext index title
+create or replace fulltext index title
     on crashes (title, text);
 
 alter table crashes
     add primary key (id);
 
-create table articles
+create or replace table articles
 (
     id int auto_increment,
     crashid int null,
@@ -155,16 +161,16 @@ create table articles
             on update cascade on delete cascade
 );
 
-create index articles__index_crashid
+create or replace index articles__index_crashid
     on articles (crashid);
 
-create fulltext index title
+create or replace fulltext index title
     on articles (title, text);
 
 alter table articles
     add primary key (id);
 
-create table crashpersons
+create or replace table crashpersons
 (
     id int auto_increment
         primary key,
@@ -181,9 +187,9 @@ create table crashpersons
 )
     comment 'health: unknown: 0, unharmed: 1, injured: 2, dead: 3 | transportationmode: unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15';
 
-create index crashpersons___fkcrash
+create or replace index crashpersons___fkcrash
     on crashpersons (crashid);
 
-create index crashpersons___fkgroup
+create or replace index crashpersons___fkgroup
     on crashpersons (groupid);
 
