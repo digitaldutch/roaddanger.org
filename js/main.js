@@ -114,12 +114,14 @@ function initStatistics(){
   const url = new URL(location.href);
   if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)){
     const period           = url.searchParams.get('period');
+    const country          = url.searchParams.get('country');
     const searchDateFrom   = url.searchParams.get('date_from');
     const searchDateTo     = url.searchParams.get('date_to');
     const searchChild      = url.searchParams.get('child');
     const searchInjured    = url.searchParams.get('hi');
 
     if (period)         document.getElementById('searchPeriod').value   = period;
+    if (country)        document.getElementById('searchCountry').value   = country;
     if (searchChild)    document.getElementById('filterStatsChild').classList.add('buttonSelectedBlue');
     if (searchInjured)  document.getElementById('filterStatsInjured').classList.add('buttonSelectedBlue');
     if (searchDateFrom) document.getElementById('searchDateFrom').value = searchDateFrom;
@@ -380,6 +382,7 @@ async function loadStatistics(){
     if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
       serverData.filter = {
         period:        document.getElementById('searchPeriod').value,
+        countryId:     document.getElementById('searchCountry').value,
         dateFrom:      document.getElementById('searchDateFrom').value,
         dateTo:        document.getElementById('searchDateTo').value,
         child:         document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue')? 1 : 0,
@@ -403,7 +406,8 @@ async function loadStatistics(){
 
       if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
         url += '?period=' + serverData.filter.period;
-        if (serverData.filter.child) url += '&child=1';
+        if (serverData.filter.countryId)     url += '&country=' + serverData.filter.countryId;
+        if (serverData.filter.child)         url += '&child=1';
         if (serverData.filter.healthInjured) url += '&hi=1';
         if (serverData.filter.period === 'custom') {
           if (serverData.filter.dateFrom) url += '&date_from=' + serverData.filter.dateFrom;

@@ -28,13 +28,11 @@ HTML;
   global $database;
   global $user;
 
-  $countries      = $database->fetchAll("SELECT id, name FROM countries ORDER BY id;");
+  $countries = $database->loadCountries();
   $countryOptions = '';
   foreach ($countries as $country) {
-    $flagFileName = strtolower($country['id']);
-    $bgImage      = "/images/flags/{$flagFileName}.svg";
-    $class        = $country['id'] === $user->countryId? "class='menuSelected'" : '';
-    $countryOptions .= "<div $class onclick=\"setAccountCountry('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url($bgImage);'></div>{$country['name']}</div>";
+    $class = $country['id'] === $user->countryId? "class='menuSelected'" : '';
+    $countryOptions .= "<div $class onclick=\"setAccountCountry('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url({$country['flagFile']});'></div>{$country['name']}</div>";
   }
 
   $languages       = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
@@ -629,5 +627,30 @@ function getSearchPeriodHtml($onInputFunctionName = ''){
 
 <input id="searchDateFrom" class="searchInput toolbarItem" type="date" data-tippy-content="{$texts['Start_date']}" $onInputDates>
 <input id="searchDateTo" class="searchInput toolbarItem" type="date" data-tippy-content="{$texts['End_date']}" $onInputDates>
+HTML;
+}
+
+function getSearchCountryHtml($onInputFunctionName = ''){
+  $texts = translateArray(['Country', 'World']);
+
+  $onInputFunction = $onInputFunctionName === ''? '' : 'oninput="' . $onInputFunctionName . '();"';
+
+  global $database;
+  global $user;
+
+  $countries = $database->loadCountries();
+  $countryOptions = '';
+  foreach ($countries as $country) {
+    $selected = $country['id'] === $user->countryId? "selected" : '';
+    $countryOptions .= "<option value='{$country['id']}' $selected>{$country['name']}</option>";
+  }
+
+  return <<<HTML
+<div class="toolbarItem">
+  <select id="searchCountry" class="searchInput" $onInputFunction data-tippy-content="{$texts['Country']}">
+    <option value="world" selected>{$texts['World']}</option> 
+    $countryOptions
+  </select>
+</div>
 HTML;
 }

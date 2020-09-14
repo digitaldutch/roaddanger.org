@@ -122,7 +122,8 @@ HTML;
 
   $texts = translateArray(['Counterparty_in_crashes', 'Always', 'days', 'the_correspondent_week', 'Custom_period', 'Child', 'Injury', 'Injured', 'Dead_(adjective)']);
 
-  $htmlSearchPeriod = getSearchPeriodHtml('loadStatistics');
+  $htmlSearchCountry = getSearchCountryHtml('loadStatistics');
+  $htmlSearchPeriod  = getSearchPeriodHtml('loadStatistics');
 
   $mainHTML = <<<HTML
 <div class="pageInner">
@@ -150,7 +151,8 @@ Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar
         <span id="filterStatsInjured" class="menuButton bgInjuredBlack" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterStats();"></span>      
         <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
       </div>
-
+      
+      $htmlSearchCountry
       $htmlSearchPeriod
     </div>
 
@@ -164,10 +166,11 @@ HTML;
 
 } else if ($pageType === PageType::statisticsTransportationModes) {
 
-  $texts = translateArray(['Statistics', 'Transportation_modes', 'Transportation_mode', 'Child', 'Intoxicated',
-    'Drive_on_or_fleeing', 'Dead_(adjective)', 'Injured', 'Unharmed', 'Unknown']);
+  $texts = translateArray(['Statistics', 'Transportation_modes', 'Transportation_mode', 'Child', 'Country',
+    'Intoxicated', 'Drive_on_or_fleeing', 'Dead_(adjective)', 'Injured', 'Unharmed', 'Unknown']);
 
-  $htmlSearchPeriod = getSearchPeriodHtml('loadStatistics');
+  $htmlSearchCountry = getSearchCountryHtml('loadStatistics');
+  $htmlSearchPeriod  = getSearchPeriodHtml('loadStatistics');
 
   $mainHTML = <<<HTML
 <div class="pageInner">
@@ -176,13 +179,13 @@ HTML;
   <div id="statistics">
   
     <div class="searchBar" style="display: flex;">
-
       <div class="toolbarItem">
         <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
       </div>
 
-      $htmlSearchPeriod   
-     
+      $htmlSearchCountry   
+      $htmlSearchPeriod
+      
     </div>
 
     <table class="dataTable">

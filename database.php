@@ -11,6 +11,8 @@ abstract class TLogLevel {
 class TDatabase {
   /** @var  PDO */
   private $pdo;
+  private $countries;
+
   public  $rowCount;
 
   public function databaseHandle(){
@@ -174,6 +176,21 @@ class TDatabase {
 
   public function logText($text=''){
     $this->log(null,TLogLevel::info, $text);
+  }
+
+  public function loadCountries() {
+    if (empty($this->countries)) {
+      $dbCountries = $this->fetchAll("SELECT id, name FROM countries ORDER BY id;");
+      $this->countries = [];
+      foreach ($dbCountries as $country) {
+        $flagId = strtolower($country['id']);
+        $country['flagFile'] = "/images/flags/{$flagId}.svg";
+
+        $this->countries[] = $country;
+      }
+    }
+
+    return $this->countries;
   }
 
 }

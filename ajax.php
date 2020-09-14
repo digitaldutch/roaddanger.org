@@ -79,6 +79,11 @@ function getStatsTransportation($database, $filter){
     addSQLWhere($SQLWhere, " cp.child=1 ");
   }
 
+  if ($filter['countryId'] !== 'world'){
+    addSQLWhere($SQLWhere, "c.countryid=:countryId");
+    $params[':countryId'] = $filter['countryId'];
+  }
+
   $sql = <<<SQL
 SELECT
   transportationmode,
@@ -118,7 +123,6 @@ SQL;
  * @return array
  */
 function getStatsCrashPartners($database, $filter){
-
   $SQLWhere         = '';
   $params           = [];
   $joinPersonsTable = true;
@@ -127,6 +131,11 @@ function getStatsCrashPartners($database, $filter){
   addPeriodWhereSql($SQLWhere, $params, $filter);
 
   if ($filter['child'] === 1) addSQLWhere($SQLWhere, " cp.child=1 ");
+
+  if ($filter['countryId'] !== 'world'){
+    addSQLWhere($SQLWhere, "c.countryid=:countryId");
+    $params[':countryId'] = $filter['countryId'];
+  }
 
   $sqlCrashesWithDeath = <<<SQL
   SELECT
