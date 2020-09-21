@@ -1181,6 +1181,7 @@ function showEditCrashForm() {
   document.getElementById('editCrashDate').value        = '';
   document.getElementById('editCrashLatitude').value    = '';
   document.getElementById('editCrashLongitude').value   = '';
+  document.getElementById('editCrashCountry').value     = user.countryid;
 
   document.getElementById('editCrashUnilateral').classList.remove('buttonSelected');
   document.getElementById('editCrashPet').classList.remove('buttonSelected');
@@ -1384,6 +1385,7 @@ function setNewArticleCrashFields(crashID){
   document.getElementById('editCrashDate').value      = dateToISO(crashDatetime);
   document.getElementById('editCrashLatitude').value  = crash.latitude;
   document.getElementById('editCrashLongitude').value = crash.longitude;
+  document.getElementById('editCrashCountry').value   = crash.countryid;
 
   selectButton('editCrashUnilateral',  crash.unilateral);
   selectButton('editCrashPet',         crash.pet);
@@ -1644,6 +1646,7 @@ async function saveArticleCrash(){
     title:      document.getElementById('editCrashTitle').value,
     text:       document.getElementById('editCrashText').value,
     date:       document.getElementById('editCrashDate').value,
+    countryid:  document.getElementById('editCrashCountry').value,
     latitude:   latitude,
     longitude:  longitude,
     persons:    editCrashPersons,
@@ -1686,6 +1689,7 @@ async function saveArticleCrash(){
         crashes[i].text       = crashEdited.text;
         crashes[i].persons    = crashEdited.persons;
         crashes[i].date       = new Date(crashEdited.date);
+        crashes[i].countryid  = crashEdited.countryid;
         crashes[i].latitude   = crashEdited.latitude;
         crashes[i].longitude  = crashEdited.longitude;
         crashes[i].unilateral = crashEdited.unilateral;

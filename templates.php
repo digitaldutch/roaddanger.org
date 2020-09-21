@@ -329,8 +329,7 @@ function getFormEditCrash(){
     'Location', 'Characteristics', 'Save', 'Cancel',
     'Spider_is_working', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions']);
 
-  $htmlSearchCountry = '';
-//  $htmlSearchCountry = getSearchCountryHtml('', 'editArticleCountry', false);
+  $htmlSearchCountry = getSearchCountryHtml('', 'editCrashCountry', false);
 
   return <<<HTML
 <div id="formEditCrash" class="popupOuter">
