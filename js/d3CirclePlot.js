@@ -235,7 +235,8 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
       else if (d.partnerMode === -1) url += 'u'; // Unilateral
       else url += `,${d.partnerMode}`;
 
-      if (filter.child) url += '&child=1';
+      if (filter.child)   url += '&child=1';
+      if (filter.country) url += '&country=' + filter.country;
       if (filter.period) {
         url += '&period=' + filter.period;
         if (filter.dateFrom) url += '&date_from=' + filter.dateFrom;

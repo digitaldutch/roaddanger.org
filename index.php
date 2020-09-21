@@ -152,7 +152,7 @@ Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar
         <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
       </div>
       
-      $htmlSearchCountry
+      <div class="toolbarItem">$htmlSearchCountry</div>
       $htmlSearchPeriod
     </div>
 
@@ -183,7 +183,7 @@ HTML;
         <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
       </div>
 
-      $htmlSearchCountry   
+      <div class="toolbarItem">$htmlSearchCountry</div>
       $htmlSearchPeriod
       
     </div>

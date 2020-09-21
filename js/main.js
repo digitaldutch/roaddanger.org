@@ -37,6 +37,7 @@ async function initMain() {
   const crashID             = getCrashNumberFromPath(url.pathname);
   const articleID           = url.searchParams.get('articleid');
   const searchText          = url.searchParams.get('search');
+  const searchCountry       = url.searchParams.get('country');
   const searchPeriod        = url.searchParams.get('period');
   const searchDateFrom      = url.searchParams.get('date_from');
   const searchDateTo        = url.searchParams.get('date_to');
@@ -62,10 +63,11 @@ async function initMain() {
   else                                                         pageType = PageType.recent;
 
   const searchButtonExists = document.getElementById('buttonSearch');
-  if (searchButtonExists && (searchText || searchPeriod || searchSiteName || searchHealthDead || searchChild || searchPersons)) {
+  if (searchButtonExists && (searchText || searchCountry || searchPeriod || searchSiteName || searchHealthDead || searchChild || searchPersons)) {
     document.body.classList.add('searchBody');
     document.getElementById('searchText').value = searchText;
 
+    if (searchCountry)  document.getElementById('searchCountry').value  = searchCountry;
     if (searchPeriod)   document.getElementById('searchPeriod').value   = searchPeriod;
     if (searchDateFrom) document.getElementById('searchDateFrom').value = searchDateFrom;
     if (searchDateTo)   document.getElementById('searchDateTo').value   = searchDateTo;
@@ -120,8 +122,8 @@ function initStatistics(){
     const searchChild      = url.searchParams.get('child');
     const searchInjured    = url.searchParams.get('hi');
 
-    if (period)         document.getElementById('searchPeriod').value   = period;
     if (country)        document.getElementById('searchCountry').value   = country;
+    if (period)         document.getElementById('searchPeriod').value   = period;
     if (searchChild)    document.getElementById('filterStatsChild').classList.add('buttonSelectedBlue');
     if (searchInjured)  document.getElementById('filterStatsInjured').classList.add('buttonSelectedBlue');
     if (searchDateFrom) document.getElementById('searchDateFrom').value = searchDateFrom;
@@ -172,6 +174,7 @@ function showCrashVictimsGraph(crashVictims){
   }
 
   const filter = {
+    country:       document.getElementById('searchCountry').value,
     period:        document.getElementById('searchPeriod').value,
     dateFrom:      document.getElementById('searchDateFrom').value,
     dateTo:        document.getElementById('searchDateTo').value,
@@ -584,6 +587,7 @@ function getSearchFilter(){
   if (searchVisible()) {
     return {
       text:          document.getElementById('searchText').value.trim().toLowerCase(),
+      country:       document.getElementById('searchCountry').value,
       period:        document.getElementById('searchPeriod').value,
       dateFrom:      document.getElementById('searchDateFrom').value,
       dateTo:        document.getElementById('searchDateTo').value,
@@ -2269,6 +2273,7 @@ function startSearch() {
 
 function updateBrowserUrl(pushState=false){
   const searchText          = document.getElementById('searchText').value.trim().toLowerCase();
+  const searchCountry       = document.getElementById('searchCountry').value;
   const searchPeriod        = document.getElementById('searchPeriod').value;
   const searchDateFrom      = document.getElementById('searchDateFrom').value;
   const searchDateTo        = document.getElementById('searchDateTo').value;
@@ -2294,6 +2299,7 @@ function updateBrowserUrl(pushState=false){
 
   if (searchText)     url.searchParams.set('search', searchText);
   if (searchSiteName) url.searchParams.set('siteName', searchSiteName);
+  if (searchCountry)  url.searchParams.set('country', searchCountry);
   if (searchPeriod){
     url.searchParams.set('period', searchPeriod);
 

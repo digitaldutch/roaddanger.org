@@ -575,8 +575,6 @@ SQL;
       $joinPersonsTable  = false;
       $SQLJoin = '';
 
-      addSQLWhere($SQLWhere, "c.countryid='$user->countryId'");
-
       // Only do full text search if text has 3 characters or more
       if (isset($filter['text']) && strlen($filter['text']) > 2){
         addSQLWhere($SQLWhere, "(MATCH(c.title, c.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))");
@@ -586,6 +584,15 @@ SQL;
       }
 
       addPeriodWhereSql($SQLWhere, $params, $filter);
+
+      if (! empty($filter['country'])){
+        if ($filter['country'] !== 'world') {
+          addSQLWhere($SQLWhere, "c.countryid=:country");
+          $params[':country'] = $filter['country'];
+        }
+      } else {
+        addSQLWhere($SQLWhere, "c.countryid='$user->countryId'");
+      }
 
       if (! empty($filter['siteName'])){
         $joinArticlesTable = true;

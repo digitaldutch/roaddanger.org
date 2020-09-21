@@ -125,7 +125,8 @@ HTML;
 function getHtmlSearchBar(){
   $texts = translateArray(['Humans', 'Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source']);
 
-  $htmlSearchPeriod = getSearchPeriodHtml();
+  $htmlSearchCountry = getSearchCountryHtml();
+  $htmlSearchPeriod  = getSearchPeriodHtml();
 
   return <<<HTML
   <div id="searchBar" class="searchBar" style="border-bottom: solid 1px #aaa;">
@@ -141,6 +142,7 @@ function getHtmlSearchBar(){
        <input id="searchText" class="searchInput"  type="search" placeholder="{$texts['Search']}" onkeyup="startSearchKey(event);" autocomplete="off">  
     </div>
     
+    <div class="toolbarItem">$htmlSearchCountry</div>
     $htmlSearchPeriod
     
     <div class="toolbarItem">
@@ -325,7 +327,10 @@ function getFormEditCrash(){
     'Photo_link_url', 'Same_as_article', 'Add_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
     'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
     'Location', 'Characteristics', 'Save', 'Cancel',
-    'Spider_is_working']);
+    'Spider_is_working', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions']);
+
+  $htmlSearchCountry = '';
+//  $htmlSearchCountry = getSearchCountryHtml('', 'editArticleCountry', false);
 
   return <<<HTML
 <div id="formEditCrash" class="popupOuter">
@@ -342,7 +347,7 @@ function getFormEditCrash(){
   
       <div class="labelDiv">
         <label for="editArticleUrl">{$texts['Link_url']}</label>
-        <span class="iconTooltip" data-tippy-content="Kopieer de link uit de adresbalk van de webpagina met het artikel"></span>
+        <span class="iconTooltip" data-tippy-content="{$texts['Link_info']}"></span>
       </div>
 
       <div style="display: flex;">
@@ -373,7 +378,7 @@ function getFormEditCrash(){
 
       <div class="labelDiv">
         <label for="editArticleAllText">{$texts['Full_text']}</label>
-        <span class="iconTooltip" data-tippy-content="Niet verplicht, maar zeer nuttig voor onze tekstanalyses. De tekst moet nu nog handmatig gekopieerd worden. Onze dank is groot als je dat wilt doen."></span>
+        <span class="iconTooltip" data-tippy-content="{$texts['Full_text_info']}"></span>
       </div>
       <textarea id="editArticleAllText" maxlength="10000" style="height: 150px; resize: vertical;" class="popupInput" autocomplete="off"></textarea>
     </div>
@@ -396,7 +401,7 @@ function getFormEditCrash(){
 
       <div class="labelDiv">
         <label for="editCrashDate">{$texts['Date']}</label>
-        <span class="iconTooltip" data-tippy-content="Vaak anders dan publicatiedatum artikel"></span>
+        <span class="iconTooltip" data-tippy-content="{$texts['Accident_date_info']}"></span>
       </div>
       <div style="display: flex;">
         <input id="editCrashDate" class="popupInput" type="date" autocomplete="off">
@@ -419,7 +424,8 @@ function getFormEditCrash(){
       </div>
       
       <div style="margin-top: 5px;">
-        <div>{$texts['Location']} <span class="iconTooltip" data-tippy-content="Optioneel, omdat het lastig is om deze uit tekst of foto's te halen. Klik op kaart om een locatie te selecteren. Klik marker om locatie te verwijderen. Sleep marker om locatie aan te passen."></span></div>
+        <div>{$texts['Location']} $htmlSearchCountry
+        <span class="iconTooltip" data-tippy-content="{$texts['Edit_location_instructions']}"></span></div>
             
         <input id="editCrashLatitude" type="hidden"><input id="editCrashLongitude" type="hidden">
                
@@ -630,7 +636,8 @@ function getSearchPeriodHtml($onInputFunctionName = ''){
 HTML;
 }
 
-function getSearchCountryHtml($onInputFunctionName = ''){
+function getSearchCountryHtml($onInputFunctionName = '', $selectId='searchCountry', $addWorld=true){
+
   $texts = translateArray(['Country', 'World']);
 
   $onInputFunction = $onInputFunctionName === ''? '' : 'oninput="' . $onInputFunctionName . '();"';
@@ -645,12 +652,12 @@ function getSearchCountryHtml($onInputFunctionName = ''){
     $countryOptions .= "<option value='{$country['id']}' $selected>{$country['name']}</option>";
   }
 
+  $firstOptions = $addWorld? "<option value='world' selected>{$texts['World']}</option>" : '';
+
   return <<<HTML
-<div class="toolbarItem">
-  <select id="searchCountry" class="searchInput" $onInputFunction data-tippy-content="{$texts['Country']}">
-    <option value="world" selected>{$texts['World']}</option> 
-    $countryOptions
-  </select>
-</div>
+<select id="$selectId" class="searchInput" $onInputFunction data-tippy-content="{$texts['Country']}">
+  $firstOptions 
+  $countryOptions
+</select>
 HTML;
 }
