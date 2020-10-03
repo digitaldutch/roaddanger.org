@@ -16,6 +16,7 @@ else if (strpos($uri, '/kinddoden')                  === 0) $pageType = PageType
 else if (strpos($uri, '/statistieken/algemeen')      === 0) $pageType = PageType::statisticsGeneral;
 else if (strpos($uri, '/statistieken/andere_partij') === 0) $pageType = PageType::statisticsCrashPartners;
 else if (strpos($uri, '/statistieken/vervoertypes')  === 0) $pageType = PageType::statisticsTransportationModes;
+else if (strpos($uri, '/statistieken')               === 0) $pageType = PageType::statisticsGeneral;
 else if (strpos($uri, '/exporteren')                 === 0) $pageType = PageType::export;
 else                                                               $pageType = PageType::recent;
 
