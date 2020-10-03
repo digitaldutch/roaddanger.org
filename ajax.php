@@ -918,7 +918,7 @@ SQL;
           ':title'                 => $crash['title'],
           ':text'                  => $crash['text'],
           ':date'                  => $crash['date'],
-          ':countryId'             => $user->countryId,
+          ':countryId'             => $crash['countryid'],
           ':latitude'              => $crash['latitude'],
           ':longitude'             => $crash['longitude'],
           ':latitude2'             => $crash['latitude'],
