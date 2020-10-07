@@ -43,6 +43,8 @@ try {
     die('Internal error: Database connection failed');
   }
 
+  $database->loadCountries();
+
   $user = new TUser($database);
 
 } catch (Exception $e){

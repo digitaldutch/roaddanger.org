@@ -236,8 +236,8 @@ function sendEmail($emailTo, $subject, $body, $ccList=[]) {
   $root = realpath($_SERVER["DOCUMENT_ROOT"]);
   require_once $root . '/scripts/PHPMailerAutoload.php';
 
-  $from     = DOMAIN_EMAIL;
-  $fromName = DOMAIN_NAME;
+  $from     = ADMIN_EMAIL;
+  $fromName = $_SERVER['SERVER_NAME'];
 
   $mail = new PHPMailer;
   $mail->isSendmail();
@@ -287,3 +287,4 @@ function formatMessage($text){
 
   return $text;
 }
+

@@ -4,7 +4,7 @@ require_once '../initialize.php';
 
 global $VERSION;
 
-$ourEmail = DOMAIN_EMAIL;
+$ourEmail = ADMIN_EMAIL;
 
 $mainHTML = <<<HTML
 <div id="main" class="pageInner bgWhite">

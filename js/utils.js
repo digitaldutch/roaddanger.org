@@ -350,7 +350,7 @@ function updateLoginGUI(userNew){
 
   document.getElementById('iconCountry').style.backgroundImage = `url(/images/flags/${user.countryid.toLowerCase()}.svg)`;
 
-  document.getElementById('titleCountry').innerHTML = ' | ' + user.country;
+  document.getElementById('titleCountry').innerHTML = ' | ' + user.country.name;
 
   document.querySelectorAll('.buttonEditPost').forEach(
     button => {
@@ -366,21 +366,25 @@ function updateLoginGUI(userNew){
   document.querySelectorAll('[data-inline-admin]').forEach(d => {d.style.display = user.admin? 'inline-block' : 'none'});
 }
 
-async function setAccountCountry(countryId){
-  const url        = '/ajax.php?function=saveAccountCountry&id=' + countryId;
-  const response   = await fetchFromServer(url);
+async function selectCountry(countryId) {
+  const urlServer = '/ajax.php?function=loadCountryDomain';
+  const response  = await fetchFromServer(urlServer, {countryId: countryId});
 
   if (response.error) {
     showError(response.error);
-    return;
   }
 
-  window.location.reload();
+  if (response.domain) {
+    const url = new URL(location.href);
+    url.hostname = response.domain;
+
+    location.href = url.href;
+  }
 }
 
-async function setAccountLanguage(languageId){
-  const url        = '/ajax.php?function=saveAccountLanguage&id=' + languageId;
-  const response   = await fetchFromServer(url);
+async function setLanguage(languageId){
+  const url      = '/ajax.php?function=setLanguage&id=' + languageId;
+  const response = await fetchFromServer(url);
 
   if (response.error) {
     showError(response.error);

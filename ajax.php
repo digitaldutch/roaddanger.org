@@ -401,9 +401,9 @@ else if ($function == 'sendPasswordResetInstructions') {
     $recoveryID = $user->resetPasswordRequest($email);
     if (! $recoveryID) throw new Exception('Interne fout: Kan geen recoveryID aanmaken');
 
-    $domain            = DOMAIN_NAME;
+    $domain            = $_SERVER['SERVER_NAME'];
     $subject           = $domain . ' wachtwoord resetten';
-    $server            = SERVER_DOMAIN;
+    $server            = $_SERVER['SERVER_NAME'];
     $emailEncoded      = urlencode($email);
     $recoveryIDEncoded = urlencode($recoveryID);
     $body    = <<<HTML
@@ -471,20 +471,7 @@ else if ($function == 'saveAccount') {
 
   echo json_encode($result);
 } // ====================
-else if ($function == 'saveAccountCountry') {
-  try {
-    $countryId = getRequest('id');
-
-    $user->saveCountry($countryId);
-
-    $result = ['ok' => true];
-  } catch (Exception $e) {
-    $result = ['ok' => false, 'error' => $e->getMessage()];
-  }
-
-  echo json_encode($result);
-} // ====================
-else if ($function == 'saveAccountLanguage') {
+else if ($function == 'setLanguage') {
   try {
     $languageId = getRequest('id');
 
@@ -592,7 +579,7 @@ SQL;
           $params[':country'] = $filter['country'];
         }
       } else {
-        addSQLWhere($SQLWhere, "c.countryid='$user->countryId'");
+        addSQLWhere($SQLWhere, "c.countryid='{$user->country['id']}'");
       }
 
       if (! empty($filter['siteName'])){
@@ -1189,12 +1176,11 @@ else if ($function === 'getStatistics') {
 } //==========
 else if ($function === 'loadCountryOptions') {
   try {
-
     $sql         = 'SELECT options from countries WHERE id=:id;';
-    $params      = [':id' => $user->countryId];
+    $params      = [':id' => $user->country['id']];
     $optionsJson = $database->fetchSingleValue($sql, $params);
 
-    if (! isset($optionsJson)) throw new Exception('No country options found for ' . $user->countryId);
+    if (! isset($optionsJson)) throw new Exception('No country options found for ' . $user->country['id']);
     $options     = json_decode($optionsJson);
 
     $result = ['ok' => true,
@@ -1204,4 +1190,20 @@ else if ($function === 'loadCountryOptions') {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
-}
+} //==========
+else if ($function === 'loadCountryDomain') {
+  try {
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    $sql         = 'SELECT domain from countries WHERE id=:id;';
+    $params      = [':id' => $data['countryId']];
+    $domain      = $database->fetchSingleValue($sql, $params);
+
+    $result = ['ok' => true,
+      'domain' => $domain,
+    ];
+  } catch (Exception $e) {
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} //==========

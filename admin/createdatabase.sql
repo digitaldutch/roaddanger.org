@@ -1,8 +1,10 @@
-create or replace table countries
+create table countries
 (
     id char(2) not null,
     name varchar(50) null,
+    domain varchar(50) null,
     options text null,
+    defaultlanguageid char(2) null,
     constraint countries_id_uindex
         unique (id)
 );
@@ -10,7 +12,7 @@ create or replace table countries
 alter table countries
     add primary key (id);
 
-create or replace table languages
+create table languages
 (
     id char(2) not null,
     name varchar(50) null,
@@ -22,7 +24,7 @@ create or replace table languages
 alter table languages
     add primary key (id);
 
-create or replace table logins
+create table logins
 (
     id int auto_increment
         primary key,
@@ -31,7 +33,7 @@ create or replace table logins
     lastlogin timestamp null
 );
 
-create or replace table logs
+create table logs
 (
     id int auto_increment,
     userid int null,
@@ -46,7 +48,7 @@ create or replace table logs
 alter table logs
     add primary key (id);
 
-create or replace table options
+create table options
 (
     name varchar(50) not null,
     value varchar(10000) null,
@@ -57,7 +59,7 @@ create or replace table options
 alter table options
     add primary key (name);
 
-create or replace table users
+create table users
 (
     id int auto_increment,
     email varchar(254) charset utf8 not null,
@@ -87,7 +89,7 @@ create or replace table users
 alter table users
     add primary key (id);
 
-create or replace table crashes
+create table crashes
 (
     id int auto_increment,
     userid int null,
@@ -121,22 +123,22 @@ create or replace table crashes
 )
     comment 'streamtoptype: 1: edited, 2: article added, 3: placed on top';
 
-create or replace index crashes__date_streamdate_index
+create index crashes__date_streamdate_index
     on crashes (date, streamdatetime);
 
-create or replace index crashes__index_date
+create index crashes__index_date
     on crashes (date);
 
-create or replace index crashes__index_streamdatetime
+create index crashes__index_streamdatetime
     on crashes (streamdatetime);
 
-create or replace fulltext index title
+create fulltext index title
     on crashes (title, text);
 
 alter table crashes
     add primary key (id);
 
-create or replace table articles
+create table articles
 (
     id int auto_increment,
     crashid int null,
@@ -161,16 +163,16 @@ create or replace table articles
             on update cascade on delete cascade
 );
 
-create or replace index articles__index_crashid
+create index articles__index_crashid
     on articles (crashid);
 
-create or replace fulltext index title
+create fulltext index title
     on articles (title, text);
 
 alter table articles
     add primary key (id);
 
-create or replace table crashpersons
+create table crashpersons
 (
     id int auto_increment
         primary key,
@@ -187,9 +189,9 @@ create or replace table crashpersons
 )
     comment 'health: unknown: 0, unharmed: 1, injured: 2, dead: 3 | transportationmode: unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15';
 
-create or replace index crashpersons___fkcrash
+create index crashpersons___fkcrash
     on crashpersons (crashid);
 
-create or replace index crashpersons___fkgroup
+create index crashpersons___fkgroup
     on crashpersons (groupid);
 

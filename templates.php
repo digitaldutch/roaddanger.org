@@ -28,18 +28,17 @@ HTML;
   global $database;
   global $user;
 
-  $countries = $database->loadCountries();
   $countryOptions = '';
-  foreach ($countries as $country) {
-    $class = $country['id'] === $user->countryId? "class='menuSelected'" : '';
-    $countryOptions .= "<div $class onclick=\"setAccountCountry('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url({$country['flagFile']});'></div>{$country['name']}</div>";
+  foreach ($database->countries as $country) {
+    $class = $country['id'] === $user->country['id']? "class='menuSelected'" : '';
+    $countryOptions .= "<div $class onclick=\"selectCountry('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url({$country['flagFile']});'></div>{$country['name']}</div>";
   }
 
   $languages       = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
   $languageOptions = '';
   foreach ($languages as $language) {
     $class = $language['id'] === $user->languageId? "class='menuSelected'" : '';
-    $languageOptions .= "<div $class onclick=\"setAccountLanguage('{$language['id']}')\">{$language['name']}</div>";
+    $languageOptions .= "<div $class onclick=\"setLanguage('{$language['id']}')\">{$language['name']}</div>";
   }
 
   $texts = translateArray(['Log_out', 'Log_in', 'The_crashes', 'Account', 'Country', 'Language']);
@@ -644,10 +643,8 @@ function getSearchCountryHtml($onInputFunctionName = '', $selectId='searchCountr
   global $database;
   global $user;
 
-  $countries = $database->loadCountries();
-  $countryOptions = '';
-  foreach ($countries as $country) {
-    $selected = $country['id'] === $user->countryId? "selected" : '';
+  foreach ($database->countries as $country) {
+    $selected = $country['id'] === $user->country['id']? "selected" : '';
     $countryOptions .= "<option value='{$country['id']}' $selected>{$country['name']}</option>";
   }
 

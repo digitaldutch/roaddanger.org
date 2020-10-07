@@ -11,8 +11,8 @@ abstract class TLogLevel {
 class TDatabase {
   /** @var  PDO */
   private $pdo;
-  private $countries;
-
+  public  $countryId = DEFAULT_COUNTRY_ID;
+  public  $countries;
   public  $rowCount;
 
   public function databaseHandle(){
@@ -30,7 +30,9 @@ class TDatabase {
         PDO::ATTR_EMULATE_PREPARES   => false,              // Forces native MySQL prepares. Required to return native fields (integer & float instead of strings) See: https://stackoverflow.com/questions/10113562/pdo-mysql-use-pdoattr-emulate-prepares-or-not
         PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'", // Unicode support
       ];
+
       $this->pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD, $options);
+
     } catch (Exception $e) {
       throw new Exception('Database error: ' . $e->getMessage());
     }
@@ -180,17 +182,27 @@ class TDatabase {
 
   public function loadCountries() {
     if (empty($this->countries)) {
-      $dbCountries = $this->fetchAll("SELECT id, name FROM countries ORDER BY id;");
+      $dbCountries = $this->fetchAll("SELECT id, name, defaultlanguageid, domain FROM countries ORDER BY id;");
       $this->countries = [];
       foreach ($dbCountries as $country) {
         $flagId = strtolower($country['id']);
         $country['flagFile'] = "/images/flags/{$flagId}.svg";
+
+        // Country id depends on domain name (e.g. hetongeluk.nl > id=NL)
+        if (strpos($_SERVER['SERVER_NAME'], $country['domain']) !== false) $this->countryId = $country['id'];
 
         $this->countries[] = $country;
       }
     }
 
     return $this->countries;
+  }
+
+  public function getCountry($id) {
+    foreach ($this->countries AS $country) {
+      if ($country['id'] === $id) return $country;
+    }
+    return null;
   }
 
 }

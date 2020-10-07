@@ -3,8 +3,8 @@
     RewriteEngine On
     RewriteBase /
 
-    # Ensure www
-    RewriteCond %{HTTP_HOST} !^www\. [NC]
+    # Add www if not a subdomain
+    RewriteCond %{HTTP_HOST} !^(.*)\.(.*)\. [NC]
     RewriteRule ^(.*)$ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
     # Ensure https
