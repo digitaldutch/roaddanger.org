@@ -19,6 +19,10 @@ ini_set('session.cookie_secure', 1);
 // Same site cookie: PHP 7.3+
 ini_set('session.cookie_samesite', 'Lax');
 
+// Make sure cookie works also on subdomains (e.g. www.thecrashes.org & nl.thecrashes.org)
+$domain = substr($_SERVER['SERVER_NAME'],strpos($_SERVER['SERVER_NAME'],"."),100);
+ini_set('session.cookie_domain', $domain);
+
 session_start();
 
 date_default_timezone_set('Europe/Amsterdam');

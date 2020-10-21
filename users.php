@@ -131,10 +131,10 @@ class TUser{
       $this->database->execute($sql, $params);
 
       // Clear remember me cookies
-      setcookie('login_token', '', time() - 3600, '/');
+      setcookie('login_token', '', time() - 3600, '/', COOKIE_DOMAIN);
     }
-    if (isset($_COOKIE['user_id']))  setcookie('user_id',  '', time() - 3600, '/');
-    if (isset($_COOKIE['login_id'])) setcookie('login_id', '', time() - 3600, '/');
+    if (isset($_COOKIE['user_id']))  setcookie('user_id',  '', time() - 3600, '/', COOKIE_DOMAIN);
+    if (isset($_COOKIE['login_id'])) setcookie('login_id', '', time() - 3600, '/', COOKIE_DOMAIN);
   }
 
 
@@ -211,9 +211,9 @@ SQL;
 
     $NowPlus10Years = time() + 60*60*24*3650; // 3650 dagen cookie expiration time
     // Use path bug to set samesite. PHP 7.3: Samesite is an extra parameter
-    setcookie('user_id', $this->id,  ['expires' => $NowPlus10Years, 'path' => '/', 'secure' => true, 'samesite' => 'Lax']);
-    setcookie('login_id', $id,       ['expires' => $NowPlus10Years, 'path' => '/', 'secure' => true, 'samesite' => 'Lax']);
-    setcookie('login_token', $token, ['expires' => $NowPlus10Years, 'path' => '/', 'secure' => true, 'samesite' => 'Lax']);
+    setcookie('user_id', $this->id,  ['expires' => $NowPlus10Years, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
+    setcookie('login_id', $id,       ['expires' => $NowPlus10Years, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
+    setcookie('login_token', $token, ['expires' => $NowPlus10Years, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
   }
 
   public function login($email, $password, $stayLoggedIn=false){
@@ -337,6 +337,7 @@ SQL;
       $languageId,
       ['expires'  => $NowPlus10Years,
        'path'     => '/',
+       'domain'   => COOKIE_DOMAIN,
        'secure'   => true,
        'samesite' => 'Lax',
         ]

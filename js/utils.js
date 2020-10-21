@@ -856,7 +856,12 @@ function createCookie(name, value, days) {
     expires = "; expires="+date.toGMTString();
   }
 
-  document.cookie = name + "=" + value + expires + "; path=/; SameSite=Lax; Secure";
+  // Make cookies work for all subdomains bij adding a dot before the main domain name
+  let domainParts = location.host.split('.');
+  domainParts.shift();
+  const domain = '.'+domainParts.join('.');
+
+  document.cookie = name + "=" + value + expires + "; path=/; SameSite=Lax; Secure; domain=" + domain;
 }
 
 function formatText(text) {

@@ -1,7 +1,7 @@
 <?php
 
-$VERSION      = 362;
-$VERSION_DATE = '6 October 2020';
+$VERSION      = 363;
+$VERSION_DATE = '21 October 2020';
 
 require_once 'configsecret.php';
 
@@ -14,6 +14,9 @@ require_once 'configsecret.php';
 
 // Other settings
 const ADMIN_EMAIL = 'info@hetongeluk.nl';
+
+// dot is added to make sure cookies works across all subdomains
+const COOKIE_DOMAIN = '.thecrashes.org';
 
 define('DEFAULT_COUNTRY_ID', 'DE');
 
