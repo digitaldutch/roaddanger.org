@@ -769,14 +769,14 @@ function getCrashListHTML(crashID){
     if (article.awaitingmoderation){
       let modHTML = '';
       if (user.moderator) modHTML = `
-Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
+${translate('Approval_required')}
 <div style="margin: 10px;">
-  <button class="button" onclick="articleModerateOK(${article.id})">Keur artikel goed</button>
-  <button class="button buttonGray" onclick="deleteArticle(${article.id})">Verwijder artikel</button>
+  <button class="button" onclick="articleModerateOK(${article.id})">${translate('Approve')}</button>
+  <button class="button buttonGray" onclick="deleteArticle(${article.id})">${translate('Delete')}</button>
 </div>
 `;
-      else if (article.userid === user.id) modHTML = 'Bedankt voor het toevoegen van dit artikel. Je bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet voor iedereen zichtbaar.';
-      else modHTML = 'Dit artikel wordt spoedig gemodereerd en is tot die tijd nog niet zichtbaar op de voorpagina.';
+      else if (article.userid === user.id) modHTML = translate('Contribution_thanks');
+      else modHTML = translate('Moderation_pending');
 
       htmlModeration = `<div id="articleModeration${article.id}" class="moderation">${modHTML}</div>`;
     }
@@ -842,14 +842,14 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   if (crash.awaitingmoderation){
     let modHTML;
     if (user.moderator) modHTML = `
-Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
+${translate('Approval_required')}
 <div style="margin: 10px;">
-  <button class="button" onclick="crashModerateOK(${crash.id})">Keur bijdrage goed</button>
-  <button class="button buttonGray" onclick="deleteCrash(${crash.id})">Verwijder bijdrage</button>
+  <button class="button" onclick="crashModerateOK(${crash.id})">${translate('Approve')}</button>
+  <button class="button buttonGray" onclick="deleteCrash(${crash.id})">${translate('Delete')}</button>
 </div>
 `;
-    else if (crash.userid === user.id) modHTML = 'Bedankt voor het toevoegen van onderstaand bericht. Je bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet voor iedereen zichtbaar.';
-    else modHTML = 'Deze bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet zichtbaar op de voorpagina.';
+    else if (crash.userid === user.id) modHTML = translate('Contribution_thanks');
+    else modHTML = translate('Moderation_pending');
 
     htmlModeration = `<div id="crashModeration${crash.id}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
   }
@@ -933,14 +933,14 @@ function getCrashDetailsHTML(crashId){
     if (article.awaitingmoderation){
       let modHTML = '';
       if (user.moderator) modHTML = `
-Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
+${translate('Approval_required')}
 <div style="margin: 10px;">
-  <button class="button" onclick="articleModerateOK(${article.id})">Keur artikel goed</button>
-  <button class="button buttonGray" onclick="deleteArticle(${article.id})">Verwijder artikel</button>
+  <button class="button" onclick="articleModerateOK(${article.id})">${translate('Approve')}</button>
+  <button class="button buttonGray" onclick="deleteArticle(${article.id})">${translate('Delete')}</button>
 </div>
 `;
-      else if (article.userid === user.id) modHTML = 'Bedankt voor het toevoegen van dit artikel. Je bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet voor iedereen zichtbaar.';
-      else modHTML = 'Dit artikel wordt spoedig gemodereerd en is tot die tijd nog niet zichtbaar op de voorpagina.';
+      else if (article.userid === user.id) modHTML = translate('Contribution_thanks');
+      else modHTML = translate('Moderation_pending');
 
       htmlModeration = `<div id="articleModeration${articleDivID}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
     }
@@ -999,14 +999,14 @@ Lieve moderator, dit artikel van "${article.user}" wacht op moderatie.
   if (crash.awaitingmoderation){
     let modHTML = '';
     if (user.moderator) modHTML = `
-Lieve moderator, deze bijdrage van "${crash.user}" wacht op moderatie.
+${translate('Approval_required')}
 <div style="margin: 10px;">
-  <button class="button" onclick="crashModerateOK(${crash.id})">Keur bijdrage goed</button>
-  <button class="button buttonGray" onclick="deleteCrash(${crash.id})">Verwijder bijdrage</button>
+  <button class="button" onclick="crashModerateOK(${crash.id})">${translate('Approve')}</button>
+  <button class="button buttonGray" onclick="deleteCrash(${crash.id})">${translate('Delete')}</button>
 </div>
 `;
-    else if (crash.userid === user.id) modHTML = 'Bedankt voor het toevoegen van onderstaand bericht. Je bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet voor iedereen zichtbaar.';
-    else modHTML = 'Deze bijdrage wordt spoedig gemodereerd en is tot die tijd nog niet zichtbaar op de voorpagina.';
+    else if (crash.userid === user.id) modHTML = translate('Contribution_thanks');
+    else modHTML = translate('Moderation_pending');
 
     htmlModeration = `<div id="crashModeration${crashDivId}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
   }

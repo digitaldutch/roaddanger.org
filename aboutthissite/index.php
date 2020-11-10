@@ -4,8 +4,6 @@ require_once '../initialize.php';
 
 global $VERSION;
 
-$ourEmail = ADMIN_EMAIL;
-
 $mainHTML = <<<HTML
 <div id="main" class="pageInner bgWhite">
   
@@ -62,21 +60,16 @@ Op de <a href="/statistieken">pagina met statistieken</a> vind je het opgetelde 
 <div class="sectionTitle">Wie beheren deze site?</div>
 <p>Hetongeluk.nl is begonnen als spin-off van het journalistieke project over verkeersongevallen van journalist 
 Thalia Verkade en planoloog Marco te Brömmelstroet <a href="https://decorrespondent.nl/collectie/verkeersongevallen" target="_blank">op De Correspondent</a>. 
-Beheerders zijn journalist Thalia Verkade en programmeur Jan Derk Stegeman. 
-Vragen, opmerkingen kunnen naar <a href="mailto:$ourEmail">$ourEmail</a>.
+Beheerders zijn journalist Thalia Verkade en programmeur Jan Derk Stegeman.
 </p>
 
-<div class="sectionTitle">Ik wil helpen modereren/samenwerken/de data gebruiken/de code uitbouwen, kan dat?</div>
+<div class="sectionTitle">Ik wil helpen modereren/samenwerken/de data gebruiken/de code uitbouwen of feedback geven, kan dat?</div>
 <p>
-Fijn, stuur een mailtje naar <a href="mailto:$ourEmail">$ourEmail</a>. 
+Fijn, stuur een mailtje naar <a href="mailto:thalia@decorrespondent.nl">Thalia Verkade</a> of <a href="mailto:info@digitaldutch.com">Jan Derk Stegeman</a>. 
 Alle code van de deze website is open source en beschikbaar op <a href="https://github.com/janderk2/hetongeluk" target="_blank">github</a>.
 </p>
   
-<div class="sectionTitle">Ik wil feedback geven op de site</div>
-<p>
-Fijn, stuur een mailtje naar <a href="mailto:$ourEmail">$ourEmail</a>.
-</p>
-  
+ 
 <a name="cookieInfo"></a><div class="sectionTitle">Cookies</div>
 <p>
 Deze website gebruikt een cookie om je ingelogd te houden tussen de verschillende pagina's. Verder niets. De foto's die getoond worden zijn echter van de nieuwswebsites en die plaatsen "third-party" cookies en kunnen je dus volgen.

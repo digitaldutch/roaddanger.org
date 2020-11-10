@@ -2,3 +2,5 @@
 configsecret.php
 /admin/hetongeluk_nl_articles_correspondent_week.csv
 /admin/hetongeluk_nl_crashes_correspondent_week.csv
+/admin/hetongeluk_nl_crashes_latest.json.gz
+/admin/hetongeluk_nl_crashes_all_text_latest.json.gz

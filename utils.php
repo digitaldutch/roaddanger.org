@@ -232,11 +232,10 @@ function getRandomString($length=16){
  * @throws Exception
  */
 function sendEmail($emailTo, $subject, $body, $ccList=[]) {
-  // DOCUMENT_ROOT does not work in cli. For cli this file is included in the start file (eg meterchecker.php).
   $root = realpath($_SERVER["DOCUMENT_ROOT"]);
   require_once $root . '/scripts/PHPMailerAutoload.php';
 
-  $from     = ADMIN_EMAIL;
+  $from     = 'noreply@thecrashes.org';
   $fromName = $_SERVER['SERVER_NAME'];
 
   $mail = new PHPMailer;
