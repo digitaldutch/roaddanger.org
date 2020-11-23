@@ -28,7 +28,7 @@ HTML;
   global $database;
   global $user;
 
-  $countryOptions = '';
+  // Add countries
   foreach ($database->countries as $country) {
     $class = $country['id'] === $user->country['id']? "class='menuSelected'" : '';
     $countryOptions .= "<div $class onclick=\"selectCountry('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url({$country['flagFile']});'></div>{$country['name']}</div>";
@@ -328,7 +328,7 @@ function getFormEditCrash(){
     'Location', 'Characteristics', 'Save', 'Cancel',
     'Spider_is_working', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions']);
 
-  $htmlSearchCountry = getSearchCountryHtml('', 'editCrashCountry', false);
+  $htmlSearchCountry = getSearchCountryHtml('', 'editCrashCountry');
 
   return <<<HTML
 <div id="formEditCrash" class="popupOuter">
@@ -634,9 +634,8 @@ function getSearchPeriodHtml($onInputFunctionName = ''){
 HTML;
 }
 
-function getSearchCountryHtml($onInputFunctionName = '', $selectId='searchCountry', $addWorld=true){
-
-  $texts = translateArray(['Country', 'World']);
+function getSearchCountryHtml($onInputFunctionName = '', $selectId='searchCountry'){
+  $texts = translateArray(['Country']);
 
   $onInputFunction = $onInputFunctionName === ''? '' : 'oninput="' . $onInputFunctionName . '();"';
 
@@ -648,11 +647,8 @@ function getSearchCountryHtml($onInputFunctionName = '', $selectId='searchCountr
     $countryOptions .= "<option value='{$country['id']}' $selected>{$country['name']}</option>";
   }
 
-  $firstOptions = $addWorld? "<option value='world' selected>{$texts['World']}</option>" : '';
-
   return <<<HTML
 <select id="$selectId" class="searchInput" $onInputFunction data-tippy-content="{$texts['Country']}">
-  $firstOptions 
   $countryOptions
 </select>
 HTML;

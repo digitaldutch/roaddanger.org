@@ -1,7 +1,7 @@
 <?php
 
-$VERSION      = 364;
-$VERSION_DATE = '10 November 2020';
+$VERSION      = 365;
+$VERSION_DATE = '23 November 2020';
 
 require_once 'configsecret.php';
 
@@ -15,5 +15,5 @@ require_once 'configsecret.php';
 // Note: The dot is added to make sure cookies works across all subdomains
 const COOKIE_DOMAIN = '.thecrashes.org';
 
-define('DEFAULT_COUNTRY_ID', 'NL');
+define('DEFAULT_COUNTRY_ID', 'UN');
 

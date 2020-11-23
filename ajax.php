@@ -79,7 +79,7 @@ function getStatsTransportation($database, $filter){
     addSQLWhere($SQLWhere, " cp.child=1 ");
   }
 
-  if ($filter['countryId'] !== 'world'){
+  if ($filter['countryId'] !== 'UN'){
     addSQLWhere($SQLWhere, "c.countryid=:countryId");
     $params[':countryId'] = $filter['countryId'];
   }
@@ -132,7 +132,7 @@ function getStatsCrashPartners($database, $filter){
 
   if ($filter['child'] === 1) addSQLWhere($SQLWhere, " cp.child=1 ");
 
-  if ($filter['countryId'] !== 'world'){
+  if ($filter['countryId'] !== 'UN'){
     addSQLWhere($SQLWhere, "c.countryid=:countryId");
     $params[':countryId'] = $filter['countryId'];
   }
@@ -574,12 +574,12 @@ SQL;
       addPeriodWhereSql($SQLWhere, $params, $filter);
 
       if (! empty($filter['country'])){
-        if ($filter['country'] !== 'world') {
+        if ($filter['country'] !== 'UN') {
           addSQLWhere($SQLWhere, "c.countryid=:country");
           $params[':country'] = $filter['country'];
         }
       } else {
-        addSQLWhere($SQLWhere, "c.countryid='{$user->country['id']}'");
+        if ($user->country['id'] !== 'UN') addSQLWhere($SQLWhere, "c.countryid='{$user->country['id']}'");
       }
 
       if (! empty($filter['siteName'])){
