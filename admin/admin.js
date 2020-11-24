@@ -161,18 +161,19 @@ function afterLoginAction(){
 }
 
 async function saveOptions() {
-  const url     = '/admin/ajax.php?function=saveOptions';
-  const options = {
-    globalMessage: document.getElementById('optionGlobalMessage').value,
-  };
-
-  const response = await fetchFromServer(url, options);
-
-  if (response.error) {
-    showError(response.error, 10);
-  } else {
-    showMessage(translate('Saved'), 1);
-  }
+  showError('Temporarily disabled: We are changing to a new multi-language long text system.');
+  // const url     = '/admin/ajax.php?function=saveOptions';
+  // const options = {
+  //   globalMessage: document.getElementById('optionGlobalMessage').value,
+  // };
+  //
+  // const response = await fetchFromServer(url, options);
+  //
+  // if (response.error) {
+  //   showError(response.error, 10);
+  // } else {
+  //   showMessage(translate('Saved'), 1);
+  // }
 
 }
 

@@ -169,6 +169,24 @@ class TUser{
     ksort($this->translations);
   }
 
+  public function translateLongText($textId) {
+    $text = $this->getLongText($textId, $this->languageId);
+
+    // Fall back to English if original does not exist.
+    if (($text === false) && ($this->languageId !== 'en')){
+      $text = $this->getLongText($textId, 'en');
+    }
+
+    return formatMessage($text);
+  }
+
+  public function getLongText($textId, $languageId) {
+    $sql    = "SELECT content FROM longtexts WHERE id=:id AND language_id = :language_id;";
+    $params = [':id' => $textId, ':language_id' => $languageId];
+
+    return $this->database->fetchSingleValue($sql, $params);
+  }
+
   public function getTranslations(){
     if (empty($this->translations)) $this->loadTranslations();
   }
@@ -209,11 +227,11 @@ SQL;
     $this->database->execute($sql, $params);
     $id = $this->database->lastInsertID();
 
-    $NowPlus10Years = time() + 60*60*24*3650; // 3650 dagen cookie expiration time
-    // Use path bug to set samesite. PHP 7.3: Samesite is an extra parameter
-    setcookie('user_id', $this->id,  ['expires' => $NowPlus10Years, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
-    setcookie('login_id', $id,       ['expires' => $NowPlus10Years, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
-    setcookie('login_token', $token, ['expires' => $NowPlus10Years, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
+    $expires = time() + 60 * 60 * 24 * 365 * 10; // 10 years cookie expiration time
+
+    setcookie('user_id',     $this->id, ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
+    setcookie('login_id',    $id,       ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
+    setcookie('login_token', $token,    ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
   }
 
   public function login($email, $password, $stayLoggedIn=false){

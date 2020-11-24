@@ -63,8 +63,8 @@ HTML;
   $htmlEnd = getFormEditUser();
 } else if (containsText($_SERVER['REQUEST_URI'], '/admin/options')) {
 
-  $sql     = "SELECT value FROM options WHERE name=:name;";
-  $message = $database->fetchSingleValue($sql, [':name' => 'globalMessage']);
+  global $user;
+  $message = $user->getLongText('website_info', 'en');
   $texts   = translateArray(['Admin', 'Options', 'The_crashes', 'Save', 'About_this_site']);
 
   $mainHTML = <<<HTML
@@ -74,7 +74,7 @@ HTML;
   <div>
   
     <label for="optionGlobalMessage">Website mededeling</label>
-    <textarea id="optionGlobalMessage" class="textArea" maxlength="1500">$message</textarea>
+    <textarea id="optionGlobalMessage" class="textArea" maxlength="1500" style="height: 300px;">$message</textarea>
     <div class="smallFont">Externe link:  [url=https://www.hetongeluk.nl]{$texts['The_crashes']}[/url]<br>
     Interne link:  [url=/aboutthissite]{$texts['About_this_site']}[/url]<br>
     Paragrafen: Voeg lege regels toe

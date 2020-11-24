@@ -259,10 +259,9 @@ HTML;
 </div>
 HTML;
 } else {
-  $addSearchBar    = true;
-  $showButtonAdd   = true;
-  $generalMessage  = $database->fetchSingleValue("SELECT value FROM options WHERE name='globalMessage';");
-  $messageHTML     = formatMessage($generalMessage);
+  $addSearchBar  = true;
+  $showButtonAdd = true;
+  $messageHTML   = translateLongText('website_info');
 
   $title = '';
   switch ($pageType){
@@ -274,7 +273,7 @@ HTML;
 
   $introText = "<div id='pageSubTitle' class='pageSubTitle'>$title</div>";
 
-  if (isset($generalMessage) && in_array($pageType, [PageType::recent, PageType::stream, PageType::deCorrespondent, PageType::crash])) {
+  if (isset($messageHTML) && in_array($pageType, [PageType::recent, PageType::stream, PageType::deCorrespondent, PageType::crash])) {
     $introText .= "<div class='sectionIntro'>$messageHTML</div>";
   }
 

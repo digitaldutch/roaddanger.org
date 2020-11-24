@@ -15,10 +15,14 @@ abstract class PageType {
   const childDeaths                   = 11;
 }
 
-
 function translate($key){
   global $user;
   return $user->translate($key);
+}
+
+function translateLongText($key){
+  global $user;
+  return $user->translateLongText($key);
 }
 
 function translateArray($keys){
