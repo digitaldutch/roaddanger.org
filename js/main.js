@@ -1052,13 +1052,18 @@ ${translate('Approval_required')}
 
 function getCrashTopIcons(crash, allowClick=false){
   let html = '';
+
   if (crash.unilateral)                  html += `<div class="iconSmall bgUnilateral" data-tippy-content="${translate('One-sided_crash')}"></div>`;
   if (crash.pet)                         html += `<div class="iconSmall bgPet"  data-tippy-content="${translate('Animals')}"></div>`;
   if (crash.trafficjam)                  html += `<div class="iconSmall bgTrafficJam"  data-tippy-content="${translate('Traffic_jam_disruption')}"></div>`;
   if (crash.longitude && crash.latitude) html += `<div class="iconSmall bgGeo" data-tippy-content="${translate('Location_known')}"></div>`;
 
+  // add country flag
+  const flagFile = flagIconPath(crash.countryid);
+  html += `<div class="iconSmall" style="background-image: url('${flagFile}')"></div>`;
+
   if (html){
-    const htmlClick   = allowClick? '' : 'onclick="stopPropagation();"';
+    const htmlClick = allowClick? '' : 'onclick="stopPropagation();"';
     html = `
     <div data-info="preventFullBorder">
       <div class="cardIcons" ${htmlClick}>

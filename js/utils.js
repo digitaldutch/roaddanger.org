@@ -944,3 +944,7 @@ function getSelectedTableData(id){
   // == operator used on purpose as sometimes integers are compared with strings
   return tableData.find(d => d.id == id);
 }
+
+function flagIconPath(countryId) {
+  return `/images/flags/${countryId.toLowerCase()}.svg`;
+}
