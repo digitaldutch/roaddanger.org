@@ -3,6 +3,7 @@
 require_once 'initialize.php';
 
 global $VERSION;
+/** @var TDatabase $database */
 global $database;
 global $user;
 
@@ -20,7 +21,6 @@ else if (strpos($uri, '/statistieken')               === 0) $pageType = PageType
 else if (strpos($uri, '/exporteren')                 === 0) $pageType = PageType::export;
 else                                                               $pageType = PageType::recent;
 
-$fullWindow     = false;
 $addSearchBar   = false;
 $showButtonAdd  = false;
 $head = "<script src='/js/main.js?v=$VERSION'></script>";
@@ -60,33 +60,37 @@ if ($pageType === PageType::statisticsGeneral) {
   $texts = translateArray(['Statistics', 'General']);
 
   $mainHTML = <<<HTML
-<div class="pageInner">
-  <div class="pageSubTitle">{$texts['Statistics']} - {$texts['General']}</div>
-
-  <div id="main">
+<div id="pageMain">
+  <div class="pageInner pageInnerScroll">    
+    <div class="pageSubTitle">{$texts['Statistics']} - {$texts['General']}</div>
+    
+    <div class="panelTableOverflow">
+       <table id="tableStatistics" class="dataTable"></table>
+      <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+    </div>
+    
   </div>
-  
-  <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
 </div>
 HTML;
 } else if ($pageType === PageType::childDeaths) {
 
   $showButtonAdd = true;
-  $texts = translateArray(['Child_deaths', 'Injury', 'Dead_(adjective)', 'Injured']);
+  $texts = translateArray(['Child_deaths', 'Injury', 'Dead_(adjective)', 'Injured', 'Help_improve_data_accuracy']);
+  $intro = $user->translateLongText('child_deaths_info');
 
   $mainHTML = <<<HTML
-<div class="pageInner">
+
+<div id="pageMain">
 
   <div class="pageSubTitle"><img src="/images/child.svg" style="height: 20px; position: relative; top: 2px;"> {$texts['Child_deaths']}</div>
   <div style="display: flex; flex-direction: column; align-items: center">
     <div style="text-align: left;">
-      <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">Zo help je de representativiteit van deze tabel te verbeteren.</div>
+      <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">{$texts['Help_improve_data_accuracy']}</div>
     </div>
   </div>
   
-  <div id="pageInfo" style="display: none; margin: 10px 0;">
-In deze live-tabel zie je hoeveel kinderen er bij verkeersongevallen zijn omgekomen en op <a href="/">deze website</a> zijn toegevoegd.
-Dit is een onvolledige tabel die representatiever wordt naarmate er meer berichten worden toegevoegd. <a href="/aboutthissite">Zo help je mee</a>.   
+  <div id="pageInfo" style="display: none; max-width: 600px; margin: 10px 0;">
+  $intro
 </div>
 
   <div class="searchBar" style="display: flex; padding-bottom: 0;">
@@ -98,20 +102,18 @@ Dit is een onvolledige tabel die representatiever wordt naarmate er meer bericht
     
   </div>
 
-  <div id="main">
-    <div class="scrollTableWrapper">
-      <table class="dataTable">
-        <tbody id="dataTableBody"></tbody>
-      </table>
-    </div>
+  <div class="panelTableOverflow">
+    <table class="dataTable">
+      <tbody id="dataTableBody"></tbody>
+    </table>
+    <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
   </div>
   
-  <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
 </div>
+  
 HTML;
 
 } else if ($pageType === PageType::map) {
-  $fullWindow    = true;
   $showButtonAdd = true;
   $addSearchBar  = true;
 
@@ -121,27 +123,27 @@ HTML;
 
 } else if ($pageType === PageType::statisticsCrashPartners) {
 
-  $texts = translateArray(['Counterparty_in_crashes', 'Always', 'days', 'the_correspondent_week', 'Custom_period', 'Child', 'Injury', 'Injured', 'Dead_(adjective)']);
+  $texts = translateArray(['Counterparty_in_crashes', 'Always', 'days', 'the_correspondent_week', 'Custom_period',
+    'Help_improve_data_accuracy', 'Child', 'Injury', 'Injured', 'Dead_(adjective)']);
+  $intoText = $user->translateLongText('counter_party_info');
 
   $htmlSearchCountry = getSearchCountryHtml('loadStatistics');
   $htmlSearchPeriod  = getSearchPeriodHtml('loadStatistics');
 
   $mainHTML = <<<HTML
-<div class="pageInner">
+<div id="pageMain">
+
+  <div style="width: 100%; max-width: 700px;">
 
   <div style="display: flex; flex-direction: column; align-items: center">
     <div style="text-align: left;">
       <div class="pageSubTitleFont">{$texts['Counterparty_in_crashes']}</div>
-      <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">Zo help je de representativiteit van deze tabel te verbeteren.</div>
+      <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">{$texts['Help_improve_data_accuracy']}</div>
     </div>
   </div>
   
   <div id="pageInfo" style="display: none; margin: 10px 0;">
-In deze live-tabel zie je welke partijen en tegenpartijen betrokken zijn bij verkeersongevallen die het nieuws haalden en op <a href="/">deze website</a> zijn toegevoegd. 
-Je kunt op de cijfers doorklikken om naar de nieuwsberichten te gaan.<br><br>
-
-Dit is een onvolledige live grafiek die representatiever wordt naarmate er meer berichten worden toegevoegd. <a href="/aboutthissite">Zo help je mee</a>. 
-Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar 2017 vind je <a href="https://twitter.com/tverka/status/1118898388039348225">hier</a>. Bron: swov/de Correspondent.  
+  $intoText
 </div>
 
   <div id="statistics">
@@ -162,6 +164,7 @@ Een tabel op basis van de eveneens onvolledige politiestatistieken over het jaar
   </div>
   
   <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+  </div>
 </div>
 HTML;
 
@@ -214,27 +217,28 @@ HTML;
 } else if ($pageType === PageType::export) {
   $mainHTML = <<<HTML
 <div id="main" class="pageInner">
-  <div class="pageSubTitle">Exporteren</div>
+  <div class="pageSubTitle">Export</div>
   <div id="export">
 
     <div class="sectionTitle">Download</div>
 
-    <div>Alle ongeluk data met artikelen en inclusief meta data kan gedownload worden in gzip JSON formaat. Het bestand wordt elke 24 uur ververst.
-    Dit export bestand bevat niet de volledige artikel teksten. Voor onderzoekers zijn deze wel beschikbaar. 
-    Email ons (<a href="mailto:info@digitaldutch.com">info@digitaldutch.com</a>) als u daar belangstelling voor heeft.
+    <div>All crash data can be exported in gzip JSON format. The download is refreshed every 24 hours. This file
+    does *not* contain the full text of the media articles. <a href="/aboutthissite">Contact us</a> if you are a 
+    researchers needing the full texts.
+  
     </div> 
     <div class="buttonBar" style="justify-content: center; margin-bottom: 30px;">
-      <button class="button" style="margin-left: 0; height: auto;" onclick="downloadData();">Download alle data<br>in gzip JSON formaat</button>
+      <button class="button" style="margin-left: 0; height: auto;" onclick="downloadData();">Download data<br>in gzip JSON formaat</button>
     </div>  
     <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
     
-    <div class="sectionTitle">Data uitleg</div>
+    <div class="sectionTitle">Data specification</div>
     
     <div class="tableHeader">Persons > transportationmode</div>
     
     <table class="dataTable" style="width: auto; margin: 0 0 20px 0;">
       <thead>
-      <tr><th>id</th><th>naam</th></tr>
+      <tr><th>id</th><th>name</th></tr>
       </thead>
       <tbody id="tbodyTransportationMode"></tbody>
     </table>        
@@ -242,19 +246,11 @@ HTML;
     <div class="tableHeader">Persons > health</div>
     <table class="dataTable" style="width: auto; margin: 0 0 20px 0;">
       <thead>
-      <tr><th>id</th><th>naam</th></tr>
+      <tr><th>id</th><th>name</th></tr>
       </thead>
       <tbody id="tbodyHealth"></tbody>
     </table>
-    
-    <div id="dataCorrespondent" class="sectionTitle">De Correspondent week</div>
-    <div class="buttonBar" style="margin-bottom: 30px;">
-      <button class="button" style="margin-left: 0; height: auto;" onclick="downloadCorrespondentData();">Download De Correspondent week ongelukken<br>in *.csv formaat</button>
-      <br>
-      <button class="button" style="height: auto;" onclick="downloadCorrespondentDataArticles();">Download De Correspondent week artikelen<br>in *.csv formaat</button>
-    </div>  
-    <div id="spinnerDownloadDeCorrespondentData" class="spinnerLine"><img src="/images/spinner.svg"></div>
-        
+            
   </div>
 </div>
 HTML;
@@ -278,10 +274,12 @@ HTML;
   }
 
   $mainHTML = <<<HTML
-<div class="pageInner">
-  $introText
-  <div id="cards"></div>
-  <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+<div id="pageMain">
+  <div class="pageInner">
+    $introText
+    <div id="cards"></div>
+    <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+  </div>
 </div>
 HTML;
 
@@ -289,7 +287,7 @@ HTML;
 }
 
 $html =
-  getHTMLBeginMain('', $head, 'initMain', $addSearchBar, $showButtonAdd, $fullWindow) .
+  getHTMLBeginMain('', $head, 'initMain', $addSearchBar, $showButtonAdd) .
   $mainHTML .
   getHTMLEnd();
 

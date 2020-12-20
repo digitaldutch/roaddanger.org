@@ -347,7 +347,7 @@ function cleanArticleDBRow($article){
   $article['userid']             = (int)$article['userid'];
   $article['awaitingmoderation'] = $article['awaitingmoderation'] == 1;
   $article['hasalltext']         = $article['hasalltext'] == 1;
-  $article['crashid']         = (int)$article['crashid'];
+  $article['crashid']            = (int)$article['crashid'];
   $article['createtime']         = datetimeDBToISO8601($article['createtime']);
   $article['publishedtime']      = datetimeDBToISO8601($article['publishedtime']);
   $article['streamdatetime']     = datetimeDBToISO8601($article['streamdatetime']);
@@ -697,10 +697,9 @@ WHERE ar.crashid IN ($commaArrays)
 ORDER BY ar.streamdatetime DESC
 SQL;
 
-      $DBResults = $database->fetchAll($sqlArticles, $params);
-      foreach ($DBResults as $article) {
+      $articles = $database->fetchAll($sqlArticles, $params);
+      foreach ($DBResults as &$article) {
         $article = cleanArticleDBRow($article);
-        $articles[] = $article;
       }
     }
 

@@ -547,8 +547,10 @@ function menuButtonSelected(id){
 }
 
 function initMenuSwipe() {
+
   document.addEventListener('touchstart', function (event) {
-    if ((event.touches[0].clientX < 60) && (! navigationIsOpen())) { // Only start navigation open swipe on left side of screen
+    // Only start navigation open swipe on left side of screen
+    if ((event.touches[0].clientX < 60) && (! navigationIsOpen())) {
       touchDownAction = TTouchDown.openNavigation;
     } else if (navigationIsOpen()){
       touchDownAction = TTouchDown.closeNavigation;
@@ -574,6 +576,8 @@ function initMenuSwipe() {
     let x=0;
     let navigation;
     if (Math.abs(xDiff) > Math.abs(yDiff)) {
+      closeAllPopups();
+
       if (touchDownAction === TTouchDown.closeNavigation){
         if (xDiff > 0) {
           navigation = document.getElementById('navigation');

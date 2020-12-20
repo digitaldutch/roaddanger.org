@@ -4,6 +4,9 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once '../initialize.php';
 
+global $database;
+global $user;
+
 // Only admins allowed
 if (! $user->admin) {
   $result = ['ok' => false, 'error' => 'Mens is geen beheerder', 'user' => $user->info()];
@@ -32,13 +35,11 @@ LIMIT $offset, $count
 SQL;
 
     $users = [];
-    $DBResults = $database->fetchAll($sql);
-    foreach ($DBResults as $dbUser) {
+    $users = $database->fetchAll($sql);
+    foreach ($users as &$dbUser) {
       $dbUser['id']         = (int)$dbUser['id'];
       $dbUser['permission'] = (int)$dbUser['permission'];
       $dbUser['lastactive'] = datetimeDBToISO8601($dbUser['lastactive']);
-
-      $users[] = $dbUser;
     }
 
     $result = ['ok' => true, 'users' => $users];
@@ -46,24 +47,6 @@ SQL;
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 
-  echo json_encode($result);
-} // ====================
-else if ($function === 'saveOptions') {
-  try{
-    $options = json_decode(file_get_contents('php://input'), true);
-
-    $sql         = "INSERT INTO options (name, value) VALUES (:name, :value) ON DUPLICATE KEY UPDATE value=:value2";
-    $DBStatement = $database->prepare($sql);
-
-    foreach ($options as $key => $value){
-      $params = [':name' => $key, ':value' => $value, ':value2' => $value];
-      $database->executePrepared($params, $DBStatement);
-    }
-
-    $result = ['ok' => true];
-  } catch (Exception $e){
-    $result = ['ok' => false, 'error' => $e->getMessage(), 'errorcode' => $e->getCode()];
-  }
   echo json_encode($result);
 } // ====================
 else if ($function === 'saveUser') {
@@ -141,6 +124,64 @@ else if ($function === 'deleteTranslation') {
     $sql    = "UPDATE languages SET translations =:translations WHERE id='en'";
     $params = [':translations' => json_encode($translations)];
     $database->execute($sql, $params);
+
+    $result = ['ok' => true];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} // ====================
+else if ($function === 'loadLongText') {
+  try{
+    $data = json_decode(file_get_contents('php://input'));
+
+    $sql = <<<SQL
+SELECT 
+       id, 
+       language_id, 
+       content 
+FROM longtexts 
+WHERE id=:longtext_id
+AND ((language_id=:language_id) OR (language_id='en'))
+SQL;
+
+    $params  = [
+      ':longtext_id' => $data->longtextId,
+      ':language_id' => $data->languageId,
+    ];
+
+    $texts = $database->fetchAll($sql, $params);
+
+    $result = ['ok' => true, 'texts' => $texts];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} // ====================
+else if ($function === 'saveLongText') {
+  try{
+    $data = json_decode(file_get_contents('php://input'));
+
+    $sql = <<<SQL
+INSERT INTO longtexts
+    (id, language_id, content)
+    VALUES (:longtext_id, :language_id, :content)
+ON DUPLICATE KEY UPDATE 
+  id          = :longtext_id2,
+  language_id = :language_id2,
+  content     = :content2
+SQL;
+
+    $params  = [
+      'longtext_id'  => $data->longtextId,
+      'language_id'  => $data->languageId,
+      'content'      => $data->content,
+      'longtext_id2' => $data->longtextId,
+      'language_id2' => $data->languageId,
+      'content2'     => $data->content,
+    ];
+
+    $database->execute($sql, $params, true);
 
     $result = ['ok' => true];
   } catch (Exception $e){

@@ -64,7 +64,8 @@ async function initMain() {
 
   const searchButtonExists = document.getElementById('buttonSearch');
   if (searchButtonExists && (searchText || searchCountry || searchPeriod || searchSiteName || searchHealthDead || searchChild || searchPersons)) {
-    document.body.classList.add('searchBody');
+    document.getElementById('searchBar').style.display = 'flex';
+
     document.getElementById('searchText').value = searchText;
 
     if (searchCountry)  document.getElementById('searchCountry').value  = searchCountry;
@@ -259,9 +260,7 @@ async function loadStatistics(){
   }
 
   function showStatisticsGeneral(dbStats) {
-    document.getElementById('main').innerHTML = `
-    <table class="dataTable">
-    
+    document.getElementById('tableStatistics').innerHTML = `    
       <tr class="trHeader"><td colspan="2">${translate('Today')}</td></tr>
       
       <tr>
@@ -365,8 +364,6 @@ async function loadStatistics(){
         <td>Mensen die zich aangemeld hebben op deze site</td>
         <td style="text-align: right;">${dbStats.total.users}</td>
       </tr>
-      
-    </table>
 `;
   }
 
@@ -2063,11 +2060,11 @@ function closeCrashDetails(popHistory=true) {
 }
 
 function searchVisible(){
-  return document.body.classList.contains('searchBody');
+  return document.getElementById('searchBar').style.display === 'flex';
 }
 
 function toggleSearchBar() {
-  document.body.classList.toggle('searchBody');
+  document.getElementById('searchBar').style.display = searchVisible()? 'none' : 'flex';
   if (searchVisible()) document.getElementById('searchText').focus();
 }
 
@@ -2339,43 +2336,7 @@ function downloadData() {
     }
   }
 
-  confirmMessage('Data van alle ongelukken exporteren?', doDownload, 'Download');
-}
-
-function downloadCorrespondentData() {
-  async function doDownload(){
-    const spinner = document.getElementById('spinnerDownloadDeCorrespondentData');
-    spinner.style.display = 'block';
-    try {
-      let url        = '/admin/exportdata.php?function=downloadCorrespondentWeekData';
-      const response = await fetchFromServer(url);
-
-      url = '/admin/' + response.filename;
-      download(url, response.filename);
-    } finally {
-      spinner.style.display = 'none';
-    }
-  }
-
-  confirmMessage('Ongelukken uit De Correspondent week exporteren in *.csv formaat?', doDownload, 'Download');
-}
-
-function downloadCorrespondentDataArticles() {
-  async function doDownload(){
-    const spinner = document.getElementById('spinnerDownloadDeCorrespondentData');
-    spinner.style.display = 'block';
-    try {
-      let url        = '/admin/exportdata.php?function=downloadCorrespondentWeekArticles';
-      const response = await fetchFromServer(url);
-
-      url = '/admin/' + response.filename;
-      download(url, response.filename);
-    } finally {
-      spinner.style.display = 'none';
-    }
-  }
-
-  confirmMessage('Artikels uit De Correspondent week exporteren in *.csv formaat?', doDownload, 'Download');
+  confirmMessage('Export all data?', doDownload, 'Download');
 }
 
 async function showMapEdit(latitude, longitude) {

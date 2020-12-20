@@ -1,5 +1,8 @@
 <?php
 
+require_once 'scripts/Parsedown.php';
+$Parsedown = new Parsedown();
+
 abstract class TUserPermission {
   const newuser   = 0;
   const admin     = 1;
@@ -174,13 +177,14 @@ class TUser{
 
     // Fall back to English if original does not exist.
     if (($text === false) && ($this->languageId !== 'en')){
-      $text = $this->getLongText($textId, 'en');
+      $text = '⃰' . $this->getLongText($textId, 'en');
     }
 
-    return formatMessage($text);
+    global $Parsedown;
+    return $Parsedown->text($text);
   }
 
-  public function getLongText($textId, $languageId) {
+  private function getLongText($textId, $languageId) {
     $sql    = "SELECT content FROM longtexts WHERE id=:id AND language_id = :language_id;";
     $params = [':id' => $textId, ':language_id' => $languageId];
 

@@ -48,16 +48,13 @@ create table logs
 alter table logs
     add primary key (id);
 
-create table options
+create table longtexts
 (
-    name varchar(50) not null,
-    value varchar(10000) null,
-    constraint options_name_uindex
-        unique (name)
+    id char(100) not null,
+    language_id char(2) default 'en' not null,
+    content text null,
+    primary key (id, language_id)
 );
-
-alter table options
-    add primary key (name);
 
 create table users
 (
@@ -194,4 +191,3 @@ create index crashpersons___fkcrash
 
 create index crashpersons___fkgroup
     on crashpersons (groupid);
-

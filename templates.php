@@ -1,6 +1,6 @@
 <?php
 
-function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $addSearchBar=false, $showButtonAdd=false, $fullPage=false){
+function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $addSearchBar=false, $showButtonAdd=false){
   global $VERSION;
 
   $title = translate('The_crashes');
@@ -18,8 +18,6 @@ function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $addSearchB
     </div>
 HTML;
   } else $cookieWarning = '';
-
-  $htmlClass = $fullPage? ' class="fullWindow"' : '';
 
   $buttons = '';
   if ($addSearchBar)  $buttons .= '<div id="buttonSearch" class="menuButton bgSearch" onclick="toggleSearchBar(event);"></div>';
@@ -43,11 +41,11 @@ HTML;
 
   $texts = translateArray(['Log_out', 'Log_in', 'The_crashes', 'Account', 'Country', 'Language']);
 
-  $htmlSearchBar = $addSearchBar? getHtmlSearchBar() : '';
+  $htmlSearchBar  = $addSearchBar? getHtmlSearchBar() : '';
 
   return <<<HTML
 <!DOCTYPE html>
-<html lang="$user->languageId" $htmlClass>
+<html lang="$user->languageId">
 <head>
 <link href="https://fonts.googleapis.com/css?family=Lora|Montserrat"f rel="stylesheet">
 <link href="/main.css?v=$VERSION" rel="stylesheet" type="text/css">
@@ -63,10 +61,11 @@ $head
 $initScript
 
 </head>
-<body>
+<body style="overscroll-behavior-x: none;">
 $navigation
 
-<div id="pageBar">
+<div class="flexToFullPage">
+
   <div id="topBar">
     <span class="menuButton bgMenu" onclick="toggleNavigation(event);"></span>
   
@@ -94,7 +93,7 @@ $navigation
           <div id="menuLogout" style="display: none;" onclick="logOut();">{$texts['Log_out']}</div>
         </div>
       </span>
-
+  
       <span style="position: relative;">
         <div id="buttonLanguages" class="buttonLight" onclick="countryClick(event);">
           <div id="iconCountry" class="buttonIcon"></div>
@@ -111,13 +110,10 @@ $navigation
   
     </div>
   </div>
-
+  
   $htmlSearchBar
-
-</div>
-
-$cookieWarning
-
+  
+  $cookieWarning
 HTML;
 }
 
@@ -167,17 +163,17 @@ HTML;
 
 }
 
-function getHTMLEnd($htmlEnd='', $flexFullPage=false){
-  $htmlFlex = $flexFullPage? '</div>' : '';
+function getHTMLEnd($htmlEnd=''){
   $forms    = getHTMLConfirm() . getLoginForm() . getFormCrash() . getFormEditCrash() . getFormMergeCrash() . getFormEditPerson();
   return <<<HTML
+</div>
     $htmlEnd 
     <div id="floatingMessage" onclick="closeMessage();">
       <div id="messageCloseCross" class="popupCloseCross crossWhite"></div>
       <div id="messageText"></div>
     </div>
     <div style="clear: both;"></div>
-    $htmlFlex
+   
     $forms
 </body>
 HTML;
@@ -212,7 +208,7 @@ function getNavigation(){
   global $VERSION;
   global $VERSION_DATE;
 
-  $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Other', 'Recent_crashes',
+  $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
     'Child_deaths', 'Mosaic', 'The_correspondent_week', 'Map', 'The_crashes', 'General', 'deadly_crashpartners',
     'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
     'Version']);
@@ -245,6 +241,7 @@ function getNavigation(){
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Other']}</div>
       <a href="/admin/translations/" class="navItem" data-moderator>{$texts['Translations']}</a>
+      <a href="/admin/longtexts/" class="navItem" data-moderator>{$texts['Long_texts']}</a>
       <a href="/exporteren/" class="navItem">{$texts['Export_data']}</a>
       <a href="/aboutthissite/" class="navItem">{$texts['About_this_site']}</a>
     </div>
@@ -256,7 +253,6 @@ function getNavigation(){
         <a href="/admin/humans" class="navItem" data-admin-inline>{$texts['Humans']}</a>
         <a href="/moderaties/" class="navItem">{$texts['Moderations']}</a>
         <a href="/stream" class="navItem">{$texts['Last_modified_crashes']}</a>
-        <a href="/admin/options/" class="navItem">{$texts['Options']}</a>
       </div>      
     </div>
     

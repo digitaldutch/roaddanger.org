@@ -285,7 +285,7 @@ function formatMessage($text){
   $text = nl2br($text);            // Replace line endings with html equivalent
   $text = autolink($text);         // Linkify all links
 
-  // PHPBB link style: [url=https://www.hetongeluk.nl]Het Ongeluk[/url]
+  // PHPBB link style: [url=https://www.thecrashes.org]The crashes[/url]
   $text = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/', '<a href="$1">$2</a>', $text);
 
   return $text;

@@ -49,9 +49,10 @@
 }
 
 html, body {
-  font-size: 14px;
-  margin:    0;
-  padding:   0;
+  height:           100%;
+  font-size:        14px;
+  margin:           0;
+  padding:          0;
   background-color: #eeeeee;
 }
 
@@ -62,25 +63,6 @@ input, textarea, select {
 
 input[readonly], textarea[readonly] {
   background-color: #eeeeee;
-}
-
-body {
-  padding-top: 55px;
-}
-
-body.searchBody {
-  padding-top: 95px;
-}
-
-html.fullWindow {
-  height: 100%;
-}
-
-html.fullWindow body{
-  display:        flex;
-  flex-direction: column;
-  padding-top:    0;
-  height:         100%;
 }
 
 a {
@@ -106,14 +88,16 @@ a:hover {
   font-family: inherit;
 }
 
-.pageSubTitle {
+h1, .pageSubTitle {
   font-size:   20px;
+  font-weight: normal;
   text-align:  center;
   margin:      5px 0 10px 0;
 }
 
-.pageSubTitleFont, .sectionTitle {
-  font-size:  20px;
+h2, .pageSubTitleFont, .sectionTitle {
+  font-size:   20px;
+  font-weight: normal;
 }
 
 .sectionIntro{
@@ -126,10 +110,32 @@ a:hover {
   padding:   5px 10px;
 }
 
+.pageInnerScroll {
+  display:        flex;
+  flex-direction: column;
+  flex-grow:      1;
+  overflow:       auto;
+}
+
+#pageMain {
+  padding:        5px;
+  display:        flex;
+  flex-direction: column;
+  flex-grow:      1;
+  align-items:    center;
+  overflow:       auto;
+}
+
 .scrollPage {
   display:        flex;
   flex-direction: column;
   overflow:       auto;
+}
+
+.flexToFullPage {
+  display:   flex;
+  flex-flow: column;
+  height:    100%;
 }
 
 .cardCrashList {
@@ -363,24 +369,13 @@ a:hover {
   font-size:     12px;
 }
 
-#pageBar {
-  position:         fixed;
-  top:              0;
-  width:            100%;
-  background-color: #fff;
-  z-index:          200;
-}
-
-html.fullWindow #pageBar {
-  position: static;
-}
-
 #topBar {
-  display:       flex;
-  flex:          0 1 auto;
-  align-items:   center;
-  padding:       3px;
-  border-bottom: solid 1px #aaa;
+  display:          flex;
+  flex:             0 1 auto;
+  align-items:      center;
+  padding:          3px;
+  border-bottom:    solid 1px #aaa;
+  background-color: #ffffff;
 }
 
 .searchBar {
@@ -391,10 +386,6 @@ html.fullWindow #pageBar {
   padding:       10px 20px 10px 10px;
 }
 
-.searchBody #searchBar {
-  display: flex;
-}
-
 .searchInput {
   border:        1px solid #ccc;
   height:        30px;
@@ -402,7 +393,6 @@ html.fullWindow #pageBar {
   border-radius: 3px;
   padding-left:  5px;
 }
-
 
 .dropInputWrapper {
   position:   relative;
@@ -1161,10 +1151,10 @@ html.fullWindow #pageBar {
 }
 
 .dataTable {
-  width:          100%;
-  border-spacing: 0;
-  margin:         0 auto 20px auto;
-  user-select:    none;
+  width:           100%;
+  border-spacing:  0;
+  user-select:     none;
+  border-collapse: collapse;
 }
 
 .dataTable td {
@@ -1193,9 +1183,10 @@ html.fullWindow #pageBar {
 }
 
 .panelTableOverflow {
-  overflow:  auto;
-  flex-grow: 1;
-  padding:   0 5px;
+  overflow:   auto;
+  flex-grow:  1;
+  padding:    0 5px;
+  margin-top: 5px;
 }
 
 .td400 {
@@ -1203,6 +1194,10 @@ html.fullWindow #pageBar {
   overflow:      hidden;
   text-overflow: ellipsis;
   white-space:   nowrap;
+}
+
+.noWrap {
+  white-space: nowrap;
 }
 
 .trHeader {
@@ -1235,12 +1230,6 @@ html.fullWindow #pageBar {
 
 .filterIcon{
   height: 16px;
-}
-
-.scrollTableWrapper {
-  overflow: auto;
-  flex-grow: 1;
-  padding: 0 5px;
 }
 
 .bgWhite {
@@ -1441,6 +1430,15 @@ html.fullWindow #pageBar {
   color:            #000000 !important;
   background-color: #ffffff !important;
   padding: 0 3px;
+}
+
+.translationArea {
+  height:    300px;
+  width:     calc(100% - 10px);
+  resize:    none;
+  padding:   3px;
+  border:    solid 1px #d1d1d1;
+  overflow:  auto;
 }
 
 @media (max-width: 750px) {

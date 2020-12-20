@@ -1,4 +1,5 @@
 let spinnerLoad;
+let textModified = false;
 
 async function initAdmin(){
   spinnerLoad = document.getElementById('spinnerLoad');
@@ -20,6 +21,19 @@ async function initAdmin(){
     };
 
     loadTranslations();
+  } else if (url.pathname.startsWith('/admin/longtexts')) {
+
+    const longtextId = url.searchParams.get('longtext_id');
+    if (longtextId) document.getElementById('selectLongText').value = longtextId;
+
+    const languageId = url.searchParams.get('language_id');
+    if (languageId) document.getElementById('selectLanguage').value = languageId;
+
+    window.onbeforeunload = function() {
+      if (textModified) return 'Leave site?.';
+    };
+
+    loadLongText();
   }
 }
 
@@ -126,12 +140,12 @@ async function deleteUserDirect() {
 
 async function adminDeleteUser() {
   confirmWarning(`Mens #${selectedTableData.id} "${selectedTableData.name}" en alle items die dit mens heeft aangemaakt verwijderen?<br><br><b>Dit kan niet ongedaan worden!</b>`,
-    function (){deleteUserDirect();},
-    `Verwijder mens en zijn items`
+      function (){deleteUserDirect();},
+      `Verwijder mens en zijn items`
   );
 }
 
-  async function saveUser(){
+async function saveUser(){
   let user = {
     id:         parseInt(document.getElementById('userID').value),
     email:      document.getElementById('userEmail').value.trim(),
@@ -158,23 +172,6 @@ async function adminDeleteUser() {
 
 function afterLoginAction(){
   window.location.reload();
-}
-
-async function saveOptions() {
-  showError('Temporarily disabled: We are changing to a new multi-language long text system.');
-  // const url     = '/admin/ajax.php?function=saveOptions';
-  // const options = {
-  //   globalMessage: document.getElementById('optionGlobalMessage').value,
-  // };
-  //
-  // const response = await fetchFromServer(url, options);
-  //
-  // if (response.error) {
-  //   showError(response.error, 10);
-  // } else {
-  //   showMessage(translate('Saved'), 1);
-  // }
-
 }
 
 function translationNeeded(text) {
@@ -315,25 +312,25 @@ function deleteTranslation() {
   }
 
   confirmWarning(`Delete translation item "${selectedTableData.id}"?<br>You should only do this if the translation id is not used in the source code`,
-    async () => {
-      const serverData = {
-        id: selectedTableData.id,
-      };
+      async () => {
+        const serverData = {
+          id: selectedTableData.id,
+        };
 
-      const url      = '/admin/ajax.php?function=deleteTranslation';
-      const response = await fetchFromServer(url, serverData);
+        const url      = '/admin/ajax.php?function=deleteTranslation';
+        const response = await fetchFromServer(url, serverData);
 
-      if (response.error) showError(response.error);
-      else if (response.ok) {
-        document.getElementById('tr' + serverData.id).remove();
-        selectedTableData = null;
-        tableData         = tableData.filter(d => d.id !== serverData.id);
-        showMessage(translate('Deleted'), 1);
+        if (response.error) showError(response.error);
+        else if (response.ok) {
+          document.getElementById('tr' + serverData.id).remove();
+          selectedTableData = null;
+          tableData         = tableData.filter(d => d.id !== serverData.id);
+          showMessage(translate('Deleted'), 1);
 
-        if (tableData.length > 0) selectTableRow(tableData[0]);
-      }
-    },
-    'Delete id ' + selectedTableData.id
+          if (tableData.length > 0) selectTableRow(tableData[0]);
+        }
+      },
+      'Delete id ' + selectedTableData.id
   );
 
 }
@@ -351,4 +348,83 @@ async function changeUserLanguage(){
   }
 
   window.location.reload();
+}
+
+async function loadLongText(){
+  if (textModified) {
+    saveLongText();
+  }
+
+  const data = {
+    longtextId: document.getElementById('selectLongText').value,
+    languageId: document.getElementById('selectLanguage').value,
+  }
+
+  document.getElementById('translationLanguage').innerText = '(' + data.languageId + ')';
+  document.getElementById('longtext').value                = '';
+  document.getElementById('longtext_translation').value    = '';
+
+  const browserUrl = new URL(window.location);
+  if (data.longtextId) browserUrl.searchParams.set('longtext_id', data.longtextId); else browserUrl.searchParams.delete('longtext_id');
+  if (data.languageId) browserUrl.searchParams.set('language_id', data.languageId); else browserUrl.searchParams.delete('language_id');
+  window.history.pushState(null, null, browserUrl.toString());
+  if (data.longtextId) {
+    const url      = '/admin/ajax.php?function=loadLongText';
+    const response = await fetchFromServer(url, data);
+
+    if (response.error) {
+      showError(response.error);
+      return;
+    }
+
+    textModified = false;
+
+    const textEnglish     = response.texts.find(t => t.language_id === 'en');
+    const textTranslation = response.texts.find(t => t.language_id === data.languageId);
+
+    document.getElementById('longtext').value             = textEnglish? textEnglish.content : '';
+    document.getElementById('longtext_translation').value = textTranslation? textTranslation.content : '';
+
+    updatePreviews();
+  }
+
+  document.getElementById('longtextsDivs').style.display = data.longtextId? 'block' : 'none';
+}
+
+function updatePreviews(){
+  document.getElementById('longtextPreview').innerHTML             = marked(document.getElementById('longtext').value);
+  document.getElementById('longtext_translationPreview').innerHTML = marked(document.getElementById('longtext_translation').value);
+}
+
+function translationChange() {
+  textModified = true;
+
+  document.getElementById('longtext_translationPreview').innerHTML = marked(document.getElementById('longtext_translation').value);
+}
+
+async function saveLongText() {
+  const data = {
+    longtextId: document.getElementById('selectLongText').value,
+    languageId: document.getElementById('selectLanguage').value,
+    content:    document.getElementById('longtext_translation').value,
+  }
+
+  if (! data.longtextId) {
+    showError('No long text selected');
+    return
+  }
+
+  const url      = '/admin/ajax.php?function=saveLongText';
+  const response = await fetchFromServer(url, data);
+
+  if (response.error) showError(response.error);
+  else if (response.ok) {
+    if (data.languageId === 'en') {
+      document.getElementById('longtext').value = data.content;
+    }
+    updatePreviews();
+    textModified = false;
+    showMessage(translate('Saved'), 1);
+  }
+
 }
