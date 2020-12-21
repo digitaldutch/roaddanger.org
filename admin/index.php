@@ -188,8 +188,8 @@ HTML;
     </div>
     
     <div>Use Markdown code for formatting:<br>
-      <a href="https://www.markdownguide.org/cheat-sheet/">Cheat sheet</a><br>
-      <a href="https://www.markdownguide.org/basic-syntax/">Documentation</a><br>
+      <a href="https://www.markdownguide.org/cheat-sheet/" target="markdown">Cheat sheet</a><br>
+      <a href="https://www.markdownguide.org/basic-syntax/" target="markdown">Documentation</a><br>
     </div>
   </div>
   

@@ -3,18 +3,21 @@
 function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $addSearchBar=false, $showButtonAdd=false){
   global $VERSION;
 
-  $title = translate('The_crashes');
-  if ($pageTitle !== '') $title = $pageTitle . ' | ' . $title;
+  $texts = translateArray(['The_crashes', 'Cookie_warning', 'More_info', 'Accept']);
+
+  if ($pageTitle !== '') $title = $pageTitle . ' | ' . $texts['The_crashes'];
+  else $title = $texts['The_crashes'];
+
   $initScript = ($initFunction !== '')? "<script>document.addEventListener('DOMContentLoaded', $initFunction);</script>" : '';
   $navigation = getNavigation();
 
   if (! cookiesApproved()) {
     $cookieWarning = <<<HTML
     <div id="cookieWarning" class="flexRow">
-      <div>Deze website gebruikt cookies. 
-        <a href="/aboutthissite/#cookieInfo" style="text-decoration: underline; color: inherit;">Meer info.</a>
+      <div>{$texts['Cookie_warning']}
+        <a href="/aboutthissite/#cookies" style="text-decoration: underline; color: inherit;">{$texts['More_info']}</a>
       </div>
-      <div class="button" onclick="acceptCookies();">Akkoord</div>
+      <div class="button" onclick="acceptCookies();">{$texts['Accept']}</div>
     </div>
 HTML;
   } else $cookieWarning = '';
