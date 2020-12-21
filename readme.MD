@@ -27,8 +27,3 @@ setting the `permission` for yourself field to `1` in the users table.
 
 ### License ###
 This software is made available under the [MIT license](LICENSE).
-
-### To Do ###
-* Multi language / country support. A start has been made with language support, but it is not working yet.
-* Optimize database queries as the complicated ones cause full table scans.
-* Improve map with heat maps / grouped crashes
