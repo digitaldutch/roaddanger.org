@@ -188,7 +188,7 @@ class TDatabase {
         $flagId = strtolower($country['id']);
         $country['flagFile'] = "/images/flags/{$flagId}.svg";
 
-        // Country id depends on domain name (e.g. hetongeluk.nl > id=NL)
+        // Country id depends on domain name (e.g. nl.thecrashes.org > id=NL)
         if (strpos($_SERVER['SERVER_NAME'], $country['domain']) !== false) $this->countryId = $country['id'];
 
         $this->countries[] = $country;

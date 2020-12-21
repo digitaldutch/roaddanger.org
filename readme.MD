@@ -1,8 +1,8 @@
-# hetongeluk.nl
+# thecrashes.org
 
 A database for news reports about traffic crashes in the Netherlands.
 
-Website: [hetongeluk.nl](https://www.hetongeluk.nl)
+Website: [thecrashes.org](https://www.thecrashes.org)
 
 ### Requirements ###
 * Webserver with PHP support

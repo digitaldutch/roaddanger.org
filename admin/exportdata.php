@@ -20,7 +20,7 @@ if ($function === 'downloadData'){
     // NOTE: All text downloads are disabled as the file gets quite large
     $includeAllText = false;
 
-    $filename = $includeAllText? 'hetongeluk_nl_crashes_all_text_latest.json.gz' : 'hetongeluk_nl_crashes_latest.json.gz';
+    $filename = $includeAllText? 'thecrashes_data_all_text.json.gz' : 'thecrashes_data.json.gz';
 
     // Recreate backup if existing backup file older than 24 hours
     if ((!file_exists($filename)) || (time()-filemtime($filename) > 24 * 3600)) {

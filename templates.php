@@ -52,7 +52,7 @@ HTML;
 <head>
 <link href="https://fonts.googleapis.com/css?family=Lora|Montserrat"f rel="stylesheet">
 <link href="/main.css?v=$VERSION" rel="stylesheet" type="text/css">
-<link rel="shortcut icon" type="image/png" href="/images/hetongeluk.png">
+<link rel="shortcut icon" type="image/png" href="/images/thecrashes.png">
 <script src='/scripts/tippy.all.min.js'></script>
 <script src='/js/utils.js?v=$VERSION'></script>
 $head
