@@ -219,7 +219,7 @@ class TUser{
   }
 
   private function setStayLoggedInToken(){
-    $token     = bin2hex(openssl_random_pseudo_bytes(64)); // PHP 7: Use bin2hex(random_bytes(64));
+    $token     = bin2hex(random_bytes(64));
     $tokenHash = password_hash($token, PASSWORD_DEFAULT);
     $sql = <<<SQL
 INSERT INTO logins 
@@ -231,7 +231,7 @@ SQL;
     $this->database->execute($sql, $params);
     $id = $this->database->lastInsertID();
 
-    $expires = time() + 60 * 60 * 24 * 365 * 10; // 10 years cookie expiration time
+    $expires = time() + 60 * 60 * 24 * 365 * 1; // 1 year cookie expiration time
 
     setcookie('user_id',     $this->id, ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
     setcookie('login_id',    $id,       ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
