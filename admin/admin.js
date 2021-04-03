@@ -12,7 +12,7 @@ async function initAdmin(){
   if (url.pathname.startsWith('/admin/humans')) {
     initObserver(loadUsers);
 
-    loadUsers();
+    await loadUsers();
   } else if (url.pathname.startsWith('/admin/translations')) {
 
     window.onbeforeunload = function() {
@@ -20,7 +20,7 @@ async function initAdmin(){
       if (modifiedTexts.length > 0) return 'Leave site?.';
     };
 
-    loadTranslations();
+    await loadTranslations();
   } else if (url.pathname.startsWith('/admin/longtexts')) {
 
     const longtextId = url.searchParams.get('longtext_id');
@@ -33,7 +33,7 @@ async function initAdmin(){
       if (textModified) return 'Leave site?.';
     };
 
-    loadLongText();
+    await loadLongText();
   }
 }
 
@@ -130,7 +130,7 @@ async function deleteUserDirect() {
     if (response.error) showError(response.error);
     else {
       tableData = tableData.filter(user => user.id !== userId);
-      document.getElementById('truser' + userId).remove();
+      document.getElementById('tr' + userId).remove();
       showMessage(translate('Deleted'), 1);
     }
   } catch (error) {
@@ -210,8 +210,6 @@ async function loadTranslations(){
 
     if (response.error) showError(response.error);
     else {
-      const data = [];
-
       const dataTranslationNeeded = [];
       const dataTranslated        = [];
 
@@ -352,7 +350,7 @@ async function changeUserLanguage(){
 
 async function loadLongText(){
   if (textModified) {
-    saveLongText();
+    await saveLongText();
   }
 
   const data = {

@@ -13,14 +13,14 @@ const mapboxKey     = 'pk.eyJ1IjoiamFuZGVyayIsImEiOiJjazI4dTVzNW8zOWw4M2NtdnRhMG
 // Enumerated types
 const TUserPermission     = Object.freeze({newuser: 0, admin: 1, moderator: 2});
 const TTransportationMode = Object.freeze({
-  unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,
-  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15});
+  unknown: 0, pedestrian: 1, bicycle: 2, motorScooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,
+  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15, scooter: 16});
 const THealth             = Object.freeze({unknown: 0, unharmed: 1, injured: 2, dead: 3});
 const TStreamTopType      = Object.freeze({unknown: 0, edited: 1, articleAdded: 2, placedOnTop: 3});
 
 if (!Date.prototype.addDays) {
   Date.prototype.addDays = function(days) {
-    if (days === 0) return thisthis;
+    if (days === 0) return this;
     let newDate = new Date(this.valueOf());
     newDate.setDate(newDate.getDate() + parseInt(days));
     return newDate;
@@ -116,40 +116,6 @@ function datetimeToAge(datetime) {
 
   if (unborn) text = translate('in_(time)') + ' ' + text;
   else text += ' ' + translate('ago');
-
-  return text;
-}
-
-function dateToAge(date) {
-  if (! date) return '';
-  // let ApproxDaysPerYear     = 365.25;
-  let ApproxDaysPerMonth    = 30.4375;
-  let minutesPerDay         = 60 * 24;
-  let secondsPerDay         = 60 * minutesPerDay;
-  let ApproxSecondsPerMonth = ApproxDaysPerMonth * secondsPerDay;
-  let ApproxSecondsPerYear  = ApproxSecondsPerMonth * 12;
-
-  let text;
-  let age = (Date.now() - date.getTime()) / 1000;
-
-  let unborn = age < 0;
-  if (unborn) age = -age;
-
-  if (age > (100 * ApproxSecondsPerYear)) {
-    text = ''; // Age is invalid if more than 100 years old
-  }
-  else if (age < secondsPerDay)              return unborn? 'morgen' : 'vandaag';
-  else if (age < 2  * secondsPerDay)         return unborn? 'overmorgen' : 'gisteren';
-  else if (age < 7  * secondsPerDay)         text = Math.floor(age / secondsPerDay) + ' dagen';
-  else if (age < 14 * secondsPerDay)         text = '1 week';
-  else if (age <      ApproxSecondsPerMonth) text = Math.floor(age / (7 * secondsPerDay)) + ' weken';
-  else if (age < 2  * ApproxSecondsPerMonth) text = '1 maand';
-  else if (age <      ApproxSecondsPerYear)  text = Math.floor(age / ApproxSecondsPerMonth) + ' maanden';
-  else if (age < 2  * ApproxSecondsPerYear)  text = '1 jaar';
-  else                                       text = Math.floor(age / ApproxSecondsPerYear) + ' jaar';
-
-  if (unborn) text = 'over ' + text;
-  else text += ' geleden';
 
   return text;
 }
@@ -272,12 +238,12 @@ function closeAllPopups() {
 }
 
 function validateEmail(email) {
-  let re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(email);
 }
 
 function is_valid_url(url) {
-  let re = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/;
+  let re = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=+$,\w]+@)?[A-Za-z0-9.\-]+|(?:www\.|[\-;:&=+$,\w]+@)[A-Za-z0-9.\-]+)((?:\/[+~%\/.\w\-_]*)?\??(?:[\-+=&;%@.\w_]*)#?(?:[.!\/\\\w]*))?)/;
   return re.test(url);
 }
 
@@ -716,8 +682,9 @@ function transportationModeText(transportationMode) {
   switch (transportationMode) {
     case TTransportationMode.unknown:          return translate('Unknown');
     case TTransportationMode.pedestrian:       return translate('Pedestrian');
-    case TTransportationMode.bicycle:          return translate('Bicycle');
     case TTransportationMode.scooter:          return translate('Scooter');
+    case TTransportationMode.bicycle:          return translate('Bicycle');
+    case TTransportationMode.motorScooter:     return translate('Motor_scooter');
     case TTransportationMode.motorcycle:       return translate('Motorcycle');
     case TTransportationMode.car:              return translate('Car');
     case TTransportationMode.taxi:             return translate('Taxi');
@@ -739,7 +706,7 @@ function transportationImageFileName(transportationMode){
     case 0:   return 'unknown.svg';
     case 1:   return 'pedestrian.svg';
     case 2:   return 'bicycle.svg';
-    case 3:   return 'scooter.svg';
+    case 3:   return 'motor_scooter.svg';
     case 4:   return 'motorcycle.svg';
     case 5:   return 'car.svg';
     case 6:   return 'taxi.svg';
@@ -752,6 +719,7 @@ function transportationImageFileName(transportationMode){
     case 13:  return 'train.svg';
     case 14:  return 'wheelchair.svg';
     case 15:  return 'mopedcar.svg';
+    case 16:  return 'scooter.svg';
   }
 }
 
@@ -761,6 +729,7 @@ function transportationModeImage(transportationMode) {
     case TTransportationMode.pedestrian:       return 'bgPedestrian';
     case TTransportationMode.bicycle:          return 'bgBicycle';
     case TTransportationMode.scooter:          return 'bgScooter';
+    case TTransportationMode.motorScooter:     return 'bgMotorScooter';
     case TTransportationMode.motorcycle:       return 'bgMotorcycle';
     case TTransportationMode.car:              return 'bgCar';
     case TTransportationMode.taxi:             return 'bgTaxi';

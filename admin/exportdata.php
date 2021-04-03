@@ -15,10 +15,10 @@ if ($function === 'downloadData'){
   try{
 
     // Only admins can download the crashes with full text.
-//    $includeAllText = $user->admin;
+    $includeAllText = $user->admin;
 
     // NOTE: All text downloads are disabled as the file gets quite large
-    $includeAllText = false;
+//    $includeAllText = false;
 
     $filename = $includeAllText? 'thecrashes_data_all_text.json.gz' : 'thecrashes_data.json.gz';
 

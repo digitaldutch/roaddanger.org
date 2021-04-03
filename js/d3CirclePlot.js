@@ -80,7 +80,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   // x-axis icons
   x_tick
     .append('image')
-    .attr('xlink:href', d => '/images/' + getModeImage(parseInt(d)))
+    .attr('xlink:href', d => getModeImage(parseInt(d)))
     .attr('x',          (-iconWidth / 2) + 'px')
     .attr('y',          (-iconWidth + 5) + 'px')
     .attr('width',      iconWidth)
@@ -105,7 +105,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   // y-axis image ticks
   y_tick
     .append('image')
-    .attr('xlink:href', d => '/images/' + getModeImage(parseInt(d)))
+    .attr('xlink:href', d => getModeImage(parseInt(d)))
     .attr('x', (-iconWidth / 2 - 35) + 'px')
     .attr('y', (-iconWidth / 2) + 'px')
     .attr('width', iconWidth)
@@ -160,7 +160,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .style('padding',          '2px 5px');
 
   function getModeImage(value){
-    return value === -1? 'unilateral.svg' : transportationImageFileName(value);
+    return value === -1? '/images/unilateral.svg' : '/images/transportation_modes/' + transportationImageFileName(value);
   }
 
   const mouseoverItem = function() {
