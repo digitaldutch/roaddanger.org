@@ -882,7 +882,15 @@ function translate(key){
 
   function capitalizeFirstLetter(text) {
     if (! text) return '';
-    else return text.charAt(0).toUpperCase() + text.slice(1);
+    else {
+      let firstChar = text.charAt(0);
+      if ((firstChar === '(') &&(text.length > 1)) {
+        firstChar = text.charAt(1);
+        return '(' + firstChar.toUpperCase() + text.slice(2);
+      } else {
+        return firstChar.toUpperCase() + text.slice(1);
+      }
+    }
   }
 
   if (initialIsCapital(key)) textTranslated = capitalizeFirstLetter(textTranslated);
