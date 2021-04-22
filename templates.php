@@ -50,7 +50,7 @@ HTML;
 <!DOCTYPE html>
 <html lang="$user->languageId">
 <head>
-<link href="https://fonts.googleapis.com/css?family=Lora|Montserrat"f rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Lora|Montserrat" rel="stylesheet">
 <link href="/main.css?v=$VERSION" rel="stylesheet" type="text/css">
 <link rel="shortcut icon" type="image/png" href="/images/thecrashes.png">
 <script src='/scripts/tippy.all.min.js'></script>
@@ -121,7 +121,7 @@ HTML;
 }
 
 function getHtmlSearchBar(){
-  $texts = translateArray(['Humans', 'Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source']);
+  $texts = translateArray(['Humans', 'Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source', 'Search_text_hint']);
 
   $htmlSearchCountry = getSearchCountryHtml();
   $htmlSearchPeriod  = getSearchPeriodHtml();
@@ -137,7 +137,7 @@ function getHtmlSearchBar(){
     </div>
 
     <div class="toolbarItem">
-       <input id="searchText" class="searchInput"  type="search" placeholder="{$texts['Search']}" onkeyup="startSearchKey(event);" autocomplete="off">  
+       <input id="searchText" class="searchInput"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startSearchKey(event);" autocomplete="off">  
     </div>
     
     <div class="toolbarItem">$htmlSearchCountry</div>
@@ -505,7 +505,7 @@ function getFormMergeCrash(){
         </div>
       </div>
 
-      <div id="spinnerMerge" class="spinnerLine"><img src="/images/spinner.svg"></div>
+      <div id="spinnerMerge" class="spinnerLine"><img src="/images/spinner.svg" alt="Spinner"></div>
       <div id="mergeSearchResults"></div>  
     </div>
             
