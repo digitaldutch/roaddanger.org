@@ -325,7 +325,7 @@ function getFormEditCrash(){
     'Photo_link_url', 'Same_as_article', 'Add_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
     'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
     'Location', 'Characteristics', 'Save', 'Cancel',
-    'Spider_is_working', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions']);
+    'Spider_is_working', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Accident_text_info', 'Edit_location_instructions']);
 
   $htmlSearchCountry = getSearchCountryHtml('', 'editCrashCountry');
 
@@ -392,7 +392,10 @@ function getFormEditCrash(){
           <span data-hideedit class="button buttonGray buttonLine" onclick="copyCrashInfoFromArticle();">{$texts['Same_as_article']}</span>
         </div>
   
-        <label for="editCrashText">{$texts['Text']}</label>
+        <div class="labelDiv">
+          <label for="editCrashText">{$texts['Text']}</label>
+          <span class="iconTooltip" data-tippy-content="{$texts['Accident_text_info']}"></span>
+        </div>
         <textarea id="editCrashText" maxlength="500" style="height: 50px; resize: vertical;" class="popupInput" autocomplete="off" data-readonlyhelper></textarea>
       </div>        
 
