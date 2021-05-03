@@ -624,9 +624,10 @@ function getSearchPeriodHtml($onInputFunctionName = ''){
     <option value="yesterday">{$texts['Yesterday']}</option> 
     <option value="7days">7 {$texts['days']}</option> 
     <option value="30days">30 {$texts['days']}</option> 
-    <option value="decorrespondent">{$texts['The_correspondent_week']}</option> 
-    <option value="2019">2019</option> 
+    <option value="2021">2021</option>
     <option value="2020">2020</option>
+    <option value="2019">2019</option> 
+    <option value="decorrespondent">{$texts['The_correspondent_week']}</option> 
     <option value="custom">{$texts['Custom_period']}</option>          
   </select>
 </div>

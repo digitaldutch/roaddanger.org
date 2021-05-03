@@ -22,17 +22,20 @@ function addPeriodWhereSql(&$sqlWhere, &$params, $filter){
     case '7days':
       addSQLWhere($sqlWhere, ' DATE(c.date) > SUBDATE(CURDATE(), 7) ');
       break;
-    case 'decorrespondent':
-      addSQLWhere($sqlWhere, " DATE(c.date) >= '2019-01-14' AND DATE (c.date) <= '2019-01-20' ");
-      break;
     case '30days':
       addSQLWhere($sqlWhere, ' DATE(c.date) > SUBDATE(CURDATE(), 30) ');
+      break;
+    case '2021':
+      addSQLWhere($sqlWhere, ' YEAR(c.date) = 2021 ');
+      break;
+    case '2020':
+      addSQLWhere($sqlWhere, ' YEAR(c.date) = 2020 ');
       break;
     case '2019':
       addSQLWhere($sqlWhere, ' YEAR(c.date) = 2019 ');
       break;
-    case '2020':
-      addSQLWhere($sqlWhere, ' YEAR(c.date) = 2020 ');
+    case 'decorrespondent':
+      addSQLWhere($sqlWhere, " DATE(c.date) >= '2019-01-14' AND DATE (c.date) <= '2019-01-20' ");
       break;
     case 'custom': {
       if ($filter['dateFrom'] !== '') {
@@ -1159,7 +1162,7 @@ else if ($function === 'getStatistics') {
     $type   = $data['type'] ?? '';
     $filter = $data['filter'] ?? '';
 
-    if ($type === 'general')            $stats = getStatsDatabase($database);
+    if      ($type === 'general')       $stats = getStatsDatabase($database);
     else if ($type === 'crashPartners') $stats = getStatsCrashPartners($database, $filter);
     else                                $stats = getStatsTransportation($database, $filter);
 

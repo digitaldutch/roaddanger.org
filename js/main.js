@@ -180,6 +180,7 @@ function showCrashVictimsGraph(crashVictims){
     dateFrom:      document.getElementById('searchDateFrom').value,
     dateTo:        document.getElementById('searchDateTo').value,
     child:         document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue'),
+    healthDead:    1,
     healthInjured: document.getElementById('filterStatsInjured').classList.contains('buttonSelectedBlue'),
   }
 
@@ -361,7 +362,7 @@ async function loadStatistics(){
         <td style="text-align: right;">${dbStats.total.injured}</td>
       </tr>                
       <tr>
-        <td>Mensen die zich aangemeld hebben op deze site</td>
+        <td>${translate('Humans_helping_site')}</td>
         <td style="text-align: right;">${dbStats.total.users}</td>
       </tr>
 `;
@@ -378,15 +379,13 @@ async function loadStatistics(){
       case PageType.statisticsCrashPartners:       {serverData.type = 'crashPartners';       break;}
     }
 
-    const buttonInjured = document.getElementById('filterStatsInjured');
     if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
       serverData.filter = {
-        period:        document.getElementById('searchPeriod').value,
-        countryId:     document.getElementById('searchCountry').value,
-        dateFrom:      document.getElementById('searchDateFrom').value,
-        dateTo:        document.getElementById('searchDateTo').value,
-        child:         document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue')? 1 : 0,
-        healthInjured: buttonInjured && document.getElementById('filterStatsInjured').classList.contains('buttonSelectedBlue')? 1 : 0,
+        period:    document.getElementById('searchPeriod').value,
+        countryId: document.getElementById('searchCountry').value,
+        dateFrom:  document.getElementById('searchDateFrom').value,
+        dateTo:    document.getElementById('searchDateTo').value,
+        child:     document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue')? 1 : 0,
       };
     }
 
