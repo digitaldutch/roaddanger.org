@@ -1,12 +1,12 @@
 <?php
 
-$VERSION      = 391;
-$VERSION_DATE = '3 May 2020';
+$VERSION      = 392;
+$VERSION_DATE = '19 May 2020';
 
 require_once 'configsecret.php';
 
-// ***** Leave these empty and configure you database connection in configsecret.php *****
-// ***** This is to prevent your passwords from entering the source code repository  *****
+// Leave these empty and configure you database connection in configsecret.php
+// This is to prevent passwords from entering the source code repository
 // const DB_HOST     = '';
 // const DB_NAME     = '';
 // const DB_USER     = '';

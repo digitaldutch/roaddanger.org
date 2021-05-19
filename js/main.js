@@ -2335,7 +2335,7 @@ function downloadData() {
     }
   }
 
-  confirmMessage('Export all data?', doDownload, 'Download');
+  confirmMessage('Export all data? It is quite a large zipped JSON file.', doDownload, 'Download');
 }
 
 async function showMapEdit(latitude, longitude) {

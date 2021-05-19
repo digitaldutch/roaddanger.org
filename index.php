@@ -222,11 +222,9 @@ HTML;
 
     <div class="sectionTitle">Download</div>
 
-    <div>All crash data can be exported in gzip JSON format. The download is refreshed every 24 hours. This file
-    does *not* contain the full text of the media articles. <a href="/aboutthissite">Contact us</a> if you are a 
-    researchers needing the full texts.
-  
+    <div>All crash data can be exported in gzip JSON format. The download is refreshed every 24 hours.
     </div> 
+    
     <div class="buttonBar" style="justify-content: center; margin-bottom: 30px;">
       <button class="button" style="margin-left: 0; height: auto;" onclick="downloadData();">Download data<br>in gzip JSON formaat</button>
     </div>  
