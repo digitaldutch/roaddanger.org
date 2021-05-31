@@ -381,11 +381,13 @@ async function loadStatistics(){
 
     if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
       serverData.filter = {
-        period:    document.getElementById('searchPeriod').value,
-        countryId: document.getElementById('searchCountry').value,
-        dateFrom:  document.getElementById('searchDateFrom').value,
-        dateTo:    document.getElementById('searchDateTo').value,
-        child:     document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue')? 1 : 0,
+        period:        document.getElementById('searchPeriod').value,
+        countryId:     document.getElementById('searchCountry').value,
+        dateFrom:      document.getElementById('searchDateFrom').value,
+        dateTo:        document.getElementById('searchDateTo').value,
+        child:         document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue')? 1 : 0,
+        healthDead:    1,
+        healthInjured: document.getElementById('filterStatsInjured').classList.contains('buttonSelectedBlue')? 1: 0,
       };
     }
 
