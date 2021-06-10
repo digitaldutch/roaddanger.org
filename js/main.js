@@ -239,7 +239,7 @@ function selectFilterChildDeaths() {
   loadChildDeaths();
 }
 
-async function loadStatistics(){
+async function loadStatistics() {
 
   function showStatisticsTransportation(dbStats) {
     let html = '';
@@ -261,7 +261,7 @@ async function loadStatistics(){
   }
 
   function showStatisticsGeneral(dbStats) {
-    document.getElementById('tableStatistics').innerHTML = `    
+    let html = `
       <tr class="trHeader"><td colspan="2">${translate('Today')}</td></tr>
       
       <tr>
@@ -287,8 +287,9 @@ async function loadStatistics(){
       <tr>
         <td>${translate('Added_articles')}</td>
         <td style="text-align: right;">${dbStats.today.articlesAdded}</td>
-      </tr>
+      </tr>`;
 
+    html += `
       <tr class="trHeader"><td colspan="2">7 ${translate('days')}</td></tr>
 
       <tr>
@@ -314,8 +315,10 @@ async function loadStatistics(){
       <tr>
         <td>${translate('Added_articles')}</td>
         <td style="text-align: right;">${dbStats.sevenDays.articlesAdded}</td>
-      </tr>
+      </tr>    
+    `;
 
+    html += `
       <tr class="trHeader"><td colspan="2">${translate('The_correspondent_week')} (14-20 jan. 2019)</td></tr>
       
       <tr>
@@ -341,8 +344,9 @@ async function loadStatistics(){
       <tr>
         <td>${translate('Added_articles')}</td>
         <td style="text-align: right;">${dbStats.deCorrespondent.articlesAdded}</td>
-      </tr>
+      </tr>`;
 
+    html += `
       <tr class="trHeader"><td colspan="2">${translate('Total')}</td></tr>
 
       <tr>
@@ -364,8 +368,9 @@ async function loadStatistics(){
       <tr>
         <td>${translate('Humans_helping_site')}</td>
         <td style="text-align: right;">${dbStats.total.users}</td>
-      </tr>
-`;
+      </tr>`;
+
+    document.getElementById('tableStatistics').innerHTML = html;
   }
 
   try {
@@ -379,6 +384,7 @@ async function loadStatistics(){
       case PageType.statisticsCrashPartners:       {serverData.type = 'crashPartners';       break;}
     }
 
+    const injuredButton = document.getElementById('filterStatsInjured');
     if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
       serverData.filter = {
         period:        document.getElementById('searchPeriod').value,
@@ -387,7 +393,7 @@ async function loadStatistics(){
         dateTo:        document.getElementById('searchDateTo').value,
         child:         document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue')? 1 : 0,
         healthDead:    1,
-        healthInjured: document.getElementById('filterStatsInjured').classList.contains('buttonSelectedBlue')? 1: 0,
+        healthInjured: injuredButton && injuredButton.classList.contains('buttonSelectedBlue')? 1: 0,
       };
     }
 
@@ -430,6 +436,7 @@ async function loadStatistics(){
     spinnerLoad.style.display = 'none';
   }
 }
+
 
 function clearTable(){
   document.getElementById('dataTableBody').innerHTML = '';
