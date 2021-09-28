@@ -1191,7 +1191,7 @@ function showEditCrashForm() {
   document.getElementById('editCrashDate').value        = '';
   document.getElementById('editCrashLatitude').value    = '';
   document.getElementById('editCrashLongitude').value   = '';
-  document.getElementById('editCrashCountry').value     = user.countryid;
+  document.getElementById('editCrashCountry').value     = user.country.id === 'UN'? null : user.countryid;
 
   document.getElementById('editCrashUnilateral').classList.remove('buttonSelected');
   document.getElementById('editCrashPet').classList.remove('buttonSelected');
@@ -1674,6 +1674,7 @@ async function saveArticleCrash(){
     if (!crashEdited.title)               {showError(translate('Crash_title_not_filled_in')); return;}
     if (!crashEdited.date)                {showError(translate('Crash_date_not_filled_in')); return;}
     if (crashEdited.persons.length === 0) {showError(translate('No_involved_humans_added')); return;}
+    if (!crashEdited.countryid)           {showError(translate('Crash_country_not_filled_in')); return;}
   }
 
   const url = '/ajax.php?function=saveArticleCrash';
