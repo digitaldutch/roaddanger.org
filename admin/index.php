@@ -6,6 +6,13 @@ global $database;
 global $user;
 global $VERSION;
 
+$uri = urldecode($_SERVER['REQUEST_URI']);
+if      (strpos($uri, '/admin/humans')                     === 0) $pageType = PageType::humans;
+else if (strpos($uri, '/admin/translations')               === 0) $pageType = PageType::translations;
+else if (strpos($uri, '/admin/longtexts')                  === 0) $pageType = PageType::longTexts;
+else if (strpos($uri, '/admin/crashquestions')             === 0) $pageType = PageType::crashQuestions;
+else die('Internal error: Unknown page type');
+
 function htmlNoAdmin(){
   return <<<HTML
 <div id="main" class="pageInner">
@@ -46,7 +53,6 @@ function getFormNewTranslation() {
 HTML;
 }
 
-
 $htmlEnd = '';
 $head = "<script src='/admin/admin.js?v=$VERSION'></script>";
 
@@ -59,7 +65,7 @@ if ((! $user->loggedIn) || (! $user->isModerator())) {
 HTML;
 } else {
 
-  if (containsText($_SERVER['REQUEST_URI'], '/humans')) {
+  if ($pageType === PageType::humans) {
     if (! $user->admin) $mainHTML = htmlNoAdmin();
     else {
 
@@ -91,7 +97,7 @@ HTML;
     }
 
     $htmlEnd = getFormEditUser();
-  } else if (containsText($_SERVER['REQUEST_URI'], '/admin/translations')) {
+  } else if ($pageType === PageType::translations) {
 
     $languages       = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
     $languageOptions = '';
@@ -133,7 +139,7 @@ HTML;
 
     $htmlEnd = getFormNewTranslation();
 
-  } else if (containsText($_SERVER['REQUEST_URI'], '/admin/longtexts')) {
+  } else if ($pageType === PageType::longTexts) {
 
     $languages = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
     $languageOptions = '';
@@ -200,6 +206,58 @@ HTML;
 HTML;
 
     $htmlEnd = getFormNewTranslation();
+  } else if ($pageType === PageType::crashQuestions) {
+
+    $texts = translateArray(['Crash_questions', 'Admin', 'Id', 'New', 'Edit', 'Delete', 'Save', 'Cancel']);
+
+    $mainHTML = <<<HTML
+<div id="main" class="pageInner scrollPage" style="max-width: fit-content;">
+  <div class="pageSubTitle">{$texts['Admin']} - {$texts['Crash_questions']}</div>
+
+  <div class="smallFont" style="margin-bottom: 10px; text-align: center;">Question texts should be in English.</div>
+
+  <div style="margin-bottom: 5px;">
+    <button class="button buttonGray" onclick="newCrashQuestion();" data-inline-admin>{$texts['New']}</button>
+    <button class="button buttonGray" onclick="editCrashQuestion();" data-inline-admin>{$texts['Edit']}</button>
+    <button class="button buttonRed" onclick="deleteCrashQuestion();" data-inline-admin>{$texts['Delete']}</button>
+  </div>
+
+  <div class="panelTableOverflow">
+    <table id="tableData" class="dataTable" style="user-select: text; min-width: 500px;">
+      <thead>
+        <tr><th>Id</th><th>Question text</th><th>Active</th></tr>
+      </thead>
+      <tbody id="tableBody" onclick="tableDataClick(event);" ondblclick="editCrashQuestion();">    
+     </tbody>
+    </table>  
+  </div>
+  
+  <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
+</div>
+
+<div id="formCrashQuestion" class="popupOuter">
+  <form class="formFullPage" onclick="event.stopPropagation();" onsubmit="saveCrashQuestion(); return false;">
+
+    <div id="headerCrashQuestion" class="popupHeader"></div>
+    <div class="popupCloseCross" onclick="closePopupForm();"></div>
+    
+    <div id="spinnerLogin" class="spinner"></div>
+       
+    <input id="crashQuestionId" type="hidden">
+
+    <label for="crashQuestionText">Question text</label>
+    <input id="crashQuestionText" class="popupInput" type="text">
+       
+    <label><input id="crashQuestionActive" type="checkbox">Active</label>
+
+    <div class="popupFooter">
+      <input type="submit" class="button" style="margin-left: 0;" value="{$texts['Save']}">
+      <input type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">
+    </div>
+    
+  </form>
+</div>
+HTML;
   }
 }
 

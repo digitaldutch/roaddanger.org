@@ -4,6 +4,8 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once '../initialize.php';
 
+global $user, $database;
+
 // Only moderators allowed
 if (! $user->isModerator()) {
   $result = ['ok' => false, 'error' => 'Mens is geen moderator', 'user' => $user->info()];

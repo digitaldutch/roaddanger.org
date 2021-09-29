@@ -189,3 +189,73 @@ SQL;
   }
   echo json_encode($result);
 } // ====================
+else if ($function === 'loadCrashQuestions') {
+  try{
+    $data = json_decode(file_get_contents('php://input'));
+
+    $sql = <<<SQL
+SELECT 
+  id,
+  text, 
+  active 
+FROM crashquestions 
+ORDER BY id;
+SQL;
+
+    $texts = $database->fetchAll($sql);
+
+    $result = ['ok' => true, 'questions' => $texts];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} // ====================
+else if ($function === 'saveCrashQuestion') {
+  try{
+    $question = json_decode(file_get_contents('php://input'));
+
+    $isNewCrash = (empty($question->id));
+
+    if ($isNewCrash) {
+      $sql = "INSERT INTO crashquestions (text, active) VALUES (:text, :active);";
+
+      $params = [
+        ':text'   => $question->text,
+        ':active' => $question->active,
+      ];
+      $dbResult = $database->execute($sql, $params);
+      $question->id = (int)$database->lastInsertID();
+    } else {
+      $sql = "UPDATE crashquestions SET text=:text, active=:active WHERE id=:id;";
+
+      $params = [
+        ':id'     => $question->id,
+        ':text'   => $question->text,
+        ':active' => $question->active,
+      ];
+      $dbResult = $database->execute($sql, $params);
+    }
+
+    $texts = $database->fetchAll($sql);
+
+    $result = ['ok' => true, 'id' => $question->id];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} // ====================
+else if ($function === 'deleteCrashQuestion') {
+  try{
+    $question = json_decode(file_get_contents('php://input'));
+
+    $sql = "DELETE FROM crashquestions WHERE id=:id;";
+
+    $params = [':id' => $question->id];
+    $dbResult = $database->execute($sql, $params);
+
+    $result = ['ok' => true];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} // ====================

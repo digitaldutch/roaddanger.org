@@ -214,7 +214,7 @@ function getNavigation(){
   $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
     'Child_deaths', 'Mosaic', 'The_correspondent_week', 'Map', 'The_crashes', 'General', 'deadly_crashpartners',
     'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
-    'Version']);
+    'Version', 'Crash_questions']);
 
   return <<<HTML
 <div id="navShadow" class="navShadow" onclick="closeNavigation()"></div>
@@ -255,6 +255,7 @@ function getNavigation(){
       <div class="navigationSection">
         <a href="/admin/humans" class="navItem" data-admin-inline>{$texts['Humans']}</a>
         <a href="/moderaties/" class="navItem">{$texts['Moderations']}</a>
+        <a href="/admin/crashquestions/" class="navItem">{$texts['Crash_questions']}</a>
         <a href="/stream" class="navItem">{$texts['Last_modified_crashes']}</a>
       </div>      
     </div>

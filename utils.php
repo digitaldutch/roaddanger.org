@@ -13,6 +13,10 @@ abstract class PageType {
   const export                        = 9;
   const map                           = 10;
   const childDeaths                   = 11;
+  const translations                  = 12;
+  const longTexts                     = 13;
+  const humans                        = 14;
+  const crashQuestions                = 15;
 }
 
 function translate($key){

@@ -34,6 +34,9 @@ async function initAdmin(){
     };
 
     await loadLongText();
+  } else if (url.pathname.startsWith('/admin/crashquestions')) {
+
+    await loadCrashQuestions();
   }
 }
 
@@ -187,7 +190,6 @@ function getTranslationTableRow(translation){
   <td>${translation.english}</td>
   <td contenteditable class="editableCell" oninput="saveTranslation('${translation.id}');">${text}</td>
 </tr>`;
-
 }
 
 async function loadTranslations(){
@@ -330,7 +332,6 @@ function deleteTranslation() {
       },
       'Delete id ' + selectedTableData.id
   );
-
 }
 
 async function changeUserLanguage(){
@@ -424,5 +425,110 @@ async function saveLongText() {
     textModified = false;
     showMessage(translate('Saved'), 1);
   }
+}
 
+async function loadCrashQuestions() {
+
+  try {
+    spinnerLoad.style.display = 'block';
+
+    const url = '/admin/ajax.php?function=loadCrashQuestions';
+    const response = await fetchFromServer(url);
+
+    if (response.error) showError(response.error);
+    else {
+      tableData = response.questions;
+
+      let html = '';
+      for (const question of tableData) html += getQuestionTableRow(question);
+      document.getElementById('tableBody').innerHTML += html;
+
+      if ((tableData.length > 0) && (! selectedTableData)) selectTableRow(tableData[0].id);
+    }
+
+  } catch (error) {
+    showError(error.message);
+  } finally {
+    spinnerLoad.style.display = 'none';
+  }
+}
+
+function getQuestionTableRow(question){
+  const activeText = question.active? '✔' : '';
+  return `
+<tr id="tr${question.id}">
+  <td>${question.id}</td>
+  <td>${question.text}</td>
+  <td style="text-align: center">${activeText}</td>
+</tr>`;
+}
+
+function newCrashQuestion() {
+  document.getElementById('crashQuestionId').value       = null;
+  document.getElementById('crashQuestionText').value     = '';
+  document.getElementById('crashQuestionActive').checked = true;
+
+  document.getElementById('formCrashQuestion').style.display = 'flex';
+  document.getElementById('crashQuestionText').focus();
+}
+
+function editCrashQuestion() {
+  document.getElementById('crashQuestionId').value       = selectedTableData.id;
+  document.getElementById('crashQuestionText').value     = selectedTableData.text;
+  document.getElementById('crashQuestionActive').checked = selectedTableData.active;
+
+  document.getElementById('formCrashQuestion').style.display = 'flex';
+  document.getElementById('crashQuestionText').focus();
+}
+
+async function saveCrashQuestion() {
+  if (! selectedTableData) {
+    showError('No question selected');
+    return;
+  }
+
+  const serverData = {
+    id:     document.getElementById('crashQuestionId').value,
+    text:   document.getElementById('crashQuestionText').value.trim(),
+    active: document.getElementById('crashQuestionActive').checked,
+  };
+
+  if (! serverData.text) {showError('Text field is empty'); return;}
+
+  const url      = '/admin/ajax.php?function=saveCrashQuestion';
+  const response = await fetchFromServer(url, serverData);
+
+  if (response.error) showError(response.error);
+  else if (response.ok) {
+    location.reload();
+  }
+}
+
+function deleteCrashQuestion() {
+  if (! selectedTableData) {
+    showError('No question selected');
+    return;
+  }
+
+  confirmWarning(`Delete crash question "${selectedTableData.id}"?<br><b>Think twice. It deletes the question and all answers!</b>`,
+    async () => {
+      const serverData = {
+        id: selectedTableData.id,
+      };
+
+      const url      = '/admin/ajax.php?function=deleteCrashQuestion';
+      const response = await fetchFromServer(url, serverData);
+
+      if (response.error) showError(response.error);
+      else if (response.ok) {
+        document.getElementById('tr' + serverData.id).remove();
+        selectedTableData = null;
+        tableData         = tableData.filter(d => d.id !== serverData.id);
+        showMessage(translate('Deleted'), 1);
+
+        if (tableData.length > 0) selectTableRow(tableData[0].id);
+      }
+    },
+    `Delete question id ${selectedTableData.id} and all answers`
+  );
 }
