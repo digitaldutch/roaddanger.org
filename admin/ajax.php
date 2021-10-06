@@ -189,7 +189,7 @@ SQL;
   }
   echo json_encode($result);
 } // ====================
-else if ($function === 'loadCrashQuestions') {
+else if ($function === 'loadQuestions') {
   try{
     $data = json_decode(file_get_contents('php://input'));
 
@@ -198,7 +198,7 @@ SELECT
   id,
   text, 
   active 
-FROM crashquestions 
+FROM questions 
 ORDER BY id;
 SQL;
 
@@ -217,7 +217,7 @@ else if ($function === 'saveCrashQuestion') {
     $isNewCrash = (empty($question->id));
 
     if ($isNewCrash) {
-      $sql = "INSERT INTO crashquestions (text, active) VALUES (:text, :active);";
+      $sql = "INSERT INTO questions (text, active) VALUES (:text, :active);";
 
       $params = [
         ':text'   => $question->text,
@@ -226,7 +226,7 @@ else if ($function === 'saveCrashQuestion') {
       $dbResult = $database->execute($sql, $params);
       $question->id = (int)$database->lastInsertID();
     } else {
-      $sql = "UPDATE crashquestions SET text=:text, active=:active WHERE id=:id;";
+      $sql = "UPDATE questions SET text=:text, active=:active WHERE id=:id;";
 
       $params = [
         ':id'     => $question->id,
@@ -248,7 +248,7 @@ else if ($function === 'deleteCrashQuestion') {
   try{
     $question = json_decode(file_get_contents('php://input'));
 
-    $sql = "DELETE FROM crashquestions WHERE id=:id;";
+    $sql = "DELETE FROM questions WHERE id=:id;";
 
     $params = [':id' => $question->id];
     $dbResult = $database->execute($sql, $params);

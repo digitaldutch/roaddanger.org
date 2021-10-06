@@ -34,9 +34,9 @@ async function initAdmin(){
     };
 
     await loadLongText();
-  } else if (url.pathname.startsWith('/admin/crashquestions')) {
+  } else if (url.pathname.startsWith('/admin/questions')) {
 
-    await loadCrashQuestions();
+    await loadQuestions();
   }
 }
 
@@ -427,12 +427,12 @@ async function saveLongText() {
   }
 }
 
-async function loadCrashQuestions() {
+async function loadQuestions() {
 
   try {
     spinnerLoad.style.display = 'block';
 
-    const url = '/admin/ajax.php?function=loadCrashQuestions';
+    const url = '/admin/ajax.php?function=loadQuestions';
     const response = await fetchFromServer(url);
 
     if (response.error) showError(response.error);

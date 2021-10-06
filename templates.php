@@ -255,7 +255,7 @@ function getNavigation(){
       <div class="navigationSection">
         <a href="/admin/humans" class="navItem" data-admin-inline>{$texts['Humans']}</a>
         <a href="/moderaties/" class="navItem">{$texts['Moderations']}</a>
-        <a href="/admin/crashquestions/" class="navItem">{$texts['Crash_questions']}</a>
+        <a href="/admin/questions/" class="navItem">{$texts['Crash_questions']}</a>
         <a href="/stream" class="navItem">{$texts['Last_modified_crashes']}</a>
       </div>      
     </div>
