@@ -463,39 +463,39 @@ function getQuestionTableRow(question){
 </tr>`;
 }
 
-function newCrashQuestion() {
-  document.getElementById('crashQuestionId').value       = null;
-  document.getElementById('crashQuestionText').value     = '';
-  document.getElementById('crashQuestionActive').checked = true;
+function newQuestion() {
+  document.getElementById('questionId').value       = null;
+  document.getElementById('questionText').value     = '';
+  document.getElementById('questionActive').checked = true;
 
-  document.getElementById('formCrashQuestion').style.display = 'flex';
-  document.getElementById('crashQuestionText').focus();
+  document.getElementById('formQuestion').style.display = 'flex';
+  document.getElementById('questionText').focus();
 }
 
-function editCrashQuestion() {
-  document.getElementById('crashQuestionId').value       = selectedTableData.id;
-  document.getElementById('crashQuestionText').value     = selectedTableData.text;
-  document.getElementById('crashQuestionActive').checked = selectedTableData.active;
+function editQuestion() {
+  document.getElementById('questionId').value       = selectedTableData.id;
+  document.getElementById('questionText').value     = selectedTableData.text;
+  document.getElementById('questionActive').checked = selectedTableData.active;
 
-  document.getElementById('formCrashQuestion').style.display = 'flex';
-  document.getElementById('crashQuestionText').focus();
+  document.getElementById('formQuestion').style.display = 'flex';
+  document.getElementById('questionText').focus();
 }
 
-async function saveCrashQuestion() {
+async function saveQuestion() {
   if (! selectedTableData) {
     showError('No question selected');
     return;
   }
 
   const serverData = {
-    id:     document.getElementById('crashQuestionId').value,
-    text:   document.getElementById('crashQuestionText').value.trim(),
-    active: document.getElementById('crashQuestionActive').checked,
+    id:     document.getElementById('questionId').value,
+    text:   document.getElementById('questionText').value.trim(),
+    active: document.getElementById('questionActive').checked,
   };
 
   if (! serverData.text) {showError('Text field is empty'); return;}
 
-  const url      = '/admin/ajax.php?function=saveCrashQuestion';
+  const url      = '/admin/ajax.php?function=saveQuestion';
   const response = await fetchFromServer(url, serverData);
 
   if (response.error) showError(response.error);
@@ -504,7 +504,7 @@ async function saveCrashQuestion() {
   }
 }
 
-function deleteCrashQuestion() {
+function deleteQuestion() {
   if (! selectedTableData) {
     showError('No question selected');
     return;
@@ -516,7 +516,7 @@ function deleteCrashQuestion() {
         id: selectedTableData.id,
       };
 
-      const url      = '/admin/ajax.php?function=deleteCrashQuestion';
+      const url      = '/admin/ajax.php?function=deleteQuestion';
       const response = await fetchFromServer(url, serverData);
 
       if (response.error) showError(response.error);

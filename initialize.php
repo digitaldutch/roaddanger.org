@@ -38,7 +38,6 @@ require_once 'utils.php';
 
 try {
 
-  /** @var TDatabase $database */
   $database = new TDatabase();
 
   try {

@@ -786,6 +786,11 @@ ${translate('Approval_required')}
       htmlModeration = `<div id="articleModeration${article.id}" class="moderation">${modHTML}</div>`;
     }
 
+    let htmlQuestions = '';
+    if (user.moderator) {
+      htmlQuestions = `<div onclick="showQuestionsForm(${article.id});" data-moderator>${translate('Article_questions')}</div>`;
+    }
+
     let htmlButtonAllText = '';
     if (user.moderator && article.hasalltext) htmlButtonAllText = `<span class="buttonSelectionSmall bgArticle" data-userid="${article.userid}" data-tippy-content="Toon alle tekst" onclick="toggleAllText(this, event, ${article.id}, ${article.id});"></span>`;
 
@@ -796,6 +801,7 @@ ${translate('Approval_required')}
       htmlMenuEdit += `
         <div id="menuArticle${article.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
           <div onclick="editArticle(${crash.id},  ${article.id});">${translate('Edit')}</div>
+          ${htmlQuestions}
           <div onclick="deleteArticle(${article.id})">${translate('Delete')}</div>
        </div>`;
     }
@@ -868,7 +874,9 @@ ${translate('Approval_required')}
 `;
   }
 
-  if (user.moderator) htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>${translate('Place_at_top_of_stream')}</div>`;
+  if (user.moderator) {
+    htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>${translate('Place_at_top_of_stream')}</div>`;
+  }
 
   return `
 <div id="crash${crash.id}" class="cardCrashList" onclick="showCrashDetails(${crash.id}); event.stopPropagation();">
@@ -933,9 +941,11 @@ function getCrashDetailsHTML(crashId){
 
   let htmlArticles = '';
   for (let article of crashArticles) {
+
     const articleDivID = 'details' + article.id;
+
     let htmlModeration = '';
-    if (article.awaitingmoderation){
+    if (article.awaitingmoderation) {
       let modHTML = '';
       if (user.moderator) modHTML = `
 ${translate('Approval_required')}
@@ -948,6 +958,11 @@ ${translate('Approval_required')}
       else modHTML = translate('Moderation_pending');
 
       htmlModeration = `<div id="articleModeration${articleDivID}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
+    }
+
+    let htmlQuestions = '';
+    if (user.moderator) {
+      htmlQuestions = `<div onclick="showQuestionsForm(${article.id});" data-moderator>${translate('Article_questions')}</div>`;
     }
 
     let htmlButtonAllText = '';
@@ -966,6 +981,7 @@ ${translate('Approval_required')}
       </span>
       <div id="menuArticle${articleDivID}" class="buttonPopupMenu" onclick="event.preventDefault();">
         <div onclick="editArticle(${crash.id},  ${article.id});">${translate('Edit')}</div>
+        ${htmlQuestions}
         <div onclick="deleteArticle(${article.id})">${translate('Delete')}</div>
       </div>            
     </span>   
@@ -1025,7 +1041,9 @@ ${translate('Approval_required')}
 `;
   }
 
-  if (user.moderator) htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>${translate('Place_at_top_of_stream')}</div>`;
+  if (user.moderator) {
+    htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>${translate('Place_at_top_of_stream')}</div>`;
+  }
 
   return `
 <div id="crash${crashDivId}" class="cardCrashDetails">
@@ -1477,6 +1495,49 @@ function editCrash(crashID) {
   document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'none';});
 }
 
+async function showQuestionsForm(articleId) {
+  const article = getArticleFromID(articleId);
+
+  document.getElementById('questionsArticleTitle').innerText = article.title;
+  document.getElementById('questionsArticleText').innerText  = '⌛';
+
+  document.getElementById('articleQuestions').innerHTML = '⌛';
+  document.getElementById('formQuestions').style.display = 'flex';
+
+  getArticleQuestions(article.id).then(
+    article => {
+      let html = '';
+      for (const question of article.questions) {
+        const yesChecked = question.answer === 1? 'checked' : '';
+        const noChecked  = question.answer === 0? 'checked' : '';
+        html += `
+<tr>
+  <td>${question.text}</td>
+  <td><label><input name="answer${question.id}" type="radio" ${yesChecked} onclick="saveAnswer(${articleId}, ${question.id}, 1)"></input>Yes</label>
+      <label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${articleId}, ${question.id}, 0)"></input>No</label></td>
+</tr>`;
+      }
+
+      if (html) html = `<table class="dataTable">${html}</table>`;
+      else html = '<div>No questions found</div>';
+
+      document.getElementById('articleQuestions').innerHTML     = html;
+      document.getElementById('questionsArticleText').innerHTML = article.text? formatText(article.text) : '[Full text is not available in database]';
+    })
+}
+
+async function saveAnswer(articleId, questionId, answer) {
+  const url      = '/ajax.php?function=saveAnswer';
+  const data     = {
+    articleId:  articleId,
+    questionId: questionId,
+    answer:     answer,
+  };
+  const response = await fetchFromServer(url, data);
+
+  if (response.error) showError(response.error, 10);
+}
+
 async function crashToTopStream(crashID) {
   closeAllPopups();
 
@@ -1493,6 +1554,14 @@ async function getArticleText(articleId) {
 
   if (response.error) showError(response.error, 10);
   else return response.text;
+}
+
+async function getArticleQuestions(articleId) {
+  const url      = '/ajax.php?function=getArticleQuestionsAndText&id=' + articleId;
+  const response = await fetchFromServer(url);
+
+  if (response.error) showError(response.error, 10);
+  else return response;
 }
 
 async function crashModerateOK(crash) {

@@ -1,7 +1,8 @@
 :root {
-  --bg-color-hover:    #4d90fe;
-  --bg-color-selected: #bfd4fe;
-  --click-color:       #df5b57;
+  --bg-color-hover:     #4d90fe;
+  --bg-color-selected:  #bfd4fe;
+  --click-color:        #df5b57;
+  --light-border-color: #eee;
   --fancy-font:        'Playfair Display', serif;
 }
 
@@ -53,15 +54,15 @@ html, body {
   font-size:        14px;
   margin:           0;
   padding:          0;
-  background-color: #eeeeee;
+  background-color: #F5F5F5;
 }
 
-input, textarea, select {
+input, textarea, select, .readOnlyInput {
   border:  0.5px solid #aaaaaa;
   padding: 2px;
 }
 
-input[readonly], textarea[readonly] {
+input[readonly], textarea[readonly], .readOnlyInput {
   background-color: #eeeeee;
 }
 
@@ -143,7 +144,7 @@ h2, .pageSubTitleFont, .sectionTitle {
   background-color: #ffffff;
   color:            #000;
   padding:          10px;
-  border-bottom:    1px solid #eee;
+  border:           1px solid #eee;
   cursor:           pointer;
   margin-top:       10px;
 }
@@ -374,7 +375,7 @@ h2, .pageSubTitleFont, .sectionTitle {
   flex:             0 1 auto;
   align-items:      center;
   padding:          3px;
-  border-bottom:    solid 1px #aaa;
+  border-bottom:    solid 1px #dddddd;
   background-color: #ffffff;
 }
 
@@ -582,9 +583,13 @@ h2, .pageSubTitleFont, .sectionTitle {
   background-color: #dddddd;
 }
 
-.menuButton:hover, .iconTooltip:hover, .buttonLight:hover {
+.menuButton:hover, .buttonLight:hover {
   opacity:          1;
   background-color: #dddddd;
+}
+
+.iconTooltip:hover {
+  opacity:          1;
 }
 
 .buttonLight {
@@ -723,7 +728,7 @@ h2, .pageSubTitleFont, .sectionTitle {
   background-color: #eee !important;
 }
 
-.popupOuter, .popupOuterNoClose {
+.popupOuter {
   display:          none;
   position:         fixed;
   justify-content:  center;
@@ -1146,7 +1151,7 @@ h2, .pageSubTitleFont, .sectionTitle {
   color: #000000 !important;
 }
 
-.navItem:hover, .itemSelected {
+.navItem:hover, .itemSelected, .dataTable tbody tr:hover, .trSelected td, .optionCheckImage:hover {
   color:            #ffffff;
   background-color: var(--bg-color-hover);
 }
@@ -1159,7 +1164,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .dataTable td {
-  border-bottom:   solid 1px #d1d1d1;
+  border-bottom:   solid 1px var(--light-border-color);
   vertical-align:  top;
   line-height:     2em;
 }
@@ -1175,11 +1180,7 @@ h2, .pageSubTitleFont, .sectionTitle {
   text-align:       center;
 }
 
-.dataTable tbody tr:hover {
-  background-color: var(--bg-color-hover);
-}
-
-.dataTable input[type='checkbox']{
+ .dataTable input[type='checkbox']{
   margin: 0 2px;
 }
 
@@ -1201,8 +1202,9 @@ h2, .pageSubTitleFont, .sectionTitle {
   white-space: nowrap;
 }
 
-.trHeader {
+.trHeader, .sectionHeader {
   font-weight: bold;
+  margin-top:  10px;
 }
 
 .trHeader td {
@@ -1212,11 +1214,6 @@ h2, .pageSubTitleFont, .sectionTitle {
 .tableClickRows td {
   cursor: pointer;
   color:  var(--click-color);
-}
-
-.trSelected td, .optionCheckImage:hover {
-  color:            #ffffff;
-  background-color: var(--bg-color-hover);
 }
 
 .editDetails {

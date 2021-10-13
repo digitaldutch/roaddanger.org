@@ -1,10 +1,3 @@
-create table answers
-(
-  id int auto_increment
-    primary key,
-  articleid int null
-);
-
 create table countries
 (
   id char(2) not null,
@@ -183,6 +176,21 @@ create fulltext index title
 
 alter table articles
   add primary key (id);
+
+create table answers
+(
+  questionid int not null,
+  articleid int not null,
+  answer tinyint(1) null,
+  constraint answers_pk
+    unique (questionid, articleid),
+  constraint answers_articles_id_fk
+    foreign key (articleid) references articles (id)
+      on update cascade on delete cascade,
+  constraint answers_questions_id_fk
+    foreign key (questionid) references questions (id)
+      on update cascade on delete cascade
+);
 
 create table crashpersons
 (

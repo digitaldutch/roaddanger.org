@@ -605,12 +605,12 @@ function initPage(){
   document.onclick = closeAllPopups;
   initMenuSwipe();
 
-  tippy.setDefaults({
-    arrow:     true,
-    arrowType: 'round',
-    duration:  100,
+  tippy.setDefaultProps({
+    arrow:       true,
+    arrowType:   'round',
+    interactive: true,
+    duration:    100
   });
-
   tippy('[data-tippy-content]');
 }
 

@@ -53,7 +53,7 @@ HTML;
 <link href="https://fonts.googleapis.com/css?family=Lora|Montserrat" rel="stylesheet">
 <link href="/main.css?v=$VERSION" rel="stylesheet" type="text/css">
 <link rel="shortcut icon" type="image/png" href="/images/thecrashes.png">
-<script src='/scripts/tippy.all.min.js'></script>
+<script src="/scripts/popper.min.js"></script><script src="/scripts/tippy-bundle.umd.min.js"></script>
 <script src='/js/utils.js?v=$VERSION'></script>
 $head
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -167,7 +167,8 @@ HTML;
 }
 
 function getHTMLEnd($htmlEnd=''){
-  $forms    = getHTMLConfirm() . getLoginForm() . getFormCrash() . getFormEditCrash() . getFormMergeCrash() . getFormEditPerson();
+  $forms    = getHTMLConfirm() . getLoginForm() . getFormCrash() . getFormEditCrash() . getFormMergeCrash() .
+    getFormEditPerson() . getFormQuestions();
   return <<<HTML
 </div>
     $htmlEnd 
@@ -214,7 +215,7 @@ function getNavigation(){
   $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
     'Child_deaths', 'Mosaic', 'The_correspondent_week', 'Map', 'The_crashes', 'General', 'deadly_crashpartners',
     'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
-    'Version', 'Crash_questions']);
+    'Version', 'Article_questions']);
 
   return <<<HTML
 <div id="navShadow" class="navShadow" onclick="closeNavigation()"></div>
@@ -255,7 +256,7 @@ function getNavigation(){
       <div class="navigationSection">
         <a href="/admin/humans" class="navItem" data-admin-inline>{$texts['Humans']}</a>
         <a href="/moderaties/" class="navItem">{$texts['Moderations']}</a>
-        <a href="/admin/questions/" class="navItem">{$texts['Crash_questions']}</a>
+        <a href="/admin/questions/" class="navItem">{$texts['Article_questions']}</a>
         <a href="/stream" class="navItem">{$texts['Last_modified_crashes']}</a>
       </div>      
     </div>
@@ -447,7 +448,7 @@ HTML;
 
 function getFormCrash(){
   return <<<HTML
-<div id="formCrash" class="popupOuterNoClose" onclick="closeCrashDetails();">
+<div id="formCrash" class="popupOuter" onclick="closeCrashDetails();">
     <div class="popupCloseCrossWhite hideOnMobile" onclick="closeCrashDetails();"></div>
 
   <div class="formFullPage" onclick="event.stopPropagation();">    
@@ -456,7 +457,30 @@ function getFormCrash(){
 
     <div id="crashDetails" class="flexColumn">
     </div>
-            
+  </div>
+  
+</div>
+HTML;
+}
+
+function getFormQuestions(){
+  return <<<HTML
+<div id="formQuestions" class="popupOuter" onclick="closePopupForm();">
+
+  <div class="formFullPage" onclick="event.stopPropagation();">
+    
+    <div class="popupHeader">Article questions</div>
+    <div class="popupCloseCross" onclick="closePopupForm();"></div>
+    
+    <div class="sectionHeader">Questions</div>
+    <div id="articleQuestions" class="flexColumn">Loading...</div>
+    
+    <div class="sectionHeader">Article title</div>
+    <div id="questionsArticleTitle" class="readOnlyInput"></div>
+    
+    <div class="sectionHeader">Article text</div>
+    <div id="questionsArticleText" class="readOnlyInput"></div>
+    
   </div>
   
 </div>

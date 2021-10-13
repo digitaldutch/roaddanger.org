@@ -210,7 +210,7 @@ SQL;
   }
   echo json_encode($result);
 } // ====================
-else if ($function === 'saveCrashQuestion') {
+else if ($function === 'saveQuestion') {
   try{
     $question = json_decode(file_get_contents('php://input'));
 
@@ -244,7 +244,7 @@ else if ($function === 'saveCrashQuestion') {
   }
   echo json_encode($result);
 } // ====================
-else if ($function === 'deleteCrashQuestion') {
+else if ($function === 'deleteQuestion') {
   try{
     $question = json_decode(file_get_contents('php://input'));
 

@@ -1029,7 +1029,7 @@ SQL;
 } //==========
 else if ($function === 'mergeCrashes'){
   try {
-    if (! $user->isModerator()) throw new Exception('Alleen moderatoren mogen ongelukken samenvoegen.');
+    if (! $user->isModerator()) throw new Exception('Only moderators are allowed to merge crashes.');
 
     $idFrom = (int)$_REQUEST['idFrom'];
     $idTo   = (int)$_REQUEST['idTo'];
@@ -1063,7 +1063,7 @@ else if ($function === 'deleteArticle'){
       if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
       $database->execute($sql, $params, true);
-      if ($database->rowCount === 0) throw new Exception('Kan artikel niet verwijderen.');
+      if ($database->rowCount === 0) throw new Exception('Internal error: Cannot delete article.');
     }
     $result = ['ok' => true];
   } catch (Exception $e){
@@ -1081,7 +1081,7 @@ else if ($function === 'deleteCrash'){
       if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
       $database->execute($sql, $params, true);
-      if ($database->rowCount === 0) throw new Exception('Alleen moderatoren mogen ongelukken verwijderen.');
+      if ($database->rowCount === 0) throw new Exception('Only moderators can delete crashes.');
     }
     $result = ['ok' => true];
   } catch (Exception $e){
@@ -1091,7 +1091,7 @@ else if ($function === 'deleteCrash'){
 } //==========
 else if ($function === 'crashToStreamTop'){
   try{
-    if (! $user->isModerator()) throw new Exception('Alleen moderatoren mogen ongelukken omhoog plaatsen.');
+    if (! $user->isModerator()) throw new Exception('Only moderators are allowed to put crashes to top of stream.');
 
     $crashId = (int)$_REQUEST['id'];
     if ($crashId > 0) setCrashStreamTop($database, $crashId, $user->id, 3);
@@ -1103,7 +1103,7 @@ else if ($function === 'crashToStreamTop'){
 } //==========
 else if ($function === 'crashModerateOK'){
   try{
-    if (! $user->isModerator()) throw new Exception('Alleen moderatoren mogen ongelukken modereren.');
+    if (! $user->isModerator()) throw new Exception('Only moderators are allowed to moderate crashes.');
 
     $crashId = (int)$_REQUEST['id'];
     if ($crashId > 0){
@@ -1119,7 +1119,7 @@ else if ($function === 'crashModerateOK'){
 } //==========
 else if ($function === 'articleModerateOK'){
   try{
-    if (! $user->isModerator()) throw new Exception('Alleen moderatoren mogen artikelen modereren.');
+    if (! $user->isModerator()) throw new Exception('Only moderators are allowed to moderate crashes.');
 
     $crashId = (int)$_REQUEST['id'];
     if ($crashId > 0){
@@ -1136,9 +1136,9 @@ else if ($function === 'articleModerateOK'){
 else if ($function === 'getArticleText'){
   try{
 
-    $crashId = (int)$_REQUEST['id'];
-    if ($crashId > 0){
-      $params = [':id' => $crashId];
+    $articleId = (int)$_REQUEST['id'];
+    if ($articleId > 0){
+      $params = [':id' => $articleId];
 
       $sqlANDOwnOnly = '';
       if (! $user->isModerator()) {
@@ -1150,6 +1150,57 @@ else if ($function === 'getArticleText'){
       $text = $database->fetchSingleValue($sql, $params);
     }
     $result = ['ok' => true, 'text' => $text];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} //==========
+else if ($function === 'saveAnswer') {
+  try{
+    if (! $user->isModerator())  throw new Exception('Only moderators can save answers');
+
+    $data = json_decode(file_get_contents('php://input'));
+
+    $params = [
+      'articleid'  => $data->articleId,
+      'questionid' => $data->questionId,
+      'answer'     => $data->answer,
+      'answer2'    => $data->answer,
+      ];
+    $sql = "INSERT INTO answers (articleid, questionid, answer) VALUES(:articleid, :questionid, :answer) ON DUPLICATE KEY UPDATE answer=:answer2;";
+    $database->execute($sql, $params);
+
+    $result = ['ok' => true];
+  } catch (Exception $e) {
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} //==========
+else if ($function === 'getArticleQuestionsAndText'){
+  try{
+
+    if (! $user->isModerator())  throw new Exception('Only moderators can edit article questions');
+
+    $articleId = (int)$_REQUEST['id'];
+    if ($articleId > 0){
+      $params = [':id' => $articleId];
+
+      $sql  = "SELECT alltext FROM articles WHERE id=:id;";
+      $text = $database->fetchSingleValue($sql, $params);
+
+      $sql  = <<<SQL
+SELECT
+  q.id,
+  q.text,
+  a.answer
+FROM questions q
+LEFT JOIN answers a ON q.id = a.questionid AND articleid=:articleId
+WHERE active=TRUE;
+SQL;
+
+      $questions = $database->fetchAll($sql, ['articleId' => $articleId]);
+    }
+    $result = ['ok' => true, 'text' => $text, 'questions' => $questions];
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }

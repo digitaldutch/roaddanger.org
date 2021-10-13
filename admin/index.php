@@ -208,18 +208,18 @@ HTML;
     $htmlEnd = getFormNewTranslation();
   } else if ($pageType === PageType::questions) {
 
-    $texts = translateArray(['Crash_questions', 'Admin', 'Id', 'New', 'Edit', 'Delete', 'Save', 'Cancel']);
+    $texts = translateArray(['Article_questions', 'Admin', 'Id', 'New', 'Edit', 'Delete', 'Save', 'Cancel']);
 
     $mainHTML = <<<HTML
 <div id="main" class="pageInner scrollPage" style="max-width: fit-content;">
-  <div class="pageSubTitle">{$texts['Admin']} - {$texts['Crash_questions']}</div>
+  <div class="pageSubTitle">{$texts['Admin']} - {$texts['Article_questions']}</div>
 
   <div class="smallFont" style="margin-bottom: 10px; text-align: center;">Question texts should be in English.</div>
 
   <div style="margin-bottom: 5px;">
-    <button class="button buttonGray" onclick="newCrashQuestion();" data-inline-admin>{$texts['New']}</button>
-    <button class="button buttonGray" onclick="editCrashQuestion();" data-inline-admin>{$texts['Edit']}</button>
-    <button class="button buttonRed" onclick="deleteCrashQuestion();" data-inline-admin>{$texts['Delete']}</button>
+    <button class="button buttonGray" onclick="newQuestion();" data-inline-admin>{$texts['New']}</button>
+    <button class="button buttonGray" onclick="editQuestion();" data-inline-admin>{$texts['Edit']}</button>
+    <button class="button buttonRed" onclick="deleteQuestion();" data-inline-admin>{$texts['Delete']}</button>
   </div>
 
   <div class="panelTableOverflow">
@@ -227,7 +227,7 @@ HTML;
       <thead>
         <tr><th>Id</th><th>Question text</th><th>Active</th></tr>
       </thead>
-      <tbody id="tableBody" onclick="tableDataClick(event);" ondblclick="editCrashQuestion();">    
+      <tbody id="tableBody" onclick="tableDataClick(event);" ondblclick="editQuestion();">    
      </tbody>
     </table>  
   </div>
@@ -235,20 +235,20 @@ HTML;
   <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
 </div>
 
-<div id="formCrashQuestion" class="popupOuter">
-  <form class="formFullPage" onclick="event.stopPropagation();" onsubmit="saveCrashQuestion(); return false;">
+<div id="formQuestion" class="popupOuter">
+  <form class="formFullPage" onclick="event.stopPropagation();" onsubmit="saveQuestion(); return false;">
 
-    <div id="headerCrashQuestion" class="popupHeader"></div>
+    <div id="headerQuestion" class="popupHeader"></div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
     
     <div id="spinnerLogin" class="spinner"></div>
        
-    <input id="crashQuestionId" type="hidden">
+    <input id="questionId" type="hidden">
 
-    <label for="crashQuestionText">Question text</label>
-    <input id="crashQuestionText" class="popupInput" type="text">
+    <label for="questionText">Question text</label>
+    <input id="questionText" class="popupInput" type="text">
        
-    <label><input id="crashQuestionActive" type="checkbox">Active</label>
+    <label><input id="questionActive" type="checkbox">Active</label>
 
     <div class="popupFooter">
       <input type="submit" class="button" style="margin-left: 0;" value="{$texts['Save']}">

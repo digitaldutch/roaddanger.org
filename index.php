@@ -3,7 +3,6 @@
 require_once 'initialize.php';
 
 global $VERSION;
-/** @var TDatabase $database */
 global $database;
 global $user;
 
