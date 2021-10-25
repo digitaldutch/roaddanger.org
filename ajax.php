@@ -1192,6 +1192,7 @@ else if ($function === 'getArticleQuestionsAndText'){
 SELECT
   q.id,
   q.text,
+  q.explanation,
   a.answer
 FROM questions q
 LEFT JOIN answers a ON q.id = a.questionid AND articleid=:articleId

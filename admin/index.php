@@ -225,7 +225,7 @@ HTML;
   <div class="panelTableOverflow">
     <table id="tableData" class="dataTable" style="user-select: text; min-width: 500px;">
       <thead>
-        <tr><th>Id</th><th>Question text</th><th>Active</th></tr>
+        <tr><th>Id</th><th>Question</th><th>Explanation</th><th>Active</th></tr>
       </thead>
       <tbody id="tableBody" onclick="tableDataClick(event);" ondblclick="editQuestion();">    
      </tbody>
@@ -246,7 +246,10 @@ HTML;
     <input id="questionId" type="hidden">
 
     <label for="questionText">Question text</label>
-    <input id="questionText" class="popupInput" type="text">
+    <input id="questionText" class="popupInput" type="text" maxlength="100">
+       
+    <label for="questionExplanation">Explanation</label>
+    <input id="questionExplanation" class="popupInput" type="text" maxlength="200">
        
     <label><input id="questionActive" type="checkbox">Active</label>
 

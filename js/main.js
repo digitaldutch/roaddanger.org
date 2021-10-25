@@ -1510,9 +1510,11 @@ async function showQuestionsForm(articleId) {
       for (const question of article.questions) {
         const yesChecked = question.answer === 1? 'checked' : '';
         const noChecked  = question.answer === 0? 'checked' : '';
+        const tooltip    = question.explanation? `<span class="iconTooltip" data-tippy-content="${question.explanation}"></span>` : '';
+
         html += `
 <tr>
-  <td>${question.text}</td>
+  <td>${question.text} ${tooltip}</td>
   <td><label><input name="answer${question.id}" type="radio" ${yesChecked} onclick="saveAnswer(${articleId}, ${question.id}, 1)"></input>Yes</label>
       <label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${articleId}, ${question.id}, 0)"></input>No</label></td>
 </tr>`;
@@ -1523,6 +1525,8 @@ async function showQuestionsForm(articleId) {
 
       document.getElementById('articleQuestions').innerHTML     = html;
       document.getElementById('questionsArticleText').innerHTML = article.text? formatText(article.text) : '[Full text is not available in database]';
+
+      tippy('[data-tippy-content]')
     })
 }
 

@@ -459,24 +459,29 @@ function getQuestionTableRow(question){
 <tr id="tr${question.id}">
   <td>${question.id}</td>
   <td>${question.text}</td>
+  <td>${question.explanation}</td>
   <td style="text-align: center">${activeText}</td>
 </tr>`;
 }
 
 function newQuestion() {
-  document.getElementById('questionId').value       = null;
-  document.getElementById('questionText').value     = '';
-  document.getElementById('questionActive').checked = true;
+  document.getElementById('questionId').value           = null;
+  document.getElementById('questionText').value         = '';
+  document.getElementById('questionExplanation').value  = '';
+  document.getElementById('questionActive').checked     = true;
 
+  document.getElementById('headerQuestion').innerText   = 'New Question';
   document.getElementById('formQuestion').style.display = 'flex';
   document.getElementById('questionText').focus();
 }
 
 function editQuestion() {
-  document.getElementById('questionId').value       = selectedTableData.id;
-  document.getElementById('questionText').value     = selectedTableData.text;
-  document.getElementById('questionActive').checked = selectedTableData.active;
+  document.getElementById('questionId').value           = selectedTableData.id;
+  document.getElementById('questionText').value         = selectedTableData.text;
+  document.getElementById('questionExplanation').value  = selectedTableData.explanation;
+  document.getElementById('questionActive').checked     = selectedTableData.active;
 
+  document.getElementById('headerQuestion').innerText   = 'Edit Question';
   document.getElementById('formQuestion').style.display = 'flex';
   document.getElementById('questionText').focus();
 }
@@ -488,9 +493,10 @@ async function saveQuestion() {
   }
 
   const serverData = {
-    id:     document.getElementById('questionId').value,
-    text:   document.getElementById('questionText').value.trim(),
-    active: document.getElementById('questionActive').checked,
+    id:          document.getElementById('questionId').value,
+    text:        document.getElementById('questionText').value.trim(),
+    explanation: document.getElementById('questionExplanation').value.trim(),
+    active:      document.getElementById('questionActive').checked,
   };
 
   if (! serverData.text) {showError('Text field is empty'); return;}

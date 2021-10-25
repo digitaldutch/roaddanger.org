@@ -197,6 +197,7 @@ else if ($function === 'loadQuestions') {
 SELECT 
   id,
   text, 
+  explanation, 
   active 
 FROM questions 
 ORDER BY id;
@@ -217,21 +218,23 @@ else if ($function === 'saveQuestion') {
     $isNewCrash = (empty($question->id));
 
     if ($isNewCrash) {
-      $sql = "INSERT INTO questions (text, active) VALUES (:text, :active);";
+      $sql = "INSERT INTO questions (text, explanation, active) VALUES (:text, :explanation, :active);";
 
       $params = [
-        ':text'   => $question->text,
-        ':active' => $question->active,
+        ':text'        => $question->text,
+        ':explanation' => $question->explanation,
+        ':active'      => $question->active,
       ];
       $dbResult = $database->execute($sql, $params);
       $question->id = (int)$database->lastInsertID();
     } else {
-      $sql = "UPDATE questions SET text=:text, active=:active WHERE id=:id;";
+      $sql = "UPDATE questions SET text=:text, explanation=:explanation, active=:active WHERE id=:id;";
 
       $params = [
-        ':id'     => $question->id,
-        ':text'   => $question->text,
-        ':active' => $question->active,
+        ':id'          => $question->id,
+        ':text'        => $question->text,
+        ':explanation' => $question->explanation,
+        ':active'      => $question->active,
       ];
       $dbResult = $database->execute($sql, $params);
     }
