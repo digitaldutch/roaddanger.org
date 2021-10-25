@@ -1,6 +1,6 @@
 <?php
 
-$VERSION      = 403;
+$VERSION      = 404;
 $VERSION_DATE = '25 October 2021';
 
 require_once 'configsecret.php';

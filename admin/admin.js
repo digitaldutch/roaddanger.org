@@ -454,12 +454,13 @@ async function loadQuestions() {
 }
 
 function getQuestionTableRow(question){
-  const activeText = question.active? '✔' : '';
+  const activeText      = question.active? '✔' : '';
+  const explanationText = question.explanation? question.explanation : '';
   return `
 <tr id="tr${question.id}">
   <td>${question.id}</td>
   <td>${question.text}</td>
-  <td>${question.explanation}</td>
+  <td>${explanationText}</td>
   <td style="text-align: center">${activeText}</td>
 </tr>`;
 }
