@@ -468,6 +468,8 @@ function getFormQuestions(){
 <div id="formQuestions" class="popupOuter" onclick="closePopupForm();">
 
   <div class="formFullPage" onclick="event.stopPropagation();">
+
+    <input id="questionsArticleId" type="hidden">
     
     <div class="popupHeader">Article questions</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
@@ -475,11 +477,22 @@ function getFormQuestions(){
     <div class="sectionHeader">Questions</div>
     <div id="articleQuestions" class="flexColumn">Loading...</div>
     
+    <div class="sectionHeader">Crash</div>
+    <div id="questionsCrashButtons" style="display: flex;"></div>
+
+    <div class="sectionHeader">Article link</div>
+    <div id="questionsArticle"></div>
+
     <div class="sectionHeader">Article title</div>
     <div id="questionsArticleTitle" class="readOnlyInput"></div>
     
     <div class="sectionHeader">Article text</div>
     <div id="questionsArticleText" class="readOnlyInput"></div>
+    
+    <div class="popupFooter">
+      <div class="button buttonGray" onclick="nextArticleQuestions(false);">Previous article</div>
+      <div class="button buttonGray" onclick="nextArticleQuestions(true);">Next article</div>
+    </div>    
     
   </div>
   

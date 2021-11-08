@@ -524,7 +524,7 @@ async function loadCrashesFromServer(serverData){
   }
 }
 
-async function loadCrashes(crashID=null, articleID=null){
+async function loadCrashes(crashId=null, articleId=null){
 
   function showCrashes(newCrashes) {
     let html = '';
@@ -544,7 +544,7 @@ async function loadCrashes(crashID=null, articleID=null){
 
     document.getElementById('cards').innerHTML += html;
     if (pageType === PageType.crash) showMapCrash(newCrashes[0].latitude, newCrashes[0].longitude);
-    tippy('[data-tippy-content]');
+    tippy('[data-tippy-content]', {allowHTML: true});
   }
 
   if (observerSpinner) observerSpinner.unobserve(spinnerLoad);
@@ -561,7 +561,7 @@ async function loadCrashes(crashID=null, articleID=null){
 
     serverData.filter = getSearchFilter();
 
-    if (crashID) serverData.id = crashID;
+    if (crashId) serverData.id = crashId;
     if (pageType  === PageType.moderations) serverData.moderations=1;
     else if ((pageType === PageType.recent) || (pageType === PageType.mosaic)) serverData.sort = 'crashDate';
     else if (pageType  === PageType.deCorrespondent) {
@@ -578,14 +578,14 @@ async function loadCrashes(crashID=null, articleID=null){
     if (newCrashes.length < maxLoadCount) spinnerLoad.style.display = 'none';
   }
 
-  if (crashID && (crashes.length === 1)) document.title = crashes[0].title + ' | ' + translate('The_Crashes');
+  if (crashId && (crashes.length === 1)) document.title = crashes[0].title + ' | ' + translate('The_Crashes');
 
   showCrashes(newCrashes);
   highlightSearchText();
 
   if (observerSpinner && (newCrashes.length >= maxLoadCount)) observerSpinner.observe(spinnerLoad);
 
-  if (articleID) setTimeout(()=> {selectArticle(articleID);}, 1);
+  if (articleId) setTimeout(()=> {selectArticle(articleId);}, 1);
 }
 
 function getSearchFilter(){
@@ -788,7 +788,7 @@ ${translate('Approval_required')}
 
     let htmlQuestions = '';
     if (user.moderator) {
-      htmlQuestions = `<div onclick="showQuestionsForm(${article.id});" data-moderator>${translate('Article_questions')}</div>`;
+      htmlQuestions = `<div onclick="showQuestionsForm(${crashID}, ${article.id});" data-moderator>${translate('Article_questions')}</div>`;
     }
 
     let htmlButtonAllText = '';
@@ -962,7 +962,7 @@ ${translate('Approval_required')}
 
     let htmlQuestions = '';
     if (user.moderator) {
-      htmlQuestions = `<div onclick="showQuestionsForm(${article.id});" data-moderator>${translate('Article_questions')}</div>`;
+      htmlQuestions = `<div onclick="showQuestionsForm(${crashId}, ${article.id});" data-moderator>${translate('Article_questions')}</div>`;
     }
 
     let htmlButtonAllText = '';
@@ -1073,10 +1073,14 @@ ${translate('Approval_required')}
 </div>`;
 }
 
+function getIconUnilateral(crash) {
+  return `<div class="iconSmall bgUnilateral" data-tippy-content="${translate('One-sided_crash')}"></div>`;
+}
+
 function getCrashTopIcons(crash, allowClick=false){
   let html = '';
 
-  if (crash.unilateral)                  html += `<div class="iconSmall bgUnilateral" data-tippy-content="${translate('One-sided_crash')}"></div>`;
+  if (crash.unilateral)                  html += getIconUnilateral(crash);
   if (crash.pet)                         html += `<div class="iconSmall bgPet"  data-tippy-content="${translate('Animals')}"></div>`;
   if (crash.trafficjam)                  html += `<div class="iconSmall bgTrafficJam"  data-tippy-content="${translate('Traffic_jam_disruption')}"></div>`;
   if (crash.longitude && crash.latitude) html += `<div class="iconSmall bgGeo" data-tippy-content="${translate('Location_known')}"></div>`;
@@ -1112,7 +1116,7 @@ function getCrashButtonsHTML(crash, showAllHealth=true, allowClick=false) {
 
     for (const person of button.persons){
       let tooltip = translate('Human') + ' ' + person.id +
-        '<br>' + translate('Injury') + ': ' + healthText(person.health);
+        '<br />' + translate('Injury') + ': ' + healthText(person.health);
       if (person.child)          tooltip += '<br>' + translate('Child');
       if (person.underinfluence) tooltip += '<br>' + translate('Intoxicated');
       if (person.hitrun)         tooltip += '<br>' + translate('Drive_on_or_fleeing');
@@ -1396,7 +1400,7 @@ ${iconHealth} ${iconTransportation} ${buttonsOptions}
   }
 
   document.getElementById('editCrashPersons').innerHTML = html;
-  tippy('[data-tippy-content]');
+  tippy('[data-tippy-content]', {allowHTML: true});
 }
 
 function setNewArticleCrashFields(crashID){
@@ -1495,10 +1499,14 @@ function editCrash(crashID) {
   document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'none';});
 }
 
-async function showQuestionsForm(articleId) {
+async function showQuestionsForm(crashId, articleId) {
   const article = getArticleFromID(articleId);
+  const crash   = getCrashFromID(crashId);
 
+  document.getElementById('questionsArticleId').value        = articleId;
   document.getElementById('questionsArticleTitle').innerText = article.title;
+  document.getElementById('questionsArticle').innerHTML      = `<a href="${article.url}" target="article">${article.sitename}</a>`;
+  document.getElementById('questionsCrashButtons').innerHTML = getCrashButtonsHTML(crash) + getIconUnilateral(crash);
   document.getElementById('questionsArticleText').innerText  = '⌛';
 
   document.getElementById('articleQuestions').innerHTML = '⌛';
@@ -1508,12 +1516,11 @@ async function showQuestionsForm(articleId) {
     article => {
       let html = '';
       for (const question of article.questions) {
-        const yesChecked = question.answer === 1? 'checked' : '';
-        const noChecked  = question.answer === 0? 'checked' : '';
-        const tooltip    = question.explanation? `<span class="iconTooltip" data-tippy-content="${question.explanation}"></span>` : '';
+        const yesChecked   = question.answer === 1? 'checked' : '';
+        const noChecked    = question.answer === 0? 'checked' : '';
+        const tooltip      = question.explanation? `<span class="iconTooltip" data-tippy-content="${question.explanation}"></span>` : '';
 
-        html += `
-<tr>
+        html += `<tr>
   <td>${question.text} ${tooltip}</td>
   <td><label><input name="answer${question.id}" type="radio" ${yesChecked} onclick="saveAnswer(${articleId}, ${question.id}, 1)"></input>Yes</label>
       <label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${articleId}, ${question.id}, 0)"></input>No</label></td>
@@ -1523,11 +1530,29 @@ async function showQuestionsForm(articleId) {
       if (html) html = `<table class="dataTable">${html}</table>`;
       else html = '<div>No questions found</div>';
 
-      document.getElementById('articleQuestions').innerHTML     = html;
-      document.getElementById('questionsArticleText').innerHTML = article.text? formatText(article.text) : '[Full text is not available in database]';
+      document.getElementById('articleQuestions').innerHTML      = html;
+      document.getElementById('questionsArticleText').innerHTML  = article.text? formatText(article.text) : '[Full text is not available in database]';
 
-      tippy('[data-tippy-content]')
+      tippy('[data-tippy-content]', {allowHTML: true});
     })
+}
+
+function nextArticleQuestions(forward=true) {
+  const articleId = parseInt(document.getElementById('questionsArticleId').value);
+
+  const index = articles.findIndex(article => article.id === articleId);
+  let newArticle;
+  if (forward) {
+    if (index < articles.length - 1) newArticle = articles[index + 1];
+    else showMessage('This is de last article');
+  } else {
+    if (index > 0) newArticle = articles[index -1];
+    else showMessage('This is de first article');
+  }
+
+  if (newArticle) selectArticle(newArticle.id);
+
+  showQuestionsForm(newArticle.crashid, newArticle.id);
 }
 
 async function saveAnswer(articleId, questionId, answer) {
