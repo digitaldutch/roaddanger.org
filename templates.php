@@ -215,7 +215,7 @@ function getNavigation(){
   $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
     'Child_deaths', 'Mosaic', 'The_correspondent_week', 'Map', 'The_crashes', 'General', 'deadly_crashpartners',
     'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
-    'Version', 'Article_questions']);
+    'Version', 'Article_questions', 'Reporting_experiences', 'Reseach']);
 
   return <<<HTML
 <div id="navShadow" class="navShadow" onclick="closeNavigation()"></div>
@@ -243,9 +243,13 @@ function getNavigation(){
     </div>
 
     <div class="navigationSection">
+      <div class="navigationSectionHeader">{$texts['Reseach']}</div>
+      <a href="/reporting_experiences/" class="navItem">{$texts['Reporting_experiences']}</a>
+      <a href="/admin/questions/" class="navItem" data-admin>{$texts['Article_questions']}</a>
+    </div>
+
+    <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Other']}</div>
-      <a href="/admin/translations/" class="navItem" data-moderator>{$texts['Translations']}</a>
-      <a href="/admin/longtexts/" class="navItem" data-moderator>{$texts['Long_texts']}</a>
       <a href="/exporteren/" class="navItem">{$texts['Export_data']}</a>
       <a href="/aboutthissite/" class="navItem">{$texts['About_this_site']}</a>
     </div>
@@ -254,9 +258,10 @@ function getNavigation(){
       <div class="navigationSectionHeader">{$texts['Admin']}</div>
   
       <div class="navigationSection">
-        <a href="/admin/humans" class="navItem" data-admin-inline>{$texts['Humans']}</a>
+        <a href="/admin/humans" class="navItem" data-admin>{$texts['Humans']}</a>
         <a href="/moderaties/" class="navItem">{$texts['Moderations']}</a>
-        <a href="/admin/questions/" class="navItem">{$texts['Article_questions']}</a>
+        <a href="/admin/translations/" class="navItem" data-moderator>{$texts['Translations']}</a>
+        <a href="/admin/longtexts/" class="navItem" data-moderator>{$texts['Long_texts']}</a>
         <a href="/stream" class="navItem">{$texts['Last_modified_crashes']}</a>
       </div>      
     </div>

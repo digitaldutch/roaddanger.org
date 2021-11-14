@@ -154,8 +154,7 @@ HTML;
       $longTextOptions .= "<option value='{$longText['id']}'>{$longText['id']}</option>";
     }
 
-    $texts  = translateArray(['Long_texts', 'Translation', 'Admin', 'Id', 'English', 'New', 'Delete', 'Save',
-      'The_crashes', 'About_this_site']);
+    $texts = translateArray(['Long_texts', 'Translation', 'Admin', 'Id', 'English', 'New', 'Delete', 'Save']);
 
     $head .= "\n<script src='/scripts/marked.min.js'></script>";
 
@@ -208,22 +207,22 @@ HTML;
     $htmlEnd = getFormNewTranslation();
   } else if ($pageType === PageType::questions) {
 
-    $texts = translateArray(['Article_questions', 'Admin', 'Id', 'New', 'Edit', 'Delete', 'Save', 'Cancel']);
+    $texts = translateArray(['Article_questions', 'Admin', 'Id', 'New', 'Edit', 'Delete', 'Save', 'Cancel', 'Sort_questions']);
 
     $mainHTML = <<<HTML
 <div id="main" class="pageInner scrollPage" style="max-width: fit-content;">
   <div class="pageSubTitle">{$texts['Admin']} - {$texts['Article_questions']}</div>
 
-  <div class="smallFont" style="margin-bottom: 10px; text-align: center;">Question texts should be in English.</div>
 
   <div style="margin-bottom: 5px;">
-    <button class="button buttonGray" onclick="newQuestion();" data-inline-admin>{$texts['New']}</button>
-    <button class="button buttonGray" onclick="editQuestion();" data-inline-admin>{$texts['Edit']}</button>
+    <button class="button" onclick="newQuestion();" data-inline-admin>{$texts['New']}</button>
+    <button class="button" onclick="editQuestion();" data-inline-admin>{$texts['Edit']}</button>
     <button class="button buttonRed" onclick="deleteQuestion();" data-inline-admin>{$texts['Delete']}</button>
   </div>
+  <div class="smallFont" style="margin: 0 0 5px 5px;">Sort questions with drag and drop.</div>
 
   <div class="panelTableOverflow">
-    <table id="tableData" class="dataTable" style="user-select: text; min-width: 500px;">
+    <table id="table_questions" class="dataTable" style="min-width: 500px;">
       <thead>
         <tr><th>Id</th><th>Question</th><th>Explanation</th><th>Active</th></tr>
       </thead>

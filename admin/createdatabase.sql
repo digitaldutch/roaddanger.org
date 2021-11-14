@@ -61,7 +61,9 @@ create table questions
   id int auto_increment
     primary key,
   text varchar(100) null,
-  active tinyint(1) default 0 null
+  active tinyint(1) default 0 null,
+  question_order smallint null,
+  explanation varchar(200) null
 );
 
 create table users

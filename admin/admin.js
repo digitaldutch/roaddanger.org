@@ -456,8 +456,7 @@ async function loadQuestions() {
 function getQuestionTableRow(question){
   const activeText      = question.active? '✔' : '';
   const explanationText = question.explanation? question.explanation : '';
-  return `
-<tr id="tr${question.id}">
+  return `<tr id="tr${question.id}" draggable="true" ondragstart="onDragStartQuestion(event, ${question.id})" ondrop="onDropQuestion(event, ${question.id})" ondragenter="onDragEnter(event)" ondragleave="onDragLeave(event)" ondragover="onDragOver(event)" ondragend="onDragEndQuestion(event)">
   <td>${question.id}</td>
   <td>${question.text}</td>
   <td>${explanationText}</td>
@@ -538,4 +537,45 @@ function deleteQuestion() {
     },
     `Delete question id ${selectedTableData.id} and all answers`
   );
+}
+
+function onDragStartQuestion(event, id){
+  const dragData = {id: id, trId: event.target.id};
+  event.dataTransfer.setData("text/plain", JSON.stringify(dragData));
+  event.target.classList.add('dragged');
+
+  document.getElementById('table_questions').classList.add('tableDragging');
+}
+
+function onDropQuestion(event, id){
+
+  async function saveQuestionOrder(){
+    const questionIds = tableData.map(item => item.id);
+    const url           = '/admin/ajax.php?function=saveQuestionsOrder';
+
+    const response      = await fetchFromServer(url, questionIds);
+
+    if (response.error) {
+      showError(response.error);
+      return;
+    }
+
+    showMessage('Questions order saved', 1);
+  }
+
+  const dragData    = JSON.parse(event.dataTransfer.getData("text/plain"));
+  const sourceIndex = tableData.findIndex(i => i.id === dragData.id);
+  const targetIndex = tableData.findIndex(i => i.id === id);
+
+  tableData.move(sourceIndex, targetIndex);
+
+  const insertAfter = sourceIndex < targetIndex;
+  onDropRow(event, dragData.trId, insertAfter);
+
+  saveQuestionOrder();
+}
+
+function onDragEndQuestion(event) {
+  document.getElementById('table_questions').classList.remove('tableDragging');
+  onDragEnd(event);
 }

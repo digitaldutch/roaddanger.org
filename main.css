@@ -1439,6 +1439,27 @@ h2, .pageSubTitleFont, .sectionTitle {
   overflow:  auto;
 }
 
+.dragOver td  {
+  border-top:    2px dashed #000000 !important;
+  border-bottom: 2px dashed #000000 !important;
+}
+
+.dragOver td:first-child {
+  border-left: 2px dashed #000000 !important;
+}
+
+.dragOver td:last-child {
+  border-right: 2px dashed #000000 !important;
+}
+
+.dragged {
+  opacity: 0.5;
+}
+
+table.tableDragging td div {
+  pointer-events: none;
+}
+
 @media (max-width: 750px) {
   .hideOnMobile {
     display: none !important;

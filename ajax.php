@@ -1196,7 +1196,8 @@ SELECT
   a.answer
 FROM questions q
 LEFT JOIN answers a ON q.id = a.questionid AND articleid=:articleId
-WHERE active=TRUE;
+WHERE active=TRUE
+ORDER BY q.question_order;
 SQL;
 
       $questions = $database->fetchAll($sql, ['articleId' => $articleId]);

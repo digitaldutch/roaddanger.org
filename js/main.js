@@ -1522,8 +1522,10 @@ async function showQuestionsForm(crashId, articleId) {
 
         html += `<tr>
   <td>${question.text} ${tooltip}</td>
-  <td style="white-space: nowrap;"><label><input name="answer${question.id}" type="radio" ${yesChecked} onclick="saveAnswer(${articleId}, ${question.id}, 1)"></input>Yes</label>
-      <label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${articleId}, ${question.id}, 0)"></input>No</label></td>
+  <td style="white-space: nowrap;">
+      <label><input name="answer${question.id}" type="radio" ${yesChecked} onclick="saveAnswer(${articleId}, ${question.id}, 1)"></input>Yes</label>
+      <label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${articleId}, ${question.id}, 0)"></input>No</label>
+      <label data-tippy-content="Not determinable"><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${articleId}, ${question.id}, 2)"></input>n.d.</label></td>
 </tr>`;
       }
 

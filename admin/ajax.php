@@ -2,6 +2,9 @@
 
 header('Content-Type: application/json; charset=utf-8');
 
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require_once '../initialize.php';
 
 global $database;
@@ -200,7 +203,7 @@ SELECT
   explanation, 
   active 
 FROM questions 
-ORDER BY id;
+ORDER BY question_order;
 SQL;
 
     $texts = $database->fetchAll($sql);
@@ -255,6 +258,23 @@ else if ($function === 'deleteQuestion') {
 
     $params = [':id' => $question->id];
     $dbResult = $database->execute($sql, $params);
+
+    $result = ['ok' => true];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} // ====================
+else if ($function === 'saveQuestionsOrder') {
+  try{
+    $ids = json_decode(file_get_contents('php://input'));
+
+    $sql = "UPDATE questions SET question_order=:question_order WHERE id=:id";
+    $statement = $database->prepare($sql);
+    foreach ($ids as $order=>$id){
+      $params = [':id' => $id, ':question_order' => $order];
+      $database->executePrepared($params, $statement);
+    }
 
     $result = ['ok' => true];
   } catch (Exception $e){

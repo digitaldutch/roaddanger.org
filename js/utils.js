@@ -33,6 +33,18 @@ if (!Date.prototype.pretty) {
   }
 }
 
+Array.prototype.move = function(from, to) {
+  // https://stackoverflow.com/a/7180095/63849
+  this.splice(to, 0, this.splice(from, 1)[0]);
+};
+
+// Array Remove
+Array.prototype.remove = function(from, to) {
+  let rest = this.slice((to || from) + 1 || this.length);
+  this.length = from < 0 ? this.length + from : from;
+  return this.push.apply(this, rest);
+};
+
 async function fetchFromServer(url, data={}, parseJSON=true){
   const optionsFetch = {
     method:      'POST',
@@ -929,3 +941,34 @@ function getSelectedTableData(id){
 function flagIconPath(countryId) {
   return `/images/flags/${countryId.toLowerCase()}.svg`;
 }
+
+function onDragEnter(event) {
+  event.currentTarget.classList.add('dragOver');
+}
+
+function onDragLeave(event) {
+  event.currentTarget.classList.remove('dragOver');
+}
+
+function onDragEnd(event) {
+  event.target.classList.remove('dragged');
+}
+
+function onDragOver(event){
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+  return false;
+}
+
+function onDropRow(event, sourceId, insertAfter=true){
+  const trSource  = document.getElementById(sourceId);
+  const divTarget = event.target;
+  const trTarget  = divTarget.closest('tr');
+
+  event.currentTarget.classList.remove('dragOver');
+  trSource.classList.remove('dragged');
+
+  if (insertAfter) trTarget.parentNode.insertBefore(trSource, trTarget.nextSibling);
+  else             trTarget.parentNode.insertBefore(trSource, trTarget);
+}
+
