@@ -245,7 +245,7 @@ function getNavigation(){
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Reseach']}</div>
       <a href="/reporting_experiences/" class="navItem">{$texts['Reporting_experiences']}</a>
-      <a href="/admin/questions/" class="navItem" data-admin>{$texts['Questionnaires']}</a>
+      <a href="/admin/questionnaires/" class="navItem" data-admin>{$texts['Questionnaires']}</a>
     </div>
 
     <div class="navigationSection">

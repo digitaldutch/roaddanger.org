@@ -34,7 +34,7 @@ async function initAdmin(){
     };
 
     await loadLongText();
-  } else if (url.pathname.startsWith('/admin/questions')) {
+  } else if (url.pathname.startsWith('/admin/questionnaires')) {
 
     await loadQuestions();
   }
