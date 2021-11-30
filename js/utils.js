@@ -1,7 +1,7 @@
 let user;
 let observerSpinner;
 let tableData = [];
-let selectedTableData;
+let selectedTableData = [];
 
 let xTouchDown      = null;
 let yTouchDown      = null;
@@ -12,7 +12,7 @@ const mapboxKey     = 'pk.eyJ1IjoiamFuZGVyayIsImEiOiJjazI4dTVzNW8zOWw4M2NtdnRhMG
 
 // Enumerated types
 const TUserPermission     = Object.freeze({newuser: 0, admin: 1, moderator: 2});
-const TTransportationMode = Object.freeze({
+const TransportationMode = Object.freeze({
   unknown: 0, pedestrian: 1, bicycle: 2, motorScooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,
   bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15, scooter: 16});
 const THealth             = Object.freeze({unknown: 0, unharmed: 1, injured: 2, dead: 3});
@@ -233,7 +233,11 @@ function inputDateToISO8601(inputDate){
 }
 
 function closePopupForm() {
-  document.querySelectorAll('.popupOuter').forEach(form => {if (form.style.display === 'flex') form.style.display = 'none';});
+  if (event) event.target.closest('.popupOuter').style.display = 'none';
+  else {
+    document.querySelectorAll('.popupOuter').forEach(form => {if (form.style.display === 'flex') form.style.display = 'none';});
+  }
+
   closeAllPopups();
   closeMessage();
 }
@@ -613,6 +617,14 @@ function permissionToText(permission) {
   }
 }
 
+function questionaireTypeToText(type) {
+  switch (type) {
+    case 0:  return 'Standard';
+    case 1:  return 'Bechdel test';
+    default: return 'Unknown';
+  }
+}
+
 function initPage(){
   document.onclick = closeAllPopups;
   initMenuSwipe();
@@ -620,7 +632,7 @@ function initPage(){
   tippy.setDefaultProps({
     arrow:       true,
     arrowType:   'round',
-    interactive: true,
+    interactive: false,
     duration:    100
   });
   tippy('[data-tippy-content]');
@@ -692,23 +704,23 @@ function closeNavigation() {
 
 function transportationModeText(transportationMode) {
   switch (transportationMode) {
-    case TTransportationMode.unknown:          return translate('Unknown');
-    case TTransportationMode.pedestrian:       return translate('Pedestrian');
-    case TTransportationMode.scooter:          return translate('Scooter');
-    case TTransportationMode.bicycle:          return translate('Bicycle');
-    case TTransportationMode.motorScooter:     return translate('Motor_scooter');
-    case TTransportationMode.motorcycle:       return translate('Motorcycle');
-    case TTransportationMode.car:              return translate('Car');
-    case TTransportationMode.taxi:             return translate('Taxi');
-    case TTransportationMode.emergencyVehicle: return translate('Emergency_vehicle');
-    case TTransportationMode.deliveryVan:      return translate('Delivery_van');
-    case TTransportationMode.tractor:          return translate('Agricultural_vehicle');
-    case TTransportationMode.bus:              return translate('Bus');
-    case TTransportationMode.tram:             return translate('Tram');
-    case TTransportationMode.truck:            return translate('Truck');
-    case TTransportationMode.train:            return translate('Train');
-    case TTransportationMode.wheelchair:       return translate('Mobility_scooter');
-    case TTransportationMode.mopedCar:         return translate('Moped_car');
+    case TransportationMode.unknown:          return translate('Unknown');
+    case TransportationMode.pedestrian:       return translate('Pedestrian');
+    case TransportationMode.scooter:          return translate('Scooter');
+    case TransportationMode.bicycle:          return translate('Bicycle');
+    case TransportationMode.motorScooter:     return translate('Motor_scooter');
+    case TransportationMode.motorcycle:       return translate('Motorcycle');
+    case TransportationMode.car:              return translate('Car');
+    case TransportationMode.taxi:             return translate('Taxi');
+    case TransportationMode.emergencyVehicle: return translate('Emergency_vehicle');
+    case TransportationMode.deliveryVan:      return translate('Delivery_van');
+    case TransportationMode.tractor:          return translate('Agricultural_vehicle');
+    case TransportationMode.bus:              return translate('Bus');
+    case TransportationMode.tram:             return translate('Tram');
+    case TransportationMode.truck:            return translate('Truck');
+    case TransportationMode.train:            return translate('Train');
+    case TransportationMode.wheelchair:       return translate('Mobility_scooter');
+    case TransportationMode.mopedCar:         return translate('Moped_car');
     default:                                   return '';
   }
 }
@@ -737,23 +749,23 @@ function transportationImageFileName(transportationMode){
 
 function transportationModeImage(transportationMode) {
   switch (transportationMode) {
-    case TTransportationMode.unknown:          return 'bgUnknown';
-    case TTransportationMode.pedestrian:       return 'bgPedestrian';
-    case TTransportationMode.bicycle:          return 'bgBicycle';
-    case TTransportationMode.scooter:          return 'bgScooter';
-    case TTransportationMode.motorScooter:     return 'bgMotorScooter';
-    case TTransportationMode.motorcycle:       return 'bgMotorcycle';
-    case TTransportationMode.car:              return 'bgCar';
-    case TTransportationMode.taxi:             return 'bgTaxi';
-    case TTransportationMode.emergencyVehicle: return 'bgEmergencyVehicle';
-    case TTransportationMode.deliveryVan:      return 'bgDeliveryVan';
-    case TTransportationMode.tractor:          return 'bgTractor';
-    case TTransportationMode.bus:              return 'bgBus';
-    case TTransportationMode.tram:             return 'bgTram';
-    case TTransportationMode.truck:            return 'bgTruck';
-    case TTransportationMode.train:            return 'bgTrain';
-    case TTransportationMode.wheelchair:       return 'bgWheelchair';
-    case TTransportationMode.mopedCar:         return 'bgMopedCar';
+    case TransportationMode.unknown:          return 'bgUnknown';
+    case TransportationMode.pedestrian:       return 'bgPedestrian';
+    case TransportationMode.bicycle:          return 'bgBicycle';
+    case TransportationMode.scooter:          return 'bgScooter';
+    case TransportationMode.motorScooter:     return 'bgMotorScooter';
+    case TransportationMode.motorcycle:       return 'bgMotorcycle';
+    case TransportationMode.car:              return 'bgCar';
+    case TransportationMode.taxi:             return 'bgTaxi';
+    case TransportationMode.emergencyVehicle: return 'bgEmergencyVehicle';
+    case TransportationMode.deliveryVan:      return 'bgDeliveryVan';
+    case TransportationMode.tractor:          return 'bgTractor';
+    case TransportationMode.bus:              return 'bgBus';
+    case TransportationMode.tram:             return 'bgTram';
+    case TransportationMode.truck:            return 'bgTruck';
+    case TransportationMode.train:            return 'bgTrain';
+    case TransportationMode.wheelchair:       return 'bgWheelchair';
+    case TransportationMode.mopedCar:         return 'bgMopedCar';
     default:                                   return 'bgUnknown';
   }
 }
@@ -910,32 +922,38 @@ function translate(key){
   return textTranslated;
 }
 
-function hideSelectedTableRow(){
-  if (selectedTableData) {
-    const element = document.getElementById('tr' + selectedTableData.id);
+function hideSelectedTableRow(tableIndex=0){
+  if (selectedTableData[tableIndex]) {
+    const element = document.getElementById(`tr${tableIndex}_` + selectedTableData[tableIndex].id);
     if (element) element.classList.remove('trSelected');
   }
 }
 
-function selectTableRow(id=null) {
-  hideSelectedTableRow();
+function selectTableRow(id=null, tableIndex=0) {
+  hideSelectedTableRow(tableIndex);
 
-  selectedTableData = getSelectedTableData(id);
+  selectedTableData[tableIndex] = getSelectedTableData(id, tableIndex);
 
-  if (! selectedTableData) showError(`Data row id ${id} not found`)
+  if (! selectedTableData[tableIndex]) showError(`Data row id ${id} not found`)
 
-  if ((! selectedTableData) && (tableData.length > 0)) selectedTableData = tableData[0];
+  // Select first element if none found
+  if ((! selectedTableData[tableIndex]) && (tableData[tableIndex].length > 0)) selectedTableData[tableIndex] = tableData[tableIndex][0];
 
-  showSelectedTableRow();
+  showSelectedTableRow(tableIndex);
 }
 
-function showSelectedTableRow(){
-  if (selectedTableData) document.getElementById('tr' + selectedTableData.id).classList.add('trSelected');
+function selectFirstTableRow(tableIndex=0) {
+  if (tableData[tableIndex].length > 0) selectTableRow(tableData[tableIndex][0].id, tableIndex);
+  else selectedTableData[tableIndex] = null;
 }
 
-function getSelectedTableData(id){
-  // == operator used on purpose as sometimes integers are compared with strings
-  return tableData.find(d => d.id == id);
+function showSelectedTableRow(tableIndex=0){
+  if (selectedTableData[tableIndex]) document.getElementById(`tr${tableIndex}_` + selectedTableData[tableIndex].id).classList.add('trSelected');
+}
+
+function getSelectedTableData(id, tableIndex=0) {
+  // == used on purpose as strings are sometimes compared to integers
+  return tableData[tableIndex].find(d => d.id == id);
 }
 
 function flagIconPath(countryId) {
@@ -972,3 +990,21 @@ function onDropRow(event, sourceId, insertAfter=true){
   else             trTarget.parentNode.insertBefore(trSource, trTarget);
 }
 
+function tabBarClick() {
+  document.querySelectorAll('.tabSelected').forEach(d => d.classList.remove('tabSelected'));
+
+  const tabSelected = event.target.closest('div');
+  tabSelected.classList.add('tabSelected');
+
+  const idContent = 'tabContent_' + tabSelected.id.substr(4);
+  document.querySelectorAll('.tabContent').forEach(d => d.style.display = 'none');
+  document.getElementById(idContent).style.display = 'block';
+}
+
+async function getQuestions(questionnaireId) {
+  const url      = '/ajax.php?function=getQuestions&questionnaireId=' + questionnaireId;
+  const response = await fetchFromServer(url);
+
+  if (response.error) showError(response.error, 10);
+  else return response;
+}

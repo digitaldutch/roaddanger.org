@@ -7,18 +7,18 @@ global $database;
 global $user;
 
 $uri = urldecode($_SERVER['REQUEST_URI']);
-if      (strpos($uri, '/stream')                     === 0) $pageType = PageType::stream;
-else if (strpos($uri, '/decorrespondent')            === 0) $pageType = PageType::deCorrespondent;
-else if (strpos($uri, '/map')                        === 0) $pageType = PageType::map;
-else if (strpos($uri, '/moderaties')                 === 0) $pageType = PageType::moderations;
-else if (strpos($uri, '/mozaiek')                    === 0) $pageType = PageType::mosaic;
-else if (strpos($uri, '/kinddoden')                  === 0) $pageType = PageType::childDeaths;
-else if (strpos($uri, '/statistieken/algemeen')      === 0) $pageType = PageType::statisticsGeneral;
-else if (strpos($uri, '/statistieken/andere_partij') === 0) $pageType = PageType::statisticsCrashPartners;
-else if (strpos($uri, '/statistieken/vervoertypes')  === 0) $pageType = PageType::statisticsTransportationModes;
-else if (strpos($uri, '/statistieken')               === 0) $pageType = PageType::statisticsGeneral;
-else if (strpos($uri, '/exporteren')                 === 0) $pageType = PageType::export;
-else                                                               $pageType = PageType::recent;
+if      (strpos($uri, '/stream')                          === 0) $pageType = PageType::stream;
+else if (strpos($uri, '/decorrespondent')                 === 0) $pageType = PageType::deCorrespondent;
+else if (strpos($uri, '/map')                             === 0) $pageType = PageType::map;
+else if (strpos($uri, '/moderations')                     === 0) $pageType = PageType::moderations;
+else if (strpos($uri, '/mosaic')                          === 0) $pageType = PageType::mosaic;
+else if (strpos($uri, '/child_deaths')                    === 0) $pageType = PageType::childDeaths;
+else if (strpos($uri, '/statistics/general')              === 0) $pageType = PageType::statisticsGeneral;
+else if (strpos($uri, '/statistics/counterparty')         === 0) $pageType = PageType::statisticsCrashPartners;
+else if (strpos($uri, '/statistics/transportation_modes') === 0) $pageType = PageType::statisticsTransportationModes;
+else if (strpos($uri, '/statistics')                      === 0) $pageType = PageType::statisticsGeneral;
+else if (strpos($uri, '/export')                          === 0) $pageType = PageType::export;
+else $pageType = PageType::recent;
 
 $addSearchBar   = false;
 $showButtonAdd  = false;
@@ -120,6 +120,15 @@ HTML;
   <div id="mapMain"></div>
 HTML;
 
+} else if ($pageType === PageType::mosaic) {
+  $showButtonAdd = true;
+  $addSearchBar  = true;
+  $mainHTML = <<<HTML
+<div id="pageMain">
+  <div id="cards"></div>
+  <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+</div>
+HTML;
 } else if ($pageType === PageType::statisticsCrashPartners) {
 
   $texts = translateArray(['Counterparty_in_crashes', 'Always', 'days', 'the_correspondent_week', 'Custom_period',
@@ -195,10 +204,10 @@ HTML;
       <thead>
         <tr>
           <th style="text-align: left;">{$texts['Transportation_mode']}</th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgDead" data-tippy-content="Dood"></div> <div class="hideOnMobile">{$texts['Dead_(adjective)']}</div></div></th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgInjured" data-tippy-content="Gewond"></div> <div  class="hideOnMobile">{$texts['Injured']}</div></div></th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnharmed" data-tippy-content="Ongedeerd"></div> <div  class="hideOnMobile">{$texts['Unharmed']}</div></div></th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnknown" data-tippy-content="Onbekend"></div> <div  class="hideOnMobile">{$texts['Unknown']}</div></div></th>
+          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgDead" data-tippy-content="{$texts['Dead_(adjective)']}"></div> <div class="hideOnMobile">{$texts['Dead_(adjective)']}</div></div></th>
+          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgInjured" data-tippy-content="{$texts['Injured']}"></div> <div  class="hideOnMobile">{$texts['Injured']}</div></div></th>
+          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnharmed" data-tippy-content="{$texts['Unharmed']}"></div> <div  class="hideOnMobile">{$texts['Unharmed']}</div></div></th>
+          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnknown" data-tippy-content="{$texts['Unknown']}"></div> <div  class="hideOnMobile">{$texts['Unknown']}</div></div></th>
           <th style="text-align: right;"><div class="iconSmall bgChild" data-tippy-content="{$texts['Child']}"></div></th>
           <th style="text-align: right;"><div class="iconSmall bgAlcohol" data-tippy-content="{$texts['Intoxicated']}"></div></th>
           <th style="text-align: right;"><div class="iconSmall bgHitRun" data-tippy-content="{$texts['Drive_on_or_fleeing']}"></div></th>

@@ -48,19 +48,19 @@ async function initMain() {
   const searchChild         = url.searchParams.get('child');
   const pathName            = decodeURIComponent(url.pathname);
 
-  if      (pathName.startsWith('/moderaties'))                 pageType = PageType.moderations;
-  else if (pathName.startsWith('/stream'))                     pageType = PageType.stream;
-  else if (pathName.startsWith('/decorrespondent'))            pageType = PageType.deCorrespondent;
-  else if (pathName.startsWith('/mozaiek'))                    pageType = PageType.mosaic;
-  else if (pathName.startsWith('/kinddoden'))                  pageType = PageType.childDeaths;
-  else if (pathName.startsWith('/map'))                        pageType = PageType.map;
-  else if (pathName.startsWith('/statistieken/algemeen'))      pageType = PageType.statisticsGeneral;
-  else if (pathName.startsWith('/statistieken/andere_partij')) pageType = PageType.statisticsCrashPartners;
-  else if (pathName.startsWith('/statistieken/vervoertypes'))  pageType = PageType.statisticsTransportationModes;
-  else if (pathName.startsWith('/statistieken'))               pageType = PageType.statisticsGeneral;
-  else if (pathName.startsWith('/exporteren'))                 pageType = PageType.export;
-  else if (crashID)                                            pageType = PageType.crash;
-  else                                                         pageType = PageType.recent;
+  if      (pathName.startsWith('/moderations'))                     pageType = PageType.moderations;
+  else if (pathName.startsWith('/stream'))                          pageType = PageType.stream;
+  else if (pathName.startsWith('/decorrespondent'))                 pageType = PageType.deCorrespondent;
+  else if (pathName.startsWith('/mosaic'))                          pageType = PageType.mosaic;
+  else if (pathName.startsWith('/child_deaths'))                    pageType = PageType.childDeaths;
+  else if (pathName.startsWith('/map'))                             pageType = PageType.map;
+  else if (pathName.startsWith('/statistics/general'))              pageType = PageType.statisticsGeneral;
+  else if (pathName.startsWith('/statistics/counterparty'))         pageType = PageType.statisticsCrashPartners;
+  else if (pathName.startsWith('/statistics/transportation_modes')) pageType = PageType.statisticsTransportationModes;
+  else if (pathName.startsWith('/statistics'))                      pageType = PageType.statisticsGeneral;
+  else if (pathName.startsWith('/export'))                          pageType = PageType.export;
+  else if (crashID)                                                 pageType = PageType.crash;
+  else                                                              pageType = PageType.recent;
 
   const searchButtonExists = document.getElementById('buttonSearch');
   if (searchButtonExists && (searchText || searchCountry || searchPeriod || searchSiteName || searchHealthDead || searchChild || searchPersons)) {
@@ -149,8 +149,8 @@ function initWatchPopStart(){
 
 function initExport(){
   let html = '';
-  for (const key of Object.keys(TTransportationMode)){
-    const transportationMode =  TTransportationMode[key];
+  for (const key of Object.keys(TransportationMode)){
+    const transportationMode =  TransportationMode[key];
     const text               = transportationModeText(transportationMode);
     html += `<tr><td>${transportationMode}</td><td>${text}</td></tr>`;
   }
@@ -187,9 +187,9 @@ function showCrashVictimsGraph(crashVictims){
   // Put data in heatmap points layout
   let victimModes  = [];
   let partnerModes = [];
-  for (const key of Object.keys(TTransportationMode)) {
-    victimModes.push(TTransportationMode[key]);
-    partnerModes.push(TTransportationMode[key]);
+  for (const key of Object.keys(TransportationMode)) {
+    victimModes.push(TransportationMode[key]);
+    partnerModes.push(TransportationMode[key]);
   }
 
   // Add unilateral
@@ -404,11 +404,11 @@ async function loadStatistics() {
     if (response.error) showError(response.error);
     else {
 
-      let url = window.location.origin + '/statistieken';
+      let url = window.location.origin + '/statistics';
       switch (pageType) {
-        case PageType.statisticsGeneral:             {url += '/algemeen';      break;}
-        case PageType.statisticsCrashPartners:       {url += '/andere_partij'; break;}
-        case PageType.statisticsTransportationModes: {url += '/vervoertypes';  break;}
+        case PageType.statisticsGeneral:             {url += '/general';      break;}
+        case PageType.statisticsCrashPartners:       {url += '/counterparty'; break;}
+        case PageType.statisticsTransportationModes: {url += '/transportation_modes';  break;}
       }
 
       if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
@@ -529,7 +529,7 @@ async function loadCrashes(crashId=null, articleId=null){
   function showCrashes(newCrashes) {
     let html = '';
     if (newCrashes.length === 0) {
-      let text = '';
+      let text;
       if (pageType === PageType.moderations) text = translate('no_moderations_found');
       else text = translate('no_crashes_found');
 
@@ -788,7 +788,7 @@ ${translate('Approval_required')}
 
     let htmlQuestions = '';
     if (user.moderator) {
-      htmlQuestions = `<div onclick="showQuestionsForm(${crashID}, ${article.id});" data-moderator>${translate('Article_questions')}</div>`;
+      htmlQuestions = `<div onclick="showQuestionsForm(${crashID}, ${article.id});" data-moderator>${translate('Questionnaires')}</div>`;
     }
 
     let htmlButtonAllText = '';
@@ -908,26 +908,30 @@ ${translate('Approval_required')}
 }
 
 function getMosaicHTML(newCrashes){
+
   function getIconsHTML(crash){
     let html = '';
     crash.persons.forEach(person => {
-      if (healthVisible(person.health)) html += `<div class="iconSmall ${healthImage(person.health)}"></div>`;
+      if (healthVisible(person.health)) html += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
     });
     return html;
   }
 
   let html = '';
-  for (let crash of newCrashes) {
+  for (const crash of newCrashes) {
     const crashArticles = getCrashArticles(crash.id, articles);
     const htmlPersons = getIconsHTML(crash);
 
     if (crashArticles.length > 0) {
-      let article = crashArticles[0];
-      html +=`<div onclick="showCrashDetails(${crash.id}); event.stopPropagation();">
+      const article = crashArticles[0];
+      if (article.urlimage) {
+        html +=`<div onclick="showCrashDetails(${crash.id}); event.stopPropagation();">
+<div class="mosaicImgBackground"></div>
 <div class="thumbPersons">${htmlPersons}</div>
 <div class="thumbDetails">${article.publishedtime.pretty()}</div>
-<img src="${article.urlimage}" onerror="this.style.visibility='hidden';">
+<img src="${article.urlimage}" onerror="this.parentElement.style.display = 'none';">
 </div>`;
+      }
     }
   }
 
@@ -962,7 +966,7 @@ ${translate('Approval_required')}
 
     let htmlQuestions = '';
     if (user.moderator) {
-      htmlQuestions = `<div onclick="showQuestionsForm(${crashId}, ${article.id});" data-moderator>${translate('Article_questions')}</div>`;
+      htmlQuestions = `<div onclick="showQuestionsForm(${crashId}, ${article.id});" data-moderator>${translate('Questionnaires')}</div>`;
     }
 
     let htmlButtonAllText = '';
@@ -1223,7 +1227,7 @@ function showEditCrashForm() {
   editCrashPersons = [];
   refreshCrashPersonsGUI(editCrashPersons);
 
-  document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'inline-block';});
+  document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'inline-flex';});
 
   document.getElementById('editCrashSection').style.display   = 'flex';
   document.getElementById('editArticleSection').style.display = 'flex';
@@ -1237,8 +1241,8 @@ function showEditCrashForm() {
 
 function addEditPersonButtons(){
   let htmlButtons = '';
-  for (const key of Object.keys(TTransportationMode)){
-    const transportationMode =  TTransportationMode[key];
+  for (const key of Object.keys(TransportationMode)){
+    const transportationMode =  TransportationMode[key];
     const bgClass            = transportationModeImage(transportationMode);
     const text               = transportationModeText(transportationMode);
     htmlButtons += `<span id="editPersonTransportationMode${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonTransportationMode(${transportationMode}, true);"></span>`;
@@ -1279,8 +1283,8 @@ function selectPersonTransportationMode(transportationMode, toggle=false){
   setMenuButton('editPersonUnderInfluence', false);
   setMenuButton('editPersonHitRun', false);
 
-  for (const key of Object.keys(TTransportationMode)) {
-    const buttonTransportationMode = TTransportationMode[key];
+  for (const key of Object.keys(TransportationMode)) {
+    const buttonTransportationMode = TransportationMode[key];
     const button = document.getElementById('editPersonTransportationMode' + key);
     if (buttonTransportationMode === transportationMode) {
       if (toggle === true) button.classList.toggle('buttonSelected');
@@ -1291,8 +1295,8 @@ function selectPersonTransportationMode(transportationMode, toggle=false){
 }
 
 function getSelectedPersonTransportationMode(){
-  for (const key of Object.keys(TTransportationMode)) {
-    const buttonTransportationMode = TTransportationMode[key];
+  for (const key of Object.keys(TransportationMode)) {
+    const buttonTransportationMode = TransportationMode[key];
     const button = document.getElementById('editPersonTransportationMode' + key);
     if (button.classList.contains('buttonSelected')) return buttonTransportationMode;
   }
@@ -1509,34 +1513,41 @@ async function showQuestionsForm(crashId, articleId) {
   document.getElementById('questionsCrashButtons').innerHTML = getCrashButtonsHTML(crash) + getIconUnilateral(crash);
   document.getElementById('questionsArticleText').innerText  = '⌛';
 
-  document.getElementById('articleQuestions').innerHTML = '⌛';
+  document.getElementById('articleQuestions').innerHTML  = '⌛';
   document.getElementById('formQuestions').style.display = 'flex';
 
-  getArticleQuestions(article.id).then(
+  getArticleQuestionnaires(article.id).then(
     article => {
       let html = '';
-      for (const question of article.questions) {
-        const yesChecked   = question.answer === 1? 'checked' : '';
-        const noChecked    = question.answer === 0? 'checked' : '';
-        const tooltip      = question.explanation? `<span class="iconTooltip" data-tippy-content="${question.explanation}"></span>` : '';
+      for (const questionnaire of article.questionnaires) {
+        html += `<tr><td colspan="2" class="sectionHeader">${questionnaire.title}</td></tr>`;
 
-        html += `<tr>
-  <td>${question.text} ${tooltip}</td>
-  <td style="white-space: nowrap;">
-      <label><input name="answer${question.id}" type="radio" ${yesChecked} onclick="saveAnswer(${articleId}, ${question.id}, 1)"></input>Yes</label>
-      <label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${articleId}, ${question.id}, 0)"></input>No</label>
-      <label data-tippy-content="Not determinable"><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${articleId}, ${question.id}, 2)"></input>n.d.</label></td>
+        for (const question of questionnaire.questions) {
+          const yesChecked   = question.answer === 1? 'checked' : '';
+          const noChecked    = question.answer === 0? 'checked' : '';
+          const ndChecked    = question.answer === 2? 'checked' : '';
+          const tooltip      = question.explanation? `<span class="iconTooltip" data-tippy-content="${question.explanation}"></span>` : '';
+
+          html +=
+`<tr>
+<td>${question.text} ${tooltip}</td>
+<td style="white-space: nowrap;">
+    <label><input name="answer${question.id}" type="radio" ${yesChecked} onclick="saveAnswer(${articleId}, ${question.id}, 1)"></input>Yes</label>
+    <label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${articleId}, ${question.id}, 0)"></input>No</label>
+    <label data-tippy-content="Not determinable"><input name="answer${question.id}" type="radio" ${ndChecked} onclick="saveAnswer(${articleId}, ${question.id}, 2)"></input>n.d.</label></td>
 </tr>`;
+        }
       }
 
       if (html) html = `<table class="dataTable">${html}</table>`;
-      else html = '<div>No questions found</div>';
+      else html = '<div>No questionnaires found</div>';
 
       document.getElementById('articleQuestions').innerHTML      = html;
       document.getElementById('questionsArticleText').innerHTML  = article.text? formatText(article.text) : '[Full text is not available in database]';
 
       tippy('[data-tippy-content]', {allowHTML: true});
-    })
+    }
+  );
 }
 
 function nextArticleQuestions(forward=true) {
@@ -1587,8 +1598,8 @@ async function getArticleText(articleId) {
   else return response.text;
 }
 
-async function getArticleQuestions(articleId) {
-  const url      = '/ajax.php?function=getArticleQuestionsAndText&id=' + articleId;
+async function getArticleQuestionnaires(articleId) {
+  const url      = '/ajax.php?function=getArticleQuestionnairesAndText&id=' + articleId;
   const response = await fetchFromServer(url);
 
   if (response.error) showError(response.error, 10);
@@ -2198,8 +2209,8 @@ function initSearchBar(){
   if (! document.getElementById('searchBar')) return;
 
   let html = '';
-  for (const key of Object.keys(TTransportationMode)){
-    const transportationMode     =  TTransportationMode[key];
+  for (const key of Object.keys(TransportationMode)){
+    const transportationMode     =  TransportationMode[key];
     const id                     = 'tm' + transportationMode;
     const text                   = transportationModeText(transportationMode);
     const iconTransportationMode = transportationModeImage(transportationMode);
@@ -2207,9 +2218,9 @@ function initSearchBar(){
 `<div id="${id}" class="optionCheckImage" onclick="searchPersonClick(${transportationMode});">
   <span class="checkbox"></span>
   <div class="iconMedium ${iconTransportationMode}" data-tippy-content="${text}"></div>
-  <span id="searchDeadTm${transportationMode}" class="searchIcon bgDead" data-tippy-content="Dood" onclick="searchPersonOptionClick(event, 'Dead', ${transportationMode});"></span>      
-  <span id="searchInjuredTm${transportationMode}" class="searchIcon bgInjured" data-tippy-content="Gewond" onclick="searchPersonOptionClick(event, 'Injured', ${transportationMode});"></span>      
-  <span id="searchRestrictedTm${transportationMode}" data-personRestricted class="searchIcon ${iconTransportationMode} mirrorHorizontally" data-tippy-content="Tegenpartij was ook ${text}" onclick="searchPersonOptionClick(event, 'Restricted', ${transportationMode});"></span>      
+  <span id="searchDeadTm${transportationMode}" class="searchIcon bgDead" data-tippy-content="${translate('Dead_(adjective)')}" onclick="searchPersonOptionClick(event, 'Dead', ${transportationMode});"></span>      
+  <span id="searchInjuredTm${transportationMode}" class="searchIcon bgInjured" data-tippy-content="${translate('Injured')}" onclick="searchPersonOptionClick(event, 'Injured', ${transportationMode});"></span>      
+  <span id="searchRestrictedTm${transportationMode}" data-personRestricted class="searchIcon ${iconTransportationMode} mirrorHorizontally" data-tippy-content="${translate('Counterparty_same_mode')}" onclick="searchPersonOptionClick(event, 'Restricted', ${transportationMode});"></span>      
   <span id="searchUnilateralTm${transportationMode}" data-personUnilateral class="searchIcon bgUnilateral" data-tippy-content="${translate('One-sided_crash')}" onclick="searchPersonOptionClick(event, 'Unilateral', ${transportationMode});"></span>      
 </div>`;
   }
@@ -2281,8 +2292,8 @@ function searchPersonOptionClick(event, buttonType, transportationMode) {
 function updateTransportationModeFilterInput(){
   let html = '';
 
-  for (const key of Object.keys(TTransportationMode)){
-    const transportationMode =  TTransportationMode[key];
+  for (const key of Object.keys(TransportationMode)){
+    const transportationMode =  TransportationMode[key];
     const transportationText =  transportationModeText(transportationMode);
     const elementId          = 'tm' + transportationMode;
     const element            = document.getElementById(elementId);
@@ -2293,18 +2304,18 @@ function updateTransportationModeFilterInput(){
       const deadSelected = document.getElementById('searchDeadTm' + transportationMode).classList.contains('inputSelectButtonSelected');
       if (deadSelected){
         let icon = healthImage(THealth.dead);
-        html += `<span class="searchDisplayIcon ${icon}" data-tippy-content="Dood"></span>`;
+        html += `<span class="searchDisplayIcon ${icon}" data-tippy-content="${translate('Dead_(adjective)')}"></span>`;
       }
 
       const injuredSelected = document.getElementById('searchInjuredTm' + transportationMode).classList.contains('inputSelectButtonSelected');
       if (injuredSelected){
         let icon = healthImage(THealth.injured);
-        html += `<span class="searchDisplayIcon ${icon}" data-tippy-content="Gewond"></span>`;
+        html += `<span class="searchDisplayIcon ${icon}" data-tippy-content="${translate('Injured')}"></span>`;
       }
 
       const restrictedSelected = document.getElementById('searchRestrictedTm' + transportationMode).classList.contains('inputSelectButtonSelected');
       if (restrictedSelected){
-        html += `<span class="searchDisplayIcon  ${icon} mirrorHorizontally" data-tippy-content="Tegenpartij was ook ${transportationText}"></span>`;
+        html += `<span class="searchDisplayIcon  ${icon} mirrorHorizontally" data-tippy-content="${translate('Counterparty_same_mode')}"></span>`;
       }
 
       const unilateralSelected = document.getElementById('searchUnilateralTm' + transportationMode).classList.contains('inputSelectButtonSelected');
@@ -2325,8 +2336,8 @@ function updateTransportationModeFilterInput(){
 function getPersonsFromFilter(){
   let persons = [];
 
-  for (const key of Object.keys(TTransportationMode)){
-    const transportationMode =  TTransportationMode[key];
+  for (const key of Object.keys(TransportationMode)){
+    const transportationMode =  TransportationMode[key];
     const buttonPerson       = document.getElementById('tm' + transportationMode);
     if (buttonPerson.classList.contains('itemSelected')) {
       let person = transportationMode;
@@ -2361,8 +2372,8 @@ function setPersonsFilter(personsCommaString){
     };
   });
 
-  for (const key of Object.keys(TTransportationMode)){
-    const transportationMode =  TTransportationMode[key];
+  for (const key of Object.keys(TransportationMode)){
+    const transportationMode =  TransportationMode[key];
     const element            = document.getElementById('tm'                 + transportationMode);
     const buttonDead         = document.getElementById('searchDeadTm'       + transportationMode);
     const buttonInjured      = document.getElementById('searchInjuredTm'    + transportationMode);
@@ -2402,7 +2413,7 @@ function updateBrowserUrl(pushState=false){
 
   if      (pageType === PageType.deCorrespondent) url.pathname = '/decorrespondent';
   else if (pageType === PageType.stream)          url.pathname = '/stream';
-  else if (pageType === PageType.mosaic)          url.pathname = '/mozaiek';
+  else if (pageType === PageType.mosaic)          url.pathname = '/mosaic';
   else if (pageType === PageType.map)             url.pathname = '/map';
 
   if (pageType === PageType.map) {

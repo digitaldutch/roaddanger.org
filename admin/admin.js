@@ -16,7 +16,7 @@ async function initAdmin(){
   } else if (url.pathname.startsWith('/admin/translations')) {
 
     window.onbeforeunload = function() {
-      const modifiedTexts = tableData.filter(d => d.modified === true);
+      const modifiedTexts = tableData[0].filter(d => d.modified === true);
       if (modifiedTexts.length > 0) return 'Leave site?.';
     };
 
@@ -51,7 +51,7 @@ async function loadUsers(){
       if      (user.permission === TUserPermission.admin)     trClass = ' class="bgRed" ';
       else if (user.permission === TUserPermission.moderator) trClass = ' class="bgOrange" ';
 
-      html += `<tr id="tr${user.id}" ${trClass}>
+      html += `<tr id="tr0_${user.id}" ${trClass}>
 <td>${user.id}</td>
 <td>${user.name}<br><a href="mailto:${user.email}">${user.email}</a></td>
 <td>${datetimeToAge(user.lastactive)}</td>
@@ -67,7 +67,8 @@ async function loadUsers(){
     spinnerLoad.style.display = 'block';
     observerSpinner.unobserve(spinnerLoad);
 
-    const url = '/admin/ajax.php?function=loadUsers&count=' + maxLoadCount + '&offset=' + tableData.length;
+    if (! tableData[0]) tableData[0] = [];
+    const url = '/admin/ajax.php?function=loadUsers&count=' + maxLoadCount + '&offset=' + tableData[0].length;
     response  = await fetchFromServer(url);
 
     if (response.error) showError(response.error);
@@ -76,7 +77,7 @@ async function loadUsers(){
         user.lastactive = new Date(user.lastactive);
       });
 
-      tableData = tableData.concat(response.users);
+      tableData[0] = tableData[0].concat(response.users);
       showUsers(response.users);
     }
 
@@ -89,13 +90,13 @@ async function loadUsers(){
   if (response.users.length >= maxLoadCount) observerSpinner.observe(spinnerLoad);
 }
 
-function tableDataClick(event){
+function tableDataClick(event, tableIndex=0){
   event.stopPropagation();
 
   const tr = event.target.closest('tr');
   if (tr) {
-    const id = tr.id.substr(2);
-    selectTableRow(id);
+    const id = tr.id.substr(4);
+    selectTableRow(id, tableIndex);
   }
 
   closeAllPopups();
@@ -116,24 +117,24 @@ function showUserMenu(target) {
 }
 
 function adminEditUser() {
-  document.getElementById('userID').value         = selectedTableData.id;
-  document.getElementById('userEmail').value      = selectedTableData.email;
-  document.getElementById('userFirstName').value  = selectedTableData.firstname;
-  document.getElementById('userLastName').value   = selectedTableData.lastname;
-  document.getElementById('userPermission').value = selectedTableData.permission;
+  document.getElementById('userID').value         = selectedTableData[0].id;
+  document.getElementById('userEmail').value      = selectedTableData[0].email;
+  document.getElementById('userFirstName').value  = selectedTableData[0].firstname;
+  document.getElementById('userLastName').value   = selectedTableData[0].lastname;
+  document.getElementById('userPermission').value = selectedTableData[0].permission;
 
   document.getElementById('formEditUser').style.display    = 'flex';
 }
 
 async function deleteUserDirect() {
   try {
-    const userId   = selectedTableData.id;
+    const userId   = selectedTableData[0].id;
     const url      = '/admin/ajax.php?function=deleteUser&id=' + userId;
     const response = await fetchFromServer(url);
     if (response.error) showError(response.error);
     else {
-      tableData = tableData.filter(user => user.id !== userId);
-      document.getElementById('tr' + userId).remove();
+      tableData[0] = tableData[0].filter(user => user.id !== userId);
+      document.getElementById('tr0_' + userId).remove();
       showMessage(translate('Deleted'), 1);
     }
   } catch (error) {
@@ -142,7 +143,7 @@ async function deleteUserDirect() {
 }
 
 async function adminDeleteUser() {
-  confirmWarning(`Mens #${selectedTableData.id} "${selectedTableData.name}" en alle items die dit mens heeft aangemaakt verwijderen?<br><br><b>Dit kan niet ongedaan worden!</b>`,
+  confirmWarning(`Mens #${selectedTableData[0].id} "${selectedTableData[0].name}" en alle items die dit mens heeft aangemaakt verwijderen?<br><br><b>Dit kan niet ongedaan worden!</b>`,
       function (){deleteUserDirect();},
       `Verwijder mens en zijn items`
   );
@@ -185,7 +186,7 @@ function getTranslationTableRow(translation){
   const text = translationNeeded(translation.translation)? '' : translation.translation;
 
   return `
-<tr id="tr${translation.id}">
+<tr id="tr0_${translation.id}">
   <td>${translation.id}</td>
   <td>${translation.english}</td>
   <td contenteditable class="editableCell" oninput="saveTranslation('${translation.id}');">${text}</td>
@@ -225,11 +226,11 @@ async function loadTranslations(){
         });
       }
 
-      tableData = dataTranslationNeeded.concat(dataTranslated);
+      tableData = [dataTranslationNeeded.concat(dataTranslated)];
 
-      showTranslations(tableData);
+      showTranslations(tableData[0]);
 
-      if ((tableData.length > 0) && (! selectedTableData)) selectTableRow(tableData[0].id);
+      if (! selectedTableData[0]) selectFirstTableRow();
     }
 
   } catch (error) {
@@ -241,7 +242,7 @@ async function loadTranslations(){
 
 function saveTranslation(id) {
   const td   = event.target.closest('td');
-  const item = tableData.find(d => d.id === id);
+  const item = tableData[0].find(d => d.id === id);
 
   item.translation = td.innerText.trim();
   item.modified    = true;
@@ -250,7 +251,7 @@ function saveTranslation(id) {
 async function saveTranslations() {
   const serverData = {
     language:        user.language,
-    newTranslations: tableData.filter(d => d.modified === true),
+    newTranslations: tableData[0].filter(d => d.modified === true),
   };
 
   if (serverData.newTranslations.length === 0) {
@@ -263,13 +264,13 @@ async function saveTranslations() {
 
   if (response.error) showError(response.error);
   else if (response.ok){
-    tableData.forEach(d => d.modified = false);
+    tableData[0].forEach(d => d.modified = false);
     showMessage(translate('Saved'), 1);
   }
 }
 
 function newTranslation(){
-  document.getElementById('newTranslationId').value         = '';
+  document.getElementById('newTranslationId').value          = '';
   document.getElementById('newTranslationEnglishText').value = '';
 
   document.getElementById('formNewTranslation').style.display = 'flex';
@@ -296,7 +297,7 @@ async function saveNewTranslation() {
     closePopupForm();
 
     translation.translation = user.language === 'en'? translation.english : '';
-    tableData.unshift(translation);
+    tableData[0].unshift(translation);
 
     const tr = getTranslationTableRow(translation);
     document.getElementById('tableBody').innerHTML = tr + document.getElementById('tableBody').innerHTML;
@@ -306,15 +307,15 @@ async function saveNewTranslation() {
 }
 
 function deleteTranslation() {
-  if (! selectedTableData) {
+  if (! selectedTableData[0]) {
     showError('No translation item selected');
     return;
   }
 
-  confirmWarning(`Delete translation item "${selectedTableData.id}"?<br>You should only do this if the translation id is not used in the source code`,
+  confirmWarning(`Delete translation item "${selectedTableData[0].id}"?<br>You should only do this if the translation id is not used in the source code`,
       async () => {
         const serverData = {
-          id: selectedTableData.id,
+          id: selectedTableData[0].id,
         };
 
         const url      = '/admin/ajax.php?function=deleteTranslation';
@@ -322,15 +323,15 @@ function deleteTranslation() {
 
         if (response.error) showError(response.error);
         else if (response.ok) {
-          document.getElementById('tr' + serverData.id).remove();
-          selectedTableData = null;
-          tableData         = tableData.filter(d => d.id !== serverData.id);
+          document.getElementById('tr0_' + serverData.id).remove();
+          selectedTableData[0] = null;
+          tableData[0]         = tableData[0].filter(d => d.id !== serverData.id);
           showMessage(translate('Deleted'), 1);
 
-          if (tableData.length > 0) selectTableRow(tableData[0]);
+          selectFirstTableRow();
         }
       },
-      'Delete id ' + selectedTableData.id
+      'Delete id ' + selectedTableData[0].id
   );
 }
 
@@ -432,34 +433,50 @@ async function loadQuestions() {
   try {
     spinnerLoad.style.display = 'block';
 
-    const url = '/admin/ajax.php?function=loadQuestions';
+    const url = '/admin/ajax.php?function=loadQuestionaires';
     const response = await fetchFromServer(url);
 
     if (response.error) showError(response.error);
     else {
-      tableData = response.questions;
-
-      let html = '';
-      for (const question of tableData) html += getQuestionTableRow(question);
-      document.getElementById('tableBody').innerHTML += html;
-
-      if ((tableData.length > 0) && (! selectedTableData)) selectTableRow(tableData[0].id);
+      tableData = [
+        response.questions,
+        response.questionaires,
+        [],
+        response.questions,
+      ];
     }
-
   } catch (error) {
     showError(error.message);
   } finally {
     spinnerLoad.style.display = 'none';
   }
+
+  let html = '';
+  for (const question of tableData[0]) html += getQuestionTableRow(question);
+  document.getElementById('tableBodyQuestions').innerHTML += html;
+  if (! selectedTableData[0]) selectFirstTableRow();
+
+  html = '';
+  for (const questionaire of tableData[1]) html += getQuestionaireTableRow(questionaire);
+  document.getElementById('tableBodyQuestionaires').innerHTML += html;
+  if ((tableData[1].length > 0) && (! selectedTableData[1])) selectTableRow(tableData[1][0].id, 1);
 }
 
 function getQuestionTableRow(question){
-  const activeText      = question.active? '✔' : '';
   const explanationText = question.explanation? question.explanation : '';
-  return `<tr id="tr${question.id}" draggable="true" ondragstart="onDragStartQuestion(event, ${question.id})" ondrop="onDropQuestion(event, ${question.id})" ondragenter="onDragEnter(event)" ondragleave="onDragLeave(event)" ondragover="onDragOver(event)" ondragend="onDragEndQuestion(event)">
+  return `<tr id="tr0_${question.id}" draggable="true" ondragstart="onDragRowStart(event, ${question.id})" ondrop="onDropQuestion(event, ${question.id}, 0, 'saveQuestionOrder')" ondragenter="onDragEnter(event)" ondragleave="onDragLeave(event)" ondragover="onDragOver(event)" ondragend="onDragRowQuestion(event)">
   <td>${question.id}</td>
   <td>${question.text}</td>
   <td>${explanationText}</td>
+</tr>`;
+}
+
+function getQuestionaireTableRow(questionaire){
+  const activeText = questionaire.active? '✔' : '';
+  return `<tr id="tr1_${questionaire.id}">
+  <td>${questionaire.id}</td>
+  <td>${questionaire.title}</td>
+  <td>${questionaireTypeToText(questionaire.type)}</td>
   <td style="text-align: center">${activeText}</td>
 </tr>`;
 }
@@ -468,26 +485,24 @@ function newQuestion() {
   document.getElementById('questionId').value           = null;
   document.getElementById('questionText').value         = '';
   document.getElementById('questionExplanation').value  = '';
-  document.getElementById('questionActive').checked     = true;
 
-  document.getElementById('headerQuestion').innerText   = 'New Question';
+  document.getElementById('headerQuestion').innerText   = 'New question';
   document.getElementById('formQuestion').style.display = 'flex';
   document.getElementById('questionText').focus();
 }
 
 function editQuestion() {
-  document.getElementById('questionId').value           = selectedTableData.id;
-  document.getElementById('questionText').value         = selectedTableData.text;
-  document.getElementById('questionExplanation').value  = selectedTableData.explanation;
-  document.getElementById('questionActive').checked     = selectedTableData.active;
+  document.getElementById('questionId').value           = selectedTableData[0].id;
+  document.getElementById('questionText').value         = selectedTableData[0].text;
+  document.getElementById('questionExplanation').value  = selectedTableData[0].explanation;
 
-  document.getElementById('headerQuestion').innerText   = 'Edit Question';
+  document.getElementById('headerQuestion').innerText   = 'Edit question';
   document.getElementById('formQuestion').style.display = 'flex';
   document.getElementById('questionText').focus();
 }
 
 async function saveQuestion() {
-  if (! selectedTableData) {
+  if (! selectedTableData[0]) {
     showError('No question selected');
     return;
   }
@@ -496,7 +511,6 @@ async function saveQuestion() {
     id:          document.getElementById('questionId').value,
     text:        document.getElementById('questionText').value.trim(),
     explanation: document.getElementById('questionExplanation').value.trim(),
-    active:      document.getElementById('questionActive').checked,
   };
 
   if (! serverData.text) {showError('Text field is empty'); return;}
@@ -511,15 +525,15 @@ async function saveQuestion() {
 }
 
 function deleteQuestion() {
-  if (! selectedTableData) {
+  if (! selectedTableData[0]) {
     showError('No question selected');
     return;
   }
 
-  confirmWarning(`Delete crash question "${selectedTableData.id}"?<br><b>Think twice. It deletes the question and all answers!</b>`,
+  confirmWarning(`Delete crash question "${selectedTableData[0].id}"?<br><b>Think twice. It deletes the question and all answers!</b>`,
     async () => {
       const serverData = {
-        id: selectedTableData.id,
+        id: selectedTableData[0].id,
       };
 
       const url      = '/admin/ajax.php?function=deleteQuestion';
@@ -527,55 +541,206 @@ function deleteQuestion() {
 
       if (response.error) showError(response.error);
       else if (response.ok) {
-        document.getElementById('tr' + serverData.id).remove();
-        selectedTableData = null;
-        tableData         = tableData.filter(d => d.id !== serverData.id);
+        document.getElementById('tr0_' + serverData.id).remove();
+        selectedTableData[0] = null;
+        tableData[0]         = tableData[0].filter(d => d.id !== serverData.id);
         showMessage(translate('Deleted'), 1);
 
-        if (tableData.length > 0) selectTableRow(tableData[0].id);
+        selectFirstTableRow();
       }
     },
-    `Delete question id ${selectedTableData.id} and all answers`
+    `Delete question id ${selectedTableData[0].id} and all answers`
   );
 }
 
-function onDragStartQuestion(event, id){
-  const dragData = {id: id, trId: event.target.id};
-  event.dataTransfer.setData("text/plain", JSON.stringify(dragData));
-  event.target.classList.add('dragged');
+function newQuestionaire() {
+  document.getElementById('questionaireId').value            = null;
+  document.getElementById('questionaireTitle').value         = null;
+  document.getElementById('questionaireType').value          = null;
+  document.getElementById('questionaireActive').checked      = false;
+  document.getElementById('questionaireQuestions').innerHTML = '';
 
-  document.getElementById('table_questions').classList.add('tableDragging');
+  document.getElementById('headerQuestionaire').innerText   = 'New questionaire';
+  document.getElementById('formQuestionaire').style.display = 'flex';
+  document.getElementById('questionaireTitle').focus();
 }
 
-function onDropQuestion(event, id){
+function getQuestionaireQuestionRow(question) {
+return `<tr id="tr2_${question.id}" draggable="true" ondragstart="onDragRowStart(event, ${question.id})" ondrop="onDropQuestion(event, ${question.id}, 2)" ondragenter="onDragEnter(event)" ondragleave="onDragLeave(event)" ondragover="onDragOver(event)" ondragend="onDragRowQuestion(event)"><td>${question.id}</td><td>${question.text}</td></tr>`;
+}
 
-  async function saveQuestionOrder(){
-    const questionIds = tableData.map(item => item.id);
-    const url           = '/admin/ajax.php?function=saveQuestionsOrder';
+function editQuestionaire() {
+  document.getElementById('questionaireId').value            = selectedTableData[1].id;
+  document.getElementById('questionaireTitle').value         = selectedTableData[1].title;
+  document.getElementById('questionaireType').value          = selectedTableData[1].type;
+  document.getElementById('questionaireActive').checked      = selectedTableData[1].active;
+  document.getElementById('questionaireQuestions').innerHTML = '⌛';
 
-    const response      = await fetchFromServer(url, questionIds);
+  document.getElementById('headerQuestionaire').innerText    = 'Edit questionaire';
+  document.getElementById('formQuestionaire').style.display  = 'flex';
+  document.getElementById('questionaireTitle').focus();
 
-    if (response.error) {
-      showError(response.error);
-      return;
+  getQuestions(selectedTableData[1].id).then(
+    response => {
+      tableData[2] = response.questions;
+      let html = '';
+      for (const question of response.questions) {
+        html += getQuestionaireQuestionRow(question);
+      }
+
+      if (html) html = `<table class="dataTable"><thead><th>Id</th><th>Question</th></thead><tbody id="tbodyQuestionnaireQuestions" onclick="tableDataClick(event, 2);">${html}</tbody></table>`;
+      else      html = '<div>No questions found</div>';
+
+      document.getElementById('questionaireQuestions').innerHTML = html;
+
+      if (! selectedTableData[2]) selectFirstTableRow(2);
     }
+  );
+}
 
-    showMessage('Questions order saved', 1);
+async function addQuestionToQuestionnaire() {
+  document.getElementById('formAddQuestion').style.display = 'flex';
+
+  const newQuestions     = tableData[0];
+  const currentQuestions = tableData[2];
+
+  let html = '';
+  for (const newQuestion of newQuestions) {
+    // Leave out already selected questions
+    if (currentQuestions.find(q => q.id === newQuestion.id)) continue;
+
+    html += `<tr id="tr3_${newQuestion.id}"><td>${newQuestion.id}</td><td>${newQuestion.text}</td></tr>`;
   }
 
-  const dragData    = JSON.parse(event.dataTransfer.getData("text/plain"));
-  const sourceIndex = tableData.findIndex(i => i.id === dragData.id);
-  const targetIndex = tableData.findIndex(i => i.id === id);
+  if (html) html = `<table class="dataTable"><thead><th>Id</th><th>Question</th></thead><tbody onclick="tableDataClick(event, 3);" ondblclick="selectQuestionToQuestionnaire();">${html}</tbody></table>`;
+  else      html = '<div>No questions found</div>';
 
-  tableData.move(sourceIndex, targetIndex);
+  document.getElementById('addQuestionQuestions').innerHTML = html;
+}
+
+async function removeQuestionFromQuestionnaire() {
+  const question = selectedTableData[2];
+  if (! question) {
+    showError('No question selected');
+    return;
+  }
+
+  confirmWarning(`Remove question?<br></br>${question.id}: ${question.text}`, () => {
+    tableData[2] = tableData[2].filter(q => q.id !== question.id);
+    document.getElementById('tr2_' + question.id).remove();
+    selectFirstTableRow(2);
+  });
+}
+
+async function selectQuestionToQuestionnaire() {
+  const newQuestion = selectedTableData[3];
+
+  tableData[2].push(newQuestion);
+
+  const html = getQuestionaireQuestionRow(newQuestion);
+  document.getElementById('tbodyQuestionnaireQuestions').insertAdjacentHTML("beforeend", html);
+
+  closePopupForm();
+}
+
+async function saveQuestionnaire() {
+  if (! selectedTableData[1]) {
+    showError('No questionaire selected');
+    return;
+  }
+
+  const questionIds = tableData[2].map(item => item.id);
+
+  const serverData = {
+    id:          parseInt(document.getElementById('questionaireId').value),
+    title:       document.getElementById('questionaireTitle').value.trim(),
+    type:        parseInt(document.getElementById('questionaireType').value),
+    active:      document.getElementById('questionaireActive').checked,
+    questionIds: questionIds,
+  };
+
+  if (! serverData.title)       {showError('Title field is empty'); return;}
+  if (serverData.type === null) {showError('Type is not selected'); return;}
+
+  const url      = '/admin/ajax.php?function=savequestionnaire';
+  const response = await fetchFromServer(url, serverData);
+
+  if (response.error) showError(response.error);
+  else if (response.ok) {
+    location.reload();
+  }
+}
+
+function deleteQuestionaire() {
+  if (! selectedTableData[1]) {
+    showError('No questionaire selected');
+    return;
+  }
+
+  confirmWarning(`Delete questionaire ${selectedTableData[1].id} - "${selectedTableData[1].title}"?`, () => {
+      confirmWarning(`To be sure I am asking one last time:<br><br>Delete questionaire ${selectedTableData[1].id} - "${selectedTableData[1].title}"?`,
+        async () => {
+          const serverData = {
+            id: selectedTableData[1].id,
+          };
+
+          const url      = '/admin/ajax.php?function=deleteQuestionaire';
+          const response = await fetchFromServer(url, serverData);
+
+          if (response.error) showError(response.error);
+          else if (response.ok) {
+            document.getElementById('tr1_' + serverData.id).remove();
+            selectedTableData[1] = null;
+            tableData[1]         = tableData[1].filter(d => d.id !== serverData.id);
+            showMessage('Questionaire deleted', 1);
+
+            selectFirstTableRow(1);
+          }
+        },
+        `Yes I really want to delete this questionaire`
+      );
+    },
+    `Delete questionaire id ${selectedTableData[1].id}`);
+}
+
+function onDragRowStart(event, id){
+  const row = event.target;
+  const dragData = {id: id, trId: row.id};
+  event.dataTransfer.setData("text/plain", JSON.stringify(dragData));
+  row.classList.add('dragged');
+
+  const table = row.closest('table');
+  table.classList.add('tableDragging');
+}
+
+async function saveQuestionOrder(){
+  const questionIds = tableData[0].map(item => item.id);
+  const url         = '/admin/ajax.php?function=saveQuestionsOrder';
+  const response    = await fetchFromServer(url, questionIds);
+
+  if (response.error) {
+    showError(response.error);
+    return;
+  }
+
+  showMessage('Questions order saved', 1);
+}
+
+function onDropQuestion(event, id, tableIndex, saveFunctionName=''){
+  const dragData    = JSON.parse(event.dataTransfer.getData("text/plain"));
+  const sourceIndex = tableData[tableIndex].findIndex(i => i.id === dragData.id);
+  const targetIndex = tableData[tableIndex].findIndex(i => i.id === id);
+
+  tableData[tableIndex].move(sourceIndex, targetIndex);
 
   const insertAfter = sourceIndex < targetIndex;
   onDropRow(event, dragData.trId, insertAfter);
 
-  saveQuestionOrder();
+  if (saveFunctionName) window[saveFunctionName]();
 }
 
-function onDragEndQuestion(event) {
-  document.getElementById('table_questions').classList.remove('tableDragging');
+function onDragRowQuestion(event) {
+  const table = event.target.closest('table');
+  table.classList.remove('tableDragging');
   onDragEnd(event);
 }

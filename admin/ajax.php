@@ -2,8 +2,9 @@
 
 header('Content-Type: application/json; charset=utf-8');
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+ini_set('display_errors', 0);
+//ini_set('display_errors', 1);
+//error_reporting(E_ALL);
 
 require_once '../initialize.php';
 
@@ -192,23 +193,32 @@ SQL;
   }
   echo json_encode($result);
 } // ====================
-else if ($function === 'loadQuestions') {
+else if ($function === 'loadQuestionaires') {
   try{
-    $data = json_decode(file_get_contents('php://input'));
+
+    $sql = <<<SQL
+SELECT 
+  id,
+  title, 
+  type,
+  active
+FROM questionnaires;
+SQL;
+
+    $questionaires = $database->fetchAll($sql);
 
     $sql = <<<SQL
 SELECT 
   id,
   text, 
-  explanation, 
-  active 
+  explanation 
 FROM questions 
 ORDER BY question_order;
 SQL;
 
-    $texts = $database->fetchAll($sql);
+    $questions = $database->fetchAll($sql);
 
-    $result = ['ok' => true, 'questions' => $texts];
+    $result = ['ok' => true, 'questionaires' => $questionaires, 'questions' => $questions];
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
@@ -218,31 +228,26 @@ else if ($function === 'saveQuestion') {
   try{
     $question = json_decode(file_get_contents('php://input'));
 
-    $isNewCrash = (empty($question->id));
-
-    if ($isNewCrash) {
-      $sql = "INSERT INTO questions (text, explanation, active) VALUES (:text, :explanation, :active);";
+    $isNew = (empty($question->id));
+    if ($isNew) {
+      $sql = "INSERT INTO questions (text, explanation) VALUES (:text, :explanation);";
 
       $params = [
         ':text'        => $question->text,
         ':explanation' => $question->explanation,
-        ':active'      => $question->active,
       ];
       $dbResult = $database->execute($sql, $params);
       $question->id = (int)$database->lastInsertID();
     } else {
-      $sql = "UPDATE questions SET text=:text, explanation=:explanation, active=:active WHERE id=:id;";
+      $sql = "UPDATE questions SET text=:text, explanation=:explanation WHERE id=:id;";
 
       $params = [
         ':id'          => $question->id,
         ':text'        => $question->text,
         ':explanation' => $question->explanation,
-        ':active'      => $question->active,
       ];
       $dbResult = $database->execute($sql, $params);
     }
-
-    $texts = $database->fetchAll($sql);
 
     $result = ['ok' => true, 'id' => $question->id];
   } catch (Exception $e){
@@ -253,6 +258,17 @@ else if ($function === 'saveQuestion') {
 else if ($function === 'deleteQuestion') {
   try{
     $question = json_decode(file_get_contents('php://input'));
+
+    $sql = "SELECT questionnaire_id FROM questionnaire_questions WHERE question_id=:question_id;";
+    $params = [':question_id' => $question->id];
+    $dbIds = $database->fetchAll($sql, $params);
+    $ids = [];
+    foreach ($dbIds as $dbId) $ids[] = $dbId['questionnaire_id'];
+
+    if (count($ids) > 0) {
+      $idsString = implode(", ", $ids);
+      throw new Exception('Cannot delete question. Question is still use in questionnaires: ' . $idsString);
+    }
 
     $sql = "DELETE FROM questions WHERE id=:id;";
 
@@ -282,3 +298,66 @@ else if ($function === 'saveQuestionsOrder') {
   }
   echo json_encode($result);
 } // ====================
+else if ($function === 'savequestionnaire') {
+  try{
+    $questionnaire = json_decode(file_get_contents('php://input'));
+
+    $isNew = (empty($questionnaire->id));
+    if ($isNew) {
+      $sql = "INSERT INTO questionnaires (title, type, active) VALUES (:title, :type, :active);";
+
+      $params = [
+        ':title'  => $questionnaire->title,
+        ':type'   => $questionnaire->type,
+        ':active' => $questionnaire->active,
+      ];
+      $dbResult = $database->execute($sql, $params);
+      $questionnaire->id = (int)$database->lastInsertID();
+    } else {
+      $sql = "UPDATE questionnaires SET title=:title, type=:type, active=:active WHERE id=:id;";
+
+      $params = [
+        ':id'     => $questionnaire->id,
+        ':title'  => $questionnaire->title,
+        ':type'   => $questionnaire->type,
+        ':active' => $questionnaire->active,
+      ];
+      $dbResult = $database->execute($sql, $params);
+    }
+
+    // Save questionnaire questions
+    $sql = "DELETE FROM questionnaire_questions WHERE questionnaire_id=:questionnaire_id;";
+    $params = [':questionnaire_id' => $questionnaire->id];
+    $database->execute($sql, $params);
+
+    $sql = "INSERT INTO questionnaire_questions (questionnaire_id, question_id, question_order) VALUES (:questionnaire_id, :question_id, :question_order);";
+    $statement = $database->prepare($sql);
+    $order = 1;
+    foreach ($questionnaire->questionIds as $questionId){
+      $params = [':questionnaire_id' => $questionnaire->id, ':question_id' => $questionId, ':question_order' => $order];
+      $database->executePrepared($params, $statement);
+      $order += 1;
+    }
+
+    $result = ['ok' => true, 'id' => $questionnaire->id];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} // ====================
+else if ($function === 'deleteQuestionaire') {
+  try{
+    $questionnaire = json_decode(file_get_contents('php://input'));
+
+    $sql    = "DELETE FROM questionnaires WHERE id=:id;";
+    $params = [':id' => $questionnaire->id];
+    $dbResult = $database->execute($sql, $params);
+
+    $result = ['ok' => true];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} // ====================
+else echo json_encode(['ok' => false, 'error' => 'Function not found']);
+

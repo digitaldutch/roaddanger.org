@@ -207,31 +207,54 @@ HTML;
     $htmlEnd = getFormNewTranslation();
   } else if ($pageType === PageType::questions) {
 
-    $texts = translateArray(['Article_questions', 'Admin', 'Id', 'New', 'Edit', 'Delete', 'Save', 'Cancel', 'Sort_questions']);
+    $texts = translateArray(['Questionnaires', 'Admin', 'Id', 'New', 'Edit', 'Delete', 'Save', 'Cancel', 'Sort_questions']);
 
     $mainHTML = <<<HTML
-<div id="main" class="pageInner scrollPage" style="max-width: fit-content;">
-  <div class="pageSubTitle">{$texts['Admin']} - {$texts['Article_questions']}</div>
+<div id="main" class="scrollPage" style="padding: 5px;">
 
-
-  <div style="margin-bottom: 5px;">
-    <button class="button" onclick="newQuestion();" data-inline-admin>{$texts['New']}</button>
-    <button class="button" onclick="editQuestion();" data-inline-admin>{$texts['Edit']}</button>
-    <button class="button buttonRed" onclick="deleteQuestion();" data-inline-admin>{$texts['Delete']}</button>
+  <div class="tabBar" onclick="tabBarClick();">
+    <div id="tab_questionaires" class="tabSelected">Questionaires</div>
+    <div id="tab_questions">Questions</div>
   </div>
-  <div class="smallFont" style="margin: 0 0 5px 5px;">Sort questions with drag and drop.</div>
 
-  <div class="panelTableOverflow">
-    <table id="table_questions" class="dataTable" style="min-width: 500px;">
+  <div class="tabContent" id="tabContent_questionaires">
+
+    <div style="margin-bottom: 5px;">
+      <button class="button" onclick="newQuestionaire();" data-inline-admin>{$texts['New']}</button>
+      <button class="button" onclick="editQuestionaire();" data-inline-admin>{$texts['Edit']}</button>
+      <button class="button buttonRed" onclick="deleteQuestionaire();" data-inline-admin>{$texts['Delete']}</button>
+    </div>
+  
+    <table id="table_questionaires" class="dataTable" style="min-width: 500px;">
       <thead>
-        <tr><th>Id</th><th>Question</th><th>Explanation</th><th>Active</th></tr>
+        <tr><th>Id</th><th>Title</th><th>Type</th><th>Active</th></tr>
       </thead>
-      <tbody id="tableBody" onclick="tableDataClick(event);" ondblclick="editQuestion();">    
+      <tbody id="tableBodyQuestionaires" onclick="tableDataClick(event, 1);" ondblclick="editQuestionaire();">    
      </tbody>
     </table>  
+    
+    <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
   </div>
+
+  <div class="tabContent" id="tabContent_questions" style="display: none;">
+    <div style="margin-bottom: 5px;">
+      <button class="button" onclick="newQuestion();" data-inline-admin>{$texts['New']}</button>
+      <button class="button" onclick="editQuestion();" data-inline-admin>{$texts['Edit']}</button>
+      <button class="button buttonRed" onclick="deleteQuestion();" data-inline-admin>{$texts['Delete']}</button>
+    </div>
+    <div class="smallFont" style="margin: 0 0 5px 5px;">Sort questions with drag and drop.</div>
   
-  <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
+    <table id="table_questions" class="dataTable" style="min-width: 500px;">
+      <thead>
+        <tr><th>Id</th><th>Question</th><th>Explanation</th></tr>
+      </thead>
+      <tbody id="tableBodyQuestions" onclick="tableDataClick(event);" ondblclick="editQuestion();">    
+     </tbody>
+    </table>  
+    
+    <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
+  </div>
+
 </div>
 
 <div id="formQuestion" class="popupOuter">
@@ -250,11 +273,65 @@ HTML;
     <label for="questionExplanation">Explanation</label>
     <input id="questionExplanation" class="popupInput" type="text" maxlength="200">
        
-    <label><input id="questionActive" type="checkbox">Active</label>
+    <div class="popupFooter">
+      <input type="submit" class="button" style="margin-left: 0;" value="{$texts['Save']}">
+      <input type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">
+    </div>
+    
+  </form>
+</div>
+
+<div id="formQuestionaire" class="popupOuter">
+  <form class="formFullPage" onclick="event.stopPropagation();" onsubmit="saveQuestionnaire(); return false;">
+
+    <div id="headerQuestionaire" class="popupHeader"></div>
+    <div class="popupCloseCross" onclick="closePopupForm();"></div>
+    
+    <div id="spinnerLogin" class="spinner"></div>
+       
+    <input id="questionaireId" type="hidden">
+
+    <label for="questionaireTitle">Title</label>
+    <input id="questionaireTitle" class="popupInput" type="text" maxlength="100">
+       
+    <label for="questionaireType">Type</label>
+    <select id="questionaireType">
+      <option value="0">Standard</option>
+      <option value="1">Bechdel test</option>
+    </select>    
+       
+    <label><input id="questionaireActive" type="checkbox">Active</label>
+
+    <div class="formSubHeader">Questions</div> 
+    
+    <div>
+      <div class="menuButton bgAdd" onclick="addQuestionToQuestionnaire();"></div>
+      <div class="menuButton bgRemove" onclick="removeQuestionFromQuestionnaire();"></div>
+    </div>
+
+    <div class="smallFont" style="margin: 0 0 5px 5px;">Sort questions with drag and drop.</div>
+
+    <div id="questionaireQuestions">No questions selected</div>
 
     <div class="popupFooter">
       <input type="submit" class="button" style="margin-left: 0;" value="{$texts['Save']}">
       <input type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">
+    </div>
+    
+  </form>
+</div>
+
+<div id="formAddQuestion" class="popupOuter">
+  <form class="formFullPage" onclick="event.stopPropagation();" onsubmit="selectQuestionToQuestionnaire(); return false;">
+
+    <div id="headerQuestion" class="popupHeader">Add question to questionnaire</div>
+    <div class="popupCloseCross" onclick="closePopupForm();"></div>
+    
+    <div id="addQuestionQuestions"></div>
+       
+    <div class="popupFooter">
+      <input type="submit" class="button" style="margin-left: 0;" value="Add">
+      <input type="button" class="button buttonGray" value="Cancel" onclick="closePopupForm();">
     </div>
     
   </form>

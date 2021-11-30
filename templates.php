@@ -24,7 +24,7 @@ HTML;
 
   $buttons = '';
   if ($addSearchBar)  $buttons .= '<div id="buttonSearch" class="menuButton bgSearch" onclick="toggleSearchBar(event);"></div>';
-  if ($showButtonAdd) $buttons .= '<div id="buttonNewCrash" style="display: none;" class="menuButton buttonAdd" onclick="showNewCrashForm();"></div>';
+  if ($showButtonAdd) $buttons .= '<div id="buttonNewCrash" style="display: none;" class="menuButton bgAdd" onclick="showNewCrashForm();"></div>';
 
   global $database;
   global $user;
@@ -168,7 +168,7 @@ HTML;
 
 function getHTMLEnd($htmlEnd=''){
   $forms    = getHTMLConfirm() . getLoginForm() . getFormCrash() . getFormEditCrash() . getFormMergeCrash() .
-    getFormEditPerson() . getFormQuestions();
+    getFormEditPerson() . getFormQuestionnaires();
   return <<<HTML
 </div>
     $htmlEnd 
@@ -215,7 +215,7 @@ function getNavigation(){
   $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
     'Child_deaths', 'Mosaic', 'The_correspondent_week', 'Map', 'The_crashes', 'General', 'deadly_crashpartners',
     'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
-    'Version', 'Article_questions', 'Reporting_experiences', 'Reseach']);
+    'Version', 'Questionnaires', 'Reporting_experiences', 'Reseach']);
 
   return <<<HTML
 <div id="navShadow" class="navShadow" onclick="closeNavigation()"></div>
@@ -228,29 +228,29 @@ function getNavigation(){
   
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Crashes']}</div>
-      <a href="/" class="navItem">{$texts['Recent_crashes']}</a>
-      <a href="/kinddoden" class="navItem">{$texts['Child_deaths']}</a>
-      <a href="/mozaiek" class="navItem">{$texts['Mosaic']}</a>
+      <a id="nav_recent_crashes" href="/" class="navItem">{$texts['Recent_crashes']}</a>
+      <a href="/child_deaths" class="navItem">{$texts['Child_deaths']}</a>
+      <a href="/mosaic" class="navItem">{$texts['Mosaic']}</a>
       <a href="/decorrespondent" class="navItem">{$texts['The_correspondent_week']}</a>
       <a href="/map" class="navItem">{$texts['Map']}</a>
     </div>
 
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Statistics']}</div>
-      <a href="/statistieken/andere_partij" class="navItem">{$texts['Counterparty_in_crashes']}</a>
-      <a href="/statistieken/vervoertypes" class="navItem">{$texts['Transportation_modes']}</a>
-      <a href="/statistieken/algemeen" class="navItem">{$texts['General']}</a>
+      <a href="/statistics/counterparty" class="navItem">{$texts['Counterparty_in_crashes']}</a>
+      <a href="/statistics/transportation_modes" class="navItem">{$texts['Transportation_modes']}</a>
+      <a href="/statistics/general" class="navItem">{$texts['General']}</a>
     </div>
 
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Reseach']}</div>
       <a href="/reporting_experiences/" class="navItem">{$texts['Reporting_experiences']}</a>
-      <a href="/admin/questions/" class="navItem" data-admin>{$texts['Article_questions']}</a>
+      <a href="/admin/questions/" class="navItem" data-admin>{$texts['Questionnaires']}</a>
     </div>
 
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Other']}</div>
-      <a href="/exporteren/" class="navItem">{$texts['Export_data']}</a>
+      <a href="/export/" class="navItem">{$texts['Export_data']}</a>
       <a href="/aboutthissite/" class="navItem">{$texts['About_this_site']}</a>
     </div>
 
@@ -259,7 +259,7 @@ function getNavigation(){
   
       <div class="navigationSection">
         <a href="/admin/humans" class="navItem" data-admin>{$texts['Humans']}</a>
-        <a href="/moderaties/" class="navItem">{$texts['Moderations']}</a>
+        <a href="/moderations/" class="navItem">{$texts['Moderations']}</a>
         <a href="/admin/translations/" class="navItem" data-moderator>{$texts['Translations']}</a>
         <a href="/admin/longtexts/" class="navItem" data-moderator>{$texts['Long_texts']}</a>
         <a href="/stream" class="navItem">{$texts['Last_modified_crashes']}</a>
@@ -468,7 +468,7 @@ function getFormCrash(){
 HTML;
 }
 
-function getFormQuestions(){
+function getFormQuestionnaires(){
   return <<<HTML
 <div id="formQuestions" class="popupOuter" onclick="closePopupForm();">
 
@@ -479,7 +479,6 @@ function getFormQuestions(){
     <div class="popupHeader">Article questions</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
     
-    <div class="sectionHeader">Questions</div>
     <div id="articleQuestions" class="flexColumn">Loading...</div>
     
     <div class="sectionHeader">Crash</div>

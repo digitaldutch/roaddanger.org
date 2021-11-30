@@ -1,6 +1,6 @@
 # thecrashes.org
 
-A database for news reports about traffic crashes in the Netherlands.
+A database for news reports about traffic crashes around the world.
 
 Website: [thecrashes.org](https://www.thecrashes.org)
 
@@ -11,7 +11,7 @@ Website: [thecrashes.org](https://www.thecrashes.org)
 ### Installation ###
 * Put all files on a webserver with PHP support. 
 * Import de database on a MySQL/MariaDB server with full text search capability. The database creation script is located in
-[admin/createdatabase.sql](beheer/createdatabase.sql)
+[admin/createdatabase.sql](admin/createdatabase.sql)
 * Read the [config.php](config.php) file. It tells you to create a `configsecret.php` file with your database connection info. Never check this one into git.
 ```PHP
 <?php

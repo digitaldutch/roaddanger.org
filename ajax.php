@@ -1176,33 +1176,76 @@ else if ($function === 'saveAnswer') {
   }
   echo json_encode($result);
 } //==========
-else if ($function === 'getArticleQuestionsAndText'){
+else if ($function === 'getArticleQuestionnairesAndText'){
   try{
 
     if (! $user->isModerator())  throw new Exception('Only moderators can edit article questions');
 
     $articleId = (int)$_REQUEST['id'];
-    if ($articleId > 0){
-      $params = [':id' => $articleId];
+    if ($articleId <= 0) throw new Exception('No article id found');
 
-      $sql  = "SELECT alltext FROM articles WHERE id=:id;";
-      $text = $database->fetchSingleValue($sql, $params);
-
-      $sql  = <<<SQL
+    $sql = <<<SQL
 SELECT
-  q.id,
-  q.text,
-  q.explanation,
-  a.answer
-FROM questions q
-LEFT JOIN answers a ON q.id = a.questionid AND articleid=:articleId
-WHERE active=TRUE
-ORDER BY q.question_order;
+  id,
+  title,
+  type
+FROM questionnaires
+WHERE active = 1
+ORDER BY id;
 SQL;
 
-      $questions = $database->fetchAll($sql, ['articleId' => $articleId]);
+    $questionnaires = $database->fetchAll($sql);
+
+    $sql = <<<SQL
+SELECT
+q.id,
+q.text,
+q.explanation,
+a.answer
+FROM questionnaire_questions qq
+  LEFT JOIN questions q ON q.id = qq.question_id
+  LEFT JOIN answers a ON q.id = a.questionid AND articleid=:articleId
+WHERE qq.questionnaire_id = :questionnaire_id
+ORDER BY qq.question_order;
+SQL;
+
+    $statementQuestions = $database->prepare($sql);
+    $questionnaire['questions'] = [];
+    foreach ($questionnaires as &$questionnaire) {
+      $params = [':articleId' => $articleId, 'questionnaire_id' => $questionnaire['id']];
+      $questionnaire['questions'] = $database->fetchAllPrepared($statementQuestions, $params);
     }
-    $result = ['ok' => true, 'text' => $text, 'questions' => $questions];
+
+    $sql = "SELECT alltext FROM articles WHERE id=:id;";
+    $params = [':id' => $articleId];
+    $articleText = $database->fetchSingleValue($sql, $params);
+
+    $result = ['ok' => true, 'text' => $articleText, 'questionnaires' => $questionnaires];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} //==========
+else if ($function === 'getQuestions'){
+  try {
+    if (! $user->admin) throw new Exception('Admins only');
+
+    $questionnaireId = (int)$_REQUEST['questionnaireId'];
+
+    $sql = <<<SQL
+SELECT
+  q.id,
+  q.text
+FROM questionnaire_questions qq
+LEFT JOIN questions q ON qq.question_id = q.id
+WHERE qq.questionnaire_id = :questionnaireId
+ORDER BY qq.question_order;
+SQL;
+
+    $params = [':questionnaireId' => $questionnaireId];
+    $questions = $database->fetchAll($sql, $params);
+
+    $result = ['ok' => true, 'questions' => $questions];
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
