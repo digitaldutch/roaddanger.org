@@ -7,10 +7,10 @@ global $user;
 global $VERSION;
 
 $uri = urldecode($_SERVER['REQUEST_URI']);
-if      (strpos($uri, '/admin/humans')       === 0) $pageType = PageType::humans;
-else if (strpos($uri, '/admin/translations') === 0) $pageType = PageType::translations;
-else if (strpos($uri, '/admin/longtexts')    === 0) $pageType = PageType::longTexts;
-else if (strpos($uri, '/admin/questions')    === 0) $pageType = PageType::questions;
+if      (strpos($uri, '/admin/humans')         === 0) $pageType = PageType::humans;
+else if (strpos($uri, '/admin/translations')   === 0) $pageType = PageType::translations;
+else if (strpos($uri, '/admin/longtexts')      === 0) $pageType = PageType::longTexts;
+else if (strpos($uri, '/admin/questionnaires') === 0) $pageType = PageType::questions;
 else die('Internal error: Unknown page type');
 
 function htmlNoAdmin(){
