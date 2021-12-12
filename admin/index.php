@@ -209,6 +209,12 @@ HTML;
 
     $texts = translateArray(['Questionnaires', 'Admin', 'Id', 'New', 'Edit', 'Delete', 'Save', 'Cancel', 'Sort_questions']);
 
+    // Add countries
+    $countryOptions = '';
+    foreach ($database->countries as $country) {
+      $countryOptions .= "<option value='{$country['id']}'>{$country['name']}</option>";
+    }
+
     $mainHTML = <<<HTML
 <div id="main" class="scrollPage" style="padding: 5px;">
 
@@ -227,7 +233,7 @@ HTML;
   
     <table id="table_questionaires" class="dataTable" style="min-width: 500px;">
       <thead>
-        <tr><th>Id</th><th>Title</th><th>Type</th><th>Active</th></tr>
+        <tr><th>Id</th><th>Title</th><th>Type</th><th>Country ID</th><th>Active</th></tr>
       </thead>
       <tbody id="tableBodyQuestionaires" onclick="tableDataClick(event, 1);" ondblclick="editQuestionaire();">    
      </tbody>
@@ -300,6 +306,9 @@ HTML;
       <option value="1">Bechdel test</option>
     </select>    
        
+    <label for="questionaireCountryId">Country</label>
+    <select id="questionaireCountryId">$countryOptions</select>    
+
     <label><input id="questionaireActive" type="checkbox">Active</label>
 
     <div class="formSubHeader">Questions</div> 

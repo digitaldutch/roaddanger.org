@@ -201,6 +201,7 @@ SELECT
   id,
   title, 
   type,
+  country_id,
   active
 FROM questionnaires;
 SQL;
@@ -304,23 +305,25 @@ else if ($function === 'savequestionnaire') {
 
     $isNew = (empty($questionnaire->id));
     if ($isNew) {
-      $sql = "INSERT INTO questionnaires (title, type, active) VALUES (:title, :type, :active);";
+      $sql = "INSERT INTO questionnaires (title, type, country_id, active) VALUES (:title, :type, :country_id, :active);";
 
       $params = [
-        ':title'  => $questionnaire->title,
-        ':type'   => $questionnaire->type,
-        ':active' => $questionnaire->active,
+        ':title'      => $questionnaire->title,
+        ':type'       => $questionnaire->type,
+        ':country_id' => $questionnaire->countryId,
+        ':active'     => $questionnaire->active,
       ];
       $dbResult = $database->execute($sql, $params);
       $questionnaire->id = (int)$database->lastInsertID();
     } else {
-      $sql = "UPDATE questionnaires SET title=:title, type=:type, active=:active WHERE id=:id;";
+      $sql = "UPDATE questionnaires SET title=:title, type=:type, country_id=:country_id, active=:active WHERE id=:id;";
 
       $params = [
-        ':id'     => $questionnaire->id,
-        ':title'  => $questionnaire->title,
-        ':type'   => $questionnaire->type,
-        ':active' => $questionnaire->active,
+        ':id'         => $questionnaire->id,
+        ':title'      => $questionnaire->title,
+        ':type'       => $questionnaire->type,
+        ':country_id' => $questionnaire->countryId,
+        ':active'     => $questionnaire->active,
       ];
       $dbResult = $database->execute($sql, $params);
     }

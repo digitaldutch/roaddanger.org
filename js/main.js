@@ -1516,7 +1516,7 @@ async function showQuestionsForm(crashId, articleId) {
   document.getElementById('articleQuestions').innerHTML  = '⌛';
   document.getElementById('formQuestions').style.display = 'flex';
 
-  getArticleQuestionnaires(article.id).then(
+  getArticleQuestionnaires(crash.countryid, article.id).then(
     article => {
       let html = '';
       for (const questionnaire of article.questionnaires) {
@@ -1598,9 +1598,9 @@ async function getArticleText(articleId) {
   else return response.text;
 }
 
-async function getArticleQuestionnaires(articleId) {
-  const url      = '/ajax.php?function=getArticleQuestionnairesAndText&id=' + articleId;
-  const response = await fetchFromServer(url);
+async function getArticleQuestionnaires(crashCountryId, articleId) {
+  const url      = '/ajax.php?function=getArticleQuestionnairesAndText';
+  const response = await fetchFromServer(url, {crashCountryId: crashCountryId, articleId: articleId});
 
   if (response.error) showError(response.error, 10);
   else return response;

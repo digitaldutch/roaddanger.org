@@ -1181,16 +1181,26 @@ else if ($function === 'getArticleQuestionnairesAndText'){
 
     if (! $user->isModerator())  throw new Exception('Only moderators can edit article questions');
 
-    $articleId = (int)$_REQUEST['id'];
-    if ($articleId <= 0) throw new Exception('No article id found');
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    if (! isset($data['crashCountryId'])) throw new Exception('No crashCountryId found');
+    if ($data['articleId'] <= 0) throw new Exception('No article id found');
+
+    if ($data['crashCountryId'] === 'UN') {
+      $whereCountry = " ";
+    } else {
+      $whereCountry = " AND country_id IN ('UN', '" . $data['crashCountryId'] . "') ";
+    }
 
     $sql = <<<SQL
 SELECT
   id,
   title,
+  country_id,
   type
 FROM questionnaires
 WHERE active = 1
+  $whereCountry
 ORDER BY id;
 SQL;
 
@@ -1212,12 +1222,12 @@ SQL;
     $statementQuestions = $database->prepare($sql);
     $questionnaire['questions'] = [];
     foreach ($questionnaires as &$questionnaire) {
-      $params = [':articleId' => $articleId, 'questionnaire_id' => $questionnaire['id']];
+      $params = [':articleId' => $data['articleId'], 'questionnaire_id' => $questionnaire['id']];
       $questionnaire['questions'] = $database->fetchAllPrepared($statementQuestions, $params);
     }
 
     $sql = "SELECT alltext FROM articles WHERE id=:id;";
-    $params = [':id' => $articleId];
+    $params = [':id' => $data['articleId']];
     $articleText = $database->fetchSingleValue($sql, $params);
 
     $result = ['ok' => true, 'text' => $articleText, 'questionnaires' => $questionnaires];

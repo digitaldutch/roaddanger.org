@@ -477,6 +477,7 @@ function getQuestionaireTableRow(questionaire){
   <td>${questionaire.id}</td>
   <td>${questionaire.title}</td>
   <td>${questionaireTypeToText(questionaire.type)}</td>
+  <td>${questionaire.country_id}</td>
   <td style="text-align: center">${activeText}</td>
 </tr>`;
 }
@@ -557,6 +558,7 @@ function newQuestionaire() {
   document.getElementById('questionaireId').value            = null;
   document.getElementById('questionaireTitle').value         = null;
   document.getElementById('questionaireType').value          = null;
+  document.getElementById('questionaireCountryId').value     = null;
   document.getElementById('questionaireActive').checked      = false;
   document.getElementById('questionaireQuestions').innerHTML = '';
 
@@ -573,6 +575,7 @@ function editQuestionaire() {
   document.getElementById('questionaireId').value            = selectedTableData[1].id;
   document.getElementById('questionaireTitle').value         = selectedTableData[1].title;
   document.getElementById('questionaireType').value          = selectedTableData[1].type;
+  document.getElementById('questionaireCountryId').value     = selectedTableData[1].country_id;
   document.getElementById('questionaireActive').checked      = selectedTableData[1].active;
   document.getElementById('questionaireQuestions').innerHTML = '⌛';
 
@@ -655,12 +658,14 @@ async function saveQuestionnaire() {
     id:          parseInt(document.getElementById('questionaireId').value),
     title:       document.getElementById('questionaireTitle').value.trim(),
     type:        parseInt(document.getElementById('questionaireType').value),
+    countryId:   document.getElementById('questionaireCountryId').value,
     active:      document.getElementById('questionaireActive').checked,
     questionIds: questionIds,
   };
 
   if (! serverData.title)       {showError('Title field is empty'); return;}
-  if (serverData.type === null) {showError('Type is not selected'); return;}
+  if (serverData.type === null) {showError('No type selected'); return;}
+  if (! serverData.countryId)   {showError('No country selected'); return;}
 
   const url      = '/admin/ajax.php?function=savequestionnaire';
   const response = await fetchFromServer(url, serverData);
