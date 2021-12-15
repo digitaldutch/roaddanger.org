@@ -362,5 +362,43 @@ else if ($function === 'deleteQuestionaire') {
   }
   echo json_encode($result);
 } // ====================
+else if ($function === 'loadQuestionnaireResults') {
+  try{
+    $data = json_decode(file_get_contents('php://input'));
+
+    $sql = <<<SQL
+SELECT
+  a.questionid AS id,
+  q.text,
+  a.answer,
+  count(a.answer) AS aantal
+FROM answers a
+LEFT JOIN questionnaire_questions qq ON qq.question_id = a.questionid
+LEFT JOIN questions q ON a.questionid = q.id
+WHERE qq.questionnaire_id=:questionnaire_id
+GROUP BY questionid, answer;
+SQL;
+
+    $params = [':questionnaire_id' => $data->questionnaireId];
+    $dbQuestions = $database->fetchAllGroup($sql, $params);
+
+    $questions = [];
+    foreach ($dbQuestions as $questionId => $dbQuestion) {
+      $questions[] = [
+        'question_id' => $questionId,
+        'question'    => $dbQuestion[0]['text'],
+        'no'          => $dbQuestion[0]['aantal'] ?? 0,
+        'yes'         => $dbQuestion[1]['aantal'] ?? 0,
+        'nd'          => $dbQuestion[2]['aantal'] ?? 0,
+      ];
+    }
+
+    $result = ['ok' => true, 'questions' => $questions];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+
+  echo json_encode($result);
+} // ====================
 else echo json_encode(['ok' => false, 'error' => 'Function not found']);
 

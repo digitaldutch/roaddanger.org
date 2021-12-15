@@ -68,7 +68,7 @@ function addHealthWhereSql(&$sqlWhere, &$joinPersonsTable, $filter){
 
 
 /**
- * @param TDatabase $database
+ * @param Database $database
  * @return array
  */
 function getStatsTransportation($database, $filter){
@@ -121,7 +121,7 @@ SQL;
 }
 
 /**c
- * @param TDatabase $database
+ * @param Database $database
  * @param $filter
  * @return array
  */
@@ -221,7 +221,7 @@ SQL;
 
 
 /**
- * @param TDatabase $database
+ * @param Database $database
  * @return array
  */
 function getStatsDatabase($database){
@@ -287,10 +287,10 @@ function getStatsDatabase($database){
 }
 
 /**
- * @param TDatabase $database
+ * @param Database $database
  * @param string $url
- * @throws Exception
  * @return array | false
+ *@throws Exception
  */
 function urlExists($database, $url){
   $sql = "SELECT id, crashid FROM articles WHERE url=:url LIMIT 1;";
@@ -306,7 +306,7 @@ function urlExists($database, $url){
 }
 
 /**
- * @param TDatabase $database
+ * @param Database $database
  * @param integer $crashId
  * @param integer $userId
  * @param integer $streamTopType unknown: 0, edited: 1, articleAdded: 2, placedOnTop: 3

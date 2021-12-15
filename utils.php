@@ -16,7 +16,8 @@ abstract class PageType {
   const translations                  = 12;
   const longTexts                     = 13;
   const humans                        = 14;
-  const questions                     = 15;
+  const questionnaireOptions          = 15;
+  const questionnaireResults          = 16;
 }
 
 function translate($key){

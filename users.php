@@ -10,7 +10,7 @@ abstract class TUserPermission {
 }
 
 class TUser{
-  /** @var  TDatabase */
+  /** @var  Database */
   private $database;
   public $id;
   public $loggedIn = false;
@@ -275,7 +275,7 @@ SQL;
     $this->database->execute($sql, $params);
     $userId = $this->database->lastInsertID();
 
-    $this->database->log($userId, TLogLevel::info, "Nieuw mens registratie.");
+    $this->database->log($userId, LogLevel::info, "Nieuw mens registratie.");
 
     return $userId;
   }

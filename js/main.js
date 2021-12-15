@@ -1518,9 +1518,9 @@ async function showQuestionsForm(crashId, articleId) {
 
   getArticleQuestionnaires(crash.countryid, article.id).then(
     article => {
-      let html = '';
+      let htmlQuestionnaires = '';
       for (const questionnaire of article.questionnaires) {
-        html += `<tr><td colspan="2" class="sectionHeader">${questionnaire.title}</td></tr>`;
+        htmlQuestionnaires += `<tr><td colspan="2" class="sectionHeader">${questionnaire.title}</td></tr>`;
 
         for (const question of questionnaire.questions) {
           const yesChecked   = question.answer === 1? 'checked' : '';
@@ -1528,7 +1528,7 @@ async function showQuestionsForm(crashId, articleId) {
           const ndChecked    = question.answer === 2? 'checked' : '';
           const tooltip      = question.explanation? `<span class="iconTooltip" data-tippy-content="${question.explanation}"></span>` : '';
 
-          html +=
+          htmlQuestionnaires +=
 `<tr>
 <td>${question.text} ${tooltip}</td>
 <td style="white-space: nowrap;">
@@ -1539,10 +1539,10 @@ async function showQuestionsForm(crashId, articleId) {
         }
       }
 
-      if (html) html = `<table class="dataTable">${html}</table>`;
-      else html = '<div>No questionnaires found</div>';
+      if (htmlQuestionnaires) htmlQuestionnaires = `<table class="dataTable">${htmlQuestionnaires}</table>`;
+      else htmlQuestionnaires = '<div>No questionnaires found</div>';
 
-      document.getElementById('articleQuestions').innerHTML      = html;
+      document.getElementById('articleQuestions').innerHTML      = htmlQuestionnaires;
       document.getElementById('questionsArticleText').innerHTML  = article.text? formatText(article.text) : '[Full text is not available in database]';
 
       tippy('[data-tippy-content]', {allowHTML: true});

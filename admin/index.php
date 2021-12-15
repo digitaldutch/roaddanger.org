@@ -7,10 +7,11 @@ global $user;
 global $VERSION;
 
 $uri = urldecode($_SERVER['REQUEST_URI']);
-if      (strpos($uri, '/admin/humans')         === 0) $pageType = PageType::humans;
-else if (strpos($uri, '/admin/translations')   === 0) $pageType = PageType::translations;
-else if (strpos($uri, '/admin/longtexts')      === 0) $pageType = PageType::longTexts;
-else if (strpos($uri, '/admin/questionnaires') === 0) $pageType = PageType::questions;
+if      (strpos($uri, '/admin/humans')         === 0)         $pageType = PageType::humans;
+else if (strpos($uri, '/admin/translations')   === 0)         $pageType = PageType::translations;
+else if (strpos($uri, '/admin/longtexts')      === 0)         $pageType = PageType::longTexts;
+else if (strpos($uri, '/admin/questionnaires/options') === 0) $pageType = PageType::questionnaireOptions;
+else if (strpos($uri, '/admin/questionnaires') === 0)         $pageType = PageType::questionnaireResults;
 else die('Internal error: Unknown page type');
 
 function htmlNoAdmin(){
@@ -205,7 +206,7 @@ HTML;
 HTML;
 
     $htmlEnd = getFormNewTranslation();
-  } else if ($pageType === PageType::questions) {
+  } else if ($pageType === PageType::questionnaireOptions) {
 
     $texts = translateArray(['Questionnaires', 'Admin', 'Id', 'New', 'Edit', 'Delete', 'Save', 'Cancel', 'Sort_questions']);
 
@@ -346,6 +347,41 @@ HTML;
   </form>
 </div>
 HTML;
+  } else if ($pageType === PageType::questionnaireResults) {
+    $texts = translateArray(['Questionnaires', 'Results']);
+
+    $questionnaires = $database->getQuestionnaires();
+
+    $questionnairesOptions = '';
+    foreach ($questionnaires as $questionnaire) {
+      $questionnairesOptions .= "<option value='{$questionnaire['id']}'>{$questionnaire['title']}</option>";
+    }
+
+    $mainHTML = <<<HTML
+<div id="pageMain">
+  <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['Results']}</div>
+  
+  <div class="searchBar" style="display: flex;">
+    <div class="toolbarItem"><select id="filterQuestionnaire" oninput="loadQuestionnairResults()">$questionnairesOptions</select></div>
+  </div>
+
+  <table class="dataTable">
+    <thead>
+      <tr>
+        <th>Question</th>
+        <th>Yes</th>
+        <th>No</th>
+        <th>n.d.</th>
+      </tr>
+    </thead>  
+    <tbody id="tableBody">
+      
+    </tbody>
+  </table>  
+      
+</div>
+HTML;
+
   }
 }
 

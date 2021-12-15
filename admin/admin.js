@@ -34,9 +34,12 @@ async function initAdmin(){
     };
 
     await loadLongText();
+  } else if (url.pathname.startsWith('/admin/questionnaires/options')) {
+
+    await loadQuestionnaires();
   } else if (url.pathname.startsWith('/admin/questionnaires')) {
 
-    await loadQuestions();
+    await loadQuestionnairResults();
   }
 }
 
@@ -428,7 +431,7 @@ async function saveLongText() {
   }
 }
 
-async function loadQuestions() {
+async function loadQuestionnaires() {
 
   try {
     spinnerLoad.style.display = 'block';
@@ -460,6 +463,24 @@ async function loadQuestions() {
   for (const questionaire of tableData[1]) html += getQuestionaireTableRow(questionaire);
   document.getElementById('tableBodyQuestionaires').innerHTML += html;
   if ((tableData[1].length > 0) && (! selectedTableData[1])) selectTableRow(tableData[1][0].id, 1);
+}
+
+async function loadQuestionnairResults() {
+  const questionnaireId = parseInt(document.getElementById('filterQuestionnaire').value);
+  const url = '/admin/ajax.php?function=loadQuestionnaireResults';
+  const response  = await fetchFromServer(url, {questionnaireId: questionnaireId});
+
+  if (response.error) showError(response.error);
+  else if (response.ok) {
+
+    // response.questions = Object.values(response.questions);
+    let htmlBody = '';
+    for (const question of response.questions) {
+      htmlBody += `<tr><td>${question.question_id} ${question.question}<td style="text-align: right;">${question.yes}</td><td style="text-align: right;">${question.no}</td><td style="text-align: right;">${question.nd}</td></tr>`;
+    }
+
+    document.getElementById('tableBody').innerHTML = htmlBody;
+  }
 }
 
 function getQuestionTableRow(question){

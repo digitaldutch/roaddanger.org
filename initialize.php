@@ -38,7 +38,7 @@ require_once 'utils.php';
 
 try {
 
-  $database = new TDatabase();
+  $database = new Database();
 
   try {
     $database->open();

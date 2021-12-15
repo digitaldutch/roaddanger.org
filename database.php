@@ -1,14 +1,14 @@
 <?php
 
 
-abstract class TLogLevel {
+abstract class LogLevel {
   const info    = 1;
   const warning = 2;
   const error   = 3;
 }
 
 
-class TDatabase {
+class Database {
   /** @var  PDO */
   private $pdo;
   public  $countryId = DEFAULT_COUNTRY_ID;
@@ -165,7 +165,7 @@ class TDatabase {
     }
   }
 
-  public function log($userId, $level=TLogLevel::info, $info=''){
+  public function log($userId, $level=LogLevel::info, $info=''){
     $ip     = substr(getCallerIP(), 0, 45);
     $sql    = 'INSERT INTO logs (userid, level, ip, info) VALUES (:userId, :level, :ip, :info)';
     $params = [':userId' => $userId, ':level' => $level, ':ip' => $ip, ':info' => substr($info, 0, 500)];
@@ -173,11 +173,11 @@ class TDatabase {
   }
 
   public function logError($info=''){
-    $this->log(null,TLogLevel::error, $info);
+    $this->log(null,LogLevel::error, $info);
   }
 
   public function logText($text=''){
-    $this->log(null,TLogLevel::info, $text);
+    $this->log(null,LogLevel::info, $text);
   }
 
   public function loadCountries() {
@@ -196,6 +196,10 @@ class TDatabase {
     }
 
     return $this->countries;
+  }
+
+  public function getQuestionnaires() {
+    return $this->fetchAll("SELECT id, type, title, country_id FROM questionnaires ORDER BY id;");
   }
 
   public function getCountry($id) {

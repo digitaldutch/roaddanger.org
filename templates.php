@@ -215,7 +215,7 @@ function getNavigation(){
   $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
     'Child_deaths', 'Mosaic', 'The_correspondent_week', 'Map', 'The_crashes', 'General', 'deadly_crashpartners',
     'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
-    'Version', 'Questionnaires', 'Reporting_experiences', 'Reseach']);
+    'Version', 'Questionnaires', 'options', 'results', 'Reporting_experiences', 'Research']);
 
   return <<<HTML
 <div id="navShadow" class="navShadow" onclick="closeNavigation()"></div>
@@ -243,9 +243,10 @@ function getNavigation(){
     </div>
 
     <div class="navigationSection">
-      <div class="navigationSectionHeader">{$texts['Reseach']}</div>
+      <div class="navigationSectionHeader">{$texts['Research']}</div>
+      <a href="/admin/questionnaires/options" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['options']}</a>
+      <a href="/admin/questionnaires/" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['results']}</a>
       <a href="/reporting_experiences/" class="navItem">{$texts['Reporting_experiences']}</a>
-      <a href="/admin/questionnaires/" class="navItem" data-admin>{$texts['Questionnaires']}</a>
     </div>
 
     <div class="navigationSection">
