@@ -157,8 +157,8 @@ function initExport(){
   document.getElementById('tbodyTransportationMode').innerHTML = html;
 
   html = '';
-  for (const key of Object.keys(THealth)){
-    const health = THealth[key];
+  for (const key of Object.keys(Health)){
+    const health = Health[key];
     const text   = healthText(health);
     html += `<tr><td>${health}</td><td>${text}</td></tr>`;
   }
@@ -479,12 +479,12 @@ async function loadChildDeaths(){
         let htmlIconsChildren = '';
         let htmlIconsOther    = '';
         crash.persons.forEach(p => {
-          if (p.health === THealth.dead) {
+          if (p.health === Health.dead) {
             if (p.child === 1) htmlIconsChildren += '<img src="/images/persondead.svg" style="width: 10px;">';
             else htmlIconsOther += '<img src="/images/persondead_black.svg" style="width: 10px;">';
           }
 
-          if (p.health === THealth.injured) {
+          if (p.health === Health.injured) {
             if (p.child === 1) htmlIconsChildren += '<img src="/images/person_injured.svg" style="width: 10px;">';
             else htmlIconsOther += '<img src="/images/person_injured_black.svg" style="width: 10px;">';
           }
@@ -640,9 +640,9 @@ async function loadMapDataFromServer(){
     for (const crash of response.crashes) {
       if (! crashes.find(c => c.id === crash.id)) {
         const markerElement = document.createElement('div');
-        const personDied    = crash.persons.find(p => p.health === THealth.dead);
+        const personDied    = crash.persons.find(p => p.health === Health.dead);
         let   personInjured = false;
-        if (! personDied) personInjured = crash.persons.find(p => p.health === THealth.injured);
+        if (! personDied) personInjured = crash.persons.find(p => p.health === Health.injured);
 
         const imgSrc = personDied? 'persondead.svg' : personInjured? 'person_injured.svg' : 'crash_icon.svg';
 
@@ -838,8 +838,8 @@ ${translate('Approval_required')}
   let titleModified  = '';
   if (crash.streamtopuser) {
     switch (crash.streamtoptype) {
-      case TStreamTopType.edited:       titleModified = ' | ' + translate('edited_by')            + ' ' + crash.streamtopuser; break;
-      case TStreamTopType.articleAdded: titleModified = ' | ' + translate('new_article_added_by') + ' ' + crash.streamtopuser; break;
+      case StreamTopType.edited:       titleModified = ' | ' + translate('edited_by')            + ' ' + crash.streamtopuser; break;
+      case StreamTopType.articleAdded: titleModified = ' | ' + translate('new_article_added_by') + ' ' + crash.streamtopuser; break;
     }
   }
 
@@ -1008,8 +1008,8 @@ ${translate('Approval_required')}
   let titleModified  = '';
   if (crash.streamtopuser) {
     switch (crash.streamtoptype) {
-      case TStreamTopType.edited:       titleModified = ' | ' + translate('edited_by')            + ' ' + crash.streamtopuser; break;
-      case TStreamTopType.articleAdded: titleModified = ' | ' + translate('new_article_added_by') + ' ' + crash.streamtopuser; break;
+      case StreamTopType.edited:       titleModified = ' | ' + translate('edited_by')            + ' ' + crash.streamtopuser; break;
+      case StreamTopType.articleAdded: titleModified = ' | ' + translate('new_article_added_by') + ' ' + crash.streamtopuser; break;
     }
   }
 
@@ -1106,7 +1106,7 @@ function getCrashTopIcons(crash, allowClick=false){
 }
 
 function healthVisible(health){
-  return [THealth.dead, THealth.injured].includes(health);
+  return [Health.dead, Health.injured].includes(health);
 }
 
 function getCrashButtonsHTML(crash, showAllHealth=true, allowClick=false) {
@@ -1250,8 +1250,8 @@ function addEditPersonButtons(){
   document.getElementById('personTransportationButtons').innerHTML = htmlButtons;
 
   htmlButtons = '';
-  for (const key of Object.keys(THealth)){
-    const health =  THealth[key];
+  for (const key of Object.keys(Health)){
+    const health =  Health[key];
     const bgClass = healthImage(health);
     const text    = healthText(health);
     htmlButtons += `<span id="editPersonHealth${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonHealth(${health}, true);"></span>`;
@@ -1304,8 +1304,8 @@ function getSelectedPersonTransportationMode(){
 }
 
 function selectPersonHealth(health, toggle=false) {
-  for (const key of Object.keys(THealth)) {
-    const buttonHealth = THealth[key];
+  for (const key of Object.keys(Health)) {
+    const buttonHealth = Health[key];
     const button = document.getElementById('editPersonHealth' + key);
     if (button){
       if (buttonHealth === health) {
@@ -1331,8 +1331,8 @@ function selectSearchPersonChild() {
 
 
 function getSelectedPersonHealth(){
-  for (const key of Object.keys(THealth)) {
-    const buttonHealth = THealth[key];
+  for (const key of Object.keys(Health)) {
+    const buttonHealth = Health[key];
     const button = document.getElementById('editPersonHealth' + key);
     if (button && button.classList.contains('buttonSelected')) return buttonHealth;
   }
@@ -2303,13 +2303,13 @@ function updateTransportationModeFilterInput(){
 
       const deadSelected = document.getElementById('searchDeadTm' + transportationMode).classList.contains('inputSelectButtonSelected');
       if (deadSelected){
-        let icon = healthImage(THealth.dead);
+        let icon = healthImage(Health.dead);
         html += `<span class="searchDisplayIcon ${icon}" data-tippy-content="${translate('Dead_(adjective)')}"></span>`;
       }
 
       const injuredSelected = document.getElementById('searchInjuredTm' + transportationMode).classList.contains('inputSelectButtonSelected');
       if (injuredSelected){
-        let icon = healthImage(THealth.injured);
+        let icon = healthImage(Health.injured);
         html += `<span class="searchDisplayIcon ${icon}" data-tippy-content="${translate('Injured')}"></span>`;
       }
 

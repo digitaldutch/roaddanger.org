@@ -55,8 +55,7 @@ create table questionnaires
   id         int auto_increment
     primary key,
   active     smallint default 0 null,
-  type       smallint default 0 null comment '0: standard
-1: Bechdel test',
+  type       smallint default 0 null comment '0: standard 1: Bechdel test',
   country_id char(2)            null,
   title      varchar(100)       null
 );

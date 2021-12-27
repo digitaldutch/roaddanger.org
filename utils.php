@@ -20,7 +20,12 @@ abstract class PageType {
   const questionnaireResults          = 16;
 }
 
-function translate($key){
+abstract class QuestionnaireType {
+  const standard = 0;
+  const bechdel  = 1;
+}
+
+  function translate($key){
   global $user;
   return $user->translate($key);
 }

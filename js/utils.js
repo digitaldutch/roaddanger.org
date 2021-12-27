@@ -5,18 +5,19 @@ let selectedTableData = [];
 
 let xTouchDown      = null;
 let yTouchDown      = null;
-let TTouchDown      = Object.freeze({none:0, openNavigation:1, closeNavigation:2});
-let touchDownAction = TTouchDown.none;
+let TouchDown       = Object.freeze({none:0, openNavigation:1, closeNavigation:2});
+let touchDownAction = TouchDown.none;
 
 const mapboxKey     = 'pk.eyJ1IjoiamFuZGVyayIsImEiOiJjazI4dTVzNW8zOWw4M2NtdnRhMGs4dDc1In0.Cxw10toXdLoC1eqVaTn1RQ';
 
 // Enumerated types
-const TUserPermission     = Object.freeze({newuser: 0, admin: 1, moderator: 2});
+const UserPermission     = Object.freeze({newuser: 0, admin: 1, moderator: 2});
 const TransportationMode = Object.freeze({
   unknown: 0, pedestrian: 1, bicycle: 2, motorScooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,
   bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15, scooter: 16});
-const THealth             = Object.freeze({unknown: 0, unharmed: 1, injured: 2, dead: 3});
-const TStreamTopType      = Object.freeze({unknown: 0, edited: 1, articleAdded: 2, placedOnTop: 3});
+const Health             = Object.freeze({unknown: 0, unharmed: 1, injured: 2, dead: 3});
+const StreamTopType      = Object.freeze({unknown: 0, edited: 1, articleAdded: 2, placedOnTop: 3});
+const QuestionnaireType  = Object.freeze({standard: 0, bechdel: 1});
 
 if (!Date.prototype.addDays) {
   Date.prototype.addDays = function(days) {
@@ -337,7 +338,7 @@ function updateLoginGUI(userNew){
   document.querySelectorAll('.buttonEditPost').forEach(
     button => {
       const buttonUserId   = parseInt(button.getAttribute('data-userid'));
-      const canEditArticle = user.loggedin && ((user.permission !== TUserPermission.newuser) || (buttonUserId === user.id));
+      const canEditArticle = user.loggedin && ((user.permission !== UserPermission.newuser) || (buttonUserId === user.id));
       button.style.display = canEditArticle? 'inline-block' : 'none';
     }
   );
@@ -533,14 +534,14 @@ function initMenuSwipe() {
   document.addEventListener('touchstart', function (event) {
     // Only start navigation open swipe on left side of screen
     if ((event.touches[0].clientX < 60) && (! navigationIsOpen())) {
-      touchDownAction = TTouchDown.openNavigation;
+      touchDownAction = TouchDown.openNavigation;
     } else if (navigationIsOpen()){
-      touchDownAction = TTouchDown.closeNavigation;
+      touchDownAction = TouchDown.closeNavigation;
     } else {
-      touchDownAction = TTouchDown.none;
+      touchDownAction = TouchDown.none;
     }
 
-    if (touchDownAction === TTouchDown.none) {
+    if (touchDownAction === TouchDown.none) {
       xTouchDown = null;
       yTouchDown = null;
     } else {
@@ -550,7 +551,7 @@ function initMenuSwipe() {
   });
 
   document.addEventListener('touchmove', function (event) {
-    if (touchDownAction === TTouchDown.none) return;
+    if (touchDownAction === TouchDown.none) return;
     let xTouch = event.touches[0].clientX;
     let yTouch = event.touches[0].clientY;
     let xDiff  = xTouchDown - xTouch;
@@ -560,7 +561,7 @@ function initMenuSwipe() {
     if (Math.abs(xDiff) > Math.abs(yDiff)) {
       closeAllPopups();
 
-      if (touchDownAction === TTouchDown.closeNavigation){
+      if (touchDownAction === TouchDown.closeNavigation){
         if (xDiff > 0) {
           navigation = document.getElementById('navigation');
           x = navigation.offsetWidth;
@@ -570,7 +571,7 @@ function initMenuSwipe() {
           navigation.style.transition = 'none';
           navigation.style.transform  = 'translateX(' + x + 'px)';
         }
-      } else if (touchDownAction === TTouchDown.openNavigation) {
+      } else if (touchDownAction === TouchDown.openNavigation) {
         navigation = document.getElementById('navigation');
         if (xDiff < 0) x = Math.min(xTouch, navigation.offsetWidth);
         navigation.style.transition = 'none';
@@ -585,18 +586,18 @@ function initMenuSwipe() {
     navigation.style.transition = '';
     xTouchDown                  = null;
     yTouchDown                  = null;
-    touchDownAction             = TTouchDown.none
+    touchDownAction             = TouchDown.none
   }
 
   document.addEventListener('touchend', function (event) {
-    if (touchDownAction === TTouchDown.none) return;
+    if (touchDownAction === TouchDown.none) return;
     let xTouch = event.changedTouches[0].clientX;
 
-    if (touchDownAction === TTouchDown.closeNavigation) {
+    if (touchDownAction === TouchDown.closeNavigation) {
       let navigation = document.getElementById('navigation');
       let xDiffInsidenavigation = Math.min(navigation.offsetWidth, xTouchDown) - xTouch;
       if (xDiffInsidenavigation > (navigation.offsetWidth / 2)) closeNavigation();
-    } else if (touchDownAction === TTouchDown.openNavigation){
+    } else if (touchDownAction === TouchDown.openNavigation){
       let navigation = document.getElementById('navigation');
       if (xTouch > (navigation.offsetWidth / 2)) openNavigation();
     }
@@ -604,7 +605,7 @@ function initMenuSwipe() {
   });
 
   document.addEventListener('touchcancel', function () {
-    if (touchDownAction === TTouchDown.none) return;
+    if (touchDownAction === TouchDown.none) return;
     endNavigationSwipe();
   });
 }
@@ -617,10 +618,10 @@ function permissionToText(permission) {
   }
 }
 
-function questionaireTypeToText(type) {
+function questionnaireTypeToText(type) {
   switch (type) {
-    case 0:  return 'Standard';
-    case 1:  return 'Bechdel test';
+    case QuestionnaireType.standard: return 'Standard';
+    case QuestionnaireType.bechdel:  return 'Bechdel test';
     default: return 'Unknown';
   }
 }
@@ -787,20 +788,20 @@ function healthIcon(healthStatus, addTooltip=true) {
 
 function healthText(healthStatus) {
   switch (healthStatus) {
-    case THealth.unknown:  return translate('Unknown');
-    case THealth.unharmed: return translate('Unharmed');
-    case THealth.injured:  return translate('Injured');
-    case THealth.dead:     return translate('Dead_(adjective)');
+    case Health.unknown:  return translate('Unknown');
+    case Health.unharmed: return translate('Unharmed');
+    case Health.injured:  return translate('Injured');
+    case Health.dead:     return translate('Dead_(adjective)');
     default:               return '';
   }
 }
 
 function healthImage(healthStatus) {
   switch (healthStatus) {
-    case THealth.unknown:  return 'bgUnknown';
-    case THealth.unharmed: return 'bgUnharmed';
-    case THealth.injured:  return 'bgInjured';
-    case THealth.dead:     return 'bgDead';
+    case Health.unknown:  return 'bgUnknown';
+    case Health.unharmed: return 'bgUnharmed';
+    case Health.injured:  return 'bgInjured';
+    case Health.dead:     return 'bgDead';
     default:               return 'bgUnknown';
   }
 }
@@ -1007,4 +1008,17 @@ async function getQuestions(questionnaireId) {
 
   if (response.error) showError(response.error, 10);
   else return response;
+}
+
+function tableDataClick(event, tableIndex=0){
+  event.stopPropagation();
+
+  const tr = event.target.closest('tr');
+  if (tr) {
+    const id = tr.id.substr(4);
+    selectTableRow(id, tableIndex);
+  }
+
+  closeAllPopups();
+  if (event.target.hasAttribute('data-editUser')) showUserMenu(event.target);
 }

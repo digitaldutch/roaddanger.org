@@ -16,7 +16,7 @@ $pageText
 HTML;
 
 $html =
-  getHTMLBeginMain($texts['About_this_site'], '', 'initPageUser') .
+  getHTMLBeginMain($texts['Reporting_experiences'], '', 'initPageUser') .
   $mainHTML .
   getHTMLEnd();
 

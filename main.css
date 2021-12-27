@@ -1484,6 +1484,25 @@ table.tableDragging td div {
   pointer-events: none;
 }
 
+#questionnaireBars {
+  width: 100%;
+  margin: 5px 0;
+}
+
+#questionnaireBars > div {
+  display: flex;
+  width: 100%;
+  background-color: #dddddd;
+}
+
+#questionnaireBars > div > div {
+  padding: 3px 0;
+}
+
+#questionnaireBars > div > div > span {
+  padding: 0 3px;
+}
+
 @media (max-width: 750px) {
   .hideOnMobile {
     display: none !important;
