@@ -1178,7 +1178,6 @@ else if ($function === 'saveAnswer') {
 } //==========
 else if ($function === 'getArticleQuestionnairesAndText'){
   try{
-
     if (! $user->isModerator())  throw new Exception('Only moderators can edit article questions');
 
     $data = json_decode(file_get_contents('php://input'), true);

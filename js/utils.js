@@ -18,6 +18,7 @@ const TransportationMode = Object.freeze({
 const Health             = Object.freeze({unknown: 0, unharmed: 1, injured: 2, dead: 3});
 const StreamTopType      = Object.freeze({unknown: 0, edited: 1, articleAdded: 2, placedOnTop: 3});
 const QuestionnaireType  = Object.freeze({standard: 0, bechdel: 1});
+const QuestionAnswer     = Object.freeze({no: 0, yes: 1, notDeterminable: 2});
 
 if (!Date.prototype.addDays) {
   Date.prototype.addDays = function(days) {
@@ -1021,4 +1022,32 @@ function tableDataClick(event, tableIndex=0){
 
   closeAllPopups();
   if (event.target.hasAttribute('data-editUser')) showUserMenu(event.target);
+}
+
+function allQuestionsAnswered(questionnaire) {
+
+  if (questionnaire.type === QuestionnaireType.standard) {
+    for (const question of questionnaire.questions) {
+      if (! Number.isInteger(question.answer)) return false;
+    }
+    return true;
+  } else if (questionnaire.type === QuestionnaireType.bechdel) {
+    const bechdelResult = getBechdelResult(questionnaire.questions);
+
+    return bechdelResult !== null;
+  }
+}
+
+/**
+ * @param questions
+ * @return {null|number}
+ */
+function getBechdelResult(questions) {
+  for (const question of questions) {
+    if      (question.answer === QuestionAnswer.no)              return QuestionAnswer.no;
+    else if (question.answer === QuestionAnswer.notDeterminable) return QuestionAnswer.notDeterminable;
+    else if (question.answer !== QuestionAnswer.yes)             return null;
+  }
+
+  return QuestionAnswer.yes;
 }

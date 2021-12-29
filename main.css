@@ -4,6 +4,7 @@
   --color-hover:          #000000;
   --bg-color-selected:    #bfd4fe;
   --click-color:          #df5b57;
+  --color-ready:          #eeffd3;
   --light-border-color:   #eee;
   --fancy-font:          'Playfair Display', serif;
 }
@@ -1501,6 +1502,10 @@ table.tableDragging td div {
 
 #questionnaireBars > div > div > span {
   padding: 0 3px;
+}
+
+.ready {
+  background-color: var(--color-ready);
 }
 
 @media (max-width: 750px) {

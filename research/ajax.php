@@ -254,19 +254,6 @@ SQL;
       // Bechdel type
 
       // Get questionnaire questions
-//    $sql = <<<SQL
-//SELECT
-//  qq.question_id,
-//  q.text
-//FROM questionnaire_questions qq
-//LEFT JOIN questions q ON q.id = qq.question_id
-//WHERE qq.questionnaire_id=:questionnaire_id
-//ORDER BY qq.question_order
-//SQL;
-//    $questions = $database->fetchAll($sql, $params);
-//    $questionnaire['questions'] = $questions;
-
-      // Get questionnaire questions
       $sql = <<<SQL
 SELECT
   q.id,

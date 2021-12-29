@@ -91,10 +91,12 @@ async function loadQuestionnaireResults() {
     let htmlBody      = '';
 
     if (response.questionnaire.type === QuestionnaireType.standard) {
+
       htmlHead = '<tr><th style="text-align: left;">Question</th><th>Yes</th><th>No</th><th>n.d.</th></tr>';
       for (const question of response.questions) {
         htmlBody += `<tr><td>${question.question_id} ${question.question}<td style="text-align: right;">${question.yes}</td><td style="text-align: right;">${question.no}</td><td style="text-align: right;">${question.not_determinable}</td></tr>`;
       }
+
     } else if (response.questionnaire.type === QuestionnaireType.bechdel) {
 
       let i=1;

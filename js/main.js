@@ -1517,11 +1517,13 @@ async function showQuestionsForm(crashId, articleId) {
   document.getElementById('formQuestions').style.display = 'flex';
 
   getArticleQuestionnaires(crash.countryid, article.id).then(
-    article => {
+    response => {
       let htmlQuestionnaires = '';
+      article.questionnaires = response.questionnaires;
       for (const questionnaire of article.questionnaires) {
         htmlQuestionnaires += `<tr><td colspan="2" class="sectionHeader">${questionnaire.title}</td></tr>`;
 
+        let i = 1;
         for (const question of questionnaire.questions) {
           const yesChecked   = question.answer === 1? 'checked' : '';
           const noChecked    = question.answer === 0? 'checked' : '';
@@ -1529,25 +1531,77 @@ async function showQuestionsForm(crashId, articleId) {
           const tooltip      = question.explanation? `<span class="iconTooltip" data-tippy-content="${question.explanation}"></span>` : '';
 
           htmlQuestionnaires +=
-`<tr>
-<td>${question.text} ${tooltip}</td>
-<td style="white-space: nowrap;">
+`<tr id="q${questionnaire.id}_${question.id}">
+  <td>${i}) ${question.text} ${tooltip}</td>
+  <td style="white-space: nowrap;">
     <label><input name="answer${question.id}" type="radio" ${yesChecked} onclick="saveAnswer(${articleId}, ${question.id}, 1)"></input>Yes</label>
     <label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${articleId}, ${question.id}, 0)"></input>No</label>
-    <label data-tippy-content="Not determinable"><input name="answer${question.id}" type="radio" ${ndChecked} onclick="saveAnswer(${articleId}, ${question.id}, 2)"></input>n.d.</label></td>
+    <label data-tippy-content="Not determinable"><input name="answer${question.id}" type="radio" ${ndChecked} onclick="saveAnswer(${articleId}, ${question.id}, 2)"></input>n.d.</label>
+  </td>
 </tr>`;
+          i += 1;
         }
+
+        htmlQuestionnaires += `<tr id="questionnaireCompleted${questionnaire.id}" class="ready" style="display: none;"><td colspan="2">All questions answered 🙏</td></tr>`;
+        htmlQuestionnaires += '<tr><td colspan="2" style="border: none; height: 10px;"></td></tr>'
       }
 
       if (htmlQuestionnaires) htmlQuestionnaires = `<table class="dataTable">${htmlQuestionnaires}</table>`;
       else htmlQuestionnaires = '<div>No questionnaires found</div>';
 
       document.getElementById('articleQuestions').innerHTML      = htmlQuestionnaires;
-      document.getElementById('questionsArticleText').innerHTML  = article.text? formatText(article.text) : '[Full text is not available in database]';
+      document.getElementById('questionsArticleText').innerHTML  = response.text? formatText(response.text) : '[Full text is not available in database]';
+
+      for (const questionnaire of article.questionnaires) setQuestionnaireGUI(questionnaire);
 
       tippy('[data-tippy-content]', {allowHTML: true});
     }
   );
+}
+
+function setQuestionnaireGUI(questionnaire) {
+  document.getElementById('questionnaireCompleted' + questionnaire.id).style.display =
+    allQuestionsAnswered(questionnaire) ? 'table-row' : 'none';
+
+  if (questionnaire.type === QuestionnaireType.bechdel) {
+    let iFirstNotYesQuestion = null;
+    for (let i=0; i < questionnaire.questions.length; i++) {
+      const question = questionnaire.questions[i];
+      if ((iFirstNotYesQuestion === null) && (question.answer !== QuestionAnswer.yes)) iFirstNotYesQuestion = i;
+
+      let questionVisible = true;
+      if (iFirstNotYesQuestion !== null) questionVisible = i <= iFirstNotYesQuestion;
+
+      const id = 'q' + questionnaire.id + '_' + question.id;
+      document.getElementById(id).style.display = questionVisible? 'table-row' : 'none';
+    }
+  }
+}
+
+async function saveAnswer(articleId, questionId, answer) {
+  const article = getArticleFromID(articleId);
+
+  for (const questionnaire of article.questionnaires) {
+    for (const question of questionnaire.questions) {
+      if (question.id  === questionId) {
+        question.answer = answer;
+
+        setQuestionnaireGUI(questionnaire);
+        break;
+      }
+    }
+  }
+
+  const url  = '/ajax.php?function=saveAnswer';
+  const data = {
+    articleId:  articleId,
+    questionId: questionId,
+    answer:     answer,
+  };
+
+  const response = await fetchFromServer(url, data);
+
+  if (response.error) showError(response.error, 10);
 }
 
 function nextArticleQuestions(forward=true) {
@@ -1566,18 +1620,6 @@ function nextArticleQuestions(forward=true) {
   if (newArticle) selectArticle(newArticle.id);
 
   showQuestionsForm(newArticle.crashid, newArticle.id);
-}
-
-async function saveAnswer(articleId, questionId, answer) {
-  const url      = '/ajax.php?function=saveAnswer';
-  const data     = {
-    articleId:  articleId,
-    questionId: questionId,
-    answer:     answer,
-  };
-  const response = await fetchFromServer(url, data);
-
-  if (response.error) showError(response.error, 10);
 }
 
 async function crashToTopStream(crashID) {
