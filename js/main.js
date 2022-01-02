@@ -578,7 +578,7 @@ async function loadCrashes(crashId=null, articleId=null){
     if (newCrashes.length < maxLoadCount) spinnerLoad.style.display = 'none';
   }
 
-  if (crashId && (crashes.length === 1)) document.title = crashes[0].title + ' | ' + translate('The_Crashes');
+  if (crashId && (crashes.length === 1)) document.title = crashes[0].title + ' | ' + websiteTitle;
 
   showCrashes(newCrashes);
   highlightSearchText();

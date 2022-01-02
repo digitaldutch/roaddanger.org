@@ -249,7 +249,7 @@ function sendEmail($emailTo, $subject, $body, $ccList=[]) {
   $root = realpath($_SERVER["DOCUMENT_ROOT"]);
   require_once $root . '/scripts/PHPMailerAutoload.php';
 
-  $from     = 'noreply@thecrashes.org';
+  $from     = 'noreply@roaddanger.org';
   $fromName = $_SERVER['SERVER_NAME'];
 
   $mail = new PHPMailer;
@@ -295,7 +295,7 @@ function formatMessage($text){
   $text = nl2br($text);            // Replace line endings with html equivalent
   $text = autolink($text);         // Linkify all links
 
-  // PHPBB link style: [url=https://www.thecrashes.org]The crashes[/url]
+  // PHPBB link style: [url=https://www.roaddanger.org]Roaddanger[/url]
   $text = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/', '<a href="$1">$2</a>', $text);
 
   return $text;

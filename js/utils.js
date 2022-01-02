@@ -9,6 +9,7 @@ let TouchDown       = Object.freeze({none:0, openNavigation:1, closeNavigation:2
 let touchDownAction = TouchDown.none;
 
 const mapboxKey     = 'pk.eyJ1IjoiamFuZGVyayIsImEiOiJjazI4dTVzNW8zOWw4M2NtdnRhMGs4dDc1In0.Cxw10toXdLoC1eqVaTn1RQ';
+const websiteTitle  = 'Roaddanger.org';
 
 // Enumerated types
 const UserPermission     = Object.freeze({newuser: 0, admin: 1, moderator: 2});

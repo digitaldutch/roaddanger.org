@@ -1,8 +1,8 @@
-# thecrashes.org
+# roaddanger.org
 
 A database for news reports about traffic crashes around the world.
 
-Website: [thecrashes.org](https://www.thecrashes.org)
+Website: [roaddanger.org](https://www.roaddanger.org)
 
 ### Requirements ###
 * Webserver with PHP support

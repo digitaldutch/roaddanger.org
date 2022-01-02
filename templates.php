@@ -3,10 +3,10 @@
 function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $addSearchBar=false, $showButtonAdd=false){
   global $VERSION;
 
-  $texts = translateArray(['The_crashes', 'Cookie_warning', 'More_info', 'Accept']);
+  $texts = translateArray(['Cookie_warning', 'More_info', 'Accept']);
 
-  if ($pageTitle !== '') $title = $pageTitle . ' | ' . $texts['The_crashes'];
-  else $title = $texts['The_crashes'];
+  if ($pageTitle !== '') $title = $pageTitle . ' | ' . WEBSITE_TITLE;
+  else $title = WEBSITE_TITLE;
 
   $initScript = ($initFunction !== '')? "<script>document.addEventListener('DOMContentLoaded', $initFunction);</script>" : '';
   $navigation = getNavigation();
@@ -42,7 +42,8 @@ HTML;
     $languageOptions .= "<div $class onclick=\"setLanguage('{$language['id']}')\">{$language['name']}</div>";
   }
 
-  $texts = translateArray(['Log_out', 'Log_in', 'The_crashes', 'Account', 'Country', 'Language']);
+  $texts = translateArray(['Log_out', 'Log_in', 'Account', 'Country', 'Language']);
+  $websiteTitle = WEBSITE_TITLE;
 
   $htmlSearchBar  = $addSearchBar? getHtmlSearchBar() : '';
 
@@ -52,7 +53,7 @@ HTML;
 <head>
 <link href="https://fonts.googleapis.com/css?family=Lora|Montserrat" rel="stylesheet">
 <link href="/main.css?v=$VERSION" rel="stylesheet" type="text/css">
-<link rel="shortcut icon" type="image/png" href="/images/thecrashes.png">
+<link rel="shortcut icon" type="image/png" href="/images/roaddanger_icon.png">
 <script src="/scripts/popper.min.js"></script><script src="/scripts/tippy-bundle.umd.min.js"></script>
 <script src='/js/utils.js?v=$VERSION'></script>
 $head
@@ -74,7 +75,7 @@ $navigation
   
     <div class="headerMain pageTitle">
       <span>
-        <a href="/">{$texts['The_crashes']}<span id="titleCountry" class="hideOnMobile"></span></a>        
+        <a href="/">{$websiteTitle}<span id="titleCountry" class="hideOnMobile"></span></a>        
         <img id="spinnerTitle" src="/images/spinner.svg" style="display: none; height: 17px; margin-left: 5px;" alt="Spinner">
       </span>
     </div>
@@ -213,16 +214,18 @@ function getNavigation(){
   global $VERSION_DATE;
 
   $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
-    'Child_deaths', 'Mosaic', 'The_correspondent_week', 'Map', 'The_crashes', 'General', 'deadly_crashpartners',
+    'Child_deaths', 'Mosaic', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
     'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
     'Version', 'Questionnaires', 'settings', 'results', 'Reporting_experiences', 'Research']);
+
+  $websiteTitle = WEBSITE_TITLE;
 
   return <<<HTML
 <div id="navShadow" class="navShadow" onclick="closeNavigation()"></div>
 <div id="navigation" onclick="closeNavigation();">
   <div class="navHeader">
     <div class="popupCloseCross" onclick="closeNavigation();"></div>
-    <div class="navHeaderTop"><span class="pageTitle">{$texts['The_crashes']}</span></div>      
+    <div class="navHeaderTop"><span class="pageTitle">{$websiteTitle}</span></div>      
   </div>
   <div style="overflow-y: auto;">
   

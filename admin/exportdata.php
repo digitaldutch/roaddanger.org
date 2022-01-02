@@ -20,7 +20,7 @@ if ($function === 'downloadData'){
     // NOTE: Everyone can download all data including full texts
     $includeAllText = true;
 
-    $filename = $includeAllText? 'thecrashes_data_all_text.json.gz' : 'thecrashes_data.json.gz';
+    $filename = $includeAllText? 'roaddanger_org_data_all_text.json.gz' : 'roaddanger_org_data.json.gz';
 
     // Recreate backup if existing backup file older than 24 hours
     if ((!file_exists($filename)) || (time()-filemtime($filename) > 24 * 3600)) {

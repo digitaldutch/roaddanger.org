@@ -1,7 +1,7 @@
 <?php
 
-$VERSION      = 422;
-$VERSION_DATE = '29 December 2021';
+$VERSION      = 424;
+$VERSION_DATE = '2 January 2022';
 
 require_once 'configsecret.php';
 
@@ -13,7 +13,8 @@ require_once 'configsecret.php';
 // const DB_PASSWORD = '';
 
 // Note: The dot is added to make sure cookies works across all subdomains
-const COOKIE_DOMAIN = '.thecrashes.org';
+const COOKIE_DOMAIN = '.roaddanger.org';
+const WEBSITE_TITLE = 'Roaddanger.org';
 
 define('DEFAULT_COUNTRY_ID', 'NL');
 
