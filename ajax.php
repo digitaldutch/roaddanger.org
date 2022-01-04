@@ -53,20 +53,6 @@ function addPeriodWhereSql(&$sqlWhere, &$params, $filter){
   }
 }
 
-function addHealthWhereSql(&$sqlWhere, &$joinPersonsTable, $filter){
-
-  if ((isset($filter['healthDead'])    && ($filter['healthDead'] === 1)) ||
-      (isset($filter['healthInjured']) && ($filter['healthInjured'] === 1))) {
-    $joinPersonsTable = true;
-    $values = [];
-    if ($filter['healthDead']    === 1) $values[] = 3;
-    if ($filter['healthInjured'] === 1) $values[] = 2;
-    $valuesText = implode(", ", $values);
-    addSQLWhere($sqlWhere, " cp.health IN ($valuesText) ");
-  }
-}
-
-
 /**
  * @param Database $database
  * @return array
@@ -150,15 +136,15 @@ SQL;
 
   // Get all persons from crashes with dead
   $sql = <<<SQL
-select
+SELECT
   c.id AS crashid,
   c.unilateral,
   cp.id,
   transportationmode,
   health
-from crashpersons cp
+FROM crashpersons cp
 JOIN crashes c ON cp.crashid = c.id
-where
+WHERE
   c.id IN ($sqlCrashesWithDeath);
 SQL;
 

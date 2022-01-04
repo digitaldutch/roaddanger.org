@@ -11,6 +11,12 @@ async function initResearch(){
   initPage();
 
   const url = new URL(location.href);
+  const searchHealthDead = url.searchParams.get('hd');
+  const searchChild      = url.searchParams.get('child');
+
+  if (searchHealthDead) document.getElementById('filterResearchDead').classList.add('buttonSelectedBlue');
+  if (searchChild)      document.getElementById('filterResearchChild').classList.add('buttonSelectedBlue');
+
   if (url.pathname.startsWith('/research/questionnaires/options')) {
 
     await loadQuestionnaires();
@@ -71,8 +77,10 @@ function questionnaireFilterChange() {
 
 async function loadQuestionnaireResults() {
   const data = {
-    filters: {
+    filter: {
       questionnaireId: parseInt(document.getElementById('filterQuestionnaire').value),
+      healthDead:      document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue')? 1 : 0,
+      child:           document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
     }
   }
 
@@ -427,4 +435,19 @@ function onDragRowQuestion(event) {
   const table = event.target.closest('table');
   table.classList.remove('tableDragging');
   onDragEnd(event);
+}
+
+function selectFilterQuestionnaireResults() {
+  event.target.classList.toggle('buttonSelectedBlue');
+
+  const dead  = document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue');
+  const child = document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue');
+
+  const url = new URL(window.location);
+  if (dead)  url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
+  if (child) url.searchParams.set('child', 1); else url.searchParams.delete('child');
+
+  window.history.pushState(null, null, url.toString());
+
+  loadQuestionnaireResults();
 }

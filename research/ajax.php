@@ -198,7 +198,7 @@ else if ($function === 'deleteQuestionnaire') {
 } // ====================
 else if ($function === 'loadQuestionnaireResults') {
   try{
-    $data = json_decode(file_get_contents('php://input'));
+    $data = json_decode(file_get_contents('php://input'), true);
 
     $result = ['ok' => true];
 
@@ -214,10 +214,22 @@ LEFT JOIN countries c ON q.country_id = c.id
 WHERE q.id=:questionnaire_id
 SQL;
 
-    $params = [':questionnaire_id' => $data->filters->questionnaireId];
+    $params = [':questionnaire_id' => $data['filter']['questionnaireId']];
     $questionnaire = $database->fetch($sql, $params);
 
     $result['questionnaire'] = $questionnaire;
+
+    $SQLJoin = '';
+    $SQLWhereAnd = ' ';
+    $joinPersonsTable = false;
+    addHealthWhereSql($SQLWhereAnd, $joinPersonsTable, $data['filter']);
+
+    if (isset($data['filter']['child']) && ($data['filter']['child'] === 1)){
+      $joinPersonsTable = true;
+      addSQLWhere($SQLWhereAnd, " cp.child=1 ");
+    }
+
+    if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
 
     // Get questionnaire answers
     if ($questionnaire['type'] === QuestionnaireType::standard) {
@@ -228,14 +240,18 @@ SELECT
   a.answer,
   count(a.answer) AS aantal
 FROM answers a
-LEFT JOIN questionnaire_questions qq ON qq.question_id = a.questionid
-LEFT JOIN questions q ON a.questionid = q.id
+  LEFT JOIN articles ar                ON ar.id = a.articleid
+  LEFT JOIN crashes c                  ON ar.crashid = c.id
+  LEFT JOIN questionnaire_questions qq ON qq.question_id = a.questionid
+  LEFT JOIN questions q                ON a.questionid = q.id
+  $SQLJoin
 WHERE qq.questionnaire_id=:questionnaire_id
+  $SQLWhereAnd
 GROUP BY qq.question_order, answer
 ORDER BY qq.question_order
 SQL;
 
-      $params = [':questionnaire_id' => $data->filters->questionnaireId];
+      $params = [':questionnaire_id' => $data['filter']['questionnaireId']];
       $dbQuestions = $database->fetchAllGroup($sql, $params);
 
       $questions = [];
@@ -270,13 +286,15 @@ SELECT
   ar.crashid,
   a.articleid,
   GROUP_CONCAT(a.questionid ORDER BY qq.question_order) AS question_ids,
-  GROUP_CONCAT(a.answer ORDER BY qq.question_order) AS answers
+  GROUP_CONCAT(a.answer     ORDER BY qq.question_order) AS answers
 FROM answers a
-  LEFT JOIN articles ar ON ar.id = a.articleid
-  LEFT JOIN crashes c ON ar.crashid = c.id
-  LEFT JOIN questionnaire_questions qq ON  qq.question_id = a.questionid
-WHERE a.questionid in (select question_id from questionnaire_questions where questionnaire_id=:questionnaire_id)
-AND c.countryid = (select country_id from questionnaires where id=1)
+  LEFT JOIN articles ar                ON ar.id = a.articleid
+  LEFT JOIN crashes c                  ON ar.crashid = c.id
+  LEFT JOIN questionnaire_questions qq ON qq.question_id = a.questionid
+  $SQLJoin
+WHERE a.questionid in (SELECT question_id FROM questionnaire_questions WHERE questionnaire_id=:questionnaire_id)
+  AND c.countryid = (SELECT country_id FROM questionnaires WHERE id=1)
+  $SQLWhereAnd
 GROUP BY a.articleid
 ORDER BY a.articleid;
 SQL;
@@ -284,7 +302,7 @@ SQL;
       $articles = [];
       $bechdelResults = ['yes' => 0, 'no' => 0, 'not_determinable' => 0,];
       $statement = $database->prepare($sql);
-      $statement->execute([':questionnaire_id' => $data->filters->questionnaireId]);
+      $statement->execute([':questionnaire_id' => $data['filter']['questionnaireId']]);
       while ($article = $statement->fetch(PDO::FETCH_ASSOC)) {
         // Format and clean up article questions and answers data
         $articleQuestionIds = explode(',', $article['question_ids']);

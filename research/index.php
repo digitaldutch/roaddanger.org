@@ -11,7 +11,6 @@ if      (strpos($uri, '/research/questionnaires/options') === 0) $pageType = Pag
 else if (strpos($uri, '/research/questionnaires') === 0)         $pageType = PageType::questionnaireResults;
 else die('Internal error: Unknown page type');
 
-
 function getFormNewTranslation() {
   $texts = translateArray(['Save', 'Cancel', 'Id', 'English_text']);
   return <<<HTML
@@ -203,7 +202,7 @@ HTML;
 </div>
 HTML;
   } else if ($pageType === PageType::questionnaireResults) {
-    $texts = translateArray(['Questionnaires', 'Results']);
+    $texts = translateArray(['Questionnaires', 'Results', 'Injury', 'Dead_(adjective)', 'Child']);
 
     $questionnaires = $database->getQuestionnaires();
 
@@ -218,6 +217,12 @@ HTML;
   
   <div class="searchBar" style="display: flex;">
     <div class="toolbarItem"><select id="filterQuestionnaire" oninput="questionnaireFilterChange()">$questionnairesOptions</select></div>
+
+    <div class="toolbarItem">
+      <span id="filterResearchDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterQuestionnaireResults();"></span>      
+      <span id="filterResearchChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterQuestionnaireResults();"></span>      
+    </div>
+
   </div>
 
   <div id="questionnaireInfo" class="smallFont" style="margin-bottom: 10px;"></div>

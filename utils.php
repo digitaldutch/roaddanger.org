@@ -283,6 +283,18 @@ function addSQLWhere(&$whereSql, $wherePart){
   $whereSql .= ' ' . $wherePart . ' ';
 }
 
+function addHealthWhereSql(&$sqlWhere, &$joinPersonsTable, $filter){
+  if ((isset($filter['healthDead'])    && ($filter['healthDead'] === 1)) ||
+    (isset($filter['healthInjured']) && ($filter['healthInjured'] === 1))) {
+    $joinPersonsTable = true;
+    $values = [];
+    if ($filter['healthDead']    === 1) $values[] = 3;
+    if ($filter['healthInjured'] === 1) $values[] = 2;
+    $valuesText = implode(", ", $values);
+    addSQLWhere($sqlWhere, " cp.health IN ($valuesText) ");
+  }
+}
+
 function containsText($haystack, $needle){
   // https://stackoverflow.com/a/4366748/63849
   return strpos($haystack, $needle) !== false;

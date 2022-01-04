@@ -698,7 +698,7 @@ async function loadMap() {
 
     mapMain = new mapboxgl.Map({
       container: 'mapMain',
-      style:     'mapbox://styles/mapbox/streets-v9',
+      style:     'mapbox://styles/mapbox/streets-v11',
       center:    [longitude, latitude],
       zoom:      zoom,
     })
@@ -2557,7 +2557,7 @@ async function showMapEdit(latitude, longitude) {
     mapboxgl.accessToken = mapboxKey;
     mapEdit = new mapboxgl.Map({
       container: 'mapEdit',
-      style:     'mapbox://styles/mapbox/streets-v9',
+      style:     'mapbox://styles/mapbox/streets-v11',
       center:    [longitude, latitude],
       zoom:      options.map.zoom,
     }).addControl(
@@ -2565,7 +2565,6 @@ async function showMapEdit(latitude, longitude) {
         accessToken: mapboxgl.accessToken,
         mapboxgl:    mapboxgl,
         clearOnBlur: true,
-        marker:      false,
       })
     ).on('click', (e) => {
       saveMarkerPosition(e.lngLat);
@@ -2591,7 +2590,7 @@ function showMapCrash(latitude, longitude) {
   mapboxgl.accessToken = mapboxKey;
   const mapCrash = new mapboxgl.Map({
     container: 'mapCrash',
-    style:     'mapbox://styles/mapbox/streets-v9',
+    style:     'mapbox://styles/mapbox/streets-v11',
     center:    [longitude, latitude],
     zoom:      zoomLevel,
   });

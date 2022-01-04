@@ -16,7 +16,10 @@ Website: [roaddanger.org](https://www.roaddanger.org)
 ```PHP
 <?php
 
-// Data we do *not* want in the source code repository
+// *** Do not fill in the database settings ***
+// - Create a new file named configsecret.php and fill these settings there.
+// - Exclude configsecret.php from checking into your source code repository. 
+// - This is to prevent passwords from entering the source code repository.
 const DB_HOST     = '';
 const DB_NAME     = '';
 const DB_USER     = '';

@@ -1,12 +1,14 @@
 <?php
 
-$VERSION      = 424;
-$VERSION_DATE = '2 January 2022';
+$VERSION      = 426;
+$VERSION_DATE = '4 January 2022';
 
 require_once 'configsecret.php';
 
-// Leave these empty and configure you database connection in configsecret.php
-// This is to prevent passwords from entering the source code repository
+// *** Do not fill in the database settings ***
+// - Create a new file named configsecret.php and fill these settings there.
+// - Exclude configsecret.php from checking into your source code repository.
+// - This is to prevent passwords from entering the source code repository.
 // const DB_HOST     = '';
 // const DB_NAME     = '';
 // const DB_USER     = '';
