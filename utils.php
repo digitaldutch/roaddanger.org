@@ -25,7 +25,13 @@ abstract class QuestionnaireType {
   const bechdel  = 1;
 }
 
-  function translate($key){
+abstract class Answer {
+  const no               = 0;
+  const yes              = 1;
+  const notDeterminable  = 2;
+}
+
+function translate($key){
   global $user;
   return $user->translate($key);
 }

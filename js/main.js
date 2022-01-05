@@ -2485,7 +2485,7 @@ function updateBrowserUrl(pushState=false){
 }
 
 function downloadData() {
-  async function doDownload(period=''){
+  async function doDownload(){
     spinnerLoad.style.display = 'block';
     try {
       const url      = '/admin/exportdata.php?function=downloadData&period=all&format=zjson';

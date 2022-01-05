@@ -234,7 +234,8 @@ HTML;
      
   <div id="questionnaireBars"></div>
 
-  <table class="dataTable"">
+  <div style="width: 100%; margin-top: 10px; font-weight: bold; text-align: left;">Statistics</div>
+  <table class="dataTable">
     <thead id="tableHead"></thead>  
     <tbody id="tableBody"></tbody>
   </table>  

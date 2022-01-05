@@ -75,6 +75,10 @@ function questionnaireFilterChange() {
   loadQuestionnaireResults();
 }
 
+function getBarSegment(widthPercentage, color, text='') {
+  return `<div style="width: ${widthPercentage}%; background-color: ${color};"><span>${text}</span></div>`;
+}
+
 async function loadQuestionnaireResults() {
   const data = {
     filter: {
@@ -113,6 +117,37 @@ async function loadQuestionnaireResults() {
         i += 1;
       }
 
+      let items = [];
+      let total = 0;
+      for (let i=response.bechdelResults.total_questions_passed.length - 1; i >=0 ; i--) {
+        const amount = response.bechdelResults.total_questions_passed[i];
+
+        total += amount;
+        const segment = {passed: i, amount: amount};
+
+        items.push(segment);
+      }
+
+      items.forEach(item => {
+        item.amountPercentage = item.amount / total * 100;
+        item.text = item.passed + '/' + response.questionnaire.questions.length;
+        const score = item.passed / response.questionnaire.questions.length;
+
+        let color = '';
+        switch (true) {
+          case score === 1:   color = '#8eff8e'; break;
+          case score >= 0.75: color = '#e8ec49'; break;
+          case score >= 0.50: color = '#ffdaa2'; break;
+          case score >= 0.25: color = '#ffb465'; break;
+          default:            color = '#ffa2a2';
+        }
+
+        htmlBars += getBarSegment(item.amountPercentage, color, item.text + ': ' + Math.round(item.amountPercentage) + '%');
+        htmlBody += `<tr><td>Questions passed: ${item.text}</td><td style="text-align: center;">${item.amount} (${item.amountPercentage.toFixed(2)}%)</td></tr>`;
+      });
+
+      htmlBars = '<div style="white-space: nowrap;">' + htmlBars + '</div>';
+
       const stats = {
         yes:              response.bechdelResults.yes,
         no:               response.bechdelResults.no,
@@ -126,25 +161,16 @@ async function loadQuestionnaireResults() {
         stats.not_determinable_percentage = 100 * stats.not_determinable / stats.total;
       }
 
-      htmlBars = `<div>
-  <div style="width: ${stats.yes_percentage}%; background-color: #8eff8e;"><span>${Math.round(stats.yes_percentage)}%</span></div>
-  <div style="width: ${stats.no_percentage}%; background-color: #ffa2a2;"><span>${Math.round(stats.no_percentage)}%</span></div>
-  <div style="width: ${stats.not_determinable_percentage}%; background-color: #cccccc;"><span>${Math.round(stats.not_determinable_percentage)}%</span></div>
-</div>`;
-      htmlHead = '<tr><th style="width: 33%;">Passed</th><th style="width: 33%;">Failed</th><th style="width: 33%;">Not determinable</th></tr>';
-      htmlBody += `<tr>
-  <td style="text-align: center;">${Math.round(stats.yes)} (${Math.round(stats.yes_percentage)}%)</td>
-  <td style="text-align: center;">${Math.round(stats.no)} (${Math.round(stats.no_percentage)}%)</td>
-  <td style="text-align: center;">${Math.round(stats.not_determinable)} (${Math.round(stats.not_determinable_percentage)}%)</td>
-</tr>`;
+      htmlHead = '';
+      htmlBody += `<tr><td>Not determinable</td><td style="text-align: center;">${stats.not_determinable}</td></tr>`;
 
       document.getElementById('questionnaireBechdelIntro').style.display = 'block';
       document.getElementById('questionnaireBechdelQuestions').innerHTML = htmlQuestions;
     }
 
-    document.getElementById('questionnaireBars').innerHTML             = htmlBars;
-    document.getElementById('tableHead').innerHTML                     = htmlHead;
-    document.getElementById('tableBody').innerHTML                     = htmlBody;
+    document.getElementById('questionnaireBars').innerHTML = htmlBars;
+    document.getElementById('tableHead').innerHTML         = htmlHead;
+    document.getElementById('tableBody').innerHTML         = htmlBody;
   }
 }
 

@@ -7,6 +7,7 @@ ini_set('display_errors', 0);
 //error_reporting(E_ALL);
 
 require_once '../initialize.php';
+require_once '../utils.php';
 
 global $database;
 global $user;
@@ -19,12 +20,17 @@ if (! $user->isModerator()) {
 $function = $_REQUEST['function'];
 
 function getBechdelResult($article) {
+
+  $passed = Answer::yes;
+  $totalQuestionsPassed = 0;
   foreach ($article['questions'] as $questionAnswer) {
-    if      ($questionAnswer === 0)    return 0;
-    else if ($questionAnswer === 2)    return 2;
-    else if ($questionAnswer === null) return null;
+    if      ($questionAnswer === Answer::no)              {$passed = Answer::no; break;}
+    else if ($questionAnswer === Answer::notDeterminable) {$passed = Answer::notDeterminable; break;}
+    else if ($questionAnswer === null)                    {$passed = null; break;}
+    else $totalQuestionsPassed += 1;
   }
-  return 1;
+
+  return ['passed' => $passed, 'total_questions_passed' => $totalQuestionsPassed];
 }
 
 if ($function === 'loadQuestionnaires') {
@@ -300,7 +306,15 @@ ORDER BY a.articleid;
 SQL;
 
       $articles = [];
-      $bechdelResults = ['yes' => 0, 'no' => 0, 'not_determinable' => 0,];
+      $bechdelResults = [
+        'yes'                    => 0,
+        'no'                     => 0,
+        'not_determinable'       => 0,
+        'total_questions_passed' => [],
+      ];
+
+      for ($i=0; $i<=count($questionnaire['questions']); $i++) {$bechdelResults['total_questions_passed'][$i] = 0;};
+
       $statement = $database->prepare($sql);
       $statement->execute([':questionnaire_id' => $data['filter']['questionnaireId']]);
       while ($article = $statement->fetch(PDO::FETCH_ASSOC)) {
@@ -318,11 +332,26 @@ SQL;
         unset($article['answers']);
 
         $articleResult = getBechdelResult($article);
+        switch ($articleResult['passed']) {
 
-        switch ($articleResult) {
-          case 0: {$bechdelResults['no'] += 1; break;}
-          case 1: {$bechdelResults['yes'] += 1; break;}
-          case 2: {$bechdelResults['not_determinable'] += 1; break;}
+          case Answer::no: {
+            $bechdelResults['no'] += 1;
+            $bechdelResults['total_questions_passed'][$articleResult['total_questions_passed']] += 1;
+            break;
+          }
+
+          case Answer::yes: {
+            $bechdelResults['yes'] += 1;
+            $bechdelResults['total_questions_passed'][$articleResult['total_questions_passed']] += 1;
+            break;
+          }
+
+          case Answer::notDeterminable: {
+            $bechdelResults['not_determinable'] += 1;
+            break;
+          }
+
+          default: throw new Exception('Internal error: Unknown Bechdel result');
         }
 
         $article['bechdelResult'] = $articleResult;
