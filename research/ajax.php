@@ -27,7 +27,7 @@ function getBechdelResult($article) {
     if      ($questionAnswer === Answer::no)              {$passed = Answer::no; break;}
     else if ($questionAnswer === Answer::notDeterminable) {$passed = Answer::notDeterminable; break;}
     else if ($questionAnswer === null)                    {$passed = null; break;}
-    else $totalQuestionsPassed += 1;
+    else if (($questionAnswer === Answer::yes))           {$totalQuestionsPassed += 1;}
   }
 
   return ['passed' => $passed, 'total_questions_passed' => $totalQuestionsPassed];
@@ -205,6 +205,7 @@ else if ($function === 'deleteQuestionnaire') {
 else if ($function === 'loadQuestionnaireResults') {
   try{
     $data = json_decode(file_get_contents('php://input'), true);
+    $filter = $data['filter'];
 
     $result = ['ok' => true];
 
@@ -220,19 +221,24 @@ LEFT JOIN countries c ON q.country_id = c.id
 WHERE q.id=:questionnaire_id
 SQL;
 
-    $params = [':questionnaire_id' => $data['filter']['questionnaireId']];
+    $params = [':questionnaire_id' => $filter['questionnaireId']];
     $questionnaire = $database->fetch($sql, $params);
 
     $result['questionnaire'] = $questionnaire;
 
-    $SQLJoin = '';
-    $SQLWhereAnd = ' ';
+    $SQLJoin          = '';
+    $SQLWhereAnd      = ' ';
     $joinPersonsTable = false;
-    addHealthWhereSql($SQLWhereAnd, $joinPersonsTable, $data['filter']);
 
-    if (isset($data['filter']['child']) && ($data['filter']['child'] === 1)){
+    addHealthWhereSql($SQLWhereAnd, $joinPersonsTable, $filter);
+
+    if (! empty($filter['year'])){
+      addSQLWhere($SQLWhereAnd, 'YEAR(c.date)=' . intval($filter['year']));
+    }
+
+    if (isset($filter['child']) && ($filter['child'] === 1)){
       $joinPersonsTable = true;
-      addSQLWhere($SQLWhereAnd, " cp.child=1 ");
+      addSQLWhere($SQLWhereAnd, "cp.child=1 ");
     }
 
     if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
@@ -291,6 +297,8 @@ SQL;
 SELECT
   ar.crashid,
   a.articleid,
+  YEAR(c.date) AS crash_year,
+  ar.sitename AS source,
   GROUP_CONCAT(a.questionid ORDER BY qq.question_order) AS question_ids,
   GROUP_CONCAT(a.answer     ORDER BY qq.question_order) AS answers
 FROM answers a

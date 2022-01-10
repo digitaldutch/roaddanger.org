@@ -13,9 +13,11 @@ async function initResearch(){
   const url = new URL(location.href);
   const searchHealthDead = url.searchParams.get('hd');
   const searchChild      = url.searchParams.get('child');
+  const searchYear       = url.searchParams.get('year');
 
   if (searchHealthDead) document.getElementById('filterResearchDead').classList.add('buttonSelectedBlue');
   if (searchChild)      document.getElementById('filterResearchChild').classList.add('buttonSelectedBlue');
+  if (searchYear)       document.getElementById('filterResearchYear').value = searchYear;
 
   if (url.pathname.startsWith('/research/questionnaires/options')) {
 
@@ -85,6 +87,7 @@ async function loadQuestionnaireResults() {
       questionnaireId: parseInt(document.getElementById('filterQuestionnaire').value),
       healthDead:      document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue')? 1 : 0,
       child:           document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
+      year:            document.getElementById('filterResearchYear').value,
     }
   }
 
@@ -110,6 +113,13 @@ async function loadQuestionnaireResults() {
       }
 
     } else if (response.questionnaire.type === QuestionnaireType.bechdel) {
+
+      const stats = {
+        yes:              response.bechdelResults.yes,
+        no:               response.bechdelResults.no,
+        not_determinable: response.bechdelResults.not_determinable,
+      };
+      stats.total = stats.yes + stats.no + stats.not_determinable;
 
       let i=1;
       for (let question of response.questionnaire.questions) {
@@ -142,19 +152,17 @@ async function loadQuestionnaireResults() {
           default:            color = '#ffa2a2';
         }
 
-        htmlBars += getBarSegment(item.amountPercentage, color, item.text + ': ' + Math.round(item.amountPercentage) + '%');
-        htmlBody += `<tr><td>Questions passed: ${item.text}</td><td style="text-align: center;">${item.amount} (${item.amountPercentage.toFixed(2)}%)</td></tr>`;
+        let htmlPassed = item.amount;
+        if (total > 0) {
+          htmlBars += getBarSegment(item.amountPercentage, color, item.text + ': ' + Math.round(item.amountPercentage) + '%');
+
+          htmlPassed += ' (' + item.amountPercentage.toFixed(2) + ')%';
+        }
+        htmlBody += `<tr><td>Questions answered with Yes: ${item.text}</td><td style="text-align: center;">${htmlPassed}</td></tr>`;
       });
 
       htmlBars = '<div style="white-space: nowrap;">' + htmlBars + '</div>';
 
-      const stats = {
-        yes:              response.bechdelResults.yes,
-        no:               response.bechdelResults.no,
-        not_determinable: response.bechdelResults.not_determinable,
-      };
-
-      stats.total = stats.yes + stats.no + stats.not_determinable;
       if (stats.total > 0) {
         stats.yes_percentage              = 100 * stats.yes / stats.total;
         stats.no_percentage               = 100 * stats.no / stats.total;
@@ -468,10 +476,12 @@ function selectFilterQuestionnaireResults() {
 
   const dead  = document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue');
   const child = document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue');
+  const year  = document.getElementById('filterResearchYear').value;
 
   const url = new URL(window.location);
   if (dead)  url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
   if (child) url.searchParams.set('child', 1); else url.searchParams.delete('child');
+  if (year)  url.searchParams.set('year', year); else url.searchParams.delete('year');
 
   window.history.pushState(null, null, url.toString());
 

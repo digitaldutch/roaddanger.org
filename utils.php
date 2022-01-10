@@ -319,3 +319,9 @@ function formatMessage($text){
   return $text;
 }
 
+function getHtmlYearOptions($addEmpty=true, $amountYears=50){
+  $yearNow = intval(date("Y"));
+  $options = $addEmpty? '<option value="">Altijd</option>' : '';
+  for ($year=$yearNow; $year >= $yearNow - $amountYears; $year--) $options .= "<option value={$year}>{$year}</option>";
+  return $options;
+}

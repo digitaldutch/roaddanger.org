@@ -211,6 +211,8 @@ HTML;
       $questionnairesOptions .= "<option value='{$questionnaire['id']}'>{$questionnaire['title']}</option>";
     }
 
+    $optionsYear = getHtmlYearOptions();
+
     $mainHTML = <<<HTML
 <div id="pageMain">
   <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['Results']}</div>
@@ -221,6 +223,10 @@ HTML;
     <div class="toolbarItem">
       <span id="filterResearchDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterQuestionnaireResults();"></span>      
       <span id="filterResearchChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterQuestionnaireResults();"></span>      
+    </div>
+    
+    <div class="toolbarItem">
+      <select id="filterResearchYear" onchange="selectFilterQuestionnaireResults();">$optionsYear</select>
     </div>
 
   </div>
