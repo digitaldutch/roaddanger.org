@@ -22,6 +22,7 @@ $function = $_REQUEST['function'];
 function getBechdelResult($article) {
 
   $passed = Answer::yes;
+
   $totalQuestionsPassed = 0;
   foreach ($article['questions'] as $questionAnswer) {
     if      ($questionAnswer === Answer::no)              {$passed = Answer::no; break;}

@@ -127,7 +127,7 @@ async function loadQuestionnaireResults() {
         i += 1;
       }
 
-      let items = [];
+      let bechdelItems = [];
       let total = 0;
       for (let i=response.bechdelResults.total_questions_passed.length - 1; i >=0 ; i--) {
         const amount = response.bechdelResults.total_questions_passed[i];
@@ -135,10 +135,11 @@ async function loadQuestionnaireResults() {
         total += amount;
         const segment = {passed: i, amount: amount};
 
-        items.push(segment);
+        bechdelItems.push(segment);
       }
 
-      items.forEach(item => {
+      let htmlStatistics = '';
+      bechdelItems.forEach(item => {
         item.amountPercentage = item.amount / total * 100;
         item.text = item.passed + '/' + response.questionnaire.questions.length;
         const score = item.passed / response.questionnaire.questions.length;
@@ -153,15 +154,19 @@ async function loadQuestionnaireResults() {
         }
 
         let htmlPassed = item.amount;
+
         if (total > 0) {
           htmlBars += getBarSegment(item.amountPercentage, color, item.text + ': ' + Math.round(item.amountPercentage) + '%');
 
           htmlPassed += ' (' + item.amountPercentage.toFixed(2) + ')%';
         }
-        htmlBody += `<tr><td>Questions answered with Yes: ${item.text}</td><td style="text-align: center;">${htmlPassed}</td></tr>`;
+
+        htmlStatistics = `<tr><td>Questions answered with Yes: <span style="border-bottom: 3px solid ${color}; padding: 3px;">${item.text}</span></td>` +
+          `<td style="text-align: center;"><span style="border-bottom: 3px solid ${color}; padding: 3px;">${htmlPassed}</span></td></tr>` + htmlStatistics;
       });
 
       htmlBars = '<div style="white-space: nowrap;">' + htmlBars + '</div>';
+      htmlBody += htmlStatistics;
 
       if (stats.total > 0) {
         stats.yes_percentage              = 100 * stats.yes / stats.total;
