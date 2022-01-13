@@ -48,7 +48,7 @@ try {
 
   $database->loadCountries();
 
-  $user = new TUser($database);
+  $user = new User($database);
 
 } catch (Exception $e){
   die('Internal error: Initialization failed');

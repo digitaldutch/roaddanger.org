@@ -68,6 +68,16 @@ class Database {
     }
   }
 
+  public function fetchAllValues($sql, $params=null){
+    try {
+      $statement = $this->pdo->prepare($sql);
+      $statement->execute($params);
+      return $statement->fetchAll(PDO::FETCH_COLUMN);
+    } catch (Exception $e) {
+      return false;
+    }
+  }
+
   public function fetchAllGroup($sql, $params=null){
     try {
       $statement = $this->pdo->prepare($sql);
@@ -200,6 +210,10 @@ class Database {
 
   public function getQuestionnaires() {
     return $this->fetchAll("SELECT id, type, title, country_id FROM questionnaires ORDER BY id;");
+  }
+
+  public function getQuestionnaireCountries() {
+    return $this->fetchAllValues("SELECT DISTINCT country_id FROM questionnaires WHERE active=1 ORDER BY id;");
   }
 
   public function getCountry($id) {

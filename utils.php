@@ -1,7 +1,7 @@
 <?php
 
 abstract class PageType {
-  const stream                        = 0;
+  const lastChanged                        = 0;
   const crash                         = 1;
   const moderations                   = 2;
   const statisticsTransportationModes = 3;
@@ -61,7 +61,7 @@ function datetimeDBToISO8601($datetimeDB){
 function pageWithEditMap($pageType){
   return in_array($pageType,
     [PageType::recent,
-      PageType::stream,
+      PageType::lastChanged,
       PageType::deCorrespondent,
       PageType::mosaic,
       PageType::crash,

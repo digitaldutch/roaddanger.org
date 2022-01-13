@@ -1,16 +1,16 @@
 <?php
 
 require_once 'scripts/Parsedown.php';
-$Parsedown = new Parsedown();
+$parsedown = new Parsedown();
 
-abstract class TUserPermission {
+abstract class UserPermission {
   const newuser   = 0;
   const admin     = 1;
   const moderator = 2;
 }
 
-class TUser{
-  /** @var  Database */
+class User {
+  /* @var Database */
   private $database;
   public $id;
   public $loggedIn = false;
@@ -50,7 +50,7 @@ class TUser{
   }
 
   function isModerator(){
-    return ($this->permission === TUserPermission::admin) || ($this->permission === TUserPermission::moderator);
+    return ($this->permission === UserPermission::admin) || ($this->permission === UserPermission::moderator);
   }
 
   private function clearData(){
@@ -65,7 +65,7 @@ class TUser{
     $this->translations = '';
     $this->emailExists  = false;
     $this->admin        = false;
-    $this->permission   = TUserPermission::newuser;
+    $this->permission   = UserPermission::newuser;
   }
 
   private function loadUserFromDBIntern($id='', $email='', $password='') {
@@ -180,8 +180,8 @@ class TUser{
       $text = '⃰' . $this->getLongText($textId, 'en');
     }
 
-    global $Parsedown;
-    return $Parsedown->text($text);
+    global $parsedown;
+    return $parsedown->text($text);
   }
 
   private function getLongText($textId, $languageId) {
@@ -275,7 +275,7 @@ SQL;
     $this->database->execute($sql, $params);
     $userId = $this->database->lastInsertID();
 
-    $this->database->log($userId, LogLevel::info, "Nieuw mens registratie.");
+    $this->database->log($userId, LogLevel::info, "New registration");
 
     return $userId;
   }

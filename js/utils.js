@@ -646,11 +646,13 @@ function initPageUser(){
   loadUserData();
 }
 
-async function loadUserData() {
+async function loadUserData(options=[]) {
   try {
-    const url      = '/ajax.php?function=getUser';
-    const response = await fetchFromServer(url);
+    const url = '/ajax.php?function=loadUserData';
+    const response = await fetchFromServer(url, options);
     if (response.user) updateLoginGUI(response.user);
+
+    return response.extraData;
   } catch (error) {
     showError(error.message);
   }

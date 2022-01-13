@@ -335,10 +335,10 @@ function cleanArticleDBRow($article){
   $article['id']                 = (int)$article['id'];
   $article['userid']             = (int)$article['userid'];
   $article['awaitingmoderation'] = $article['awaitingmoderation'] == 1;
-  $article['hasalltext']         = $article['hasalltext'] == 1;
-  $article['crashid']            = (int)$article['crashid'];
+  $article['hasalltext']         = ($article['hasalltext']?? 0) == 1;
+  $article['crashid']            = isset($article['crashid'])? (int)$article['crashid'] : null;
   $article['createtime']         = datetimeDBToISO8601($article['createtime']);
-  $article['publishedtime']      = datetimeDBToISO8601($article['publishedtime']);
+  $article['publishedtime']      = isset($article['publishedtime'])? datetimeDBToISO8601($article['publishedtime']) : null;
   $article['streamdatetime']     = datetimeDBToISO8601($article['streamdatetime']);
   // JD NOTE: Do not sanitize strings. We handle escaping in JavaScript
 
@@ -744,10 +744,20 @@ SQL;
 
   echo json_encode($result);
 } //==========
-else if ($function === 'getUser') {
+else if ($function === 'loadUserData') {
   try {
+    $data = json_decode(file_get_contents('php://input'));
+
     $user->getTranslations();
-    $result = ['ok' => true, 'user' => $user->info()];
+    $result = [
+      'ok' => true,
+      'user' => $user->info(),
+      'extraData',
+    ];
+
+    if ($data->getQuestionnaireCountries === true) {
+      $result['extraData']['questionnaireCountries'] = $database->getQuestionnaireCountries();
+    }
   } catch (Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
@@ -835,8 +845,8 @@ else if ($function === 'saveArticleCrash'){
       if ($exists) throw new Exception("<a href='/{$exists['crashId']}}' style='text-decoration: underline;'>Er is al een ongeluk met deze link</a>", 1);
     }
 
-    if ($saveCrash){
-      if (! $isNewCrash){
+    if ($saveCrash) {
+      if (! $isNewCrash) {
         // Update existing crash
 
         // We don't set awaitingmoderation for updates because it is unfriendly for helpers. We may need to come back on this policy if it is misused.
@@ -999,6 +1009,7 @@ SQL;
     }
 
     $result = ['ok' => true, 'crashId' => $crash['id']];
+
     if ($saveArticle) {
       $sqlArticleSelect = getArticleSelect();
       $sqlArticle = "$sqlArticleSelect WHERE ar.ID=:id";
@@ -1008,9 +1019,11 @@ SQL;
 
       $result['article'] = $DBArticle;
     }
+
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage(), 'errorcode' => $e->getCode()];
   }
+
   echo json_encode($result);
 } //==========
 else if ($function === 'mergeCrashes'){
@@ -1288,9 +1301,9 @@ else if ($function === 'loadCountryDomain') {
   try {
     $data = json_decode(file_get_contents('php://input'), true);
 
-    $sql         = 'SELECT domain from countries WHERE id=:id;';
-    $params      = [':id' => $data['countryId']];
-    $domain      = $database->fetchSingleValue($sql, $params);
+    $sql    = 'SELECT domain from countries WHERE id=:id;';
+    $params = [':id' => $data['countryId']];
+    $domain = $database->fetchSingleValue($sql, $params);
 
     $result = ['ok' => true,
       'domain' => $domain,

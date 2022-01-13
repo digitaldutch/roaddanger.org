@@ -7,7 +7,7 @@ global $database;
 global $user;
 
 $uri = urldecode($_SERVER['REQUEST_URI']);
-if      (strpos($uri, '/stream')                          === 0) $pageType = PageType::stream;
+if      (strpos($uri, '/last_changed')                    === 0) $pageType = PageType::lastChanged;
 else if (strpos($uri, '/decorrespondent')                 === 0) $pageType = PageType::deCorrespondent;
 else if (strpos($uri, '/map')                             === 0) $pageType = PageType::map;
 else if (strpos($uri, '/moderations')                     === 0) $pageType = PageType::moderations;
@@ -267,7 +267,7 @@ HTML;
 
   $title = '';
   switch ($pageType){
-    case PageType::stream:          $title = translate('Last_modified_crashes'); break;
+    case PageType::lastChanged:          $title = translate('Last_modified_crashes'); break;
     case PageType::deCorrespondent: $title = translate('The_correspondent_week') . '<br>14-20 jan. 2019'; break;
     case PageType::moderations:     $title = translate('Moderations'); break;
     case PageType::recent:          $title = translate('Recent_crashes'); break;
@@ -275,7 +275,7 @@ HTML;
 
   $introText = "<div id='pageSubTitle' class='pageSubTitle'>$title</div>";
 
-  if (isset($messageHTML) && in_array($pageType, [PageType::recent, PageType::stream, PageType::deCorrespondent, PageType::crash])) {
+  if (isset($messageHTML) && in_array($pageType, [PageType::recent, PageType::lastChanged, PageType::deCorrespondent, PageType::crash])) {
     $introText .= "<div class='sectionIntro'>$messageHTML</div>";
   }
 

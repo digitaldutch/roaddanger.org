@@ -781,6 +781,8 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .notice {
+  color:            #000000;
+  background-color: #fce981;
   padding: 5px;
 }
 
@@ -1507,7 +1509,6 @@ table.tableDragging td div {
 .ready {
   background-color: var(--color-ready);
 }
-
 @media (max-width: 750px) {
   .hideOnMobile {
     display: none !important;

@@ -10,6 +10,7 @@ let mapMain;
 let mapEdit;
 let mapCrash;
 let markerEdit;
+let questionnaireCountries = [];
 let PageType = Object.freeze({
   stream:                        0,
   crash:                         1,
@@ -28,7 +29,8 @@ let PageType = Object.freeze({
 
 async function initMain() {
   initPage();
-  await loadUserData();
+  const data = await loadUserData({getQuestionnaireCountries: true});
+  questionnaireCountries = data.questionnaireCountries;
   initSearchBar();
 
   spinnerLoad = document.getElementById('spinnerLoad');
@@ -49,7 +51,7 @@ async function initMain() {
   const pathName            = decodeURIComponent(url.pathname);
 
   if      (pathName.startsWith('/moderations'))                     pageType = PageType.moderations;
-  else if (pathName.startsWith('/stream'))                          pageType = PageType.stream;
+  else if (pathName.startsWith('/last_changed'))                    pageType = PageType.lastChanged;
   else if (pathName.startsWith('/decorrespondent'))                 pageType = PageType.deCorrespondent;
   else if (pathName.startsWith('/mosaic'))                          pageType = PageType.mosaic;
   else if (pathName.startsWith('/child_deaths'))                    pageType = PageType.childDeaths;
@@ -515,7 +517,7 @@ async function loadCrashesFromServer(serverData){
 
   if (response.error) {showError(response.error); return [];}
   else {
-    prepareCrashServerData(response);
+    prepareCrashesServerData(response);
 
     crashes  = crashes.concat(response.crashes);
     articles = articles.concat(response.articles);
@@ -635,7 +637,7 @@ async function loadMapDataFromServer(){
 
     if (response.user) updateLoginGUI(response.user);
 
-    prepareCrashServerData(response);
+    prepareCrashesServerData(response);
 
     for (const crash of response.crashes) {
       if (! crashes.find(c => c.id === crash.id)) {
@@ -723,16 +725,17 @@ function prepareArticleServerData(article){
   article.streamdatetime = new Date(article.streamdatetime);
 }
 
-function prepareCrashServerData(data){
-  data.crashes.forEach(crash => {
-    crash.date           = new Date(crash.date);
-    crash.createtime     = new Date(crash.createtime);
-    crash.streamdatetime = new Date(crash.streamdatetime);
+function prepareCrashServerData(crash) {
+  crash.date           = new Date(crash.date);
+  crash.createtime     = new Date(crash.createtime);
+  crash.streamdatetime = new Date(crash.streamdatetime);
 
-    let id = 1;
-    crash.persons.forEach(person => person.id = id++);
-  });
+  let id = 1;
+  crash.persons.forEach(person => person.id = id++);
+}
 
+  function prepareCrashesServerData(data){
+  data.crashes.forEach(crash => prepareCrashServerData(crash));
   data.articles.forEach(article => prepareArticleServerData(article));
 }
 
@@ -760,13 +763,17 @@ function getCrashGUIButtons(crash){
   return buttons;
 }
 
-function getCrashListHTML(crashID){
+function crashHasActiveQuestionnaires(crash) {
+  return questionnaireCountries.includes('UN') || questionnaireCountries.includes(crash.countryid);
+}
+
+function getCrashListHTML(crashID, isNew=false){
   const crash         = getCrashFromID(crashID);
   const crashArticles = getCrashArticles(crash.id, articles);
   const canEditCrash  = user.moderator || (crash.userid === user.id);
 
   let htmlArticles = '';
-  for (let article of crashArticles) {
+  for (const article of crashArticles) {
 
     const canEditArticle = user.moderator || (article.userid === user.id);
     let htmlModeration = '';
@@ -786,9 +793,9 @@ ${translate('Approval_required')}
       htmlModeration = `<div id="articleModeration${article.id}" class="moderation">${modHTML}</div>`;
     }
 
-    let htmlQuestions = '';
-    if (user.moderator) {
-      htmlQuestions = `<div onclick="showQuestionsForm(${crashID}, ${article.id});" data-moderator>${translate('Questionnaires')}</div>`;
+    let htmlQuestionnaires = '';
+    if (user.moderator && crashHasActiveQuestionnaires(crash)) {
+      htmlQuestionnaires = `<div onclick="showQuestionsForm(${crashID}, ${article.id});" data-moderator>${translate('Questionnaires')}</div>`;
     }
 
     let htmlButtonAllText = '';
@@ -801,7 +808,7 @@ ${translate('Approval_required')}
       htmlMenuEdit += `
         <div id="menuArticle${article.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
           <div onclick="editArticle(${crash.id},  ${article.id});">${translate('Edit')}</div>
-          ${htmlQuestions}
+          ${htmlQuestionnaires}
           <div onclick="deleteArticle(${article.id})">${translate('Delete')}</div>
        </div>`;
     }
@@ -849,6 +856,15 @@ ${translate('Approval_required')}
 
   const htmlPersons = getCrashButtonsHTML(crash, false, true);
 
+  let htmlQuestionnaireHelp = '';
+  if (user.moderator && crashHasActiveQuestionnaires(crash)) {
+    htmlQuestionnaireHelp = `
+<div class="notice smallFont" style="display: flex; justify-content: space-between; align-items: center; margin: 0 5px 5px 0;">
+<div>We are doing a research project and would be gratefull if you answered a few questions about the media articles.</div> 
+<span class="button buttonLine" onclick="showQuestionsForm(${crashID}, ${crashArticles[0].id});">Answer research questions</span>
+</div>`;
+  }
+
   let htmlModeration = '';
   if (crash.awaitingmoderation){
     let modHTML;
@@ -891,6 +907,8 @@ ${translate('Approval_required')}
   </span>        
 
   ${htmlModeration}
+  
+  ${htmlQuestionnaireHelp}
    
   <div class="cardTop">
     <div style="width: 100%;">
@@ -944,7 +962,7 @@ function getCrashDetailsHTML(crashId){
   const canEditCrash  = user.moderator || (crash.userid === user.id);
 
   let htmlArticles = '';
-  for (let article of crashArticles) {
+  for (const article of crashArticles) {
 
     const articleDivID = 'details' + article.id;
 
@@ -964,9 +982,9 @@ ${translate('Approval_required')}
       htmlModeration = `<div id="articleModeration${articleDivID}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
     }
 
-    let htmlQuestions = '';
-    if (user.moderator) {
-      htmlQuestions = `<div onclick="showQuestionsForm(${crashId}, ${article.id});" data-moderator>${translate('Questionnaires')}</div>`;
+    let htmlQuestionnaires = '';
+    if (user.moderator && crashHasActiveQuestionnaires(crash)) {
+      htmlQuestionnaires = `<div onclick="showQuestionsForm(${crashId}, ${article.id});" data-moderator>${translate('Questionnaires')}</div>`;
     }
 
     let htmlButtonAllText = '';
@@ -985,7 +1003,7 @@ ${translate('Approval_required')}
       </span>
       <div id="menuArticle${articleDivID}" class="buttonPopupMenu" onclick="event.preventDefault();">
         <div onclick="editArticle(${crash.id},  ${article.id});">${translate('Edit')}</div>
-        ${htmlQuestions}
+        ${htmlQuestionnaires}
         <div onclick="deleteArticle(${article.id})">${translate('Delete')}</div>
       </div>            
     </span>   
@@ -1841,55 +1859,73 @@ async function saveArticleCrash(){
 
   if (response.error) {
     showError(response.error, 10);
-  } else {
-    const editingCrash = crashEdited.id !== '';
-
-    // No reload only if editing crash. Other cases for now give problems and require a full page reload.
-    if (editingCrash && pageIsCrashPage(pageType)) {
-      if (saveCrash){
-        // Save changes in crashes cache
-        let i = crashes.findIndex(crash => {return crash.id === crashEdited.id});
-        crashes[i].title      = crashEdited.title;
-        crashes[i].text       = crashEdited.text;
-        crashes[i].persons    = crashEdited.persons;
-        crashes[i].date       = new Date(crashEdited.date);
-        crashes[i].countryid  = crashEdited.countryid;
-        crashes[i].latitude   = crashEdited.latitude;
-        crashes[i].longitude  = crashEdited.longitude;
-        crashes[i].unilateral = crashEdited.unilateral;
-        crashes[i].pet        = crashEdited.pet;
-        crashes[i].tree       = crashEdited.tree;
-        crashes[i].trafficjam = crashEdited.trafficjam;
-      } else if (saveArticle) {
-        let i = articles.findIndex(article => {return article.id === articleEdited.id});
-        if (i >= 0){
-          articles[i].url        = articleEdited.url;
-          articles[i].sitename   = articleEdited.sitename;
-          articles[i].title      = articleEdited.title;
-          articles[i].text       = articleEdited.text;
-          articles[i].urlimage   = articleEdited.urlimage;
-          articles[i].date       = articleEdited.date;
-          articles[i].hasalltext = articleEdited.alltext.length > 0;
-        } else if (response.article){
-          prepareArticleServerData(response.article);
-          articles.push(response.article);
-        }
-      }
-
-      const div = document.getElementById('crash' + crashEdited.id);
-      if (div) div.outerHTML = getCrashListHTML(crashEdited.id);
-      const divDetails = document.getElementById('crashdetails' + crashEdited.id);
-      if (divDetails) {
-        divDetails.outerHTML = getCrashDetailsHTML(crashEdited.id);
-        showMapCrash(crashEdited.latitude, crashEdited.longitude);
-      }
-    } else {
-      // New crash
-      window.location.href = createCrashURL(response.crashId, crashEdited.title);
-      showMessage(translate('Saved'), 1);
-    }
-    hideElement('formEditCrash');
+    return;
   }
+
+  const editingCrash = crashEdited.id !== '';
+
+  // No reload only if editing crash. Other cases for now give problems and require a full page reload.
+  if (editingCrash && pageIsCrashPage(pageType)) {
+    if (saveCrash){
+      // Save changes in crashes cache
+      let i = crashes.findIndex(crash => {return crash.id === crashEdited.id});
+      crashes[i].title      = crashEdited.title;
+      crashes[i].text       = crashEdited.text;
+      crashes[i].persons    = crashEdited.persons;
+      crashes[i].date       = new Date(crashEdited.date);
+      crashes[i].countryid  = crashEdited.countryid;
+      crashes[i].latitude   = crashEdited.latitude;
+      crashes[i].longitude  = crashEdited.longitude;
+      crashes[i].unilateral = crashEdited.unilateral;
+      crashes[i].pet        = crashEdited.pet;
+      crashes[i].tree       = crashEdited.tree;
+      crashes[i].trafficjam = crashEdited.trafficjam;
+    } else if (saveArticle) {
+      let i = articles.findIndex(article => {return article.id === articleEdited.id});
+      if (i >= 0){
+        articles[i].url        = articleEdited.url;
+        articles[i].sitename   = articleEdited.sitename;
+        articles[i].title      = articleEdited.title;
+        articles[i].text       = articleEdited.text;
+        articles[i].urlimage   = articleEdited.urlimage;
+        articles[i].date       = articleEdited.date;
+        articles[i].hasalltext = articleEdited.alltext.length > 0;
+      } else if (response.article) {
+        prepareArticleServerData(response.article);
+        articles.push(response.article);
+      }
+    }
+
+    const div = document.getElementById('crash' + crashEdited.id);
+    if (div) div.outerHTML = getCrashListHTML(crashEdited.id);
+    const divDetails = document.getElementById('crashdetails' + crashEdited.id);
+    if (divDetails) {
+      divDetails.outerHTML = getCrashDetailsHTML(crashEdited.id);
+      showMapCrash(crashEdited.latitude, crashEdited.longitude);
+    }
+
+  } else {
+    // New crash
+    if (pageType === PageType.recent) {
+      crashEdited.id = response.crashId;
+      prepareCrashServerData(crashEdited);
+      crashes.unshift(crashEdited);
+
+      prepareArticleServerData(response.article);
+      articles.push(response.article);
+
+      const htmlCrash = getCrashListHTML(crashEdited.id);
+      document.getElementById('cards').insertAdjacentHTML('afterbegin', htmlCrash);
+
+      selectCrash(crashEdited.id);
+    } else {
+      window.location.href = createCrashURL(response.crashId, crashEdited.title);
+    }
+
+    showMessage(translate('Saved'), 1);
+  }
+
+  hideElement('formEditCrash');
 }
 
 function showArticleMenu(event, articleDivId) {
@@ -1903,7 +1939,7 @@ function showArticleMenu(event, articleDivId) {
 }
 
 function pageIsCrashList(){
-  return [PageType.recent, PageType.stream, PageType.mosaic, PageType.deCorrespondent, PageType.moderations, PageType.childDeaths, PageType.map].includes(pageType);
+  return [PageType.recent, PageType.lastChanged, PageType.mosaic, PageType.deCorrespondent, PageType.moderations, PageType.childDeaths, PageType.map].includes(pageType);
 }
 
 function pageIsCrashPage(){
@@ -2105,7 +2141,7 @@ async function searchMergeCrash() {
 
     if (response.error) showError(response.error);
     else if (response.ok){
-      prepareCrashServerData(response);
+      prepareCrashesServerData(response);
       crashesFound  = response.crashes;
       articlesFound = response.articles;
 
@@ -2454,7 +2490,7 @@ function updateBrowserUrl(pushState=false){
   const url = new URL(location.origin);
 
   if      (pageType === PageType.deCorrespondent) url.pathname = '/decorrespondent';
-  else if (pageType === PageType.stream)          url.pathname = '/stream';
+  else if (pageType === PageType.lastChanged)     url.pathname = '/last_changed';
   else if (pageType === PageType.mosaic)          url.pathname = '/mosaic';
   else if (pageType === PageType.map)             url.pathname = '/map';
 

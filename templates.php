@@ -30,6 +30,7 @@ HTML;
   global $user;
 
   // Add countries
+  $countryOptions = '';
   foreach ($database->countries as $country) {
     $class = $country['id'] === $user->country['id']? "class='menuSelected'" : '';
     $countryOptions .= "<div $class onclick=\"selectCountry('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url({$country['flagFile']});'></div>{$country['name']}</div>";
@@ -266,7 +267,7 @@ function getNavigation(){
         <a href="/moderations/" class="navItem">{$texts['Moderations']}</a>
         <a href="/admin/translations/" class="navItem" data-moderator>{$texts['Translations']}</a>
         <a href="/admin/longtexts/" class="navItem" data-moderator>{$texts['Long_texts']}</a>
-        <a href="/stream" class="navItem">{$texts['Last_modified_crashes']}</a>
+        <a href="/last_changed" class="navItem">{$texts['Last_modified_crashes']}</a>
       </div>      
     </div>
     
@@ -691,6 +692,7 @@ function getSearchCountryHtml($onInputFunctionName = '', $selectId='searchCountr
   global $database;
   global $user;
 
+  $countryOptions = '';
   foreach ($database->countries as $country) {
     $selected = $country['id'] === $user->country['id']? "selected" : '';
     $countryOptions .= "<option value='{$country['id']}' $selected>{$country['name']}</option>";
