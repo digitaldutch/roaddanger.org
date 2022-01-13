@@ -1037,6 +1037,15 @@ ${translate('Approval_required')}
 
   const htmlPersons = getCrashButtonsHTML(crash, false);
 
+  let htmlQuestionnaireHelp = '';
+  if (user.moderator && crashHasActiveQuestionnaires(crash)) {
+    htmlQuestionnaireHelp = `
+<div class="notice smallFont" style="display: flex; justify-content: space-between; align-items: center; margin: 0 5px 5px 0;">
+<div>We are doing a research project and would be gratefull if you answered a few questions about the media articles.</div> 
+<span class="button buttonLine" onclick="showQuestionsForm(${crash.id}, ${crashArticles[0].id});">Answer research questions</span>
+</div>`;
+  }
+
   const crashDivId = 'details' + crash.id;
   let htmlModeration = '';
   if (crash.awaitingmoderation){
@@ -1078,6 +1087,8 @@ ${translate('Approval_required')}
   </span>        
 
   ${htmlModeration}
+  
+  ${htmlQuestionnaireHelp}
    
   <div class="cardTop">
     <div style="width: 100%;">

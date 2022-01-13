@@ -918,6 +918,7 @@ h2, .pageSubTitleFont, .sectionTitle {
   color:            #FFFFFF;
   font-weight:      bold;
   text-decoration:  none;
+  white-space:      nowrap;
   cursor:           pointer;
   transition:       all .25s;
 }
