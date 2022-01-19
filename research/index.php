@@ -229,6 +229,13 @@ HTML;
       <select id="filterResearchYear" onchange="selectFilterQuestionnaireResults();">$optionsYear</select>
     </div>
 
+    <div class="toolbarItem">
+      <select id="filterResearchGroup" onchange="selectFilterQuestionnaireResults();">
+        <option value="" selected>No groups</option>
+        <option value="year">Group by year</option>
+      </select>
+    </div>
+
   </div>
 
   <div id="questionnaireInfo" class="smallFont" style="margin-bottom: 10px;"></div>

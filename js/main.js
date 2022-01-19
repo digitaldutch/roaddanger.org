@@ -860,7 +860,7 @@ ${translate('Approval_required')}
   if (user.moderator && crashHasActiveQuestionnaires(crash)) {
     htmlQuestionnaireHelp = `
 <div class="notice smallFont" style="display: flex; justify-content: space-between; align-items: center; margin: 0 5px 5px 0;">
-<div>We are doing a research project and would be grateful if you answered a few questions about the media articles.</div> 
+<div>We are doing a research project and would be grateful if you answered a few questions about media articles.</div> 
 <span class="button buttonLine" onclick="showQuestionsForm(${crashID}, ${crashArticles[0].id});">Answer research questions</span>
 </div>`;
   }
@@ -1041,7 +1041,7 @@ ${translate('Approval_required')}
   if (user.moderator && crashHasActiveQuestionnaires(crash)) {
     htmlQuestionnaireHelp = `
 <div class="notice smallFont" style="display: flex; justify-content: space-between; align-items: center; margin: 0 5px 5px 0;">
-<div>We are doing a research project and would be grateful if you answered a few questions about the media articles.</div> 
+<div>We are doing a research project and would be grateful if you answered a few questions about media articles.</div> 
 <span class="button buttonLine" onclick="showQuestionsForm(${crash.id}, ${crashArticles[0].id});">Answer research questions</span>
 </div>`;
   }

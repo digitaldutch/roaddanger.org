@@ -1490,20 +1490,19 @@ table.tableDragging td div {
 
 #questionnaireBars {
   width: 100%;
-  margin: 5px 0;
+  margin: 5px;
 }
 
-#questionnaireBars > div {
+.questionnaireBar {
   display: flex;
-  width: 100%;
   background-color: #dddddd;
 }
 
-#questionnaireBars > div > div {
+.questionnaireBar > div {
   padding: 3px 0;
 }
 
-#questionnaireBars > div > div > span {
+.questionnaireBar > div > span {
   padding: 0 3px;
 }
 

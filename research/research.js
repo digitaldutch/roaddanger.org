@@ -14,10 +14,12 @@ async function initResearch(){
   const searchHealthDead = url.searchParams.get('hd');
   const searchChild      = url.searchParams.get('child');
   const searchYear       = url.searchParams.get('year');
+  const searchGroup      = url.searchParams.get('group');
 
   if (searchHealthDead) document.getElementById('filterResearchDead').classList.add('buttonSelectedBlue');
   if (searchChild)      document.getElementById('filterResearchChild').classList.add('buttonSelectedBlue');
   if (searchYear)       document.getElementById('filterResearchYear').value = searchYear;
+  if (searchGroup)      document.getElementById('filterResearchGroup').value = searchGroup;
 
   if (url.pathname.startsWith('/research/questionnaires/options')) {
 
@@ -81,6 +83,65 @@ function getBarSegment(widthPercentage, color, text='') {
   return `<div style="width: ${widthPercentage}%; background-color: ${color};"><span>${text}</span></div>`;
 }
 
+function getBechdelBarHtml(bechdelResults, questions) {
+  const stats = {
+    yes:              bechdelResults.yes,
+    no:               bechdelResults.no,
+    not_determinable: bechdelResults.not_determinable,
+  };
+  stats.total = stats.yes + stats.no + stats.not_determinable;
+
+  let bechdelItems = [];
+  let total = 0;
+  for (let i=bechdelResults.total_questions_passed.length - 1; i >=0 ; i--) {
+    const amount = bechdelResults.total_questions_passed[i];
+
+    total += amount;
+    const segment = {passed: i, amount: amount};
+
+    bechdelItems.push(segment);
+  }
+
+  let htmlStatistics = '';
+  let htmlBar       = '';
+  bechdelItems.forEach(item => {
+    item.amountPercentage = item.amount / total * 100;
+    item.text = item.passed + '/' + questions.length;
+    const score = item.passed / questions.length;
+
+    let color = '';
+    switch (true) {
+      case score === 1:   color = '#8eff8e'; break;
+      case score >= 0.75: color = '#e8ec49'; break;
+      case score >= 0.50: color = '#ffdaa2'; break;
+      case score >= 0.25: color = '#ffb465'; break;
+      default:            color = '#ffa2a2';
+    }
+
+    let htmlPassed = item.amount;
+
+    if ((item.amount) && (total > 0)) {
+      htmlBar += getBarSegment(item.amountPercentage, color, item.text + ': ' + Math.round(item.amountPercentage) + '%');
+
+      htmlPassed += ' (' + item.amountPercentage.toFixed(2) + ')%';
+    }
+
+    htmlStatistics = `<tr><td>Questions answered with Yes: <span style="border-bottom: 3px solid ${color}; padding: 3px;">${item.text}</span></td>` +
+      `<td style="text-align: center;"><span style="border-bottom: 3px solid ${color}; padding: 3px;">${htmlPassed}</span></td></tr>` + htmlStatistics;
+  });
+
+  if (stats.total > 0) {
+    stats.yes_percentage              = 100 * stats.yes / stats.total;
+    stats.no_percentage               = 100 * stats.no / stats.total;
+    stats.not_determinable_percentage = 100 * stats.not_determinable / stats.total;
+  }
+
+  htmlBar = '<div class="questionnaireBar" style="white-space: nowrap;">' + htmlBar + '</div>';
+  htmlStatistics += `<tr><td>Not determinable</td><td style="text-align: center;">${stats.not_determinable}</td></tr>`;
+
+  return [htmlBar, htmlStatistics];
+}
+
 async function loadQuestionnaireResults() {
   const data = {
     filter: {
@@ -88,7 +149,8 @@ async function loadQuestionnaireResults() {
       healthDead:      document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue')? 1 : 0,
       child:           document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
       year:            document.getElementById('filterResearchYear').value,
-    }
+    },
+    group: document.getElementById('filterResearchGroup').value,
   }
 
   const url      = '/research/ajax.php?function=loadQuestionnaireResults';
@@ -101,9 +163,9 @@ async function loadQuestionnaireResults() {
       ` | Country: ` + response.questionnaire.country;
 
     let htmlQuestions = '';
-    let htmlBars      = '';
     let htmlHead      = '';
     let htmlBody      = '';
+    let htmlBars      = '';
 
     if (response.questionnaire.type === QuestionnaireType.standard) {
 
@@ -114,71 +176,34 @@ async function loadQuestionnaireResults() {
 
     } else if (response.questionnaire.type === QuestionnaireType.bechdel) {
 
-      const stats = {
-        yes:              response.bechdelResults.yes,
-        no:               response.bechdelResults.no,
-        not_determinable: response.bechdelResults.not_determinable,
-      };
-      stats.total = stats.yes + stats.no + stats.not_determinable;
-
       let i=1;
       for (let question of response.questionnaire.questions) {
         htmlQuestions += `<div>${i}) ${question.text}</div>`;
         i += 1;
       }
+      document.getElementById('questionnaireBechdelIntro').style.display = 'block';
+      document.getElementById('questionnaireBechdelQuestions').innerHTML = htmlQuestions;
 
-      let bechdelItems = [];
-      let total = 0;
-      for (let i=response.bechdelResults.total_questions_passed.length - 1; i >=0 ; i--) {
-        const amount = response.bechdelResults.total_questions_passed[i];
+      // Draw Bechdel bars
+      let htmlBar;
+      let htmlStats;
+      if (data.group === 'year') {
+        response.bechdelResults.sort((a, b) => b.year - a.year);
+        for (const results of response.bechdelResults) {
+          [htmlBar, htmlStats] = getBechdelBarHtml(results, response.questionnaire.questions);
 
-        total += amount;
-        const segment = {passed: i, amount: amount};
-
-        bechdelItems.push(segment);
-      }
-
-      let htmlStatistics = '';
-      bechdelItems.forEach(item => {
-        item.amountPercentage = item.amount / total * 100;
-        item.text = item.passed + '/' + response.questionnaire.questions.length;
-        const score = item.passed / response.questionnaire.questions.length;
-
-        let color = '';
-        switch (true) {
-          case score === 1:   color = '#8eff8e'; break;
-          case score >= 0.75: color = '#e8ec49'; break;
-          case score >= 0.50: color = '#ffdaa2'; break;
-          case score >= 0.25: color = '#ffb465'; break;
-          default:            color = '#ffa2a2';
+          const htmlYearHeader = `<div style="font-weight: bold; margin-top: 5px;">${results.year}</div>`;
+          htmlBars += htmlYearHeader + htmlBar;
+          htmlBody += htmlYearHeader + htmlStats;
         }
 
-        let htmlPassed = item.amount;
-
-        if (total > 0) {
-          htmlBars += getBarSegment(item.amountPercentage, color, item.text + ': ' + Math.round(item.amountPercentage) + '%');
-
-          htmlPassed += ' (' + item.amountPercentage.toFixed(2) + ')%';
-        }
-
-        htmlStatistics = `<tr><td>Questions answered with Yes: <span style="border-bottom: 3px solid ${color}; padding: 3px;">${item.text}</span></td>` +
-          `<td style="text-align: center;"><span style="border-bottom: 3px solid ${color}; padding: 3px;">${htmlPassed}</span></td></tr>` + htmlStatistics;
-      });
-
-      htmlBars = '<div style="white-space: nowrap;">' + htmlBars + '</div>';
-      htmlBody += htmlStatistics;
-
-      if (stats.total > 0) {
-        stats.yes_percentage              = 100 * stats.yes / stats.total;
-        stats.no_percentage               = 100 * stats.no / stats.total;
-        stats.not_determinable_percentage = 100 * stats.not_determinable / stats.total;
+      } else {
+        [htmlBar, htmlStats] = getBechdelBarHtml(response.bechdelResults, response.questionnaire.questions);
+        htmlBars += htmlBar;
+        htmlBody += htmlStats;
       }
 
       htmlHead = '';
-      htmlBody += `<tr><td>Not determinable</td><td style="text-align: center;">${stats.not_determinable}</td></tr>`;
-
-      document.getElementById('questionnaireBechdelIntro').style.display = 'block';
-      document.getElementById('questionnaireBechdelQuestions').innerHTML = htmlQuestions;
     }
 
     document.getElementById('questionnaireBars').innerHTML = htmlBars;
@@ -482,11 +507,13 @@ function selectFilterQuestionnaireResults() {
   const dead  = document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue');
   const child = document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue');
   const year  = document.getElementById('filterResearchYear').value;
+  const group = document.getElementById('filterResearchGroup').value;
 
   const url = new URL(window.location);
   if (dead)  url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
   if (child) url.searchParams.set('child', 1); else url.searchParams.delete('child');
   if (year)  url.searchParams.set('year', year); else url.searchParams.delete('year');
+  if (group) url.searchParams.set('group', group); else url.searchParams.delete('group');
 
   window.history.pushState(null, null, url.toString());
 

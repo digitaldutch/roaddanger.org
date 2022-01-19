@@ -19,16 +19,16 @@ if (! $user->isModerator()) {
 
 $function = $_REQUEST['function'];
 
-function getBechdelResult($article) {
+function getBechdelResult($answers) {
 
   $passed = Answer::yes;
 
   $totalQuestionsPassed = 0;
-  foreach ($article['questions'] as $questionAnswer) {
-    if      ($questionAnswer === Answer::no)              {$passed = Answer::no; break;}
-    else if ($questionAnswer === Answer::notDeterminable) {$passed = Answer::notDeterminable; break;}
-    else if ($questionAnswer === null)                    {$passed = null; break;}
-    else if (($questionAnswer === Answer::yes))           {$totalQuestionsPassed += 1;}
+  foreach ($answers as $answer) {
+    if      ($answer === Answer::no)              {$passed = Answer::no; break;}
+    else if ($answer === Answer::notDeterminable) {$passed = Answer::notDeterminable; break;}
+    else if ($answer === null)                    {$passed = null; break;}
+    else if (($answer === Answer::yes))           {$totalQuestionsPassed += 1;}
   }
 
   return ['passed' => $passed, 'total_questions_passed' => $totalQuestionsPassed];
@@ -207,6 +207,8 @@ else if ($function === 'loadQuestionnaireResults') {
   try{
     $data = json_decode(file_get_contents('php://input'), true);
     $filter = $data['filter'];
+    $group  = $data['group']?? '';
+    $bechdelResults = null;
 
     $result = ['ok' => true];
 
@@ -314,19 +316,25 @@ GROUP BY a.articleid
 ORDER BY a.articleid;
 SQL;
 
-      $articles = [];
-      $bechdelResults = [
-        'yes'                    => 0,
-        'no'                     => 0,
-        'not_determinable'       => 0,
-        'total_questions_passed' => [],
-      ];
+      function getInitBechdelResults($questionCount) {
+        $results = [
+          'yes'                    => 0,
+          'no'                     => 0,
+          'not_determinable'       => 0,
+          'total_questions_passed' => [],
+        ];
 
-      for ($i=0; $i<=count($questionnaire['questions']); $i++) {$bechdelResults['total_questions_passed'][$i] = 0;};
+        for ($i=0; $i<=count($questionCount); $i++) {$results['total_questions_passed'][$i] = 0;};
+
+        return $results;
+      }
+
+      $articles = [];
 
       $statement = $database->prepare($sql);
       $statement->execute([':questionnaire_id' => $data['filter']['questionnaireId']]);
       while ($article = $statement->fetch(PDO::FETCH_ASSOC)) {
+
         // Format and clean up article questions and answers data
         $articleQuestionIds = explode(',', $article['question_ids']);
         $articleAnswers     = explode(',', $article['answers']);
@@ -340,23 +348,39 @@ SQL;
         unset($article['question_ids']);
         unset($article['answers']);
 
-        $articleResult = getBechdelResult($article);
+        $articleResult = getBechdelResult($article['questions']);
+
+        switch ($group) {
+          case 'year': {
+            $bechdelResultsGroup = &$bechdelResults[$article['crash_year']];
+
+            if (! isset($bechdelResultsGroup)) $bechdelResultsGroup = getInitBechdelResults($questionnaire['questions']);
+
+            break;
+          }
+
+          default: {
+            $bechdelResultsGroup = &$bechdelResults;
+            if (! isset($bechdelResultsGroup)) $bechdelResultsGroup = getInitBechdelResults($questionnaire['questions']);
+          }
+        }
+
         switch ($articleResult['passed']) {
 
           case Answer::no: {
-            $bechdelResults['no'] += 1;
-            $bechdelResults['total_questions_passed'][$articleResult['total_questions_passed']] += 1;
+            $bechdelResultsGroup['no'] += 1;
+            $bechdelResultsGroup['total_questions_passed'][$articleResult['total_questions_passed']] += 1;
             break;
           }
 
           case Answer::yes: {
-            $bechdelResults['yes'] += 1;
-            $bechdelResults['total_questions_passed'][$articleResult['total_questions_passed']] += 1;
+            $bechdelResultsGroup['yes'] += 1;
+            $bechdelResultsGroup['total_questions_passed'][$articleResult['total_questions_passed']] += 1;
             break;
           }
 
           case Answer::notDeterminable: {
-            $bechdelResults['not_determinable'] += 1;
+            $bechdelResultsGroup['not_determinable'] += 1;
             break;
           }
 
@@ -367,7 +391,15 @@ SQL;
 
         $articles[] = $article;
       }
-      $result['bechdelResults'] = $bechdelResults;
+
+      if ($group === 'year') {
+        $resultsArray = [];
+        foreach ($bechdelResults as $year => $bechdelResult) {
+          $bechdelResult['year'] = $year;
+          $resultsArray[] = $bechdelResult;
+        }
+        $result['bechdelResults'] = $resultsArray;
+      } else $result['bechdelResults'] = $bechdelResults;
     }
 
     $result['questionnaire'] = $questionnaire;
@@ -375,6 +407,7 @@ SQL;
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 
+  $code = json_encode($result, JSON_OBJECT_AS_ARRAY );
   echo json_encode($result);
 } // ====================
 else echo json_encode(['ok' => false, 'error' => 'Function not found']);
