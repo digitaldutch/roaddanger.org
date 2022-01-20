@@ -503,7 +503,7 @@ function onDragRowQuestion(event) {
 }
 
 function selectFilterQuestionnaireResults() {
-  event.target.classList.toggle('buttonSelectedBlue');
+  if (event.target.classList.contains('menuButton')) event.target.classList.toggle('buttonSelectedBlue');
 
   const dead  = document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue');
   const child = document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue');

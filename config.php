@@ -1,6 +1,6 @@
 <?php
 
-$VERSION      = 438;
+$VERSION      = 439;
 $VERSION_DATE = '20 January 2022';
 
 require_once 'configsecret.php';
@@ -18,5 +18,5 @@ require_once 'configsecret.php';
 const COOKIE_DOMAIN = '.roaddanger.org';
 const WEBSITE_TITLE = 'Roaddanger.org';
 
-define('DEFAULT_COUNTRY_ID', 'NL');
+const DEFAULT_COUNTRY_ID = 'NL';
 
