@@ -136,6 +136,7 @@ function getBechdelBarHtml(bechdelResults, questions) {
     stats.not_determinable_percentage = 100 * stats.not_determinable / stats.total;
   }
 
+  if (! htmlBar) htmlBar = '<table><tr><td>&nbsp;</td></tr></table>';
   htmlBar = '<div class="questionnaireBar" style="white-space: nowrap;">' + htmlBar + '</div>';
   htmlStatistics += `<tr><td>Not determinable</td><td style="text-align: center;">${stats.not_determinable}</td></tr>`;
 
