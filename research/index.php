@@ -202,7 +202,7 @@ HTML;
 </div>
 HTML;
   } else if ($pageType === PageType::questionnaireResults) {
-    $texts = translateArray(['Questionnaires', 'Results', 'Injury', 'Dead_(adjective)', 'Child']);
+    $texts = translateArray(['Filter', 'Questionnaires', 'Results', 'Injury', 'Dead_(adjective)', 'Child']);
 
     $questionnaires = $database->getQuestionnaires();
 
@@ -212,28 +212,38 @@ HTML;
     }
 
     $optionsYear = getHtmlYearOptions();
+    $htmlSearchPersons = getSearchPersonsHtml();
 
     $mainHTML = <<<HTML
 <div id="pageMain">
   <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['Results']}</div>
-  
-  <div class="searchBar" style="display: flex;">
-    <div class="toolbarItem"><select id="filterQuestionnaire" oninput="questionnaireFilterChange()">$questionnairesOptions</select></div>
 
-    <div class="toolbarItem">
-      <span id="filterResearchDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterQuestionnaireResults();"></span>      
-      <span id="filterResearchChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterQuestionnaireResults();"></span>      
-    </div>
+  <div class="searchBar" style="display: flex;">
+    <div class="toolbarItem"><select id="filterQuestionnaire" class="searchInput" oninput="questionnaireFilterChange()">$questionnairesOptions</select></div>
     
     <div class="toolbarItem">
-      <select id="filterResearchYear" onchange="selectFilterQuestionnaireResults();">$optionsYear</select>
-    </div>
-
-    <div class="toolbarItem">
-      <select id="filterResearchGroup" onchange="selectFilterQuestionnaireResults();">
+      <select id="filterResearchGroup" class="searchInput" onchange="selectFilterQuestionnaireResults();">
         <option value="" selected>No groups</option>
         <option value="year">Group by year</option>
       </select>
+    </div>
+  
+  </div>
+  
+  <div id="searchBar" class="searchBar" style="display: flex;">
+    <div class="toolbarItem">
+      <span id="filterResearchDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireOption();"></span>      
+    </div>
+    
+    <div class="toolbarItem">
+      <select id="filterResearchYear" class="searchInput">$optionsYear</select>
+    </div>
+    
+    $htmlSearchPersons
+    
+    <div class="toolbarItem">
+      <div class="button buttonMobileSmall" onclick="selectFilterQuestionnaireResults(event)">{$texts['Filter']}</div>
     </div>
 
   </div>

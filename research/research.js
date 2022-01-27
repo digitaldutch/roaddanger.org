@@ -10,16 +10,20 @@ async function initResearch(){
 
   initPage();
 
+  initSearchBar();
+
   const url = new URL(location.href);
   const searchHealthDead = url.searchParams.get('hd');
   const searchChild      = url.searchParams.get('child');
   const searchYear       = url.searchParams.get('year');
   const searchGroup      = url.searchParams.get('group');
+  const searchPersons    = url.searchParams.get('persons');
 
   if (searchHealthDead) document.getElementById('filterResearchDead').classList.add('buttonSelectedBlue');
   if (searchChild)      document.getElementById('filterResearchChild').classList.add('buttonSelectedBlue');
   if (searchYear)       document.getElementById('filterResearchYear').value = searchYear;
   if (searchGroup)      document.getElementById('filterResearchGroup').value = searchGroup;
+  if (searchPersons)    setPersonsFilter(searchPersons);
 
   if (url.pathname.startsWith('/research/questionnaires/options')) {
 
@@ -84,6 +88,8 @@ function getBarSegment(widthPercentage, color, text='') {
 }
 
 function getBechdelBarHtml(bechdelResults, questions) {
+  if (! bechdelResults) return ['', '<div>No results found</div>'];
+
   const stats = {
     yes:              bechdelResults.yes,
     no:               bechdelResults.no,
@@ -150,6 +156,7 @@ async function loadQuestionnaireResults() {
       healthDead:      document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue')? 1 : 0,
       child:           document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
       year:            document.getElementById('filterResearchYear').value,
+      persons:         getPersonsFromFilter(),
     },
     group: document.getElementById('filterResearchGroup').value,
   }
@@ -502,19 +509,25 @@ function onDragRowQuestion(event) {
   onDragEnd(event);
 }
 
-function selectFilterQuestionnaireResults() {
+function clickQuestionnaireOption() {
   if (event.target.classList.contains('menuButton')) event.target.classList.toggle('buttonSelectedBlue');
+}
 
+function selectFilterQuestionnaireResults() {
   const dead  = document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue');
   const child = document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue');
   const year  = document.getElementById('filterResearchYear').value;
   const group = document.getElementById('filterResearchGroup').value;
+
+  // Update url
+  const searchPersons = getPersonsFromFilter();
 
   const url = new URL(window.location);
   if (dead)  url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
   if (child) url.searchParams.set('child', 1); else url.searchParams.delete('child');
   if (year)  url.searchParams.set('year', year); else url.searchParams.delete('year');
   if (group) url.searchParams.set('group', group); else url.searchParams.delete('group');
+  if (searchPersons.length > 0) url.searchParams.set('persons', searchPersons.join());
 
   window.history.pushState(null, null, url.toString());
 

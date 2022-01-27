@@ -123,10 +123,11 @@ HTML;
 }
 
 function getHtmlSearchBar(){
-  $texts = translateArray(['Humans', 'Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source', 'Search_text_hint']);
+  $texts = translateArray(['Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source', 'Search_text_hint']);
 
   $htmlSearchCountry = getSearchCountryHtml();
   $htmlSearchPeriod  = getSearchPeriodHtml();
+  $htmlSearchPersons = getSearchPersonsHtml();
 
   return <<<HTML
   <div id="searchBar" class="searchBar" style="border-bottom: solid 1px #aaa;">
@@ -143,18 +144,10 @@ function getHtmlSearchBar(){
     </div>
     
     <div class="toolbarItem">$htmlSearchCountry</div>
+    
     $htmlSearchPeriod
     
-    <div class="toolbarItem">
-      <div class="dropInputWrapper">
-        <div class="searchInput dropInput" tabindex="0" onclick="toggleSearchPersons(event);">
-          <span id="inputSearchPersons" class="inputIcons">{$texts['Humans']}</span>
-          <div id="arrowSearchPersons" class="inputArrowDown"></div>  
-        </div>
-        
-        <div id="searchSearchPersons" class="searchResultsPopup" onclick="event.stopPropagation();"></div>
-      </div>      
-    </div>
+    $htmlSearchPersons    
            
     <div class="toolbarItem">
       <input id="searchSiteName" class="searchInput" type="search" placeholder="{$texts['Source']}" onkeyup="startSearchKey(event);" autocomplete="off">
@@ -682,6 +675,24 @@ function getSearchPeriodHtml($onInputFunctionName = ''){
 <input id="searchDateFrom" class="searchInput toolbarItem" type="date" data-tippy-content="{$texts['Start_date']}" $onInputDates>
 <input id="searchDateTo" class="searchInput toolbarItem" type="date" data-tippy-content="{$texts['End_date']}" $onInputDates>
 HTML;
+}
+
+function getSearchPersonsHtml($onInputFunctionName = '') {
+  $texts = translateArray(['Humans']);
+
+  return <<<HTML
+    <div class="toolbarItem">
+      <div class="dropInputWrapper">
+        <div class="searchInput dropInput" tabindex="0" onclick="toggleSearchPersons(event);">
+          <span id="inputSearchPersons" class="inputIcons">{$texts['Humans']}</span>
+          <div id="arrowSearchPersons" class="inputArrowDown"></div>  
+        </div>
+        
+        <div id="searchSearchPersons" class="searchResultsPopup" onclick="event.stopPropagation();"></div>
+      </div>      
+    </div>
+HTML;
+
 }
 
 function getSearchCountryHtml($onInputFunctionName = '', $selectId='searchCountry'){

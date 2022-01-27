@@ -513,7 +513,7 @@ WHERE crashid=:crashid
 ORDER BY health IS NULL, FIELD(health, 3, 2, 0, 1);
 SQL;
 
-    $DBStatementPersons = $database->prepare($sql);
+    $DbStatementCrashPersons = $database->prepare($sql);
 
     $sql = <<<SQL
 SELECT DISTINCT 
@@ -601,26 +601,7 @@ SQL;
       if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
       if ($joinPersonsTable)  $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
 
-      if (isset($filter['persons']) && (count($filter['persons']) > 0)){
-        foreach ($filter['persons'] as $person){
-          $tableName          = 'p' . $person;
-          $transportationMode = (int)$person;
-          $personDead         = containsText($person, 'd');
-          $personInjured      = containsText($person, 'i');
-          $restricted         = containsText($person, 'r');
-          $unilateral         = containsText($person, 'u');
-          $SQLJoin .= " JOIN crashpersons $tableName ON c.id = $tableName.crashid AND $tableName.transportationmode=$transportationMode ";
-          if ($personDead || $personInjured ) {
-            $healthValues = [];
-            if ($personDead)    $healthValues[] = 3;
-            if ($personInjured) $healthValues[] = 2;
-            $healthValues = implode(',', $healthValues);
-            $SQLJoin .= " AND $tableName.health IN ($healthValues) ";
-          }
-          if ($restricted) addSQLWhere($SQLWhere, "(c.unilateral is null OR c.unilateral != 1) AND (c.id not in (select au.id from crashes au LEFT JOIN crashpersons apu ON au.id = apu.crashid WHERE apu.transportationmode != $transportationMode))");
-          if ($unilateral) addSQLWhere($SQLWhere, "c.unilateral = 1");
-        }
-      }
+      addPersonsWhereSql($SQLWhere, $SQLJoin, $filter['persons']);
 
       $orderField = ($sort === 'crashDate')? 'c.date DESC, c.streamdatetime DESC' : 'c.streamdatetime DESC';
 
@@ -651,7 +632,7 @@ SQL;
 
       // Load crash persons
       $crash['persons'] = [];
-      $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['crashid' => $crash['id']]);
+      $DBPersons = $database->fetchAllPrepared($DbStatementCrashPersons, ['crashid' => $crash['id']]);
       foreach ($DBPersons as $person) {
         $person['groupid']            = isset($person['groupid'])? (int)$person['groupid'] : null;
         $person['transportationmode'] = (int)$person['transportationmode'];

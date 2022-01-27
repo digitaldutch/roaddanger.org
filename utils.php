@@ -301,6 +301,29 @@ function addHealthWhereSql(&$sqlWhere, &$joinPersonsTable, $filter){
   }
 }
 
+function addPersonsWhereSql(&$sqlWhere, &$sqlJoin, $filterPersons) {
+  if (isset($filterPersons) && (count($filterPersons) > 0)) {
+    foreach ($filterPersons as $person){
+      $tableName          = 'p' . $person;
+      $transportationMode = (int)$person;
+      $personDead         = containsText($person, 'd');
+      $personInjured      = containsText($person, 'i');
+      $restricted         = containsText($person, 'r');
+      $unilateral         = containsText($person, 'u');
+      $sqlJoin .= " JOIN crashpersons $tableName ON c.id = $tableName.crashid AND $tableName.transportationmode=$transportationMode ";
+      if ($personDead || $personInjured ) {
+        $healthValues = [];
+        if ($personDead)    $healthValues[] = 3;
+        if ($personInjured) $healthValues[] = 2;
+        $healthValues = implode(',', $healthValues);
+        $sqlJoin .= " AND $tableName.health IN ($healthValues) ";
+      }
+      if ($restricted) addSQLWhere($sqlWhere, "(c.unilateral is null OR c.unilateral != 1) AND (c.id not in (select au.id from crashes au LEFT JOIN crashpersons apu ON au.id = apu.crashid WHERE apu.transportationmode != $transportationMode))");
+      if ($unilateral) addSQLWhere($sqlWhere, "c.unilateral = 1");
+    }
+  }
+}
+
 function containsText($haystack, $needle){
   // https://stackoverflow.com/a/4366748/63849
   return strpos($haystack, $needle) !== false;

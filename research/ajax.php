@@ -235,6 +235,8 @@ SQL;
 
     addHealthWhereSql($SQLWhereAnd, $joinPersonsTable, $filter);
 
+    if (isset($filter['persons']) && (count($filter['persons'])) > 0) $joinPersonsTable = true;
+
     if (! empty($filter['year'])){
       addSQLWhere($SQLWhereAnd, 'YEAR(c.date)=' . intval($filter['year']));
     }
@@ -245,6 +247,8 @@ SQL;
     }
 
     if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
+
+    addPersonsWhereSql($SQLWhereAnd, $SQLJoin, $filter['persons']);
 
     // Get questionnaire answers
     if ($questionnaire['type'] === QuestionnaireType::standard) {
