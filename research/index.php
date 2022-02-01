@@ -123,7 +123,7 @@ HTML;
     <input id="questionId" type="hidden">
 
     <label for="questionText">Question text</label>
-    <input id="questionText" class="popupInput" type="text" maxlength="100">
+    <input id="questionText" class="popupInput" type="text" maxlength="200">
        
     <label for="questionExplanation">Explanation</label>
     <input id="questionExplanation" class="popupInput" type="text" maxlength="200">
