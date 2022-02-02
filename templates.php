@@ -210,7 +210,7 @@ function getNavigation(){
   $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
     'Child_deaths', 'Mosaic', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
     'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
-    'Version', 'Questionnaires', 'settings', 'results', 'Reporting_experiences', 'Research']);
+    'Version', 'Questionnaires', 'fill_in', 'settings', 'results', 'Reporting_experiences', 'Research']);
 
   $websiteTitle = WEBSITE_TITLE;
 
@@ -243,6 +243,7 @@ function getNavigation(){
       <div class="navigationSectionHeader">{$texts['Research']}</div>
       <a href="/research/questionnaires/options" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['settings']}</a>
       <a href="/research/questionnaires/" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['results']}</a>
+      <a href="/research/questionnaires/fill_in" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['fill_in']}</a>
       <a href="/reporting_experiences/" class="navItem">{$texts['Reporting_experiences']}</a>
     </div>
 
@@ -477,8 +478,13 @@ function getFormQuestionnaires(){
     <div class="popupHeader">Article questions</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
     
+    <div style="text-align: right;">
+      <div class="button buttonGray" onclick="nextArticleQuestions(false);">Previous article</div>
+      <div class="button buttonGray" onclick="nextArticleQuestions(true);">Next article</div>
+    </div>    
+
     <div id="articleQuestions" class="flexColumn">Loading...</div>
-    
+            
     <div class="sectionHeader">Crash</div>
     <div id="questionsCrashButtons" style="display: flex;"></div>
 
@@ -490,12 +496,7 @@ function getFormQuestionnaires(){
     
     <div class="sectionHeader">Article text</div>
     <div id="questionsArticleText" class="readOnlyInput"></div>
-    
-    <div class="popupFooter">
-      <div class="button buttonGray" onclick="nextArticleQuestions(false);">Previous article</div>
-      <div class="button buttonGray" onclick="nextArticleQuestions(true);">Next article</div>
-    </div>    
-    
+        
   </div>
   
 </div>

@@ -8,6 +8,7 @@ global $VERSION;
 
 $uri = urldecode($_SERVER['REQUEST_URI']);
 if      (strpos($uri, '/research/questionnaires/options') === 0) $pageType = PageType::questionnaireOptions;
+else if (strpos($uri, '/research/questionnaires/fill_in') === 0) $pageType = PageType::questionnaireFillIn;
 else if (strpos($uri, '/research/questionnaires') === 0)         $pageType = PageType::questionnaireResults;
 else die('Internal error: Unknown page type');
 
@@ -201,8 +202,16 @@ HTML;
   </form>
 </div>
 HTML;
+  } else if ($pageType === PageType::questionnaireFillIn) {
+    $texts = translateArray(['Questionnaires', 'fill_in']);
+
+    $mainHTML = <<<HTML
+<div id="pageMain">
+  <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['fill_in']}</div>
+  <div>Coming soon</div>
+HTML;
   } else if ($pageType === PageType::questionnaireResults) {
-    $texts = translateArray(['Filter', 'Questionnaires', 'Results', 'Injury', 'Dead_(adjective)', 'Child']);
+    $texts = translateArray(['Filter', 'Questionnaires', 'results', 'Injury', 'Dead_(adjective)', 'Child']);
 
     $questionnaires = $database->getQuestionnaires();
 
@@ -216,7 +225,7 @@ HTML;
 
     $mainHTML = <<<HTML
 <div id="pageMain">
-  <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['Results']}</div>
+  <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['results']}</div>
 
   <div class="searchBar" style="display: flex;">
     <div class="toolbarItem"><select id="filterQuestionnaire" class="searchInput" oninput="questionnaireFilterChange()">$questionnairesOptions</select></div>

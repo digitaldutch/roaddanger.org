@@ -859,9 +859,9 @@ ${translate('Approval_required')}
   let htmlQuestionnaireHelp = '';
   if (user.moderator && crashHasActiveQuestionnaires(crash)) {
     htmlQuestionnaireHelp = `
-<div class="notice smallFont" style="display: flex; justify-content: space-between; align-items: center; margin: 0 5px 5px 0;">
+<div class="notice smallFont" style="display: flex; justify-content: space-between; align-items: center; margin: 0 5px 5px 0;" onclick="showQuestionsForm(${crashID}, ${crashArticles[0].id});">
 <div>We are doing a research project and would be grateful if you answered a few questions about media articles.</div> 
-<span class="button buttonLine" onclick="showQuestionsForm(${crashID}, ${crashArticles[0].id});">Answer research questions</span>
+  <span class="button buttonLine">Answer research questions</span>
 </div>`;
   }
 
@@ -1037,15 +1037,6 @@ ${translate('Approval_required')}
 
   const htmlPersons = getCrashButtonsHTML(crash, false);
 
-  let htmlQuestionnaireHelp = '';
-  if (user.moderator && crashHasActiveQuestionnaires(crash)) {
-    htmlQuestionnaireHelp = `
-<div class="notice smallFont" style="display: flex; justify-content: space-between; align-items: center; margin: 0 5px 5px 0;">
-<div>We are doing a research project and would be grateful if you answered a few questions about media articles.</div> 
-<span class="button buttonLine" onclick="showQuestionsForm(${crash.id}, ${crashArticles[0].id});">Answer research questions</span>
-</div>`;
-  }
-
   const crashDivId = 'details' + crash.id;
   let htmlModeration = '';
   if (crash.awaitingmoderation){
@@ -1087,9 +1078,7 @@ ${translate('Approval_required')}
   </span>        
 
   ${htmlModeration}
-  
-  ${htmlQuestionnaireHelp}
-   
+    
   <div class="cardTop">
     <div style="width: 100%;">
       <div class="smallFont cardTitleSmall">${crash.date.pretty()} | ${titleSmall}</div>
@@ -1533,6 +1522,11 @@ function editCrash(crashID) {
 }
 
 async function showQuestionsForm(crashId, articleId) {
+  event.stopPropagation();
+  event.preventDefault();
+
+  closeCrashDetails();
+
   const article = getArticleFromID(articleId);
   const crash   = getCrashFromID(crashId);
 
@@ -1563,9 +1557,9 @@ async function showQuestionsForm(crashId, articleId) {
 `<tr id="q${questionnaire.id}_${question.id}">
   <td>${i}) ${question.text} ${tooltip}</td>
   <td style="white-space: nowrap;">
-    <label><input name="answer${question.id}" type="radio" ${yesChecked} onclick="saveAnswer(${articleId}, ${question.id}, 1)"></input>Yes</label>
-    <label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${articleId}, ${question.id}, 0)"></input>No</label>
-    <label data-tippy-content="Not determinable"><input name="answer${question.id}" type="radio" ${ndChecked} onclick="saveAnswer(${articleId}, ${question.id}, 2)"></input>n.d.</label>
+    <label><input name="answer${question.id}" type="radio" ${yesChecked} onclick="saveAnswer(${articleId}, ${question.id}, 1)">Yes</label>
+    <label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${articleId}, ${question.id}, 0)">No</label>
+    <label data-tippy-content="Not determinable"><input name="answer${question.id}" type="radio" ${ndChecked} onclick="saveAnswer(${articleId}, ${question.id}, 2)">n.d.</label>
   </td>
 </tr>`;
           i += 1;
@@ -1634,6 +1628,9 @@ async function saveAnswer(articleId, questionId, answer) {
 }
 
 function nextArticleQuestions(forward=true) {
+  event.preventDefault();
+  event.stopPropagation();
+
   const articleId = parseInt(document.getElementById('questionsArticleId').value);
 
   const index = articles.findIndex(article => article.id === articleId);
@@ -1646,7 +1643,9 @@ function nextArticleQuestions(forward=true) {
     else showMessage('This is de first article');
   }
 
-  if (newArticle) selectArticle(newArticle.id);
+  if (newArticle) {
+    selectArticle(newArticle.id);
+  }
 
   showQuestionsForm(newArticle.crashid, newArticle.id);
 }
@@ -2262,10 +2261,14 @@ function showCrashDetails(crashId, addToHistory=true){
 function closeCrashDetails(popHistory=true) {
   if (event) event.stopPropagation();
 
-  document.body.style.overflow = 'auto';
-  document.getElementById('crashDetails').innerHTML = '';
-  document.getElementById('formCrash').style.display = 'none';
-  if (popHistory) window.history.back();
+  const formCrashDetails = document.getElementById('formCrash');
+
+  if (formCrashDetails.style.display === 'flex') {
+    document.body.style.overflow = 'auto';
+    document.getElementById('crashDetails').innerHTML = '';
+    formCrashDetails.style.display = 'none';
+    if (popHistory) window.history.back();
+  }
 }
 
 function searchVisible(){

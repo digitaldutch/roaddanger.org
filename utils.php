@@ -18,6 +18,7 @@ abstract class PageType {
   const humans                        = 14;
   const questionnaireOptions          = 15;
   const questionnaireResults          = 16;
+  const questionnaireFillIn           = 17;
 }
 
 abstract class QuestionnaireType {
