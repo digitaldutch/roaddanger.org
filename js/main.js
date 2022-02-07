@@ -741,6 +741,9 @@ function prepareCrashServerData(crash) {
 
 function getCrashGUIButtons(crash){
   let buttons = [];
+
+  if ((! crash) || (! crash.persons)) return buttons;
+
   crash.persons.forEach(person => {
     // In the GUI buttons are used to visualise each person or group of persons.
     // We group persons who are in the same transportation item (eg 4 persons in a car).
@@ -1095,14 +1098,14 @@ ${translate('Approval_required')}
 </div>`;
 }
 
-function getIconUnilateral(crash) {
+function getIconUnilateral() {
   return `<div class="iconSmall bgUnilateral" data-tippy-content="${translate('One-sided_crash')}"></div>`;
 }
 
 function getCrashTopIcons(crash, allowClick=false){
   let html = '';
 
-  if (crash.unilateral)                  html += getIconUnilateral(crash);
+  if (crash.unilateral)                  html += getIconUnilateral();
   if (crash.pet)                         html += `<div class="iconSmall bgPet"  data-tippy-content="${translate('Animals')}"></div>`;
   if (crash.trafficjam)                  html += `<div class="iconSmall bgTrafficJam"  data-tippy-content="${translate('Traffic_jam_disruption')}"></div>`;
   if (crash.longitude && crash.latitude) html += `<div class="iconSmall bgGeo" data-tippy-content="${translate('Location_known')}"></div>`;
@@ -1182,8 +1185,8 @@ function highlightSearchText() {
   }
 }
 
-function selectArticle(articleID, smooth=false) {
-  const div = document.getElementById('article' + articleID);
+function selectArticle(articleId, smooth=false) {
+  const div = document.getElementById('article' + articleId);
   if (smooth){
     div.scrollIntoView({
       block:    'center',
@@ -1530,10 +1533,10 @@ async function showQuestionsForm(crashId, articleId) {
   const article = getArticleFromID(articleId);
   const crash   = getCrashFromID(crashId);
 
-  document.getElementById('questionsArticleId').value        = articleId;
+  document.getElementById('questionsArticleId').value        = article.id;
   document.getElementById('questionsArticleTitle').innerText = article.title;
   document.getElementById('questionsArticle').innerHTML      = `<a href="${article.url}" target="article">${article.sitename}</a>`;
-  document.getElementById('questionsCrashButtons').innerHTML = getCrashButtonsHTML(crash) + getIconUnilateral(crash);
+  document.getElementById('questionsCrashButtons').innerHTML = getCrashButtonsHTML(crash) + getIconUnilateral();
   document.getElementById('questionsArticleText').innerText  = '⌛';
 
   document.getElementById('articleQuestions').innerHTML  = '⌛';
@@ -1557,9 +1560,9 @@ async function showQuestionsForm(crashId, articleId) {
 `<tr id="q${questionnaire.id}_${question.id}">
   <td>${i}) ${question.text} ${tooltip}</td>
   <td style="white-space: nowrap;">
-    <label><input name="answer${question.id}" type="radio" ${yesChecked} onclick="saveAnswer(${articleId}, ${question.id}, 1)">Yes</label>
-    <label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${articleId}, ${question.id}, 0)">No</label>
-    <label data-tippy-content="Not determinable"><input name="answer${question.id}" type="radio" ${ndChecked} onclick="saveAnswer(${articleId}, ${question.id}, 2)">n.d.</label>
+    <label><input name="answer${question.id}" type="radio" ${yesChecked} onclick="saveAnswer(${article.id}, ${question.id}, 1)">Yes</label>
+    <label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${article.id}, ${question.id}, 0)">No</label>
+    <label data-tippy-content="Not determinable"><input name="answer${question.id}" type="radio" ${ndChecked} onclick="saveAnswer(${article.id}, ${question.id}, 2)">n.d.</label>
   </td>
 </tr>`;
           i += 1;
@@ -1637,10 +1640,17 @@ function nextArticleQuestions(forward=true) {
   let newArticle;
   if (forward) {
     if (index < articles.length - 1) newArticle = articles[index + 1];
-    else showMessage('This is de last article');
+    else {
+      // Check if we are on the fill_in page.
+      const onFillInPage = window.location.href.includes('fill_in');
+
+      if (onFillInPage) window.location.reload();
+      else showMessage('This is the last article');
+    }
+
   } else {
     if (index > 0) newArticle = articles[index -1];
-    else showMessage('This is de first article');
+    else showMessage('This is the first article');
   }
 
   if (newArticle) {

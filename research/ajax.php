@@ -411,7 +411,104 @@ SQL;
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 
-  $code = json_encode($result, JSON_OBJECT_AS_ARRAY );
+  echo json_encode($result);
+} // ====================
+else if ($function === 'loadArticlesUnanswered') {
+
+  try {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $filter = $data['filter'];
+
+    // Get active questionnaires
+    $SQLWhereCountry = $user->countryId === 'UN'? '' : " AND country_id='" . $user->countryId . "'";
+    $sql = <<<SQL
+SELECT
+  id,
+  title,
+  type
+FROM questionnaires
+WHERE active = 1
+$SQLWhereCountry
+ORDER BY id;
+SQL;
+
+    $questionnaires = $database->fetchAll($sql);
+
+    // Sort on dead=3, injured=2, unknown=0, unharmed=1
+    $sql = <<<SQL
+SELECT 
+  groupid,
+  transportationmode,
+  health,
+  child,
+  underinfluence,
+  hitrun
+FROM crashpersons
+WHERE crashid=:crashid
+ORDER BY health IS NULL, FIELD(health, 3, 2, 0, 1);
+SQL;
+
+    $DbStatementCrashPersons = $database->prepare($sql);
+
+    $articles = [];
+    if (count($questionnaires) > 0) {
+      $SQLWhereCountry = $user->countryId === 'UN'? '' : " AND c.countryid='" . $user->countryId . "'";
+      $sql = <<<SQL
+SELECT
+  a.id,
+  a.title,
+  a.url,
+  a.sitename,
+  c.date AS crash_date,
+  c.unilateral AS crash_unilateral,
+  c.countryid AS crash_countryid,
+  c.id AS crashid
+FROM articles a
+  LEFT JOIN crashes c ON a.crashid = c.id
+WHERE NOT EXISTS(SELECT 1 FROM answers WHERE articleid = a.id)
+$SQLWhereCountry
+ORDER BY c.date DESC
+LIMIT 50;
+SQL;
+    }
+
+    $articles = $database->fetchAll($sql);
+
+    $crashes = [];
+    foreach ($articles as $article) {
+      $crash = [
+        'id'         => $article['crashid'],
+        'date'       => $article['crash_date'],
+        'countryid'  => $article['crash_countryid'],
+        'unilateral' => $article['crash_unilateral'] === 1,
+      ];
+
+      // Load crash persons
+      $crash['persons'] = [];
+      $DBPersons = $database->fetchAllPrepared($DbStatementCrashPersons, ['crashid' => $crash['id']]);
+      foreach ($DBPersons as $person) {
+        $person['groupid']            = isset($person['groupid'])? (int)$person['groupid'] : null;
+        $person['transportationmode'] = (int)$person['transportationmode'];
+        $person['health']             = isset($person['health'])? (int)$person['health'] : null;
+        $person['child']              = (int)$person['child'];
+        $person['underinfluence']     = (int)$person['underinfluence'];
+        $person['hitrun']             = (int)$person['hitrun'];
+
+        $crash['persons'][] = $person;
+      }
+
+      $crashes[] = $crash;
+    }
+
+    $result = [
+      'ok'      => true,
+      'crashes'  => $crashes,
+      'articles' => $articles,
+    ];
+  } catch (Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+
   echo json_encode($result);
 } // ====================
 else echo json_encode(['ok' => false, 'error' => 'Function not found']);

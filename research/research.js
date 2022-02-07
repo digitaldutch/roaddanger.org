@@ -1,4 +1,3 @@
-let spinnerLoad;
 
 async function initResearch(){
   spinnerLoad = document.getElementById('spinnerLoad');
@@ -28,6 +27,9 @@ async function initResearch(){
   if (url.pathname.startsWith('/research/questionnaires/options')) {
 
     await loadQuestionnaires();
+  } else if (url.pathname.startsWith('/research/questionnaires/fill_in')) {
+
+    await loadArticlesUnanswered();
   } else if (url.pathname.startsWith('/research/questionnaires')) {
 
     const idQuestionnaire = url.searchParams.get('id');
@@ -69,6 +71,44 @@ async function loadQuestionnaires() {
   for (const questionnaire of tableData[1]) html += getQuestionnaireTableRow(questionnaire);
   document.getElementById('tableBodyQuestionnaires').innerHTML += html;
   if ((tableData[1].length > 0) && (! selectedTableData[1])) selectTableRow(tableData[1][0].id, 1);
+}
+
+async function loadArticlesUnanswered() {
+  try {
+    spinnerLoad.style.display = 'block';
+
+    const url = '/research/ajax.php?function=loadArticlesUnanswered';
+    const response = await fetchFromServer(url);
+
+    response.articles.forEach(article => {
+      article.crash_date  = new Date(article.crash_date);
+    });
+
+    if (response.error) showError(response.error);
+    else {
+
+      crashes  = response.crashes;
+      articles = response.articles;
+
+      let html = '';
+      for (const article of response.articles) {
+        html += `
+        <tr id="article${article.id}" onclick="showQuestionsForm(${article.crashid}, ${article.id})">
+          <td style="white-space: nowrap;">${article.crash_date.pretty()}</td>
+          <td class="td400">${article.title}</td>
+        </tr>      
+      `;
+
+      }
+
+      document.getElementById('dataTableArticles').innerHTML = html;
+
+    }
+  } catch (error) {
+    showError(error.message);
+  } finally {
+    spinnerLoad.style.display = 'none';
+  }
 }
 
 function questionnaireFilterChange() {
@@ -150,74 +190,86 @@ function getBechdelBarHtml(bechdelResults, questions) {
 }
 
 async function loadQuestionnaireResults() {
-  const data = {
-    filter: {
-      questionnaireId: parseInt(document.getElementById('filterQuestionnaire').value),
-      healthDead:      document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue')? 1 : 0,
-      child:           document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
-      year:            document.getElementById('filterResearchYear').value,
-      persons:         getPersonsFromFilter(),
-    },
-    group: document.getElementById('filterResearchGroup').value,
-  }
 
-  const url      = '/research/ajax.php?function=loadQuestionnaireResults';
-  const response = await fetchFromServer(url, data);
+  try {
+    spinnerLoad.style.display = 'block';
 
-  if (response.error) showError(response.error);
-  else if (response.ok) {
-
-    document.getElementById('questionnaireInfo').innerHTML = 'Questionnaire type: ' + questionnaireTypeToText(response.questionnaire.type) +
-      ` | Country: ` + response.questionnaire.country;
-
-    let htmlQuestions = '';
-    let htmlHead      = '';
-    let htmlBody      = '';
-    let htmlBars      = '';
-
-    if (response.questionnaire.type === QuestionnaireType.standard) {
-
-      htmlHead = '<tr><th style="text-align: left;">Question</th><th>Yes</th><th>No</th><th>n.d.</th></tr>';
-      for (const question of response.questions) {
-        htmlBody += `<tr><td>${question.question_id} ${question.question}<td style="text-align: right;">${question.yes}</td><td style="text-align: right;">${question.no}</td><td style="text-align: right;">${question.not_determinable}</td></tr>`;
-      }
-
-    } else if (response.questionnaire.type === QuestionnaireType.bechdel) {
-
-      let i=1;
-      for (let question of response.questionnaire.questions) {
-        htmlQuestions += `<div>${i}) ${question.text}</div>`;
-        i += 1;
-      }
-      document.getElementById('questionnaireBechdelIntro').style.display = 'block';
-      document.getElementById('questionnaireBechdelQuestions').innerHTML = htmlQuestions;
-
-      // Draw Bechdel bars
-      let htmlBar;
-      let htmlStats;
-      if (data.group === 'year') {
-        response.bechdelResults.sort((a, b) => b.year - a.year);
-        for (const results of response.bechdelResults) {
-          [htmlBar, htmlStats] = getBechdelBarHtml(results, response.questionnaire.questions);
-
-          const htmlYearHeader = `<div style="font-weight: bold; margin-top: 5px;">${results.year}</div>`;
-          htmlBars += htmlYearHeader + htmlBar;
-          htmlBody += htmlYearHeader + htmlStats;
-        }
-
-      } else {
-        [htmlBar, htmlStats] = getBechdelBarHtml(response.bechdelResults, response.questionnaire.questions);
-        htmlBars += htmlBar;
-        htmlBody += htmlStats;
-      }
-
-      htmlHead = '';
+    const data = {
+      filter: {
+        questionnaireId: parseInt(document.getElementById('filterQuestionnaire').value),
+        healthDead:      document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue')? 1 : 0,
+        child:           document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
+        year:            document.getElementById('filterResearchYear').value,
+        persons:         getPersonsFromFilter(),
+      },
+      group: document.getElementById('filterResearchGroup').value,
     }
 
-    document.getElementById('questionnaireBars').innerHTML = htmlBars;
-    document.getElementById('tableHead').innerHTML         = htmlHead;
-    document.getElementById('tableBody').innerHTML         = htmlBody;
+    const url      = '/research/ajax.php?function=loadQuestionnaireResults';
+    const response = await fetchFromServer(url, data);
+
+    if (response.error) showError(response.error);
+    else if (response.ok) {
+
+      document.getElementById('questionnaireInfo').innerHTML = 'Questionnaire type: ' + questionnaireTypeToText(response.questionnaire.type) +
+        ` | Country: ` + response.questionnaire.country;
+
+      let htmlQuestions = '';
+      let htmlHead      = '';
+      let htmlBody      = '';
+      let htmlBars      = '';
+
+      if (response.questionnaire.type === QuestionnaireType.standard) {
+
+        htmlHead = '<tr><th style="text-align: left;">Question</th><th>Yes</th><th>No</th><th>n.d.</th></tr>';
+        for (const question of response.questions) {
+          htmlBody += `<tr><td>${question.question_id} ${question.question}<td style="text-align: right;">${question.yes}</td><td style="text-align: right;">${question.no}</td><td style="text-align: right;">${question.not_determinable}</td></tr>`;
+        }
+
+      } else if (response.questionnaire.type === QuestionnaireType.bechdel) {
+
+        let i=1;
+        for (let question of response.questionnaire.questions) {
+          htmlQuestions += `<div>${i}) ${question.text}</div>`;
+          i += 1;
+        }
+        document.getElementById('questionnaireBechdelIntro').style.display = 'block';
+        document.getElementById('questionnaireBechdelQuestions').innerHTML = htmlQuestions;
+
+        // Draw Bechdel bars
+        let htmlBar;
+        let htmlStats;
+        if (data.group === 'year') {
+          response.bechdelResults.sort((a, b) => b.year - a.year);
+          for (const results of response.bechdelResults) {
+            [htmlBar, htmlStats] = getBechdelBarHtml(results, response.questionnaire.questions);
+
+            const htmlYearHeader = `<div style="font-weight: bold; margin-top: 5px;">${results.year}</div>`;
+            htmlBars += htmlYearHeader + htmlBar;
+            htmlBody += htmlYearHeader + htmlStats;
+          }
+
+        } else {
+          [htmlBar, htmlStats] = getBechdelBarHtml(response.bechdelResults, response.questionnaire.questions);
+          htmlBars += htmlBar;
+          htmlBody += htmlStats;
+        }
+
+        htmlHead = '';
+      }
+
+      document.getElementById('questionnaireBars').innerHTML    = htmlBars;
+      document.getElementById('tableHead').innerHTML            = htmlHead;
+      document.getElementById('tableBody').innerHTML            = htmlBody;
+      document.getElementById('headerStatistics').style.display = 'block';
+    }
+
+  } catch (error) {
+    showError(error.message);
+  } finally {
+    spinnerLoad.style.display = 'none';
   }
+
 }
 
 function getQuestionTableRow(question){

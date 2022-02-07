@@ -44,7 +44,7 @@ HTML;
 }
 
 $htmlEnd = '';
-$head = "<script src='/research/research.js?v=$VERSION'></script>";
+$head = "<script src='/js/main.js?v=$VERSION'></script><script src='/research/research.js?v=$VERSION'></script>";
 
 if ((! $user->loggedIn) || (! $user->isModerator())) {
   $mainHTML = <<<HTML
@@ -208,8 +208,15 @@ HTML;
     $mainHTML = <<<HTML
 <div id="pageMain">
   <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['fill_in']}</div>
-  <div>Coming soon</div>
+  
+  <div class="panelTableOverflow">
+    <table class="dataTable">
+      <tbody id="dataTableArticles"></tbody>
+    </table>
+    <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+  </div>
 HTML;
+
   } else if ($pageType === PageType::questionnaireResults) {
     $texts = translateArray(['Filter', 'Questionnaires', 'results', 'Injury', 'Dead_(adjective)', 'Child']);
 
@@ -225,8 +232,9 @@ HTML;
 
     $mainHTML = <<<HTML
 <div id="pageMain">
+<div id="pageInner">
   <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['results']}</div>
-
+  
   <div class="searchBar" style="display: flex;">
     <div class="toolbarItem"><select id="filterQuestionnaire" class="searchInput" oninput="questionnaireFilterChange()">$questionnairesOptions</select></div>
     
@@ -257,6 +265,8 @@ HTML;
 
   </div>
 
+  <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
+
   <div id="questionnaireInfo" class="smallFont" style="margin-bottom: 10px;"></div>
 
   <div id="questionnaireBechdelIntro" style="width: 100%; margin-bottom: 10px; display: none;">
@@ -266,12 +276,13 @@ HTML;
      
   <div id="questionnaireBars"></div>
 
-  <div style="width: 100%; margin-top: 10px; font-weight: bold; text-align: left;">Statistics</div>
+  <div id="headerStatistics" style="display: none; width: 100%; margin-top: 10px; font-weight: bold; text-align: left;">Statistics</div>
   <table class="dataTable">
     <thead id="tableHead"></thead>  
     <tbody id="tableBody"></tbody>
   </table>  
       
+</div>
 </div>
 HTML;
 

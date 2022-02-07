@@ -151,7 +151,7 @@ SQL;
   $crashVictims = [];
   $crashes = $database->fetchAllGroup($sql, $params);
   foreach ($crashes as $crashPersons) {
-    $crashInjured              = [];
+    $crashInjured             = [];
     $crashTransportationModes = [];
     $unilateralCrash          = false;
 
@@ -615,8 +615,8 @@ SQL;
 
     $sql .= $SQLWhere;
     $ids = [];
-    $DBResults = $database->fetchAll($sql, $params);
-    foreach ($DBResults as $crash) {
+    $articles = $database->fetchAll($sql, $params);
+    foreach ($articles as $crash) {
       $crash['id']                    = (int)$crash['id'];
       $crash['userid']                = (int)$crash['userid'];
       $crash['streamtopuserid']       = (int)$crash['streamtopuserid'];
@@ -668,7 +668,7 @@ ORDER BY ar.streamdatetime DESC
 SQL;
 
       $articles = $database->fetchAll($sqlArticles, $params);
-      foreach ($DBResults as &$article) {
+      foreach ($articles as &$article) {
         $article = cleanArticleDBRow($article);
       }
     }
@@ -1165,11 +1165,8 @@ else if ($function === 'getArticleQuestionnairesAndText'){
     if (! isset($data['crashCountryId'])) throw new Exception('No crashCountryId found');
     if ($data['articleId'] <= 0) throw new Exception('No article id found');
 
-    if ($data['crashCountryId'] === 'UN') {
-      $whereCountry = " ";
-    } else {
-      $whereCountry = " AND country_id IN ('UN', '" . $data['crashCountryId'] . "') ";
-    }
+    if ($data['crashCountryId'] === 'UN') $whereCountry = " ";
+    else $whereCountry = " AND country_id IN ('UN', '" . $data['crashCountryId'] . "') ";
 
     $sql = <<<SQL
 SELECT

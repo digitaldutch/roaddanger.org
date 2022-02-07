@@ -382,11 +382,12 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .searchBar {
-  display:       none;
-  position:      relative;
-  flex-wrap:     wrap;
-  align-items:   center;
-  padding:       10px 20px 10px 10px;
+  display:         none;
+  position:        relative;
+  flex-wrap:       wrap;
+  align-items:     center;
+  justify-content: center;
+  padding:         10px 20px 10px 10px;
 }
 
 .searchInput {
@@ -1489,8 +1490,8 @@ table.tableDragging td div {
 }
 
 #questionnaireBars {
-  width: 100%;
-  margin: 5px;
+  width:      100%;
+  box-sizing: border-box;
 }
 
 .questionnaireBar {
@@ -1499,7 +1500,8 @@ table.tableDragging td div {
 }
 
 .questionnaireBar > div {
-  padding: 3px 0;
+  padding:   2px 0;
+  font-size: 12px;
 }
 
 .questionnaireBar > div > span {
