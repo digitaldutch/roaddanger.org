@@ -132,11 +132,12 @@ HTML;
 } else if ($pageType === PageType::statisticsCrashPartners) {
 
   $texts = translateArray(['Counterparty_in_crashes', 'Always', 'days', 'the_correspondent_week', 'Custom_period',
-    'Help_improve_data_accuracy', 'Child', 'Injury', 'Injured', 'Dead_(adjective)']);
+    'Help_improve_data_accuracy', 'Child', 'Injury', 'Injured', 'Dead_(adjective)', 'Search_text_hint',
+    'Search', 'Filter']);
   $intoText = $user->translateLongText('counter_party_info');
 
-  $htmlSearchCountry = getSearchCountryHtml('loadStatistics');
-  $htmlSearchPeriod  = getSearchPeriodHtml('loadStatistics');
+  $htmlSearchCountry = getSearchCountryHtml();
+  $htmlSearchPeriod  = getSearchPeriodHtml();
 
   $mainHTML = <<<HTML
 <div id="pageMain">
@@ -165,6 +166,15 @@ HTML;
       
       <div class="toolbarItem">$htmlSearchCountry</div>
       $htmlSearchPeriod
+      
+      <div class="toolbarItem">
+        <input id="searchText" class="searchInput"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startStatsSearchKey(event);" autocomplete="off">  
+      </div>
+
+      <div class="toolbarItem">
+        <div class="button buttonMobileSmall" onclick="loadStatistics(event)">{$texts['Filter']}</div>
+      </div>
+
     </div>
 
     <div id="graphPartners" style="position: relative;"></div>
@@ -179,10 +189,11 @@ HTML;
 } else if ($pageType === PageType::statisticsTransportationModes) {
 
   $texts = translateArray(['Statistics', 'Transportation_modes', 'Transportation_mode', 'Child', 'Country',
-    'Intoxicated', 'Drive_on_or_fleeing', 'Dead_(adjective)', 'Injured', 'Unharmed', 'Unknown']);
+    'Intoxicated', 'Drive_on_or_fleeing', 'Dead_(adjective)', 'Injured', 'Unharmed', 'Unknown', 'Search_text_hint',
+    'Search', 'Filter']);
 
-  $htmlSearchCountry = getSearchCountryHtml('loadStatistics');
-  $htmlSearchPeriod  = getSearchPeriodHtml('loadStatistics');
+  $htmlSearchCountry = getSearchCountryHtml();
+  $htmlSearchPeriod  = getSearchPeriodHtml();
 
   $mainHTML = <<<HTML
 <div class="pageInner">
@@ -197,6 +208,14 @@ HTML;
 
       <div class="toolbarItem">$htmlSearchCountry</div>
       $htmlSearchPeriod
+
+      <div class="toolbarItem">
+        <input id="searchText" class="searchInput"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startStatsSearchKey(event);" autocomplete="off">  
+      </div>
+
+      <div class="toolbarItem">
+        <div class="button buttonMobileSmall" onclick="loadStatistics(event)">{$texts['Filter']}</div>
+      </div>
       
     </div>
 

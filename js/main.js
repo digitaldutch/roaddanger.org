@@ -124,11 +124,13 @@ function initStatistics(){
     const searchDateTo     = url.searchParams.get('date_to');
     const searchChild      = url.searchParams.get('child');
     const searchInjured    = url.searchParams.get('hi');
+    const search           = url.searchParams.get('search');
 
-    if (country)        document.getElementById('searchCountry').value   = country;
-    if (period)         document.getElementById('searchPeriod').value   = period;
     if (searchChild)    document.getElementById('filterStatsChild').classList.add('buttonSelectedBlue');
     if (searchInjured)  document.getElementById('filterStatsInjured').classList.add('buttonSelectedBlue');
+    if (country)        document.getElementById('searchCountry').value  = country;
+    if (period)         document.getElementById('searchPeriod').value   = period;
+    if (search)         document.getElementById('searchText').value     = search;
     if (searchDateFrom) document.getElementById('searchDateFrom').value = searchDateFrom;
     if (searchDateTo)   document.getElementById('searchDateTo').value   = searchDateTo;
   }
@@ -179,6 +181,7 @@ function showCrashVictimsGraph(crashVictims){
   const filter = {
     country:       document.getElementById('searchCountry').value,
     period:        document.getElementById('searchPeriod').value,
+    text:          document.getElementById('searchText').value,
     dateFrom:      document.getElementById('searchDateFrom').value,
     dateTo:        document.getElementById('searchDateTo').value,
     child:         document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue'),
@@ -221,8 +224,6 @@ function showCrashVictimsGraph(crashVictims){
 
 function selectFilterStats() {
   event.target.classList.toggle('buttonSelectedBlue');
-
-  loadStatistics();
 }
 
 function selectFilterChildDeaths() {
@@ -390,6 +391,7 @@ async function loadStatistics() {
     if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
       serverData.filter = {
         period:        document.getElementById('searchPeriod').value,
+        text:          document.getElementById('searchText').value,
         countryId:     document.getElementById('searchCountry').value,
         dateFrom:      document.getElementById('searchDateFrom').value,
         dateTo:        document.getElementById('searchDateTo').value,
@@ -416,6 +418,7 @@ async function loadStatistics() {
       if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
         url += '?period=' + serverData.filter.period;
         if (serverData.filter.countryId)     url += '&country=' + serverData.filter.countryId;
+        if (serverData.filter.text)          url += '&search=' + encodeURIComponent(serverData.filter.text);
         if (serverData.filter.child)         url += '&child=1';
         if (serverData.filter.healthInjured) url += '&hi=1';
         if (serverData.filter.period === 'custom') {
@@ -2292,6 +2295,10 @@ function toggleSearchBar() {
 
 function startSearchKey(event) {
   if (event.key === 'Enter') startSearch();
+}
+
+function startStatsSearchKey(event) {
+  if (event.key === 'Enter') loadStatistics();
 }
 
 function startSearch() {

@@ -229,7 +229,12 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .enter()
     .append("a")
     .attr("xlink:href", d => {
-      let url = '/?search=&persons=' + d.victimMode + 'd';
+
+      let search = filter.text;
+      let url = '/?search=';
+      if (filter.text) url += encodeURIComponent(filter.text);
+      url += '&persons=' + d.victimMode + 'd';
+
       if (filter.healthInjured) url += 'i';
       if      (d.victimMode === d.partnerMode) url += 'r'; // Restricted
       else if (d.partnerMode === -1) url += 'u'; // Unilateral

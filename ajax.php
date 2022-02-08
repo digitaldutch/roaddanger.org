@@ -58,9 +58,19 @@ function addPeriodWhereSql(&$sqlWhere, &$params, $filter){
  * @return array
  */
 function getStatsTransportation($database, $filter){
-  $stats    = [];
-  $params   = [];
-  $SQLWhere = '';
+  $stats             = [];
+  $params            = [];
+  $SQLJoin           = '';
+  $SQLWhere          = '';
+  $joinArticlesTable = false;
+
+  // Only do full text search if text has 3 characters or more
+  if (isset($filter['text']) && strlen($filter['text']) > 2){
+    addSQLWhere($SQLWhere, "(MATCH(c.title, c.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))");
+    $joinArticlesTable = true;
+    $params[':search']  = $filter['text'];
+    $params[':search2'] = $filter['text'];
+  }
 
   addPeriodWhereSql($SQLWhere, $params, $filter);
 
@@ -72,6 +82,8 @@ function getStatsTransportation($database, $filter){
     addSQLWhere($SQLWhere, "c.countryid=:countryId");
     $params[':countryId'] = $filter['countryId'];
   }
+
+  if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
 
   $sql = <<<SQL
 SELECT
@@ -86,6 +98,7 @@ SELECT
   COUNT(*) AS total
 FROM crashpersons cp
 JOIN crashes c ON cp.crashid = c.id
+  $SQLJoin
   $SQLWhere
 GROUP BY transportationmode
 ORDER BY dead DESC, injured DESC
@@ -112,9 +125,19 @@ SQL;
  * @return array
  */
 function getStatsCrashPartners($database, $filter){
-  $SQLWhere         = '';
-  $params           = [];
-  $joinPersonsTable = true;
+  $SQLWhere          = '';
+  $SQLJoin           = '';
+  $params            = [];
+  $joinArticlesTable = false;
+  $joinPersonsTable  = true;
+
+  // Only do full text search if text has 3 characters or more
+  if (isset($filter['text']) && strlen($filter['text']) > 2){
+    addSQLWhere($SQLWhere, "(MATCH(c.title, c.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))");
+    $joinArticlesTable = true;
+    $params[':search']  = $filter['text'];
+    $params[':search2'] = $filter['text'];
+  }
 
   addHealthWhereSql($SQLWhere, $joinPersonsTable, $filter);
   addPeriodWhereSql($SQLWhere, $params, $filter);
@@ -126,11 +149,14 @@ function getStatsCrashPartners($database, $filter){
     $params[':countryId'] = $filter['countryId'];
   }
 
+  if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
+
   $sqlCrashesWithDeath = <<<SQL
   SELECT
     c.id
   FROM crashpersons cp
   JOIN crashes c ON cp.crashid = c.id
+  $SQLJoin
   $SQLWhere
 SQL;
 
