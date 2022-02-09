@@ -467,7 +467,11 @@ function getFormCrash(){
 HTML;
 }
 
-function getFormQuestionnaires(){
+function getFormQuestionnaires() {
+
+  $uri = urldecode($_SERVER['REQUEST_URI']);
+  $onFillInPage = (strpos($uri, '/research/questionnaires/fill_in') === 0);
+
   return <<<HTML
 <div id="formQuestions" class="popupOuter" onclick="closePopupForm();">
 
@@ -484,7 +488,7 @@ function getFormQuestionnaires(){
     </div>    
 
     <div id="articleQuestions" class="flexColumn">Loading...</div>
-            
+                    
     <div class="sectionHeader">Crash</div>
     <div id="questionsCrashButtons" style="display: flex;"></div>
 

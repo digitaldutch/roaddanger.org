@@ -92,13 +92,14 @@ async function loadArticlesUnanswered() {
 
       let html = '';
       for (const article of response.articles) {
+        const crash = getCrashFromID(article.crashid);
+        const htmlIcons = getCrashButtonsHTML(crash);
         html += `
-        <tr id="article${article.id}" onclick="showQuestionsForm(${article.crashid}, ${article.id})">
-          <td style="white-space: nowrap;">${article.crash_date.pretty()}</td>
-          <td class="td400">${article.title}</td>
-        </tr>      
-      `;
-
+          <tr id="article${article.id}" onclick="showQuestionsForm(${article.crashid}, ${article.id})">
+            <td style="white-space: nowrap;">${article.crash_date.pretty()}</td>
+            <td class="td300">${htmlIcons}</td>
+            <td class="td400">${article.title}</td>
+          </tr>`;
       }
 
       document.getElementById('dataTableArticles').innerHTML = html;

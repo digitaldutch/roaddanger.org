@@ -206,11 +206,10 @@ h2, .pageSubTitleFont, .sectionTitle {
   display:          inline-flex;
   flex-direction:   row;
   align-items:      center;
-  min-height:       31px;
-  margin-right:     5px;
+  margin-right:     3px;
   border:           1px solid #aaaaaa;
-  border-radius:    5px;
-  padding:          2px;
+  border-radius:    3px;
+  padding:          1px;
 }
 
 .defaultCursor {
@@ -325,11 +324,10 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .iconMedium {
   display:             inline-block;
-  height:              25px;
-  width:               25px;
-  padding:             1px;
+  height:              22px;
+  width:               22px;
   margin:              0 1px;
-  background-size:     24px;
+  background-size:     22px;
   background-repeat:   no-repeat;
   background-position: center;
 }
@@ -935,6 +933,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 .button:hover {
   color:            var(--click-color);
   background-color: #000;
+  text-decoration:  none;
 }
 
 .buttonGray {
@@ -1215,6 +1214,13 @@ h2, .pageSubTitleFont, .sectionTitle {
   flex-grow:  1;
   padding:    0 5px;
   margin-top: 5px;
+}
+
+.td300 {
+  max-width:     300px;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
 }
 
 .td400 {
@@ -1509,7 +1515,7 @@ table.tableDragging td div {
 }
 
 .ready {
-  background-color: var(--color-ready);
+  background-color: var(--color-ready) !important;
 }
 @media (max-width: 750px) {
   .hideOnMobile {

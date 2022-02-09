@@ -208,6 +208,8 @@ HTML;
     $mainHTML = <<<HTML
 <div id="pageMain">
   <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['fill_in']}</div>
+
+  <div class="smallFont">To help our research project, click an article and answer the questions.</div>
   
   <div class="panelTableOverflow">
     <table class="dataTable">

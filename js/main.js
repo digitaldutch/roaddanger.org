@@ -1536,6 +1536,9 @@ async function showQuestionsForm(crashId, articleId) {
   const article = getArticleFromID(articleId);
   const crash   = getCrashFromID(crashId);
 
+  const onFillInPage = window.location.href.includes('fill_in');
+  const htmlHelpWanted = onFillInPage? '' : '<br>Help our research project by <a href=\'/research/questionnaires/fill_in\' class="button buttonLine">answering questions for other articles</a>';
+
   document.getElementById('questionsArticleId').value        = article.id;
   document.getElementById('questionsArticleTitle').innerText = article.title;
   document.getElementById('questionsArticle').innerHTML      = `<a href="${article.url}" target="article">${article.sitename}</a>`;
@@ -1571,7 +1574,8 @@ async function showQuestionsForm(crashId, articleId) {
           i += 1;
         }
 
-        htmlQuestionnaires += `<tr id="questionnaireCompleted${questionnaire.id}" class="ready" style="display: none;"><td colspan="2">All questions answered 🙏</td></tr>`;
+        htmlQuestionnaires += `<tr id="questionnaireCompleted${questionnaire.id}" class="ready" style="display: none;"><td colspan="2">
+All questions answered 🙏${htmlHelpWanted}</td></tr>`;
         htmlQuestionnaires += '<tr><td colspan="2" style="border: none; height: 10px;"></td></tr>'
       }
 
@@ -1589,6 +1593,7 @@ async function showQuestionsForm(crashId, articleId) {
 }
 
 function setQuestionnaireGUI(questionnaire) {
+
   document.getElementById('questionnaireCompleted' + questionnaire.id).style.display =
     allQuestionsAnswered(questionnaire) ? 'table-row' : 'none';
 
