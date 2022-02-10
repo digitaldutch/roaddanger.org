@@ -57,7 +57,8 @@ HTML;
 
   if ($pageType === PageType::questionnaireOptions) {
 
-    $texts = translateArray(['Questionnaires', 'Admin', 'Id', 'New', 'Edit', 'Delete', 'Save', 'Cancel', 'Sort_questions']);
+    $texts = translateArray(['Questionnaires', 'Admin', 'Id', 'New', 'Edit', 'Delete', 'Save', 'Cancel',
+      'Sort_questions']);
 
     // Add countries
     $countryOptions = '';
@@ -220,7 +221,8 @@ HTML;
 HTML;
 
   } else if ($pageType === PageType::questionnaireResults) {
-    $texts = translateArray(['Filter', 'Questionnaires', 'results', 'Injury', 'Dead_(adjective)', 'Child']);
+    $texts = translateArray(['Filter', 'Questionnaires', 'results', 'Injury', 'Dead_(adjective)', 'Child',
+      'Exclude_unilateral']);
 
     $questionnaires = $database->getQuestionnaires();
 
@@ -253,6 +255,7 @@ HTML;
     <div class="toolbarItem">
       <span id="filterResearchDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
       <span id="filterResearchChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchNoUnilateral" class="menuButton bgNoUnilateral" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickQuestionnaireOption();"></span>      
     </div>
     
     <div class="toolbarItem">

@@ -12,17 +12,24 @@ async function initResearch(){
   initSearchBar();
 
   const url = new URL(location.href);
-  const searchHealthDead = url.searchParams.get('hd');
-  const searchChild      = url.searchParams.get('child');
-  const searchYear       = url.searchParams.get('year');
-  const searchGroup      = url.searchParams.get('group');
-  const searchPersons    = url.searchParams.get('persons');
+  const searchHealthDead   = url.searchParams.get('hd');
+  const searchChild        = url.searchParams.get('child');
+  const searchYear         = url.searchParams.get('year');
+  const searchGroup        = url.searchParams.get('group');
+  const searchPersons      = url.searchParams.get('persons');
+  const searchNoUnilateral = url.searchParams.get('noUnilateral');
 
   if (searchHealthDead) document.getElementById('filterResearchDead').classList.add('buttonSelectedBlue');
   if (searchChild)      document.getElementById('filterResearchChild').classList.add('buttonSelectedBlue');
   if (searchYear)       document.getElementById('filterResearchYear').value = searchYear;
   if (searchGroup)      document.getElementById('filterResearchGroup').value = searchGroup;
   if (searchPersons)    setPersonsFilter(searchPersons);
+
+  const filterNoUnilateral = document.getElementById('filterResearchNoUnilateral');
+  if (filterNoUnilateral) {
+    if (searchNoUnilateral && (searchNoUnilateral === "0")) filterNoUnilateral.classList.add('buttonSelectedBlue');
+    else filterNoUnilateral.classList.add('buttonSelectedBlue');
+  }
 
   if (url.pathname.startsWith('/research/questionnaires/options')) {
 
@@ -93,7 +100,11 @@ async function loadArticlesUnanswered() {
       let html = '';
       for (const article of response.articles) {
         const crash = getCrashFromID(article.crashid);
-        const htmlIcons = getCrashButtonsHTML(crash);
+        let htmlIcons = getCrashButtonsHTML(crash);
+        if (crash.unilateral) htmlIcons += getIconUnilateral();
+
+        htmlIcons = '<div style="display: flex; flex-direction: row;">' + htmlIcons + '</div>'
+
         html += `
           <tr id="article${article.id}" onclick="showQuestionsForm(${article.crashid}, ${article.id})">
             <td style="white-space: nowrap;">${article.crash_date.pretty()}</td>
@@ -200,6 +211,7 @@ async function loadQuestionnaireResults() {
         questionnaireId: parseInt(document.getElementById('filterQuestionnaire').value),
         healthDead:      document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue')? 1 : 0,
         child:           document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
+        noUnilateral:    document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue')? 1 : 0,
         year:            document.getElementById('filterResearchYear').value,
         persons:         getPersonsFromFilter(),
       },
@@ -567,10 +579,11 @@ function clickQuestionnaireOption() {
 }
 
 function selectFilterQuestionnaireResults() {
-  const dead  = document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue');
-  const child = document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue');
-  const year  = document.getElementById('filterResearchYear').value;
-  const group = document.getElementById('filterResearchGroup').value;
+  const dead         = document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue');
+  const child        = document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue');
+  const noUnilateral = document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue');
+  const year         = document.getElementById('filterResearchYear').value;
+  const group        = document.getElementById('filterResearchGroup').value;
 
   // Update url
   const searchPersons = getPersonsFromFilter();
@@ -578,6 +591,7 @@ function selectFilterQuestionnaireResults() {
   const url = new URL(window.location);
   if (dead)  url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
   if (child) url.searchParams.set('child', 1); else url.searchParams.delete('child');
+  if (! noUnilateral) url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
   if (year)  url.searchParams.set('year', year); else url.searchParams.delete('year');
   if (group) url.searchParams.set('group', group); else url.searchParams.delete('group');
   if (searchPersons.length > 0) url.searchParams.set('persons', searchPersons.join());

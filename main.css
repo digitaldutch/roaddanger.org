@@ -396,6 +396,10 @@ h2, .pageSubTitleFont, .sectionTitle {
   padding-left:  5px;
 }
 
+.textInputWidth {
+  width: 120px;
+}
+
 .dropInputWrapper {
   position:   relative;
   text-align: left;
@@ -683,6 +687,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .bgUnilateral {            background-image: url(/images/unilateral.svg);}
 .bgChild {                 background-image: url(/images/child.svg);}
+.bgNoUnilateral{           background-image: url(/images/no_unilateral.svg);}
 .bgPet {                   background-image: url(/images/pet.svg);}
 .bgAlcohol {               background-image: url(/images/alcohol.svg);}
 .bgHitRun {                background-image: url(/images/hitrun.svg);}

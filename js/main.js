@@ -126,6 +126,9 @@ function initStatistics(){
     const searchInjured    = url.searchParams.get('hi');
     const search           = url.searchParams.get('search');
 
+    const buttonDead = document.getElementById('filterStatsDead')
+    if (buttonDead) buttonDead.classList.add('buttonSelectedBlue');
+
     if (searchChild)    document.getElementById('filterStatsChild').classList.add('buttonSelectedBlue');
     if (searchInjured)  document.getElementById('filterStatsInjured').classList.add('buttonSelectedBlue');
     if (country)        document.getElementById('searchCountry').value  = country;
@@ -185,7 +188,7 @@ function showCrashVictimsGraph(crashVictims){
     dateFrom:      document.getElementById('searchDateFrom').value,
     dateTo:        document.getElementById('searchDateTo').value,
     child:         document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue'),
-    healthDead:    1,
+    healthDead:    document.getElementById('filterStatsDead').classList.contains('buttonSelectedBlue'),
     healthInjured: document.getElementById('filterStatsInjured').classList.contains('buttonSelectedBlue'),
   }
 
@@ -388,6 +391,7 @@ async function loadStatistics() {
     }
 
     const injuredButton = document.getElementById('filterStatsInjured');
+    const deadButton    = document.getElementById('filterStatsDead');
     if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
       serverData.filter = {
         period:        document.getElementById('searchPeriod').value,
@@ -396,7 +400,7 @@ async function loadStatistics() {
         dateFrom:      document.getElementById('searchDateFrom').value,
         dateTo:        document.getElementById('searchDateTo').value,
         child:         document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue')? 1 : 0,
-        healthDead:    1,
+        healthDead:    deadButton && deadButton.classList.contains('buttonSelectedBlue')? 1: 0,
         healthInjured: injuredButton && injuredButton.classList.contains('buttonSelectedBlue')? 1: 0,
       };
     }
@@ -1539,10 +1543,12 @@ async function showQuestionsForm(crashId, articleId) {
   const onFillInPage = window.location.href.includes('fill_in');
   const htmlHelpWanted = onFillInPage? '' : '<br>Help our research project by <a href=\'/research/questionnaires/fill_in\' class="button buttonLine">answering questions for other articles</a>';
 
+  const htmlUnilateral = crash.unilateral? getIconUnilateral() : '';
+
   document.getElementById('questionsArticleId').value        = article.id;
   document.getElementById('questionsArticleTitle').innerText = article.title;
   document.getElementById('questionsArticle').innerHTML      = `<a href="${article.url}" target="article">${article.sitename}</a>`;
-  document.getElementById('questionsCrashButtons').innerHTML = getCrashButtonsHTML(crash) + getIconUnilateral();
+  document.getElementById('questionsCrashButtons').innerHTML = getCrashButtonsHTML(crash) + htmlUnilateral;
   document.getElementById('questionsArticleText').innerText  = '⌛';
 
   document.getElementById('articleQuestions').innerHTML  = '⌛';

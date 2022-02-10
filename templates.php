@@ -140,7 +140,7 @@ function getHtmlSearchBar(){
     </div>
 
     <div class="toolbarItem">
-       <input id="searchText" class="searchInput"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startSearchKey(event);" autocomplete="off">  
+       <input id="searchText" class="searchInput textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startSearchKey(event);" autocomplete="off">  
     </div>
     
     <div class="toolbarItem">$htmlSearchCountry</div>
@@ -150,11 +150,11 @@ function getHtmlSearchBar(){
     $htmlSearchPersons    
            
     <div class="toolbarItem">
-      <input id="searchSiteName" class="searchInput" type="search" placeholder="{$texts['Source']}" onkeyup="startSearchKey(event);" autocomplete="off">
+      <input id="searchSiteName" class="searchInput textInputWidth" type="search" placeholder="{$texts['Source']}" onkeyup="startSearchKey(event);" autocomplete="off">
     </div>
 
     <div class="toolbarItem">
-      <div class="button buttonMobileSmall" onclick="startSearch(event)">{$texts['Search']}</div>
+      <div class="button buttonMobileSmall" style="margin-left: 0;" onclick="startSearch(event)">{$texts['Search']}</div>
     </div>
   </div>      
 HTML;
@@ -669,10 +669,10 @@ function getSearchPeriodHtml($onInputFunctionName = ''){
     <option value="yesterday">{$texts['Yesterday']}</option> 
     <option value="7days">7 {$texts['days']}</option> 
     <option value="30days">30 {$texts['days']}</option> 
+    <option value="2022">2022</option>
     <option value="2021">2021</option>
     <option value="2020">2020</option>
     <option value="2019">2019</option> 
-    <option value="decorrespondent">{$texts['The_correspondent_week']}</option> 
     <option value="custom">{$texts['Custom_period']}</option>          
   </select>
 </div>

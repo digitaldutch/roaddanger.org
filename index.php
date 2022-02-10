@@ -160,6 +160,7 @@ HTML;
     <div class="searchBar" style="display: flex;">
 
       <div class="toolbarItem">
+        <span id="filterStatsDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}"></span>      
         <span id="filterStatsInjured" class="menuButton bgInjuredBlack" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterStats();"></span>      
         <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
       </div>
@@ -168,11 +169,11 @@ HTML;
       $htmlSearchPeriod
       
       <div class="toolbarItem">
-        <input id="searchText" class="searchInput"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startStatsSearchKey(event);" autocomplete="off">  
+        <input id="searchText" class="searchInput textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startStatsSearchKey(event);" autocomplete="off">  
       </div>
 
       <div class="toolbarItem">
-        <div class="button buttonMobileSmall" onclick="loadStatistics(event)">{$texts['Filter']}</div>
+        <div class="button buttonMobileSmall" style="margin-left: 0;" onclick="loadStatistics(event)">{$texts['Filter']}</div>
       </div>
 
     </div>
@@ -210,11 +211,11 @@ HTML;
       $htmlSearchPeriod
 
       <div class="toolbarItem">
-        <input id="searchText" class="searchInput"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startStatsSearchKey(event);" autocomplete="off">  
+        <input id="searchText" class="searchInput textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startStatsSearchKey(event);" autocomplete="off">  
       </div>
 
       <div class="toolbarItem">
-        <div class="button buttonMobileSmall" onclick="loadStatistics(event)">{$texts['Filter']}</div>
+        <div class="button buttonMobileSmall" style="margin-left: 0;" onclick="loadStatistics(event)">{$texts['Filter']}</div>
       </div>
       
     </div>

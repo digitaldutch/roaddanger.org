@@ -241,6 +241,10 @@ SQL;
       addSQLWhere($SQLWhereAnd, 'YEAR(c.date)=' . intval($filter['year']));
     }
 
+    if (isset($filter['noUnilateral']) && ($filter['noUnilateral'] === 1)){
+      addSQLWhere($SQLWhereAnd, " c.unilateral !=1 ");
+    }
+
     if (isset($filter['child']) && ($filter['child'] === 1)){
       $joinPersonsTable = true;
       addSQLWhere($SQLWhereAnd, "cp.child=1 ");
