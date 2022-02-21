@@ -469,8 +469,8 @@ SELECT
   c.id AS crashid
 FROM articles a
   LEFT JOIN crashes c ON a.crashid = c.id
-WHERE NOT EXISTS(SELECT 1 FROM answers WHERE articleid = a.id)
-AND ((alltext IS NOT NULL) AND (alltext != ''))
+WHERE ((alltext IS NOT NULL) AND (alltext != '') AND (!c.unilateral))
+AND NOT EXISTS(SELECT 1 FROM answers WHERE articleid = a.id)
 $SQLWhereCountry
 ORDER BY c.date DESC
 LIMIT 50;

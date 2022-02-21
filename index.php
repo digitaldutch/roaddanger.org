@@ -136,8 +136,8 @@ HTML;
     'Search', 'Filter']);
   $intoText = $user->translateLongText('counter_party_info');
 
-  $htmlSearchCountry = getSearchCountryHtml();
-  $htmlSearchPeriod  = getSearchPeriodHtml();
+  $htmlSearchCountry = getSearchCountryHtml('selectFilterStats');
+  $htmlSearchPeriod  = getSearchPeriodHtml('selectFilterStats');
 
   $mainHTML = <<<HTML
 <div id="pageMain">
@@ -160,7 +160,7 @@ HTML;
     <div class="searchBar" style="display: flex;">
 
       <div class="toolbarItem">
-        <span id="filterStatsDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}"></span>      
+        <span id="filterStatsDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterStats();"></span>      
         <span id="filterStatsInjured" class="menuButton bgInjuredBlack" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterStats();"></span>      
         <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
       </div>
@@ -173,7 +173,7 @@ HTML;
       </div>
 
       <div class="toolbarItem">
-        <div class="button buttonMobileSmall" style="margin-left: 0;" onclick="loadStatistics(event)">{$texts['Filter']}</div>
+        <div class="button buttonMobileSmall" style="margin-left: 0;" onclick="loadStatistics(event)">{$texts['Search']}</div>
       </div>
 
     </div>

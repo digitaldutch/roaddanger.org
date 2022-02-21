@@ -227,6 +227,7 @@ function showCrashVictimsGraph(crashVictims){
 
 function selectFilterStats() {
   event.target.classList.toggle('buttonSelectedBlue');
+  loadStatistics();
 }
 
 function selectFilterChildDeaths() {
@@ -867,7 +868,7 @@ ${translate('Approval_required')}
   const htmlPersons = getCrashButtonsHTML(crash, false, true);
 
   let htmlQuestionnaireHelp = '';
-  if (user.moderator && crashHasActiveQuestionnaires(crash)) {
+  if (user.moderator && (! crash.unilateral) && crashHasActiveQuestionnaires(crash)) {
     htmlQuestionnaireHelp = `
 <div class="notice smallFont" style="display: flex; justify-content: space-between; align-items: center; margin: 0 5px 5px 0;" onclick="showQuestionsForm(${crashID}, ${crashArticles[0].id});">
 <div>We are doing a research project and would be grateful if you answered a few questions about media articles.</div> 
@@ -1532,8 +1533,7 @@ function editCrash(crashID) {
 }
 
 async function showQuestionsForm(crashId, articleId) {
-  event.stopPropagation();
-  event.preventDefault();
+  if (event) event.stopPropagation();
 
   closeCrashDetails();
 

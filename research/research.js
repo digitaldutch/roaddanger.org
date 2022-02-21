@@ -115,6 +115,11 @@ async function loadArticlesUnanswered() {
 
       document.getElementById('dataTableArticles').innerHTML = html;
 
+      if (response.articles) {
+        const firstArticle = response.articles[0];
+        showQuestionsForm(firstArticle.crashid, firstArticle.id);
+      }
+
     }
   } catch (error) {
     showError(error.message);
