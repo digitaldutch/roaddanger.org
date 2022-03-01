@@ -330,6 +330,7 @@ SQL;
           'yes'                    => 0,
           'no'                     => 0,
           'not_determinable'       => 0,
+          'total_articles'         => 0,
           'total_questions_passed' => [],
         ];
 
@@ -388,12 +389,14 @@ SQL;
 
           case Answer::no: {
             $bechdelResultsGroup['no'] += 1;
+            $bechdelResultsGroup['total_articles'] += 1;
             $bechdelResultsGroup['total_questions_passed'][$articleResult['total_questions_passed']] += 1;
             break;
           }
 
           case Answer::yes: {
             $bechdelResultsGroup['yes'] += 1;
+            $bechdelResultsGroup['total_articles'] += 1;
             $bechdelResultsGroup['total_questions_passed'][$articleResult['total_questions_passed']] += 1;
             break;
           }

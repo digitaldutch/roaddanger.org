@@ -251,6 +251,7 @@ async function loadQuestionnaireResults() {
           htmlQuestions += `<div>${i}) ${question.text}</div>`;
           i += 1;
         }
+
         document.getElementById('questionnaireBechdelIntro').style.display = 'block';
         document.getElementById('questionnaireBechdelQuestions').innerHTML = htmlQuestions;
 
@@ -259,20 +260,22 @@ async function loadQuestionnaireResults() {
         let htmlStats;
         if (data.group === 'year') {
           response.bechdelResults.sort((a, b) => b.year - a.year);
-          for (const results of response.bechdelResults) {
-            [htmlBar, htmlStats] = getBechdelBarHtml(results, response.questionnaire.questions);
 
-            const htmlYearHeader = `<div style="font-weight: bold; margin-top: 5px;">${results.year}</div>`;
+          for (const groupResults of response.bechdelResults) {
+            [htmlBar, htmlStats] = getBechdelBarHtml(groupResults, response.questionnaire.questions);
+
+            const htmlYearHeader = `<div><span style="font-weight: bold; margin-top: 5px;">${groupResults.year}</span> · ${groupResults.total_articles} articles</div>`;
             htmlBars += htmlYearHeader + htmlBar;
             htmlBody += htmlYearHeader + htmlStats;
           }
 
         } else if (data.group === 'source') {
           response.bechdelResults.sort((a, b) => a.source.localeCompare(b.source));
-          for (const results of response.bechdelResults) {
-            [htmlBar, htmlStats] = getBechdelBarHtml(results, response.questionnaire.questions);
 
-            const htmlBarHeader = `<div style="font-weight: bold; margin-top: 5px;">${results.source}</div>`;
+          for (const groupResults of response.bechdelResults) {
+            [htmlBar, htmlStats] = getBechdelBarHtml(groupResults, response.questionnaire.questions);
+
+            const htmlBarHeader = `<div><span style="font-weight: bold; margin-top: 5px;">${groupResults.source}</span> · ${groupResults.total_articles} articles</div>`;
             htmlBars += htmlBarHeader + htmlBar;
             htmlBody += htmlBarHeader + htmlStats;
           }
