@@ -308,6 +308,7 @@ SQL;
 SELECT
   ar.crashid,
   a.articleid,
+  ar.sitename AS source,
   YEAR(c.date) AS crash_year,
   ar.sitename AS source,
   GROUP_CONCAT(a.questionid ORDER BY qq.question_order) AS question_ids,
@@ -359,6 +360,7 @@ SQL;
         $articleResult = getBechdelResult($article['questions']);
 
         switch ($group) {
+
           case 'year': {
             $bechdelResultsGroup = &$bechdelResults[$article['crash_year']];
 
@@ -367,8 +369,17 @@ SQL;
             break;
           }
 
+          case 'source': {
+            $bechdelResultsGroup = &$bechdelResults[$article['source']];
+
+            if (! isset($bechdelResultsGroup)) $bechdelResultsGroup = getInitBechdelResults($questionnaire['questions']);
+
+            break;
+          }
+
           default: {
             $bechdelResultsGroup = &$bechdelResults;
+
             if (! isset($bechdelResultsGroup)) $bechdelResultsGroup = getInitBechdelResults($questionnaire['questions']);
           }
         }
@@ -404,6 +415,13 @@ SQL;
         $resultsArray = [];
         foreach ($bechdelResults as $year => $bechdelResult) {
           $bechdelResult['year'] = $year;
+          $resultsArray[] = $bechdelResult;
+        }
+        $result['bechdelResults'] = $resultsArray;
+      } else if ($group === 'source') {
+        $resultsArray = [];
+        foreach ($bechdelResults as $source => $bechdelResult) {
+          $bechdelResult['source'] = $source;
           $resultsArray[] = $bechdelResult;
         }
         $result['bechdelResults'] = $resultsArray;

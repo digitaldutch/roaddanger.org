@@ -267,6 +267,16 @@ async function loadQuestionnaireResults() {
             htmlBody += htmlYearHeader + htmlStats;
           }
 
+        } else if (data.group === 'source') {
+          response.bechdelResults.sort((a, b) => a.source.localeCompare(b.source));
+          for (const results of response.bechdelResults) {
+            [htmlBar, htmlStats] = getBechdelBarHtml(results, response.questionnaire.questions);
+
+            const htmlBarHeader = `<div style="font-weight: bold; margin-top: 5px;">${results.source}</div>`;
+            htmlBars += htmlBarHeader + htmlBar;
+            htmlBody += htmlBarHeader + htmlStats;
+          }
+
         } else {
           [htmlBar, htmlStats] = getBechdelBarHtml(response.bechdelResults, response.questionnaire.questions);
           htmlBars += htmlBar;
