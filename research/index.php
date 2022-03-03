@@ -250,6 +250,17 @@ HTML;
       </select>
     </div>
   
+    <div class="toolbarItem">
+      <select id="filterMinArticles" class="searchInput" onchange="selectFilterQuestionnaireResults();" data-tippy-content="Minimum amount of articles for a group to be visible">
+        <option value="0">[No minimum]</option>
+        <option value="1">Min. 1 article</option>
+        <option value="2">Min. 2 articles</option>
+        <option value="3" selected>Min. 3 articles</option>
+        <option value="5">Min. 5 articles</option>
+        <option value="10">Min. 10 articles</option>
+      </select>
+    </div>
+  
   </div>
   
   <div id="searchBar" class="searchBar" style="display: flex;">

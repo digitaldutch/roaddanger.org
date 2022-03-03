@@ -16,14 +16,16 @@ async function initResearch(){
   const searchChild        = url.searchParams.get('child');
   const searchYear         = url.searchParams.get('year');
   const searchGroup        = url.searchParams.get('group');
+  const searchMinArticles  = url.searchParams.get('minArticles');
   const searchPersons      = url.searchParams.get('persons');
   const searchNoUnilateral = url.searchParams.get('noUnilateral');
 
-  if (searchHealthDead) document.getElementById('filterResearchDead').classList.add('buttonSelectedBlue');
-  if (searchChild)      document.getElementById('filterResearchChild').classList.add('buttonSelectedBlue');
-  if (searchYear)       document.getElementById('filterResearchYear').value = searchYear;
-  if (searchGroup)      document.getElementById('filterResearchGroup').value = searchGroup;
-  if (searchPersons)    setPersonsFilter(searchPersons);
+  if (searchHealthDead)  document.getElementById('filterResearchDead').classList.add('buttonSelectedBlue');
+  if (searchChild)       document.getElementById('filterResearchChild').classList.add('buttonSelectedBlue');
+  if (searchYear)        document.getElementById('filterResearchYear').value = searchYear;
+  if (searchGroup)       document.getElementById('filterResearchGroup').value = searchGroup;
+  if (searchMinArticles) document.getElementById('filterMinArticles').value = searchMinArticles;
+  if (searchPersons)     setPersonsFilter(searchPersons);
 
   const filterNoUnilateral = document.getElementById('filterResearchNoUnilateral');
   if (filterNoUnilateral) {
@@ -206,6 +208,19 @@ function getBechdelBarHtml(bechdelResults, questions) {
   return [htmlBar, htmlStatistics];
 }
 
+function compareBechdelResults(a, b) {
+
+  for (let i=a.total_questions_passed.length - 1; i>0; i--) {
+    const aPercentage = a.total_questions_passed[i] / a.total_articles;
+    const bPercentage = b.total_questions_passed[i] / b.total_articles;
+
+    let dif = bPercentage - aPercentage;
+    if (dif) return dif;
+  }
+
+  return 0;
+}
+
 async function loadQuestionnaireResults() {
 
   try {
@@ -222,6 +237,10 @@ async function loadQuestionnaireResults() {
       },
       group: document.getElementById('filterResearchGroup').value,
     }
+
+    const selectMinArticles = document.getElementById('filterMinArticles');
+    selectMinArticles.style.display = data.group? 'inline-block' : 'none';
+    const minArticles = parseInt(selectMinArticles.value);
 
     const url      = '/research/ajax.php?function=loadQuestionnaireResults';
     const response = await fetchFromServer(url, data);
@@ -255,10 +274,12 @@ async function loadQuestionnaireResults() {
         document.getElementById('questionnaireBechdelIntro').style.display = 'block';
         document.getElementById('questionnaireBechdelQuestions').innerHTML = htmlQuestions;
 
-        // Draw Bechdel bars
+          // Draw Bechdel bars
         let htmlBar;
         let htmlStats;
         if (data.group === 'year') {
+          if (minArticles) response.bechdelResults = response.bechdelResults.filter(r => r.total_articles >= minArticles);
+
           response.bechdelResults.sort((a, b) => b.year - a.year);
 
           for (const groupResults of response.bechdelResults) {
@@ -270,7 +291,9 @@ async function loadQuestionnaireResults() {
           }
 
         } else if (data.group === 'source') {
-          response.bechdelResults.sort((a, b) => a.source.localeCompare(b.source));
+          if (minArticles) response.bechdelResults = response.bechdelResults.filter(r => r.total_articles >= minArticles);
+
+          response.bechdelResults.sort((a, b) => compareBechdelResults(a, b));
 
           for (const groupResults of response.bechdelResults) {
             [htmlBar, htmlStats] = getBechdelBarHtml(groupResults, response.questionnaire.questions);
@@ -602,16 +625,18 @@ function selectFilterQuestionnaireResults() {
   const noUnilateral = document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue');
   const year         = document.getElementById('filterResearchYear').value;
   const group        = document.getElementById('filterResearchGroup').value;
+  const minArticles  = document.getElementById('filterMinArticles').value;
 
   // Update url
   const searchPersons = getPersonsFromFilter();
 
   const url = new URL(window.location);
-  if (dead)  url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
-  if (child) url.searchParams.set('child', 1); else url.searchParams.delete('child');
-  if (! noUnilateral) url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
-  if (year)  url.searchParams.set('year', year); else url.searchParams.delete('year');
-  if (group) url.searchParams.set('group', group); else url.searchParams.delete('group');
+  if (dead)                     url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
+  if (child)                    url.searchParams.set('child', 1); else url.searchParams.delete('child');
+  if (! noUnilateral)           url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
+  if (year)                     url.searchParams.set('year', year); else url.searchParams.delete('year');
+  if (group)                    url.searchParams.set('group', group); else url.searchParams.delete('group');
+  if (minArticles > 0)          url.searchParams.set('minArticles', minArticles); else url.searchParams.delete('minArticles');
   if (searchPersons.length > 0) url.searchParams.set('persons', searchPersons.join());
 
   window.history.pushState(null, null, url.toString());

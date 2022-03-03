@@ -206,8 +206,9 @@ else if ($function === 'deleteQuestionnaire') {
 else if ($function === 'loadQuestionnaireResults') {
   try{
     $data = json_decode(file_get_contents('php://input'), true);
-    $filter = $data['filter'];
-    $group  = $data['group']?? '';
+
+    $filter         = $data['filter'];
+    $group          = $data['group']?? '';
     $bechdelResults = null;
 
     $result = ['ok' => true];
