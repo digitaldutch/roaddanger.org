@@ -204,13 +204,31 @@ HTML;
 </div>
 HTML;
   } else if ($pageType === PageType::questionnaireFillIn) {
-    $texts = translateArray(['Questionnaires', 'fill_in']);
+
+    $texts = translateArray(['Questionnaires', 'fill_in', 'Injury', 'Dead_(adjective)', 'Child', 'Exclude_unilateral',
+      'Filter']);
+    $htmlSearchPersons = getSearchPersonsHtml();
 
     $mainHTML = <<<HTML
 <div id="pageMain">
   <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['fill_in']}</div>
 
   <div class="smallFont">To help our research project, click an article and answer the questions.</div>
+
+  <div id="searchBar" class="searchBar" style="display: flex;">
+    <div class="toolbarItem">
+      <span id="filterResearchDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchNoUnilateral" class="menuButton bgNoUnilateral" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickQuestionnaireOption();"></span>      
+    </div>
+  
+    $htmlSearchPersons
+
+    <div class="toolbarItem">
+      <div class="button buttonMobileSmall" onclick="selectFilterQuestionnaireFillIn(event)">{$texts['Filter']}</div>
+    </div>
+    
+  </div>
   
   <div class="panelTableOverflow">
     <table class="dataTable">

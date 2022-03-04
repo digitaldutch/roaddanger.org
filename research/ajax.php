@@ -242,13 +242,13 @@ SQL;
       addSQLWhere($SQLWhereAnd, 'YEAR(c.date)=' . intval($filter['year']));
     }
 
-    if (isset($filter['noUnilateral']) && ($filter['noUnilateral'] === 1)){
-      addSQLWhere($SQLWhereAnd, " c.unilateral !=1 ");
-    }
-
     if (isset($filter['child']) && ($filter['child'] === 1)){
       $joinPersonsTable = true;
       addSQLWhere($SQLWhereAnd, "cp.child=1 ");
+    }
+
+    if (isset($filter['noUnilateral']) && ($filter['noUnilateral'] === 1)){
+      addSQLWhere($SQLWhereAnd, " c.unilateral !=1 ");
     }
 
     if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
@@ -478,7 +478,30 @@ SQL;
 
     $articles = [];
     if (count($questionnaires) > 0) {
-      $SQLWhereCountry = $user->countryId === 'UN'? '' : " AND c.countryid='" . $user->countryId . "'";
+
+      $SQLJoin          = '';
+      $SQLWhereAnd      = ' ';
+      $joinPersonsTable = false;
+
+      addHealthWhereSql($SQLWhereAnd, $joinPersonsTable, $filter);
+
+      if (isset($filter['persons']) && (count($filter['persons'])) > 0) $joinPersonsTable = true;
+
+      if (isset($filter['child']) && ($filter['child'] === 1)){
+        $joinPersonsTable = true;
+        addSQLWhere($SQLWhereAnd, "cp.child=1 ");
+      }
+
+      if (isset($filter['noUnilateral']) && ($filter['noUnilateral'] === 1)){
+        addSQLWhere($SQLWhereAnd, " c.unilateral !=1 ");
+      }
+
+      addPersonsWhereSql($SQLWhereAnd, $SQLJoin, $filter['persons']);
+
+      $SQLWhereAnd .= $user->countryId === 'UN'? '' : " AND c.countryid='" . $user->countryId . "'";
+
+      if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
+
       $sql = <<<SQL
 SELECT
   a.id,
@@ -491,9 +514,10 @@ SELECT
   c.id AS crashid
 FROM articles a
   LEFT JOIN crashes c ON a.crashid = c.id
-WHERE ((alltext IS NOT NULL) AND (alltext != '') AND (!c.unilateral))
+  $SQLJoin
+WHERE ((alltext IS NOT NULL) AND (alltext != ''))
+  $SQLWhereAnd
 AND NOT EXISTS(SELECT 1 FROM answers WHERE articleid = a.id)
-$SQLWhereCountry
 ORDER BY c.date DESC
 LIMIT 50;
 SQL;

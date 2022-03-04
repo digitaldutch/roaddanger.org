@@ -86,8 +86,17 @@ async function loadArticlesUnanswered() {
   try {
     spinnerLoad.style.display = 'block';
 
+    const data = {
+      filter: {
+        healthDead:      document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue')? 1 : 0,
+        child:           document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
+        noUnilateral:    document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue')? 1 : 0,
+        persons:         getPersonsFromFilter(),
+      },
+    }
+
     const url = '/research/ajax.php?function=loadArticlesUnanswered';
-    const response = await fetchFromServer(url);
+    const response = await fetchFromServer(url, data);
 
     response.articles.forEach(article => {
       article.crash_date  = new Date(article.crash_date);
@@ -117,10 +126,10 @@ async function loadArticlesUnanswered() {
 
       document.getElementById('dataTableArticles').innerHTML = html;
 
-      if (response.articles) {
-        const firstArticle = response.articles[0];
-        showQuestionsForm(firstArticle.crashid, firstArticle.id);
-      }
+      // if (response.articles) {
+      //   const firstArticle = response.articles[0];
+      //   showQuestionsForm(firstArticle.crashid, firstArticle.id);
+      // }
 
     }
   } catch (error) {
@@ -627,7 +636,6 @@ function selectFilterQuestionnaireResults() {
   const group        = document.getElementById('filterResearchGroup').value;
   const minArticles  = document.getElementById('filterMinArticles').value;
 
-  // Update url
   const searchPersons = getPersonsFromFilter();
 
   const url = new URL(window.location);
@@ -637,9 +645,27 @@ function selectFilterQuestionnaireResults() {
   if (year)                     url.searchParams.set('year', year); else url.searchParams.delete('year');
   if (group)                    url.searchParams.set('group', group); else url.searchParams.delete('group');
   if (minArticles > 0)          url.searchParams.set('minArticles', minArticles); else url.searchParams.delete('minArticles');
-  if (searchPersons.length > 0) url.searchParams.set('persons', searchPersons.join());
+  if (searchPersons.length > 0) url.searchParams.set('persons', searchPersons.join()); else url.searchParams.delete('persons');
 
   window.history.pushState(null, null, url.toString());
 
   loadQuestionnaireResults();
+}
+
+function selectFilterQuestionnaireFillIn() {
+  const dead          = document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue');
+  const child         = document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue');
+  const noUnilateral  = document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue');
+
+  const searchPersons = getPersonsFromFilter();
+
+  const url = new URL(window.location);
+  if (dead)                     url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
+  if (child)                    url.searchParams.set('child', 1); else url.searchParams.delete('child');
+  if (! noUnilateral)           url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
+  if (searchPersons.length > 0) url.searchParams.set('persons', searchPersons.join()); else url.searchParams.delete('persons');
+
+  window.history.pushState(null, null, url.toString());
+
+  loadArticlesUnanswered();
 }
