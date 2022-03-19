@@ -207,13 +207,17 @@ HTML;
 
     $texts = translateArray(['Questionnaires', 'fill_in', 'Injury', 'Dead_(adjective)', 'Child', 'Exclude_unilateral',
       'Filter']);
+
+    $textIntro = translateLongText('questionnaires_fill_in');
     $htmlSearchPersons = getSearchPersonsHtml();
 
     $mainHTML = <<<HTML
 <div id="pageMain">
   <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['fill_in']}</div>
 
-  <div class="smallFont">To help our research project, click an article and answer the questions.</div>
+  <div class="pageInner">
+    $textIntro  
+  </div>
 
   <div id="searchBar" class="searchBar" style="display: flex;">
     <div class="toolbarItem">
