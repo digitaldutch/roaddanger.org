@@ -94,8 +94,14 @@ function parse_url_all($url){
 }
 
 function curlDownload($url){
+
+  // Note: Using own user-agent gets us blocked on several websites that apparantly use white listing.
+  //  "User-Agent:roaddanger.org | Scientific research on crashes",
+
+  // Note: We no longer fake Googlebot-News headers as most media websites now allow default user-agent.
+  // Some websites block the server ip if we fake the user agent.
   $headers = [
-    "User-Agent:Googlebot-News this is not. This is the roaddanger.org scientific spider for research on crashes.",
+//        "User-Agent:Googlebot-News this is not. roaddanger.org scientific spider.",
     "Accept-Encoding:gzip,deflate",
   ];
 
@@ -167,8 +173,12 @@ function getPageMediaMetaData($url){
   // Handle UTF 8 properly
   $html = mb_convert_encoding($html, 'UTF-8',  mb_detect_encoding($html, 'UTF-8, ISO-8859-1', true));
 
+  // Some website html encode their tag names
+  $html = html_entity_decode($html);
+
   // See Google structured data guidelines https://developers.google.com/search/docs/guides/intro-structured-data#structured-data-guidelines
   // json-ld tags. Used by Google.
+
   $matches = null;
   // Check for both property and name attributes. nu.nl uses incorrectly name
   preg_match_all('~<\s*script\s+[^<>]*ld\+json[^<>]*>(.*)<\/script>~iUs', $html, $matches);

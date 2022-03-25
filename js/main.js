@@ -1810,18 +1810,20 @@ async function getArticleMetaData() {
       else showMetaData(response.media);
 
       document.getElementById('tarantulaResults').innerHTML = `
-JSON-LD: ${response.tagcount.json_ld}<br>
-Open Graph Facebook tags: ${response.tagcount.og}<br>
-Twitter tags: ${response.tagcount.twitter}<br>
-article tags: ${response.tagcount.article}<br>
-itemprop tags: ${response.tagcount.itemprop}<br>
-other tags: ${response.tagcount.other}
-`;
+<div class="tableHeader">${translate('Tags_found')}</div>
+<table class="dataTable">
+<td><td>JSON-LD:</td><td> ${response.tagcount.json_ld}</td></tr>
+<td><td>Open Graph Facebook tags:</td><td> ${response.tagcount.og}</td></tr>
+<td><td>Twitter tags:</td><td> ${response.tagcount.twitter}</td></tr>
+<td><td>article tags:</td><td> ${response.tagcount.article}</td></tr>
+<td><td>itemprop tags:</td><td> ${response.tagcount.itemprop}</td></tr>
+<td><td>other tags:</td><td> ${response.tagcount.other}</td></tr>
+</table>`;
     }
   } catch (error) {
     showError(error.message);
   } finally {
-    setTimeout(()=>{document.getElementById('spinnerMeta').style.display = 'none';}, 1000);
+    setTimeout(()=>{document.getElementById('spinnerMeta').style.display = 'none';}, 1500);
   }
 }
 

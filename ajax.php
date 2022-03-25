@@ -780,10 +780,13 @@ else if ($function === 'getPageMetaData'){
     $url        = $data['url'];
     $newArticle = $data['newArticle'];
 
-    function getFirstAvailableTag($tags){
+    function getLongestAvailableTag($tags): string {
       $result = '';
-      foreach ($tags as $tag){
-        if (isset($tag) && (! empty($tag)) && (strlen($tag) > strlen($result))) $result = $tag;
+      foreach ($tags as $tag) {
+        if (isset($tag)) {
+          $tag = trim($tag);
+          if ((! empty($tag)) && (strlen($tag) > strlen($result))) $result = $tag;
+        }
       }
       return $result;
     }
@@ -805,13 +808,13 @@ else if ($function === 'getPageMetaData'){
 
     // Decode HTML entities to normal text
     $media = [
-      'url'            => getFirstAvailableTag([$ogTags['og:url'], $url]),
-      'urlimage'       => getFirstAvailableTag([$ldJsonTags['image'], $ogTags['og:image']]),
-      'title'          => html_entity_decode(htmlspecialchars_decode(strip_tags(getFirstAvailableTag([$ldJsonTags['headline'], $ogTags['og:title'], $twitterTags['twitter:title']]))),ENT_QUOTES),
-      'description'    => html_entity_decode(strip_tags(htmlspecialchars_decode(getFirstAvailableTag([$ldJsonTags['description'], $ogTags['og:description'], $twitterTags['twitter:description'], $metaData['other']['description']]))),ENT_QUOTES),
-      'article_body'   => html_entity_decode(strip_tags(htmlspecialchars_decode(getFirstAvailableTag([$ldJsonTags['articleBody']]))),ENT_QUOTES),
-      'sitename'       => html_entity_decode(htmlspecialchars_decode(getFirstAvailableTag([$ldJsonTags['publisher'], $ogTags['og:site_name'], $metaData['other']['domain']])),ENT_QUOTES),
-      'published_time' => getFirstAvailableTag([$ldJsonTags['datePublished'], $ogTags['og:article:published_time'], $articleTags['article:published_time'], $itemPropTags['datePublished'], $articleTags['article:modified_time']]),
+      'url'            => getLongestAvailableTag([$ogTags['og:url'], $url]),
+      'urlimage'       => getLongestAvailableTag([$ldJsonTags['image'], $ogTags['og:image']]),
+      'title'          => html_entity_decode(htmlspecialchars_decode(strip_tags(getLongestAvailableTag([$ldJsonTags['headline'], $ogTags['og:title'], $twitterTags['twitter:title']]))),ENT_QUOTES),
+      'description'    => html_entity_decode(strip_tags(htmlspecialchars_decode(getLongestAvailableTag([$ldJsonTags['description'], $ogTags['og:description'], $twitterTags['twitter:description']]))),ENT_QUOTES),
+      'article_body'   => html_entity_decode(strip_tags(htmlspecialchars_decode(getLongestAvailableTag([$ldJsonTags['articleBody']]))),ENT_QUOTES),
+      'sitename'       => html_entity_decode(htmlspecialchars_decode(getLongestAvailableTag([$ldJsonTags['publisher'], $ogTags['og:site_name'], $metaData['other']['domain']])),ENT_QUOTES),
+      'published_time' => getLongestAvailableTag([$ldJsonTags['datePublished'], $ogTags['og:article:published_time'], $articleTags['article:published_time'], $itemPropTags['datePublished'], $articleTags['article:modified_time']]),
     ];
 
     // Replace http with https on image tags. Hart van Nederland sends unsecure links
@@ -825,6 +828,18 @@ else if ($function === 'getPageMetaData'){
     if (($media['title']          === '') && (isset($metaData['other']['h1'])))          $media['title']          = $metaData['other']['h1'];
     if (($media['description']    === '') && (isset($metaData['other']['description']))) $media['description']    = $metaData['other']['description'];
     if (($media['published_time'] === '') && (isset($metaData['other']['time'])))        $media['published_time'] = $metaData['other']['time'];
+
+    // Check if valid published_time string
+    if (strlen($media['published_time']) >= 1) {
+      try {
+        $dateTime = new DateTime($media['published_time']);
+        $media['published_time'] = $dateTime->format(DateTime::ISO8601);
+      } catch (Exception $e) {
+        if (strlen($media['published_time']) > 10) {
+          $media['published_time'] = substr($media['published_time'], 0, 10);
+        }
+      }
+    }
 
     // Check if new article url already in database.
     if ($newArticle) $urlExists = urlExists($database, $media['url']);
