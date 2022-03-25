@@ -95,7 +95,7 @@ function parse_url_all($url){
 
 function curlDownload($url){
   $headers = [
-    "User-Agent:Googlebot-News this is not",
+    "User-Agent:Googlebot-News this is not. This is the roaddanger.org scientific spider for research on crashes.",
     "Accept-Encoding:gzip,deflate",
   ];
 

@@ -806,11 +806,11 @@ else if ($function === 'getPageMetaData'){
     // Decode HTML entities to normal text
     $media = [
       'url'            => getFirstAvailableTag([$ogTags['og:url'], $url]),
-      'urlimage'       => getFirstAvailableTag([$ogTags['og:image']]),
-      'title'          => html_entity_decode(htmlspecialchars_decode(strip_tags(getFirstAvailableTag([$ogTags['og:title'], $twitterTags['twitter:title']]))),ENT_QUOTES),
-      'description'    => html_entity_decode(strip_tags(htmlspecialchars_decode(getFirstAvailableTag([$ogTags['og:description'], $twitterTags['twitter:description'], $metaData['other']['description']]))),ENT_QUOTES),
+      'urlimage'       => getFirstAvailableTag([$ldJsonTags['image'], $ogTags['og:image']]),
+      'title'          => html_entity_decode(htmlspecialchars_decode(strip_tags(getFirstAvailableTag([$ldJsonTags['headline'], $ogTags['og:title'], $twitterTags['twitter:title']]))),ENT_QUOTES),
+      'description'    => html_entity_decode(strip_tags(htmlspecialchars_decode(getFirstAvailableTag([$ldJsonTags['description'], $ogTags['og:description'], $twitterTags['twitter:description'], $metaData['other']['description']]))),ENT_QUOTES),
       'article_body'   => html_entity_decode(strip_tags(htmlspecialchars_decode(getFirstAvailableTag([$ldJsonTags['articleBody']]))),ENT_QUOTES),
-      'sitename'       => html_entity_decode(htmlspecialchars_decode(getFirstAvailableTag([$ogTags['og:site_name'], $metaData['other']['domain']])),ENT_QUOTES),
+      'sitename'       => html_entity_decode(htmlspecialchars_decode(getFirstAvailableTag([$ldJsonTags['publisher'], $ogTags['og:site_name'], $metaData['other']['domain']])),ENT_QUOTES),
       'published_time' => getFirstAvailableTag([$ldJsonTags['datePublished'], $ogTags['og:article:published_time'], $articleTags['article:published_time'], $itemPropTags['datePublished'], $articleTags['article:modified_time']]),
     ];
 

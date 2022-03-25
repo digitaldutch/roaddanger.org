@@ -489,7 +489,7 @@ function getFormQuestionnaires() {
 
     <div id="articleQuestions" class="flexColumn">Loading...</div>
                     
-    <div class="sectionHeader">Crash</div>
+    <div class="sectionHeader">Crash <span id="buttonEditCrash" class="link" style="font-weight: normal; margin-bottom: 5px;">view/edit</span></div>
     <div id="questionsCrashButtons" style="display: flex;"></div>
 
     <div class="sectionHeader">Article link</div>

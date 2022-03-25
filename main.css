@@ -68,12 +68,13 @@ input[readonly], textarea[readonly], .readOnlyInput {
   background-color: #eeeeee;
 }
 
-a {
+a, .link {
   color:           var(--click-color);
   font-family:     inherit;
   text-decoration: none;
+  cursor:          pointer;
 }
-a:hover {
+a:hover, .link:hover {
   text-decoration: underline;
 }
 

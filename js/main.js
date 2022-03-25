@@ -1523,6 +1523,7 @@ function addArticleToCrash(crashID) {
 }
 
 function editCrash(crashID) {
+  closeAllPopups();
   showEditCrashForm(crashID);
   setNewArticleCrashFields(crashID);
 
@@ -1530,6 +1531,12 @@ function editCrash(crashID) {
   document.getElementById('editArticleSection').style.display = 'none';
 
   document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'none';});
+}
+
+function viewQuestionCrash(crashId) {
+  const url = createCrashURL(crashId, '');
+
+  window.open(url, 'crash').focus();
 }
 
 async function showQuestionsForm(crashId, articleId) {
@@ -1544,6 +1551,8 @@ async function showQuestionsForm(crashId, articleId) {
   const htmlHelpWanted = onFillInPage? '' : '<br>Help our research project by <a href=\'/research/questionnaires/fill_in\' class="button buttonLine">answering questions for other articles</a>';
 
   const htmlUnilateral = crash.unilateral? getIconUnilateral() : '';
+
+  document.getElementById('buttonEditCrash').addEventListener('click', () => viewQuestionCrash(crashId));
 
   document.getElementById('questionsArticleId').value        = article.id;
   document.getElementById('questionsArticleTitle').innerText = article.title;

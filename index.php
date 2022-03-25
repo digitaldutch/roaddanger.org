@@ -41,16 +41,20 @@ if ($pageType === PageType::statisticsCrashPartners){
 //<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.js'></script>
 
 if (pageWithMap($pageType)) {
+  $mapbox_js  = MAPBOX_GL_JS;
+  $mapbox_css = MAPBOX_GL_CSS;
   $head .= <<<HTML
-<link href='https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css' rel='stylesheet'>
-<script src='https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js'></script>
+<script src="$mapbox_js"></script>
+<link href="$mapbox_css" type="text/css" rel="stylesheet">
 HTML;
 }
 
 if (pageWithEditMap($pageType)) {
+  $mapbox_geocoder_js  = MAPBOX_GEOCODER_JS;
+  $mapbox_geocoder_css = MAPBOX_GEOCODER_CSS;
   $head .= <<<HTML
-<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
-<link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" type="text/css" rel="stylesheet">
+<script src="$mapbox_geocoder_js"></script>
+<link href="$mapbox_geocoder_css" type="text/css" rel="stylesheet">
 HTML;
 }
 
@@ -65,7 +69,7 @@ if ($pageType === PageType::statisticsGeneral) {
     
     <div class="panelTableOverflow">
        <table id="tableStatistics" class="dataTable"></table>
-      <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+      <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>
     </div>
     
   </div>

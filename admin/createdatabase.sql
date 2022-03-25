@@ -8,7 +8,8 @@ create table countries
   defaultlanguageid char(2)     null,
   constraint countries_id_uindex
     unique (id)
-);
+)
+  engine = InnoDB;
 
 create table languages
 (
@@ -18,7 +19,8 @@ create table languages
   translations mediumtext  null,
   constraint languages_id_uindex
     unique (id)
-);
+)
+  engine = InnoDB;
 
 create table logins
 (
@@ -27,7 +29,9 @@ create table logins
   userid    int                      null,
   tokenhash varchar(60) charset utf8 null,
   lastlogin timestamp                null
-);
+)
+  engine = InnoDB
+  auto_increment = 9098;
 
 create table logs
 (
@@ -40,7 +44,9 @@ create table logs
   info      varchar(255)                        not null,
   constraint logs_id_uindex
     unique (id)
-);
+)
+  engine = InnoDB
+  auto_increment = 324;
 
 create table longtexts
 (
@@ -48,27 +54,33 @@ create table longtexts
   language_id char(2) default 'en' not null,
   content     text                 null,
   primary key (id, language_id)
-);
+)
+  engine = InnoDB;
 
 create table questionnaires
 (
   id         int auto_increment
     primary key,
   active     smallint default 0 null,
-  type       smallint default 0 null comment '0: standard 1: Bechdel test',
+  type       smallint default 0 null comment '0: standard
+1: Bechdel test',
   country_id char(2)            null,
   title      varchar(100)       null
-);
+)
+  engine = InnoDB
+  auto_increment = 6;
 
 create table questions
 (
   id             int auto_increment
     primary key,
-  text           varchar(100)         null,
+  text           varchar(200)         null,
   active         tinyint(1) default 0 null,
   question_order smallint             null,
   explanation    varchar(200)         null
-);
+)
+  engine = InnoDB
+  auto_increment = 17;
 
 create table questionnaire_questions
 (
@@ -82,7 +94,8 @@ create table questionnaire_questions
   constraint quest_questions_questions_id_fk
     foreign key (question_id) references questions (id)
       on update cascade
-);
+)
+  engine = InnoDB;
 
 create table users
 (
@@ -110,7 +123,8 @@ create table users
     foreign key (countryid) references countries (id)
       on update cascade on delete set null
 )
-  comment 'permission: 0=helper; 1=admin; 2=moderator';
+  comment 'permission: 0=helper; 1=admin; 2=moderator' engine = InnoDB
+                                                       auto_increment = 328;
 
 create table crashes
 (
@@ -145,7 +159,8 @@ create table crashes
     foreign key (userid) references users (id)
       on update cascade on delete cascade
 )
-  comment 'streamtoptype: 1: edited, 2: article added, 3: placed on top';
+  comment 'streamtoptype: 1: edited, 2: article added, 3: placed on top' engine = InnoDB
+                                                                         auto_increment = 10771;
 
 create table articles
 (
@@ -171,13 +186,16 @@ create table articles
   constraint articles___fk_user
     foreign key (userid) references users (id)
       on update cascade on delete cascade
-);
+)
+  engine = InnoDB
+  auto_increment = 12261;
 
 create table answers
 (
-  questionid int        not null,
-  articleid  int        not null,
-  answer     tinyint(1) null,
+  questionid  int          not null,
+  articleid   int          not null,
+  answer      tinyint(1)   null,
+  explanation varchar(200) null,
   constraint answers_pk
     unique (questionid, articleid),
   constraint answers_articles_id_fk
@@ -186,7 +204,8 @@ create table answers
   constraint answers_questions_id_fk
     foreign key (questionid) references questions (id)
       on update cascade on delete cascade
-);
+)
+  engine = InnoDB;
 
 create index articles__index_crashid
   on articles (crashid);
@@ -221,7 +240,9 @@ create table crashpersons
     foreign key (crashid) references crashes (id)
       on update cascade on delete cascade
 )
-  comment 'health: unknown: 0, unharmed: 1, injured: 2, dead: 3 | transportationmode: unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15';
+  comment 'health: unknown: 0, unharmed: 1, injured: 2, dead: 3 | transportationmode: unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15'
+  engine = InnoDB
+  auto_increment = 26278;
 
 create index crashpersons___fkcrash
   on crashpersons (crashid);
