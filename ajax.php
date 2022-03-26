@@ -1200,6 +1200,26 @@ else if ($function === 'saveAnswer') {
   }
   echo json_encode($result);
 } //==========
+else if ($function === 'saveExplanation') {
+  try{
+    if (! $user->isModerator())  throw new Exception('Only moderators can save explanations');
+
+    $data = json_decode(file_get_contents('php://input'));
+
+    $params = [
+      'articleid'   => $data->articleId,
+      'questionid'  => $data->questionId,
+      'explanation' => $data->explanation,
+      ];
+    $sql = "UPDATE answers SET explanation= :explanation WHERE articleid=:articleid AND questionid=:questionid;";
+    $database->execute($sql, $params);
+
+    $result = ['ok' => true];
+  } catch (Exception $e) {
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} //==========
 else if ($function === 'getArticleQuestionnairesAndText'){
   try{
     if (! $user->isModerator())  throw new Exception('Only moderators can edit article questions');
@@ -1231,7 +1251,8 @@ SELECT
 q.id,
 q.text,
 q.explanation,
-a.answer
+a.answer,
+a.explanation AS answerExplanation
 FROM questionnaire_questions qq
   LEFT JOIN questions q ON q.id = qq.question_id
   LEFT JOIN answers a ON q.id = a.questionid AND articleid=:articleId
@@ -1243,6 +1264,7 @@ SQL;
     $questionnaire['questions'] = [];
     foreach ($questionnaires as &$questionnaire) {
       $params = [':articleId' => $data['articleId'], 'questionnaire_id' => $questionnaire['id']];
+
       $questionnaire['questions'] = $database->fetchAllPrepared($statementQuestions, $params);
     }
 

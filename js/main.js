@@ -1572,10 +1572,11 @@ async function showQuestionsForm(crashId, articleId) {
 
         let i = 1;
         for (const question of questionnaire.questions) {
-          const yesChecked   = question.answer === 1? 'checked' : '';
-          const noChecked    = question.answer === 0? 'checked' : '';
-          const ndChecked    = question.answer === 2? 'checked' : '';
-          const tooltip      = question.explanation? `<span class="iconTooltip" data-tippy-content="${question.explanation}"></span>` : '';
+          const yesChecked        = question.answer === 1? 'checked' : '';
+          const noChecked         = question.answer === 0? 'checked' : '';
+          const ndChecked         = question.answer === 2? 'checked' : '';
+          const tooltip           = question.explanation? `<span class="iconTooltip" data-tippy-content="${question.explanation}"></span>` : '';
+          const answerExplanation = question.answerExplanation? escapeHtml(question.answerExplanation) : '';
 
           htmlQuestionnaires +=
 `<tr id="q${questionnaire.id}_${question.id}">
@@ -1585,7 +1586,9 @@ async function showQuestionsForm(crashId, articleId) {
     <label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${article.id}, ${question.id}, 0)">No</label>
     <label data-tippy-content="Not determinable"><input name="answer${question.id}" type="radio" ${ndChecked} onclick="saveAnswer(${article.id}, ${question.id}, 2)">n.d.</label>
   </td>
-</tr>`;
+</tr>
+<tr id="trExplanation${question.id}" style="display: none;"><td colspan="2"><input id="explanation${question.id}" type="text" value="${answerExplanation}" placeholder="Explanation" class="inputForm" oninput="saveExplanationDelayed(${article.id}, ${question.id});"></td></tr>
+`;
           i += 1;
         }
 
@@ -1609,13 +1612,13 @@ All questions answered 🙏${htmlHelpWanted}</td></tr>`;
 
 function setQuestionnaireGUI(questionnaire) {
 
-  document.getElementById('questionnaireCompleted' + questionnaire.id).style.display =
-    allQuestionsAnswered(questionnaire) ? 'table-row' : 'none';
+  document.getElementById('questionnaireCompleted' + questionnaire.id).style.display = allQuestionsAnswered(questionnaire) ? 'table-row' : 'none';
 
   if (questionnaire.type === QuestionnaireType.bechdel) {
     let iFirstNotYesQuestion = null;
     for (let i=0; i < questionnaire.questions.length; i++) {
       const question = questionnaire.questions[i];
+
       if ((iFirstNotYesQuestion === null) && (question.answer !== QuestionAnswer.yes)) iFirstNotYesQuestion = i;
 
       let questionVisible = true;
@@ -1625,6 +1628,12 @@ function setQuestionnaireGUI(questionnaire) {
       document.getElementById(id).style.display = questionVisible? 'table-row' : 'none';
     }
   }
+
+  // Show explantion field if not determinable answered
+  for (let question of questionnaire.questions) {
+    document.getElementById('trExplanation' + question.id).style.display = question.answer === QuestionAnswer.notDeterminable? 'table-row' : 'none';
+  }
+
 }
 
 async function saveAnswer(articleId, questionId, answer) {
@@ -1646,6 +1655,25 @@ async function saveAnswer(articleId, questionId, answer) {
     articleId:  articleId,
     questionId: questionId,
     answer:     answer,
+  };
+
+  const response = await fetchFromServer(url, data);
+
+  if (response.error) showError(response.error, 10);
+}
+
+function saveExplanationDelayed(articleId, questionId) {
+  clearTimeout(saveExplanation.timeout);
+  saveExplanation.timeout = setTimeout(function () {saveExplanation(articleId, questionId);},500);
+}
+
+async function saveExplanation(articleId, questionId) {
+
+  const url  = '/ajax.php?function=saveExplanation';
+  const data = {
+    articleId:   articleId,
+    questionId:  questionId,
+    explanation: document.getElementById('explanation' + questionId).value.trim(),
   };
 
   const response = await fetchFromServer(url, data);

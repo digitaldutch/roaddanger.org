@@ -473,7 +473,7 @@ function getFormQuestionnaires() {
   $onFillInPage = (strpos($uri, '/research/questionnaires/fill_in') === 0);
 
   return <<<HTML
-<div id="formQuestions" class="popupOuter" onclick="closePopupForm();">
+<div id="formQuestions" class="popupOuter">
 
   <div class="formFullPage" onclick="event.stopPropagation();">
 
