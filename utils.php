@@ -95,13 +95,13 @@ function parse_url_all($url){
 
 function curlDownload($url){
 
-  // Note: Using own user-agent gets us blocked on several websites that apparantly use white listing.
+  // Note: Using own user-agent gets us blocked on several websites apparently using white listing.
   //  "User-Agent:roaddanger.org | Scientific research on crashes",
 
   // Note: We no longer fake Googlebot-News headers as most media websites now allow default user-agent.
   // Some websites block the server ip if we fake the user agent.
+  // "User-Agent:Googlebot-News this is not | roaddanger.org scientific research on crashes",
   $headers = [
-//        "User-Agent:Googlebot-News this is not. roaddanger.org scientific spider.",
     "Accept-Encoding:gzip,deflate",
   ];
 

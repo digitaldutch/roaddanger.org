@@ -1533,7 +1533,7 @@ function editCrash(crashID) {
   document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'none';});
 }
 
-function viewQuestionCrash(crashId) {
+function viewCrashInTab(crashId) {
   const url = createCrashURL(crashId, '');
 
   window.open(url, 'crash').focus();
@@ -1552,7 +1552,7 @@ async function showQuestionsForm(crashId, articleId) {
 
   const htmlUnilateral = crash.unilateral? getIconUnilateral() : '';
 
-  document.getElementById('buttonEditCrash').addEventListener('click', () => viewQuestionCrash(crashId));
+  document.getElementById('buttonEditCrash').addEventListener('click', () => viewCrashInTab(crashId));
 
   document.getElementById('questionsArticleId').value        = article.id;
   document.getElementById('questionsArticleTitle').innerText = article.title;

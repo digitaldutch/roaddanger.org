@@ -125,12 +125,6 @@ async function loadArticlesUnanswered() {
       }
 
       document.getElementById('dataTableArticles').innerHTML = html;
-
-      // if (response.articles) {
-      //   const firstArticle = response.articles[0];
-      //   showQuestionsForm(firstArticle.crashid, firstArticle.id);
-      // }
-
     }
   } catch (error) {
     showError(error.message);
@@ -200,7 +194,7 @@ function getBechdelBarHtml(bechdelResults, questions) {
       htmlPassed += ' (' + item.amountPercentage.toFixed(2) + ')%';
     }
 
-    htmlStatistics = `<tr><td>Questions answered with Yes: <span style="border-bottom: 3px solid ${color}; padding: 3px;">${item.text}</span></td>` +
+    htmlStatistics = `<tr data-questions-passed="${item.passed}"><td>Questions answered with Yes: <span style="border-bottom: 3px solid ${color}; padding: 3px;">${item.text}</span></td>` +
       `<td style="text-align: center;"><span style="border-bottom: 3px solid ${color}; padding: 3px;">${htmlPassed}</span></td></tr>` + htmlStatistics;
   });
 
@@ -212,7 +206,7 @@ function getBechdelBarHtml(bechdelResults, questions) {
 
   if (! htmlBar) htmlBar = '<table><tr><td>&nbsp;</td></tr></table>';
   htmlBar = '<div class="questionnaireBar" style="white-space: nowrap;">' + htmlBar + '</div>';
-  htmlStatistics += `<tr><td>Not determinable</td><td style="text-align: center;">${stats.not_determinable}</td></tr>`;
+  htmlStatistics += `<tr data-questions-passed="nd"><td>Not determinable</td><td style="text-align: center;">${stats.not_determinable}</td></tr>`;
 
   return [htmlBar, htmlStatistics];
 }
@@ -230,29 +224,37 @@ function compareBechdelResults(a, b) {
   return 0;
 }
 
+
+async function downloadQuestionnaireResults(articleFilter={}) {
+  const data = {
+    filter: {
+      questionnaireId: parseInt(document.getElementById('filterQuestionnaire').value),
+      healthDead:      document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue')? 1 : 0,
+      child:           document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
+      noUnilateral:    document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue')? 1 : 0,
+      year:            document.getElementById('filterResearchYear').value,
+      persons:         getPersonsFromFilter(),
+    },
+    group: document.getElementById('filterResearchGroup').value,
+    articleFilter: articleFilter,
+  }
+
+  const url = '/research/ajax.php?function=loadQuestionnaireResults';
+  return  await fetchFromServer(url, data);
+}
+
 async function loadQuestionnaireResults() {
 
   try {
     spinnerLoad.style.display = 'block';
 
-    const data = {
-      filter: {
-        questionnaireId: parseInt(document.getElementById('filterQuestionnaire').value),
-        healthDead:      document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue')? 1 : 0,
-        child:           document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
-        noUnilateral:    document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue')? 1 : 0,
-        year:            document.getElementById('filterResearchYear').value,
-        persons:         getPersonsFromFilter(),
-      },
-      group: document.getElementById('filterResearchGroup').value,
-    }
+    const group = document.getElementById('filterResearchGroup').value;
 
     const selectMinArticles = document.getElementById('filterMinArticles');
-    selectMinArticles.style.display = data.group? 'inline-block' : 'none';
+    selectMinArticles.style.display = group? 'inline-block' : 'none';
     const minArticles = parseInt(selectMinArticles.value);
 
-    const url      = '/research/ajax.php?function=loadQuestionnaireResults';
-    const response = await fetchFromServer(url, data);
+    const response = await downloadQuestionnaireResults();
 
     if (response.error) showError(response.error);
     else if (response.ok) {
@@ -283,10 +285,10 @@ async function loadQuestionnaireResults() {
         document.getElementById('questionnaireBechdelIntro').style.display = 'block';
         document.getElementById('questionnaireBechdelQuestions').innerHTML = htmlQuestions;
 
-          // Draw Bechdel bars
+        // Draw Bechdel bars
         let htmlBar;
         let htmlStats;
-        if (data.group === 'year') {
+        if (group === 'year') {
           if (minArticles) response.bechdelResults = response.bechdelResults.filter(r => r.total_articles >= minArticles);
 
           response.bechdelResults.sort((a, b) => b.year - a.year);
@@ -299,7 +301,7 @@ async function loadQuestionnaireResults() {
             htmlBody += htmlYearHeader + htmlStats;
           }
 
-        } else if (data.group === 'source') {
+        } else if (group === 'source') {
           if (minArticles) response.bechdelResults = response.bechdelResults.filter(r => r.total_articles >= minArticles);
 
           response.bechdelResults.sort((a, b) => compareBechdelResults(a, b));
@@ -322,8 +324,8 @@ async function loadQuestionnaireResults() {
       }
 
       document.getElementById('questionnaireBars').innerHTML    = htmlBars;
-      document.getElementById('tableHead').innerHTML            = htmlHead;
-      document.getElementById('tableBody').innerHTML            = htmlBody;
+      document.getElementById('tableStatisticsHead').innerHTML  = htmlHead;
+      document.getElementById('tableStatisticsBody').innerHTML  = htmlBody;
       document.getElementById('headerStatistics').style.display = 'block';
     }
 
@@ -668,4 +670,40 @@ function selectFilterQuestionnaireFillIn() {
   window.history.pushState(null, null, url.toString());
 
   loadArticlesUnanswered();
+}
+
+async function onClickStatisticsTable() {
+  const trTarget = event.target.closest('tr');
+
+  const questionsPassed = trTarget.getAttribute('data-questions-passed');
+
+  const header = trTarget.cells[0].innerText;
+
+  const divResult = document.getElementById('resultArticles');
+  document.getElementById('headerResultArticles').innerText = 'Articles | ' + header;
+  document.getElementById('formResultArticles').style.display = 'flex';
+  divResult.innerHTML = 'Loading...';
+
+  const articleFilter = {
+    getArticles:     true,
+    offset:          0,
+    questionsPassed: questionsPassed,
+    group:           null,
+  }
+
+  const response = await downloadQuestionnaireResults(articleFilter);
+
+  let html = '';
+  for (const article of response.articles) {
+    html += `
+      <tr id="article${article.id}" onclick="viewCrashInTab(${article.crashid})">
+        <td class="td400">${article.crashid}</td>
+        <td class="td400">${article.crash_year}</td>
+        <td class="td400">${article.source}</td>
+      </tr>`;
+  }
+
+  if (html) html = `<table class="dataTable"><tr><th>Id</th><th>Year</th><th>Source</th></tr>${html}</table>`;
+
+  divResult.innerHTML = html;
 }

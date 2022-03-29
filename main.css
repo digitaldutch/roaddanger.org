@@ -827,6 +827,22 @@ h2, .pageSubTitleFont, .sectionTitle {
   box-sizing:       border-box;
 }
 
+.formFixed {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 5px;
+  padding: 10px;
+  background-color: #fff;
+  opacity: 1;
+  border-radius: 3px;
+}
+
 .formFullPage label, .labelDiv, .formPage label {
   margin-top: 5px;
 }
@@ -1249,11 +1265,6 @@ h2, .pageSubTitleFont, .sectionTitle {
   padding-top: 15px;
 }
 
-.tableClickRows td {
-  cursor: pointer;
-  color:  var(--click-color);
-}
-
 .editDetails {
   font-weight: bold;
   font-size:   25px;
@@ -1507,7 +1518,7 @@ table.tableDragging td div {
 }
 
 .questionnaireBar {
-  display: flex;
+  display:          flex;
   background-color: #dddddd;
 }
 

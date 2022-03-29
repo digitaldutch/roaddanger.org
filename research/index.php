@@ -316,13 +316,28 @@ HTML;
   <div id="questionnaireBars"></div>
 
   <div id="headerStatistics" style="display: none; width: 100%; margin-top: 10px; font-weight: bold; text-align: left;">Statistics</div>
-  <table class="dataTable">
-    <thead id="tableHead"></thead>  
-    <tbody id="tableBody"></tbody>
+  
+  <table id="tableStatistics" class="dataTable" onclick="onClickStatisticsTable();">
+    <thead id="tableStatisticsHead"></thead>  
+    <tbody id="tableStatisticsBody" style="cursor: pointer;"></tbody>
   </table>  
       
 </div>
 </div>
+
+<div id="formResultArticles" class="popupOuter">
+
+  <div class="formFixed" onclick="event.stopPropagation();">
+   
+    <div id="headerResultArticles" class="popupHeader">Result articles</div>
+    <div class="popupCloseCross" onclick="closePopupForm();"></div>
+    
+    <div id="resultArticles" class="flexColumn" style="overflow: auto;">Loading...</div>
+                            
+  </div>
+  
+</div>
+
 HTML;
 
   }

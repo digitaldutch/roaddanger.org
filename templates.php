@@ -469,9 +469,6 @@ HTML;
 
 function getFormQuestionnaires() {
 
-  $uri = urldecode($_SERVER['REQUEST_URI']);
-  $onFillInPage = (strpos($uri, '/research/questionnaires/fill_in') === 0);
-
   return <<<HTML
 <div id="formQuestions" class="popupOuter">
 

@@ -21,17 +21,17 @@ $function = $_REQUEST['function'];
 
 function getBechdelResult($answers) {
 
-  $passed = Answer::yes;
+  $bechdelResult = Answer::yes;
 
   $totalQuestionsPassed = 0;
   foreach ($answers as $answer) {
-    if      ($answer === Answer::no)              {$passed = Answer::no; break;}
-    else if ($answer === Answer::notDeterminable) {$passed = Answer::notDeterminable; break;}
-    else if ($answer === null)                    {$passed = null; break;}
+    if      ($answer === Answer::no)              {$bechdelResult = Answer::no; break;}
+    else if ($answer === Answer::notDeterminable) {$bechdelResult = Answer::notDeterminable; break;}
+    else if ($answer === null)                    {$bechdelResult = null; break;}
     else if (($answer === Answer::yes))           {$totalQuestionsPassed += 1;}
   }
 
-  return ['passed' => $passed, 'total_questions_passed' => $totalQuestionsPassed];
+  return ['result' => $bechdelResult, 'total_questions_passed' => $totalQuestionsPassed];
 }
 
 if ($function === 'loadQuestionnaires') {
@@ -208,6 +208,8 @@ else if ($function === 'loadQuestionnaireResults') {
     $data = json_decode(file_get_contents('php://input'), true);
 
     $filter         = $data['filter'];
+    $filter         = $data['filter'];
+    $articleFilter  = $data['articleFilter'];
     $group          = $data['group']?? '';
     $bechdelResults = null;
 
@@ -349,6 +351,7 @@ SQL;
         // Format and clean up article questions and answers data
         $articleQuestionIds = explode(',', $article['question_ids']);
         $articleAnswers     = explode(',', $article['answers']);
+
         $article['questions'] = [];
         foreach ($questionnaire['questions'] as $question) {
           $index  = array_search($question['id'], $articleQuestionIds);
@@ -359,7 +362,7 @@ SQL;
         unset($article['question_ids']);
         unset($article['answers']);
 
-        $articleResult = getBechdelResult($article['questions']);
+        $articleBechdel = getBechdelResult($article['questions']);
 
         switch ($group) {
 
@@ -386,19 +389,19 @@ SQL;
           }
         }
 
-        switch ($articleResult['passed']) {
+        switch ($articleBechdel['result']) {
 
           case Answer::no: {
             $bechdelResultsGroup['no'] += 1;
             $bechdelResultsGroup['total_articles'] += 1;
-            $bechdelResultsGroup['total_questions_passed'][$articleResult['total_questions_passed']] += 1;
+            $bechdelResultsGroup['total_questions_passed'][$articleBechdel['total_questions_passed']] += 1;
             break;
           }
 
           case Answer::yes: {
             $bechdelResultsGroup['yes'] += 1;
             $bechdelResultsGroup['total_articles'] += 1;
-            $bechdelResultsGroup['total_questions_passed'][$articleResult['total_questions_passed']] += 1;
+            $bechdelResultsGroup['total_questions_passed'][$articleBechdel['total_questions_passed']] += 1;
             break;
           }
 
@@ -410,9 +413,18 @@ SQL;
           default: throw new Exception('Internal error: Unknown Bechdel result');
         }
 
-        $article['bechdelResult'] = $articleResult;
+        if ($articleFilter['getArticles']) {
+          $article['bechdelResult'] = $articleBechdel;
 
-        $articles[] = $article;
+
+          if ($articleFilter['questionsPassed'] === 'nd') {
+            if ($articleBechdel['result'] === Answer::notDeterminable) $articles[] = $article;
+          } else if (($articleBechdel['result'] !== Answer::notDeterminable) &&
+              ($articleBechdel['total_questions_passed'] == $articleFilter['questionsPassed'])) { // Note: == compare as filter is a string
+            $articles[] = $article;
+          }
+
+        }
       }
 
       if ($group === 'year') {
@@ -432,7 +444,13 @@ SQL;
       } else $result['bechdelResults'] = $bechdelResults;
     }
 
-    $result['questionnaire'] = $questionnaire;
+    if ($articleFilter['getArticles']) {
+      $result = [
+        'ok'       => true,
+        'articles' => array_slice($articles, $articleFilter['offset'], 1000),
+      ];
+    } else $result['questionnaire'] = $questionnaire;
+
   } catch (Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
@@ -502,6 +520,8 @@ SQL;
 
       if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
 
+      /** @noinspection SqlResolve */
+      /** @noinspection SqlIdentifier */
       $sql = <<<SQL
 SELECT
   a.id,
