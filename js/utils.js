@@ -628,6 +628,15 @@ function questionnaireTypeToText(type) {
   }
 }
 
+function bechdelAnswerToText(answer) {
+  switch (answer) {
+    case QuestionAnswer.no:              return 'Failed';
+    case QuestionAnswer.yes:             return 'Passed';
+    case QuestionAnswer.notDeterminable: return 'Not determinable';
+    default: return 'Niet alle vragen beantwoord';
+  }
+}
+
 function initPage(){
   document.onclick = closeAllPopups;
   initMenuSwipe();

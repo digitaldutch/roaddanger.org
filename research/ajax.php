@@ -34,6 +34,22 @@ function getBechdelResult($answers) {
   return ['result' => $bechdelResult, 'total_questions_passed' => $totalQuestionsPassed];
 }
 
+function passesArticleFilter($article, $articleFilter) {
+
+//  if (! isset($article['bechdelResult']['result'])) return false;
+
+  if ($articleFilter['questionsPassed'] === 'nd') {
+    if ($article['bechdelResult']['result'] != Answer::notDeterminable) return false;
+  }
+
+  if ($article['bechdelResult']['result'] === Answer::notDeterminable) return false;
+
+  // Note: != compare as filter is a string
+  if ($article['bechdelResult']['total_questions_passed'] !== (int)$articleFilter['questionsPassed']) return false;
+
+  return true;
+}
+
 if ($function === 'loadQuestionnaires') {
   try{
 
@@ -416,14 +432,7 @@ SQL;
         if ($articleFilter['getArticles']) {
           $article['bechdelResult'] = $articleBechdel;
 
-
-          if ($articleFilter['questionsPassed'] === 'nd') {
-            if ($articleBechdel['result'] === Answer::notDeterminable) $articles[] = $article;
-          } else if (($articleBechdel['result'] !== Answer::notDeterminable) &&
-              ($articleBechdel['total_questions_passed'] == $articleFilter['questionsPassed'])) { // Note: == compare as filter is a string
-            $articles[] = $article;
-          }
-
+          if (passesArticleFilter($article, $articleFilter)) $articles[] = $article;
         }
       }
 

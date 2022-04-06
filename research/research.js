@@ -149,7 +149,7 @@ function getBarSegment(widthPercentage, color, text='') {
   return `<div style="width: ${widthPercentage}%; background-color: ${color};"><span>${text}</span></div>`;
 }
 
-function getBechdelBarHtml(bechdelResults, questions) {
+function getBechdelBarHtml(bechdelResults, questions, group='') {
   if (! bechdelResults) return ['', '<div>No results found</div>'];
 
   const stats = {
@@ -170,8 +170,14 @@ function getBechdelBarHtml(bechdelResults, questions) {
     bechdelItems.push(segment);
   }
 
+  let groupData = '';
+  switch (group) {
+    case 'year':   groupData = bechdelResults.year; break;
+    case 'source': groupData = bechdelResults.source; break;
+  }
+
   let htmlStatistics = '';
-  let htmlBar       = '';
+  let htmlBar        = '';
   bechdelItems.forEach(item => {
     item.amountPercentage = item.amount / total * 100;
     item.text = item.passed + '/' + questions.length;
@@ -194,7 +200,7 @@ function getBechdelBarHtml(bechdelResults, questions) {
       htmlPassed += ' (' + item.amountPercentage.toFixed(2) + ')%';
     }
 
-    htmlStatistics = `<tr data-questions-passed="${item.passed}"><td>Questions answered with Yes: <span style="border-bottom: 3px solid ${color}; padding: 3px;">${item.text}</span></td>` +
+    htmlStatistics = `<tr data-questions-passed="${item.passed}" data-group="${groupData}"><td>Questions answered with Yes: <span style="border-bottom: 3px solid ${color}; padding: 3px;">${item.text}</span></td>` +
       `<td style="text-align: center;"><span style="border-bottom: 3px solid ${color}; padding: 3px;">${htmlPassed}</span></td></tr>` + htmlStatistics;
   });
 
@@ -294,7 +300,7 @@ async function loadQuestionnaireResults() {
           response.bechdelResults.sort((a, b) => b.year - a.year);
 
           for (const groupResults of response.bechdelResults) {
-            [htmlBar, htmlStats] = getBechdelBarHtml(groupResults, response.questionnaire.questions);
+            [htmlBar, htmlStats] = getBechdelBarHtml(groupResults, response.questionnaire.questions, group);
 
             const htmlYearHeader = `<div><span style="font-weight: bold; margin-top: 5px;">${groupResults.year}</span> · ${groupResults.total_articles} articles</div>`;
             htmlBars += htmlYearHeader + htmlBar;
@@ -307,7 +313,7 @@ async function loadQuestionnaireResults() {
           response.bechdelResults.sort((a, b) => compareBechdelResults(a, b));
 
           for (const groupResults of response.bechdelResults) {
-            [htmlBar, htmlStats] = getBechdelBarHtml(groupResults, response.questionnaire.questions);
+            [htmlBar, htmlStats] = getBechdelBarHtml(groupResults, response.questionnaire.questions, group);
 
             const htmlBarHeader = `<div><span style="font-weight: bold; margin-top: 5px;">${groupResults.source}</span> · ${groupResults.total_articles} articles</div>`;
             htmlBars += htmlBarHeader + htmlBar;
@@ -675,7 +681,9 @@ function selectFilterQuestionnaireFillIn() {
 async function onClickStatisticsTable() {
   const trTarget = event.target.closest('tr');
 
+  const group           = document.getElementById('filterResearchGroup').value;
   const questionsPassed = trTarget.getAttribute('data-questions-passed');
+  const groupData       = trTarget.getAttribute('data-group');
 
   const header = trTarget.cells[0].innerText;
 
@@ -688,22 +696,25 @@ async function onClickStatisticsTable() {
     getArticles:     true,
     offset:          0,
     questionsPassed: questionsPassed,
-    group:           null,
+    group:           group,
+    groupData:       groupData,
   }
 
   const response = await downloadQuestionnaireResults(articleFilter);
 
   let html = '';
   for (const article of response.articles) {
+    let result = bechdelAnswerToText(article.bechdelResult.result);
     html += `
       <tr id="article${article.id}" onclick="viewCrashInTab(${article.crashid})">
-        <td class="td400">${article.crashid}</td>
-        <td class="td400">${article.crash_year}</td>
+        <td style="text-align: right;">${article.crashid}</td>
+        <td style="text-align: right;">${result} | ${article.bechdelResult.total_questions_passed}</td>
+        <td style="text-align: right;">${article.crash_year}</td>
         <td class="td400">${article.source}</td>
       </tr>`;
   }
 
-  if (html) html = `<table class="dataTable"><tr><th>Id</th><th>Year</th><th>Source</th></tr>${html}</table>`;
+  if (html) html = `<table class="dataTable"><tr><th>Id</th><th>Bechdel result</th><th>Year</th><th>Source</th></tr>${html}</table>`;
 
   divResult.innerHTML = html;
 }
