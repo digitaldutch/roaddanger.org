@@ -36,9 +36,6 @@ function getBechdelResult($answers) {
 
 function passesArticleFilter($article, $articleFilter) {
 
-  // TODO: If not questions are anwered the result should be null
-//  if (! isset($article['bechdelResult']['result'])) return false;
-
   if ($articleFilter['questionsPassed'] === 'nd') {
     if ($article['bechdelResult']['result'] != Answer::notDeterminable) return false;
   } else {
@@ -46,6 +43,12 @@ function passesArticleFilter($article, $articleFilter) {
 
     // Note: != compare as filter is a string
     if ($article['bechdelResult']['total_questions_passed'] !== (int)$articleFilter['questionsPassed']) return false;
+  }
+
+  if ($articleFilter['group'] === 'year') {
+    if ($articleFilter['groupData'] != $article['crash_year']) return false;
+  } else if ($articleFilter['group'] === 'source') {
+    if ($articleFilter['groupData'] != $article['source']) return false;
   }
 
   return true;
