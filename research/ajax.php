@@ -225,7 +225,6 @@ else if ($function === 'loadQuestionnaireResults') {
     $data = json_decode(file_get_contents('php://input'), true);
 
     $filter         = $data['filter'];
-    $filter         = $data['filter'];
     $articleFilter  = $data['articleFilter'];
     $group          = $data['group']?? '';
     $bechdelResults = null;
@@ -406,35 +405,38 @@ SQL;
           }
         }
 
-        switch ($articleBechdel['result']) {
+        if ($articleBechdel['result'] !== null) {
+          switch ($articleBechdel['result']) {
 
-          case Answer::no: {
-            $bechdelResultsGroup['no'] += 1;
-            $bechdelResultsGroup['total_articles'] += 1;
-            $bechdelResultsGroup['total_questions_passed'][$articleBechdel['total_questions_passed']] += 1;
-            break;
+            case Answer::no: {
+              $bechdelResultsGroup['no'] += 1;
+              $bechdelResultsGroup['total_articles'] += 1;
+              $bechdelResultsGroup['total_questions_passed'][$articleBechdel['total_questions_passed']] += 1;
+              break;
+            }
+
+            case Answer::yes: {
+              $bechdelResultsGroup['yes'] += 1;
+              $bechdelResultsGroup['total_articles'] += 1;
+              $bechdelResultsGroup['total_questions_passed'][$articleBechdel['total_questions_passed']] += 1;
+              break;
+            }
+
+            case Answer::notDeterminable: {
+              $bechdelResultsGroup['not_determinable'] += 1;
+              break;
+            }
+
+            default: throw new Exception('Internal error: Unknown Bechdel result');
           }
 
-          case Answer::yes: {
-            $bechdelResultsGroup['yes'] += 1;
-            $bechdelResultsGroup['total_articles'] += 1;
-            $bechdelResultsGroup['total_questions_passed'][$articleBechdel['total_questions_passed']] += 1;
-            break;
-          }
+          if ($articleFilter['getArticles']) {
+            $article['bechdelResult'] = $articleBechdel;
 
-          case Answer::notDeterminable: {
-            $bechdelResultsGroup['not_determinable'] += 1;
-            break;
+            if (passesArticleFilter($article, $articleFilter)) $articles[] = $article;
           }
-
-          default: throw new Exception('Internal error: Unknown Bechdel result');
         }
 
-        if ($articleFilter['getArticles']) {
-          $article['bechdelResult'] = $articleBechdel;
-
-          if (passesArticleFilter($article, $articleFilter)) $articles[] = $article;
-        }
       }
 
       if ($group === 'year') {
