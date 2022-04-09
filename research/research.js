@@ -88,10 +88,10 @@ async function loadArticlesUnanswered() {
 
     const data = {
       filter: {
-        healthDead:      document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue')? 1 : 0,
-        child:           document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
-        noUnilateral:    document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue')? 1 : 0,
-        persons:         getPersonsFromFilter(),
+        healthDead:   document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue')? 1 : 0,
+        child:        document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
+        noUnilateral: document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue')? 1 : 0,
+        persons:      getPersonsFromFilter(),
       },
     }
 
@@ -110,7 +110,7 @@ async function loadArticlesUnanswered() {
 
       let html = '';
       for (const article of response.articles) {
-        const crash = getCrashFromID(article.crashid);
+        const crash = getCrashFromId(article.crashid);
         let htmlIcons = getCrashButtonsHTML(crash);
         if (crash.unilateral) htmlIcons += getIconUnilateral();
 
@@ -173,7 +173,7 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
   let groupData = '';
   switch (group) {
     case 'year':   groupData = bechdelResults.year; break;
-    case 'source': groupData = bechdelResults.source; break;
+    case 'source': groupData = bechdelResults.sitename; break;
   }
 
   let htmlStatistics = '';
@@ -315,7 +315,7 @@ async function loadQuestionnaireResults() {
           for (const groupResults of response.bechdelResults) {
             [htmlBar, htmlStats] = getBechdelBarHtml(groupResults, response.questionnaire.questions, group);
 
-            const htmlBarHeader = `<div><span style="font-weight: bold; margin-top: 5px;">${groupResults.source}</span> · ${groupResults.total_articles} articles</div>`;
+            const htmlBarHeader = `<div><span style="font-weight: bold; margin-top: 5px;">${groupResults.sitename}</span> · ${groupResults.total_articles} articles</div>`;
             htmlBars += htmlBarHeader + htmlBar;
             htmlBody += htmlBarHeader + htmlStats;
           }
@@ -701,16 +701,18 @@ async function onClickStatisticsTable() {
   }
 
   const response = await downloadQuestionnaireResults(articleFilter);
+  articles = response.articles;
+  crashes  = response.crashes;
 
   let html = '';
   for (const article of response.articles) {
     let result = bechdelAnswerToText(article.bechdelResult.result);
     html += `
-      <tr id="article${article.id}" onclick="viewCrashInTab(${article.crashid})">
+      <tr id="article${article.id}" onclick="showQuestionsForm(${article.crashid}, ${article.id})">
         <td style="text-align: right;">${article.crashid}</td>
         <td style="text-align: right;">${result} | ${article.bechdelResult.total_questions_passed}</td>
         <td style="text-align: right;">${article.crash_year}</td>
-        <td class="td400">${article.source}</td>
+        <td class="td400">${article.sitename}</td>
       </tr>`;
   }
 

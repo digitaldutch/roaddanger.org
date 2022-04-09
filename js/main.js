@@ -779,7 +779,7 @@ function crashHasActiveQuestionnaires(crash) {
 }
 
 function getCrashListHTML(crashID, isNew=false){
-  const crash         = getCrashFromID(crashID);
+  const crash         = getCrashFromId(crashID);
   const crashArticles = getCrashArticles(crash.id, articles);
   const canEditCrash  = user.moderator || (crash.userid === user.id);
 
@@ -968,7 +968,7 @@ function getMosaicHTML(newCrashes){
 }
 
 function getCrashDetailsHTML(crashId){
-  const crash         = getCrashFromID(crashId);
+  const crash         = getCrashFromId(crashId);
   const crashArticles = getCrashArticles(crash.id, articles);
   const canEditCrash  = user.moderator || (crash.userid === user.id);
 
@@ -1437,7 +1437,7 @@ ${iconHealth} ${iconTransportation} ${buttonsOptions}
 }
 
 function setNewArticleCrashFields(crashID){
-  const crash = getCrashFromID(crashID);
+  const crash = getCrashFromId(crashID);
   const crashDatetime = new Date(crash.date);
 
   // Shallow copy
@@ -1464,7 +1464,7 @@ function setNewArticleCrashFields(crashID){
 
 function openArticleLink(event, articleID) {
   event.stopPropagation();
-  const article = getArticleFromID(articleID);
+  const article = getArticleFromId(articleID);
   window.open(article.url,"article");
 }
 
@@ -1474,7 +1474,7 @@ function toggleAllText(element, event, articleDivId, articleId){
 
   toggleSelectionButton(element);
 
-  const article = getArticleFromID(articleId);
+  const article = getArticleFromId(articleId);
   const textElement = document.getElementById('articleText' + articleDivId);
   if (element.classList.contains('buttonSelected')) {
     textElement.innerHTML = '⌛';
@@ -1486,7 +1486,7 @@ function editArticle(crashID, articleID) {
   showEditCrashForm(crashID);
   setNewArticleCrashFields(crashID);
 
-  const article = getArticleFromID(articleID);
+  const article = getArticleFromId(articleID);
 
   document.getElementById('editHeader').innerText           = translate('Edit_article');
   document.getElementById('buttonSaveArticle').value        = translate('Save');
@@ -1544,8 +1544,8 @@ async function showQuestionsForm(crashId, articleId) {
 
   closeCrashDetails();
 
-  const article = getArticleFromID(articleId);
-  const crash   = getCrashFromID(crashId);
+  const article = getArticleFromId(articleId);
+  const crash   = getCrashFromId(crashId);
 
   const onFillInPage = window.location.href.includes('fill_in');
   const htmlHelpWanted = onFillInPage? '' : '<br>Help our research project by <a href=\'/research/questionnaires/fill_in\' class="button buttonLine">answering questions for other articles</a>';
@@ -1637,7 +1637,7 @@ function setQuestionnaireGUI(questionnaire) {
 }
 
 async function saveAnswer(articleId, questionId, answer) {
-  const article = getArticleFromID(articleId);
+  const article = getArticleFromId(articleId);
 
   for (const questionnaire of article.questionnaires) {
     for (const question of questionnaire.questions) {
@@ -1746,7 +1746,7 @@ async function crashModerateOK(crash) {
   if (response.error) showError(response.error, 10);
   else if (response.ok){
     // Remove moderation div
-    getCrashFromID(crash).awaitingmoderation = false;
+    getCrashFromId(crash).awaitingmoderation = false;
 
     let divModeration = document.getElementById('crashModeration' + crash);
     if (divModeration) divModeration.remove();
@@ -1765,7 +1765,7 @@ async function articleModerateOK(articleID) {
   if (response.error) showError(response.error, 10);
   else if (response.ok){
     // Remove moderation div
-    getArticleFromID(articleID).awaitingmoderation = false;
+    getArticleFromId(articleID).awaitingmoderation = false;
 
     let divModeration = document.getElementById('articleModeration' + articleID);
     if (divModeration) divModeration.remove();
@@ -2029,7 +2029,7 @@ function showCrashMenu(event, crashDivID) {
   if (! menuVisible) div.style.display = 'block';
 }
 
-function getCrashFromID(id){
+function getCrashFromId(id){
   return crashes.find(crash => crash.id === id);
 }
 
@@ -2037,7 +2037,7 @@ function getPersonFromID(id){
   return editCrashPersons.find(person => person.id === id);
 }
 
-function getArticleFromID(id){
+function getArticleFromId(id){
   return articles.find(article => article.id === id);
 }
 
@@ -2112,7 +2112,7 @@ function reloadCrashes(){
 
 function deleteArticle(id) {
   closeAllPopups();
-  const article = getArticleFromID(id);
+  const article = getArticleFromId(id);
 
   confirmWarning(`Artikel "${article.title.substr(0, 100)}" verwijderen?`,
     function (){deleteArticleDirect(id)},
@@ -2121,7 +2121,7 @@ function deleteArticle(id) {
 
 function deleteCrash(id) {
   closeAllPopups();
-  const crash = getCrashFromID(id);
+  const crash = getCrashFromId(id);
 
   confirmWarning(`Ongeluk "${crash.title.substr(0, 100)}" verwijderen?`,
     function (){deleteCrashDirect(id)},
@@ -2154,7 +2154,7 @@ function crashRowHTML(crash, isSearch=false){
 
 function showMergeCrashForm(id) {
   closeAllPopups();
-  const crash = getCrashFromID(id);
+  const crash = getCrashFromId(id);
 
   document.getElementById('mergeFromCrashIDHidden').value     = crash.id;
   document.getElementById('mergeCrashSearch').value           = '';
@@ -2186,7 +2186,7 @@ function searchMergeCrashDelayed() {
 async function searchMergeCrash() {
   try {
     const crashID    = parseInt(document.getElementById('mergeFromCrashIDHidden').value);
-    const crash      = getCrashFromID(crashID);
+    const crash      = getCrashFromId(crashID);
 
     const dateSearch = document.getElementById('mergeCrashSearchDay').value;
     let dateFrom;
@@ -2247,7 +2247,7 @@ function mergeCrash() {
   const toID   = parseInt(document.getElementById('mergeToCrashIDHidden').value);
   if (! toID) showError(translate('No_merge_crash_selected'));
 
-  const crashFrom = getCrashFromID(parseInt(fromID));
+  const crashFrom = getCrashFromId(parseInt(fromID));
   const crashTo   = crashesFound.find(crash => crash.id === toID);
 
   async function mergeCrashesOnServer(fromID, toID){

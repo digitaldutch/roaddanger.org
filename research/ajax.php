@@ -48,7 +48,7 @@ function passesArticleFilter($article, $articleFilter) {
   if ($articleFilter['group'] === 'year') {
     if ($articleFilter['groupData'] != $article['crash_year']) return false;
   } else if ($articleFilter['group'] === 'source') {
-    if ($articleFilter['groupData'] != $article['source']) return false;
+    if ($articleFilter['groupData'] != $article['sitename']) return false;
   }
 
   return true;
@@ -329,10 +329,14 @@ SQL;
       $sql = <<<SQL
 SELECT
   ar.crashid,
-  a.articleid,
-  ar.sitename AS source,
+  ar.id,
+  ar.title,
+  ar.url,
+  ar.sitename,
+  c.date       AS crash_date,
+  c.unilateral AS crash_unilateral,
+  c.countryid  AS crash_countryid,
   YEAR(c.date) AS crash_year,
-  ar.sitename AS source,
   GROUP_CONCAT(a.questionid ORDER BY qq.question_order) AS question_ids,
   GROUP_CONCAT(a.answer     ORDER BY qq.question_order) AS answers
 FROM answers a
@@ -362,6 +366,7 @@ SQL;
       }
 
       $articles = [];
+      $crashes  = [];
 
       $statement = $database->prepare($sql);
       $statement->execute([':questionnaire_id' => $data['filter']['questionnaireId']]);
@@ -394,7 +399,7 @@ SQL;
           }
 
           case 'source': {
-            $bechdelResultsGroup = &$bechdelResults[$article['source']];
+            $bechdelResultsGroup = &$bechdelResults[$article['sitename']];
 
             if (! isset($bechdelResultsGroup)) $bechdelResultsGroup = getInitBechdelResults($questionnaire['questions']);
 
@@ -436,7 +441,15 @@ SQL;
           if ($articleFilter['getArticles']) {
             $article['bechdelResult'] = $articleBechdel;
 
-            if (passesArticleFilter($article, $articleFilter)) $articles[] = $article;
+            if (passesArticleFilter($article, $articleFilter)) {
+              $articles[] = $article;
+              $crashes[] = [
+                'id'         => $article['crashid'],
+                'date'       => $article['crash_date'],
+                'countryid'  => $article['crash_countryid'],
+                'unilateral' => $article['crash_unilateral'] === 1,
+              ];
+            }
           }
         }
 
@@ -452,7 +465,7 @@ SQL;
       } else if ($group === 'source') {
         $resultsArray = [];
         foreach ($bechdelResults as $source => $bechdelResult) {
-          $bechdelResult['source'] = $source;
+          $bechdelResult['sitename'] = $source;
           $resultsArray[] = $bechdelResult;
         }
         $result['bechdelResults'] = $resultsArray;
@@ -462,6 +475,7 @@ SQL;
     if ($articleFilter['getArticles']) {
       $result = [
         'ok'       => true,
+        'crashes'  => $crashes,
         'articles' => array_slice($articles, $articleFilter['offset'], 1000),
       ];
     } else $result['questionnaire'] = $questionnaire;
@@ -507,7 +521,7 @@ WHERE crashid=:crashid
 ORDER BY health IS NULL, FIELD(health, 3, 2, 0, 1);
 SQL;
 
-    $DbStatementCrashPersons = $database->prepare($sql);
+    $dBStatementCrashPersons = $database->prepare($sql);
 
     $articles = [];
     if (count($questionnaires) > 0) {
@@ -571,8 +585,8 @@ SQL;
 
       // Load crash persons
       $crash['persons'] = [];
-      $DBPersons = $database->fetchAllPrepared($DbStatementCrashPersons, ['crashid' => $crash['id']]);
-      foreach ($DBPersons as $person) {
+      $dBPersons = $database->fetchAllPrepared($dBStatementCrashPersons, ['crashid' => $crash['id']]);
+      foreach ($dBPersons as $person) {
         $person['groupid']            = isset($person['groupid'])? (int)$person['groupid'] : null;
         $person['transportationmode'] = (int)$person['transportationmode'];
         $person['health']             = isset($person['health'])? (int)$person['health'] : null;
