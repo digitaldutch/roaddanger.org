@@ -27,8 +27,9 @@ class Database {
     // ssh -L 3306:localhost:3306 loginname@databaseserver.com
     try {
       $options = [
-        PDO::ATTR_EMULATE_PREPARES   => false,              // Forces native MySQL prepares. Required to return native fields (integer & float instead of strings) See: https://stackoverflow.com/questions/10113562/pdo-mysql-use-pdoattr-emulate-prepares-or-not
+        PDO::ATTR_EMULATE_PREPARES   => false,              // Forces native MySQL prepares. Required before PHP 8.1 to return native fields (integer & float instead of strings) See: https://stackoverflow.com/questions/10113562/pdo-mysql-use-pdoattr-emulate-prepares-or-not
         PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'", // Unicode support
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
       ];
 
       $this->pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD, $options);

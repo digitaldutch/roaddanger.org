@@ -2,10 +2,6 @@
 
 header('Content-Type: application/json; charset=utf-8');
 
-ini_set('display_errors', 0);
-//ini_set('display_errors', 1);
-//error_reporting(E_ALL);
-
 require_once '../initialize.php';
 require_once '../utils.php';
 
@@ -172,7 +168,7 @@ else if ($function === 'savequestionnaire') {
         ':title'      => $questionnaire->title,
         ':type'       => $questionnaire->type,
         ':country_id' => $questionnaire->countryId,
-        ':active'     => $questionnaire->active,
+        ':active'     => intval($questionnaire->active),
       ];
       $dbResult = $database->execute($sql, $params);
       $questionnaire->id = (int)$database->lastInsertID();
@@ -184,7 +180,7 @@ else if ($function === 'savequestionnaire') {
         ':title'      => $questionnaire->title,
         ':type'       => $questionnaire->type,
         ':country_id' => $questionnaire->countryId,
-        ':active'     => $questionnaire->active,
+        ':active'     => intval($questionnaire->active),
       ];
       $dbResult = $database->execute($sql, $params);
     }

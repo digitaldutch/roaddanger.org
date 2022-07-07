@@ -1,10 +1,8 @@
 <?php
 
-// Debug mode
+// Uncomment for debug mode
 //ini_set('display_errors', 1);
 //error_reporting(E_ALL);
-
-// Release mode: Suppress messages
 error_reporting(0);
 
 // Prevents javascript XSS attacks aimed to steal the session ID

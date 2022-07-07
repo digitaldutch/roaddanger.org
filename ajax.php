@@ -792,6 +792,7 @@ else if ($function === 'getPageMetaData'){
     }
 
     $metaData     = getPageMediaMetaData($url);
+
     $ldJsonTags   = $metaData['json-ld'];
     $ogTags       = $metaData['og'];
     $twitterTags  = $metaData['twitter'];
@@ -905,10 +906,10 @@ SQL;
           ':longitude'             => empty($crash['longitude'])? null : $crash['longitude'],
           ':latitude2'             => empty($crash['latitude'])?  null : $crash['latitude'],
           ':longitude2'            => empty($crash['longitude'])? null : $crash['longitude'],
-          ':unilateral'            => $crash['unilateral'],
-          ':pet'                   => $crash['pet'],
-          ':trafficjam'            => $crash['trafficjam'],
-          ':tree'                  => $crash['tree'],
+          ':unilateral'            => intval($crash['unilateral']),
+          ':pet'                   => intval($crash['pet']),
+          ':trafficjam'            => intval($crash['trafficjam']),
+          ':tree'                  => intval($crash['tree']),
         ];
         if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
@@ -924,7 +925,7 @@ SQL;
 
         $params = [
           ':userid'                => $user->id,
-          ':awaitingmoderation'    => $moderationRequired,
+          ':awaitingmoderation'    => intval($moderationRequired),
           ':title'                 => $crash['title'],
           ':text'                  => $crash['text'],
           ':date'                  => $crash['date'],
@@ -933,12 +934,12 @@ SQL;
           ':longitude'             => $crash['longitude'],
           ':latitude2'             => $crash['latitude'],
           ':longitude2'            => $crash['longitude'],
-          ':unilateral'            => $crash['unilateral'],
-          ':pet'                   => $crash['pet'],
-          ':trafficjam'            => $crash['trafficjam'],
-          ':tree'                  => $crash['tree'],
+          ':unilateral'            => intval($crash['unilateral']),
+          ':pet'                   => intval($crash['pet']),
+          ':trafficjam'            => intval($crash['trafficjam']),
+          ':tree'                  => intval($crash['tree']),
         ];
-        $dbresult = $database->execute($sql, $params);
+        $dbResult = $database->execute($sql, $params);
         $crash['id'] = (int)$database->lastInsertID();
       }
 
@@ -949,18 +950,18 @@ SQL;
 
     $sql         = <<<SQL
 INSERT INTO crashpersons (crashid, groupid, transportationmode, health, child, underinfluence, hitrun) 
-VALUES (:crashId, :groupid, :transportationmode, :health, :child, :underinfluence, :hitrun);
+VALUES (:crashid, :groupid, :transportationmode, :health, :child, :underinfluence, :hitrun);
 SQL;
       $dbStatement = $database->prepare($sql);
       foreach ($crash['persons'] AS $person){
         $params = [
-          ':crashId'            => $crash['id'],
+          ':crashid'            => $crash['id'],
           ':groupid'            => $person['groupid'],
           ':transportationmode' => $person['transportationmode'],
           ':health'             => $person['health'],
-          ':child'              => $person['child'],
-          ':underinfluence'     => $person['underinfluence'],
-          ':hitrun'             => $person['hitrun'],
+          ':child'              => intval($person['child']),
+          ':underinfluence'     => intval($person['underinfluence']),
+          ':hitrun'             => intval($person['hitrun']),
         ];
         $dbStatement->execute($params);
       }
@@ -1015,7 +1016,7 @@ SQL;
         $article['awaitingmoderation'] = $articleIsAwaitingModeration;
         $params = [
           ':userid'             => $article['userid'],
-          ':awaitingmoderation' => $article['awaitingmoderation'],
+          ':awaitingmoderation' => intval($article['awaitingmoderation']),
           ':crashid'            => $article['crashid'],
           ':url'                => $article['url'],
           ':title'              => $article['title'],

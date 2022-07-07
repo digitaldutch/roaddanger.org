@@ -868,7 +868,7 @@ ${translate('Approval_required')}
   const htmlPersons = getCrashButtonsHTML(crash, false, true);
 
   let htmlQuestionnaireHelp = '';
-  if (user.moderator && (! crash.unilateral) && crashHasActiveQuestionnaires(crash)) {
+  if (user.moderator && (crashArticles.length > 0) && (! crash.unilateral) && crashHasActiveQuestionnaires(crash)) {
     htmlQuestionnaireHelp = `
 <div class="notice smallFont" style="display: flex; justify-content: space-between; align-items: center; margin: 0 5px 5px 0;" onclick="showQuestionsForm(${crashID}, ${crashArticles[0].id});">
 <div>We are doing a research project and would be grateful if you answered a few questions about media articles.</div> 
@@ -1871,7 +1871,7 @@ async function saveArticleCrash(){
       date:     document.getElementById('editArticleDate').value,
       alltext:  document.getElementById('editArticleAllText').value.trim(),
     };
-    if (articleEdited.id)  articleEdited.id  = parseInt(articleEdited.id);
+    if (articleEdited.id)  articleEdited.id = parseInt(articleEdited.id);
 
     const domain = domainBlacklisted(articleEdited.url);
     if (domain) {
