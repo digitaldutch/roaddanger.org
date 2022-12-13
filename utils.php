@@ -97,12 +97,14 @@ function curlDownload($url){
 
   // Note: Using own user-agent gets us blocked on several websites apparently using white listing.
   //  "User-Agent:roaddanger.org | Scientific research on crashes",
-
   // Note: We no longer fake Googlebot-News headers as most media websites now allow default user-agent.
   // Some websites block the server ip if we fake the user agent.
-  // "User-Agent:Googlebot-News this is not | roaddanger.org scientific research on crashes",
+  // Note: Some website do not work if no agent is set.
+  // Chrome 108 agent: "User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
+
   $headers = [
     "Accept-Encoding:gzip,deflate",
+    "User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
   ];
 
   $curl = curl_init();
