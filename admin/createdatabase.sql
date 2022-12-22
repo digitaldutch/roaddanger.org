@@ -8,8 +8,7 @@ create table countries
   defaultlanguageid char(2)     null,
   constraint countries_id_uindex
     unique (id)
-)
-  engine = InnoDB;
+);
 
 create table languages
 (
@@ -19,8 +18,7 @@ create table languages
   translations mediumtext  null,
   constraint languages_id_uindex
     unique (id)
-)
-  engine = InnoDB;
+);
 
 create table logins
 (
@@ -29,24 +27,20 @@ create table logins
   userid    int                      null,
   tokenhash varchar(60) charset utf8 null,
   lastlogin timestamp                null
-)
-  engine = InnoDB
-  auto_increment = 9098;
+);
 
 create table logs
 (
   id        int auto_increment
     primary key,
-  userid    int                                 null,
-  timestamp timestamp default CURRENT_TIMESTAMP null,
-  level     tinyint                             null,
-  ip        varchar(45)                         null,
-  info      varchar(255)                        not null,
+  userid    int                                   null,
+  timestamp timestamp default current_timestamp() null,
+  level     tinyint                               null,
+  ip        varchar(45)                           null,
+  info      varchar(255)                          not null,
   constraint logs_id_uindex
     unique (id)
-)
-  engine = InnoDB
-  auto_increment = 324;
+);
 
 create table longtexts
 (
@@ -54,8 +48,7 @@ create table longtexts
   language_id char(2) default 'en' not null,
   content     text                 null,
   primary key (id, language_id)
-)
-  engine = InnoDB;
+);
 
 create table questionnaires
 (
@@ -66,9 +59,7 @@ create table questionnaires
 1: Bechdel test',
   country_id char(2)            null,
   title      varchar(100)       null
-)
-  engine = InnoDB
-  auto_increment = 6;
+);
 
 create table questions
 (
@@ -78,9 +69,7 @@ create table questions
   active         tinyint(1) default 0 null,
   question_order smallint             null,
   explanation    varchar(200)         null
-)
-  engine = InnoDB
-  auto_increment = 17;
+);
 
 create table questionnaire_questions
 (
@@ -94,24 +83,23 @@ create table questionnaire_questions
   constraint quest_questions_questions_id_fk
     foreign key (question_id) references questions (id)
       on update cascade
-)
-  engine = InnoDB;
+);
 
 create table users
 (
   id                   int auto_increment
     primary key,
-  email                varchar(254) charset utf8           not null,
-  firstname            varchar(100)                        null,
-  lastname             varchar(100)                        null,
-  language             char(2)                             null,
-  countryid            char(2)                             null,
-  registrationtime     timestamp default CURRENT_TIMESTAMP not null,
-  passwordhash         varchar(60)                         null,
-  passwordrecoveryid   varchar(16)                         null,
-  passwordrecoverytime timestamp                           null,
-  permission           tinyint   default 0                 null,
-  lastactive           timestamp default CURRENT_TIMESTAMP not null,
+  email                varchar(254) charset utf8             not null,
+  firstname            varchar(100)                          null,
+  lastname             varchar(100)                          null,
+  language             char(2)                               null,
+  countryid            char(2)                               null,
+  registrationtime     timestamp default current_timestamp() not null,
+  passwordhash         varchar(60)                           null,
+  passwordrecoveryid   varchar(16)                           null,
+  passwordrecoverytime timestamp                             null,
+  permission           tinyint   default 0                   null,
+  lastactive           timestamp default current_timestamp() not null,
   constraint users_email_uindex
     unique (email),
   constraint users_id_uindex
@@ -123,33 +111,32 @@ create table users
     foreign key (countryid) references countries (id)
       on update cascade on delete set null
 )
-  comment 'permission: 0=helper; 1=admin; 2=moderator' engine = InnoDB
-                                                       auto_increment = 328;
+  comment 'permission: 0=helper; 1=admin; 2=moderator';
 
 create table crashes
 (
   id                 int auto_increment
     primary key,
-  userid             int                                  null,
-  awaitingmoderation tinyint(1) default 1                 null,
-  createtime         timestamp  default CURRENT_TIMESTAMP not null,
-  updatetime         timestamp  default CURRENT_TIMESTAMP not null,
-  date               date                                 null,
-  streamtopuserid    int                                  null,
-  streamtoptype      smallint                             null,
-  title              varchar(500)                         not null,
-  text               varchar(500)                         null,
-  countryid          char(2)                              null,
-  location           point                                null,
-  latitude           decimal(9, 6)                        null,
-  longitude          decimal(9, 6)                        null,
-  tree               tinyint(1) default 0                 null,
-  trafficjam         tinyint(1) default 0                 null,
-  unilateral         tinyint(1)                           null,
-  hitrun             tinyint(1) default 0                 null,
-  website            varchar(1000) charset utf8           null,
-  pet                tinyint(1) default 0                 null,
-  streamdatetime     timestamp  default CURRENT_TIMESTAMP not null,
+  userid             int                                    null,
+  awaitingmoderation tinyint(1) default 1                   null,
+  createtime         timestamp  default current_timestamp() not null,
+  updatetime         timestamp  default current_timestamp() not null,
+  date               date                                   null,
+  streamtopuserid    int                                    null,
+  streamtoptype      smallint                               null,
+  title              varchar(500)                           not null,
+  text               varchar(500)                           null,
+  countryid          char(2)                                null,
+  location           point                                  null,
+  latitude           decimal(9, 6)                          null,
+  longitude          decimal(9, 6)                          null,
+  tree               tinyint(1) default 0                   null,
+  trafficjam         tinyint(1) default 0                   null,
+  unilateral         tinyint(1)                             null,
+  hitrun             tinyint(1) default 0                   null,
+  website            varchar(1000) charset utf8             null,
+  pet                tinyint(1) default 0                   null,
+  streamdatetime     timestamp  default current_timestamp() not null,
   constraint posts_id_uindex
     unique (id),
   constraint crashes_countries_id_fk
@@ -159,8 +146,7 @@ create table crashes
     foreign key (userid) references users (id)
       on update cascade on delete cascade
 )
-  comment 'streamtoptype: 1: edited, 2: article added, 3: placed on top' engine = InnoDB
-                                                                         auto_increment = 10771;
+  comment 'streamtoptype: 1: edited, 2: article added, 3: placed on top';
 
 create table articles
 (
@@ -169,8 +155,8 @@ create table articles
   crashid            int                                                       null,
   userid             int                                                       null,
   awaitingmoderation tinyint(1)                  default 1                     null,
-  createtime         timestamp                   default CURRENT_TIMESTAMP     null,
-  streamdatetime     timestamp                   default CURRENT_TIMESTAMP     not null,
+  createtime         timestamp                   default current_timestamp()   null,
+  streamdatetime     timestamp                   default current_timestamp()   not null,
   publishedtime      timestamp                   default '0000-00-00 00:00:00' not null,
   title              varchar(500) charset utf8                                 not null,
   text               varchar(500) charset utf8                                 not null,
@@ -186,9 +172,7 @@ create table articles
   constraint articles___fk_user
     foreign key (userid) references users (id)
       on update cascade on delete cascade
-)
-  engine = InnoDB
-  auto_increment = 12261;
+);
 
 create table answers
 (
@@ -204,8 +188,7 @@ create table answers
   constraint answers_questions_id_fk
     foreign key (questionid) references questions (id)
       on update cascade on delete cascade
-)
-  engine = InnoDB;
+);
 
 create index articles__index_crashid
   on articles (crashid);
@@ -240,9 +223,7 @@ create table crashpersons
     foreign key (crashid) references crashes (id)
       on update cascade on delete cascade
 )
-  comment 'health: unknown: 0, unharmed: 1, injured: 2, dead: 3 | transportationmode: unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15'
-  engine = InnoDB
-  auto_increment = 26278;
+  comment 'health: unknown: 0, unharmed: 1, injured: 2, dead: 3 | transportationmode: unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15';
 
 create index crashpersons___fkcrash
   on crashpersons (crashid);
