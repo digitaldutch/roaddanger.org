@@ -7,17 +7,17 @@ global $database;
 global $user;
 
 $uri = urldecode($_SERVER['REQUEST_URI']);
-if      (strpos($uri, '/last_changed')                    === 0) $pageType = PageType::lastChanged;
-else if (strpos($uri, '/decorrespondent')                 === 0) $pageType = PageType::deCorrespondent;
-else if (strpos($uri, '/map')                             === 0) $pageType = PageType::map;
-else if (strpos($uri, '/moderations')                     === 0) $pageType = PageType::moderations;
-else if (strpos($uri, '/mosaic')                          === 0) $pageType = PageType::mosaic;
-else if (strpos($uri, '/child_deaths')                    === 0) $pageType = PageType::childDeaths;
-else if (strpos($uri, '/statistics/general')              === 0) $pageType = PageType::statisticsGeneral;
-else if (strpos($uri, '/statistics/counterparty')         === 0) $pageType = PageType::statisticsCrashPartners;
-else if (strpos($uri, '/statistics/transportation_modes') === 0) $pageType = PageType::statisticsTransportationModes;
-else if (strpos($uri, '/statistics')                      === 0) $pageType = PageType::statisticsGeneral;
-else if (strpos($uri, '/export')                          === 0) $pageType = PageType::export;
+if      (str_starts_with($uri, '/last_changed'))                    $pageType = PageType::lastChanged;
+else if (str_starts_with($uri, '/decorrespondent'))                 $pageType = PageType::deCorrespondent;
+else if (str_starts_with($uri, '/map'))                             $pageType = PageType::map;
+else if (str_starts_with($uri, '/moderations'))                     $pageType = PageType::moderations;
+else if (str_starts_with($uri, '/mosaic'))                          $pageType = PageType::mosaic;
+else if (str_starts_with($uri, '/child_deaths'))                    $pageType = PageType::childDeaths;
+else if (str_starts_with($uri, '/statistics/general'))              $pageType = PageType::statisticsGeneral;
+else if (str_starts_with($uri, '/statistics/counterparty'))         $pageType = PageType::statisticsCrashPartners;
+else if (str_starts_with($uri, '/statistics/transportation_modes')) $pageType = PageType::statisticsTransportationModes;
+else if (str_starts_with($uri, '/statistics'))                      $pageType = PageType::statisticsGeneral;
+else if (str_starts_with($uri, '/export'))                          $pageType = PageType::export;
 else $pageType = PageType::recent;
 
 $addSearchBar   = false;

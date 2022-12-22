@@ -93,19 +93,31 @@ function parse_url_all($url){
   return $d;
 }
 
-function curlDownload($url){
+function getWebsiteUserAgent($url) {
+  // Some websites only use with certain User agents. Set a custom user agent for websites that do not work with the default one.
+
+  // Chrome 108 agent
+  $agentChrome = "User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36";
+
+  if (str_contains($url, 'www.jn.pt')) return $agentChrome;
+  return null;
+}
+
+function curlDownload($url) {
+
+  $headers = [
+    "Accept-Encoding:gzip,deflate"
+  ];
 
   // Note: Using own user-agent gets us blocked on several websites apparently using white listing.
   //  "User-Agent:roaddanger.org | Scientific research on crashes",
   // Note: We no longer fake Googlebot-News headers as most media websites now allow default user-agent.
   // Some websites block the server ip if we fake the user agent.
   // Note: Some website do not work if no agent is set.
-  // Chrome 108 agent: "User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
-
-  $headers = [
-    "Accept-Encoding:gzip,deflate",
-    "User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
-  ];
+  $userAgent = getWebsiteUserAgent($url);
+  if ($userAgent !== null) {
+    $headers[] = $userAgent;
+  }
 
   $curl = curl_init();
   curl_setopt($curl, CURLOPT_URL, $url);
@@ -161,7 +173,7 @@ function getPageMediaMetaData($url){
   ];
 
   // If mobiele website: Use desktop website instead
-  if (strpos($url, '//m.') !== false){
+  if (str_contains($url, '//m.')){
     $url = str_replace('//m.', '//www.', $url);
     $arrContextOptions['http']['follow_location'] = true;
   }
@@ -319,10 +331,10 @@ function addPersonsWhereSql(&$sqlWhere, &$sqlJoin, $filterPersons) {
     foreach ($filterPersons as $person){
       $tableName          = 'p' . $person;
       $transportationMode = (int)$person;
-      $personDead         = containsText($person, 'd');
-      $personInjured      = containsText($person, 'i');
-      $restricted         = containsText($person, 'r');
-      $unilateral         = containsText($person, 'u');
+      $personDead         = str_contains($person, 'd');
+      $personInjured      = str_contains($person, 'i');
+      $restricted         = str_contains($person, 'r');
+      $unilateral         = str_contains($person, 'u');
       $sqlJoin .= " JOIN crashpersons $tableName ON c.id = $tableName.crashid AND $tableName.transportationmode=$transportationMode ";
       if ($personDead || $personInjured ) {
         $healthValues = [];
@@ -335,11 +347,6 @@ function addPersonsWhereSql(&$sqlWhere, &$sqlJoin, $filterPersons) {
       if ($unilateral) addSQLWhere($sqlWhere, "c.unilateral = 1");
     }
   }
-}
-
-function containsText($haystack, $needle){
-  // https://stackoverflow.com/a/4366748/63849
-  return strpos($haystack, $needle) !== false;
 }
 
 function formatMessage($text){

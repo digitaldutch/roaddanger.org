@@ -200,7 +200,7 @@ class Database {
         $country['flagFile'] = "/images/flags/{$flagId}.svg";
 
         // Country id depends on domain name (e.g. nl.roaddanger.org > id=NL)
-        if (strpos($_SERVER['SERVER_NAME'], $country['domain']) !== false) $this->countryId = $country['id'];
+        if (str_contains($_SERVER['SERVER_NAME'], $country['domain'])) $this->countryId = $country['id'];
 
         $this->countries[] = $country;
       }

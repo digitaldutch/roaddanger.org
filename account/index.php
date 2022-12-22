@@ -3,11 +3,13 @@
 require_once '../initialize.php';
 
 global $VERSION;
+global $database;
+global $user;
 
 $uri = urldecode($_SERVER['REQUEST_URI']);
 
-if      (strpos($uri, '/account/resetpassword') === 0) $pageType = 'resetPassword';
-else if (strpos($uri, '/account')               === 0) $pageType = 'account';
+if      (str_starts_with($uri, '/account/resetpassword')) $pageType = 'resetPassword';
+else if (str_starts_with($uri, '/account'))               $pageType = 'account';
 else $pageType = 'none';
 
 if ($pageType === 'account') {

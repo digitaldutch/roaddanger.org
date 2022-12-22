@@ -7,9 +7,9 @@ global $user;
 global $VERSION;
 
 $uri = urldecode($_SERVER['REQUEST_URI']);
-if      (strpos($uri, '/research/questionnaires/options') === 0) $pageType = PageType::questionnaireOptions;
-else if (strpos($uri, '/research/questionnaires/fill_in') === 0) $pageType = PageType::questionnaireFillIn;
-else if (strpos($uri, '/research/questionnaires') === 0)         $pageType = PageType::questionnaireResults;
+if      (str_starts_with($uri, '/research/questionnaires/options')) $pageType = PageType::questionnaireOptions;
+else if (str_starts_with($uri, '/research/questionnaires/fill_in')) $pageType = PageType::questionnaireFillIn;
+else if (str_starts_with($uri, '/research/questionnaires'))         $pageType = PageType::questionnaireResults;
 else die('Internal error: Unknown page type');
 
 function getFormNewTranslation() {
