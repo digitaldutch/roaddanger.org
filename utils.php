@@ -1,5 +1,9 @@
 <?php
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
 abstract class PageType {
   const lastChanged                        = 0;
   const crash                         = 1;
@@ -268,30 +272,26 @@ function getRandomString($length=16){
   return substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"), 0, $length);
 }
 
-/**
- * @param string $emailTo
- * @param string $subject
- * @param string $body
- * @param array $ccList
- * @return bool
- * @throws Exception
- */
-function sendEmail($emailTo, $subject, $body, $ccList=[]) {
+function sendEmail(string $emailTo, string $subject, string $body, array $ccList=[]): bool {
   $root = realpath($_SERVER["DOCUMENT_ROOT"]);
-  require_once $root . '/scripts/PHPMailerAutoload.php';
+  require_once $root . '/scripts/PHPMailer/PHPMailer.php';
+  require_once $root . '/scripts/PHPMailer/SMTP.php';
+  require_once $root . '/scripts/PHPMailer/Exception.php';
 
   $from     = 'noreply@roaddanger.org';
   $fromName = $_SERVER['SERVER_NAME'];
 
   $mail = new PHPMailer;
+
   $mail->isSendmail();
+
   $mail->CharSet = 'UTF-8';
+  $mail->Subject = $subject;
+  $mail->msgHTML($body);
   $mail->setFrom($from, $fromName);
   $mail->addReplyTo($from);
-  $mail->Subject = $subject;
-
-  $mail->msgHTML($body);
   $mail->addAddress($emailTo);
+
   foreach ($ccList as $cc){
     $mail->addCC($cc);
   }
