@@ -429,7 +429,7 @@ else if ($function == 'sendPasswordResetInstructions') {
 
 <p>We hebben een verzoek ontvangen om het wachtwoord verbonden aan je emailadres ($email) te resetten. Om je wachtwoord te resetten, klik op de onderstaande link:</p>
 
-<p><a href="$server/account/resetpassword?email=$emailEncoded&recoveryid=$recoveryIDEncoded">Wachtwoord resetten</a></p>
+<p><a href="https://$server/account/resetpassword?email=$emailEncoded&recoveryid=$recoveryIDEncoded">Wachtwoord resetten</a></p>
 
 <p>Vriendelijke groeten,<br>
 $domain</p>
