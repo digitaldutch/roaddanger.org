@@ -115,7 +115,7 @@ SQL;
     }
 
     $result = ['ok' => true, 'filename' => $filename];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);

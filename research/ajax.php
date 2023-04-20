@@ -77,7 +77,7 @@ SQL;
     $questions = $database->fetchAll($sql);
 
     $result = ['ok' => true, 'questionnaires' => $questionnaires, 'questions' => $questions];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -108,7 +108,7 @@ else if ($function === 'saveQuestion') {
     }
 
     $result = ['ok' => true, 'id' => $question->id];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -134,7 +134,7 @@ else if ($function === 'deleteQuestion') {
     $dbResult = $database->execute($sql, $params);
 
     $result = ['ok' => true];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -151,7 +151,7 @@ else if ($function === 'saveQuestionsOrder') {
     }
 
     $result = ['ok' => true];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -200,7 +200,7 @@ else if ($function === 'savequestionnaire') {
     }
 
     $result = ['ok' => true, 'id' => $questionnaire->id];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -214,7 +214,7 @@ else if ($function === 'deleteQuestionnaire') {
     $dbResult = $database->execute($sql, $params);
 
     $result = ['ok' => true];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -476,7 +476,7 @@ SQL;
       ];
     } else $result['questionnaire'] = $questionnaire;
 
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 
@@ -601,7 +601,7 @@ SQL;
       'crashes'  => $crashes,
       'articles' => $articles,
     ];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 

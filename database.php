@@ -34,7 +34,7 @@ class Database {
 
       $this->pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD, $options);
 
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
       throw new Exception('Database error: ' . $e->getMessage());
     }
   }
@@ -64,7 +64,7 @@ class Database {
       $statement = $this->pdo->prepare($sql);
       $statement->execute($params);
       return $statement->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
       return false;
     }
   }
@@ -74,7 +74,7 @@ class Database {
       $statement = $this->pdo->prepare($sql);
       $statement->execute($params);
       return $statement->fetchAll(PDO::FETCH_COLUMN);
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
       return false;
     }
   }
@@ -84,7 +84,7 @@ class Database {
       $statement = $this->pdo->prepare($sql);
       $statement->execute($params);
       return $statement->fetchAll(PDO::FETCH_GROUP);
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
       return false;
     }
   }
@@ -94,7 +94,7 @@ class Database {
       $statement = $this->pdo->prepare($sql);
       $statement->execute($params);
       return $statement->fetchObject();
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
       return false;
     }
   }
@@ -104,7 +104,7 @@ class Database {
       $statement = $this->pdo->prepare($sql);
       $statement->execute($params);
       return $statement->fetch(PDO::FETCH_ASSOC);
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
       return false;
     }
   }
@@ -114,7 +114,7 @@ class Database {
       $statement = $this->pdo->prepare($sql);
       $statement->execute($params);
       return $statement->fetchColumn();
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
       return false;
     }
   }
@@ -136,7 +136,7 @@ class Database {
       if ($doRowCount) $this->rowCount = $statement->rowCount();
 
       return $result;
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
       return false;
     }
   }
@@ -144,7 +144,7 @@ class Database {
   public function prepare($sql){
     try {
       return $this->pdo->prepare($sql);
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
       return false;
     }
   }
@@ -157,7 +157,7 @@ class Database {
   public function executePrepared($params, $statement){
     try {
       return $statement->execute($params);
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
       return false;
     }
   }
@@ -171,7 +171,7 @@ class Database {
     try {
       $statement->execute($params);
       return $statement->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
       return false;
     }
   }

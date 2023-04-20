@@ -213,7 +213,7 @@ class User {
       $params = [':passwordrecoveryid' => $passwordRecoveryID, ':email' => $email];
       $this->database->execute($sql, $params);
       return $passwordRecoveryID;
-    } catch (Exception $e){
+    } catch (\Exception $e){
       return false;
     }
   }

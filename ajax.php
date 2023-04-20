@@ -398,7 +398,7 @@ else if ($function == 'register') {
 
     $user->register($data['firstname'], $data['lastname'], $data['email'], $data['password']);
     $result = ['ok' => true];
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $result = ['error' => $e->getMessage()];
   }
 
@@ -437,7 +437,7 @@ HTML;
 
     if (sendEmail($email, $subject, $body, [])) $result['ok'] = true;
     else throw new Exception('Interne server fout: Kan email niet verzenden.');
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -470,7 +470,7 @@ SQL;
     if (($database->execute($sql, $params, true)) && ($database->rowCount ===1)) {
       $result = ['ok' => true];
     } else $result = ['ok' => false, 'error' => 'Wachtwoord link is verlopen of email is onbekend'];
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 
@@ -483,7 +483,7 @@ else if ($function == 'saveAccount') {
     $user->saveAccount($newUser);
 
     $result = ['ok' => true];
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 
@@ -496,7 +496,7 @@ else if ($function == 'setLanguage') {
     $user->saveLanguage($languageId);
 
     $result = ['ok' => true];
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 
@@ -704,7 +704,7 @@ SQL;
 
     $result = ['ok' => true, 'crashes' => $crashes, 'articles' => $articles];
 
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 
@@ -748,7 +748,7 @@ SQL;
     }
 
     $result['ok'] = true;
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 
@@ -768,7 +768,7 @@ else if ($function === 'loadUserData') {
     if ($data->getQuestionnaireCountries === true) {
       $result['extraData']['questionnaireCountries'] = $database->getQuestionnaireCountries();
     }
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 
@@ -835,7 +835,7 @@ else if ($function === 'getPageMetaData'){
       try {
         $dateTime = new DateTime($media['published_time']);
         $media['published_time'] = $dateTime->format(DateTime::ISO8601);
-      } catch (Exception $e) {
+      } catch (\Exception $e) {
         if (strlen($media['published_time']) > 10) {
           $media['published_time'] = substr($media['published_time'], 0, 10);
         }
@@ -847,7 +847,7 @@ else if ($function === 'getPageMetaData'){
     else $urlExists = false;
 
     $result = ['ok' => true, 'media' => $media, 'tagcount' => $tagCount, 'urlExists' => $urlExists];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 
@@ -1046,7 +1046,7 @@ SQL;
       $result['article'] = $DBArticle;
     }
 
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage(), 'errorcode' => $e->getCode()];
   }
 
@@ -1073,7 +1073,7 @@ else if ($function === 'mergeCrashes'){
     $database->execute($sql, $params);
 
     $result = ['ok' => true];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -1091,7 +1091,7 @@ else if ($function === 'deleteArticle'){
       if ($database->rowCount === 0) throw new Exception('Internal error: Cannot delete article.');
     }
     $result = ['ok' => true];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -1109,7 +1109,7 @@ else if ($function === 'deleteCrash'){
       if ($database->rowCount === 0) throw new Exception('Only moderators can delete crashes.');
     }
     $result = ['ok' => true];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -1121,7 +1121,7 @@ else if ($function === 'crashToStreamTop'){
     $crashId = (int)$_REQUEST['id'];
     if ($crashId > 0) setCrashStreamTop($database, $crashId, $user->id, 3);
     $result = ['ok' => true];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -1137,7 +1137,7 @@ else if ($function === 'crashModerateOK'){
       $database->execute($sql, $params);
     }
     $result = ['ok' => true];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -1153,7 +1153,7 @@ else if ($function === 'articleModerateOK'){
       $database->execute($sql, $params);
     }
     $result = ['ok' => true];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -1175,7 +1175,7 @@ else if ($function === 'getArticleText'){
       $text = $database->fetchSingleValue($sql, $params);
     }
     $result = ['ok' => true, 'text' => $text];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -1196,7 +1196,7 @@ else if ($function === 'saveAnswer') {
     $database->execute($sql, $params);
 
     $result = ['ok' => true];
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -1216,7 +1216,7 @@ else if ($function === 'saveExplanation') {
     $database->execute($sql, $params);
 
     $result = ['ok' => true];
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -1274,7 +1274,7 @@ SQL;
     $articleText = $database->fetchSingleValue($sql, $params);
 
     $result = ['ok' => true, 'text' => $articleText, 'questionnaires' => $questionnaires];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -1299,7 +1299,7 @@ SQL;
     $questions = $database->fetchAll($sql, $params);
 
     $result = ['ok' => true, 'questions' => $questions];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -1320,7 +1320,7 @@ else if ($function === 'getStatistics') {
       'statistics' => $stats,
       'user'       => $user->info(),
     ];
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -1337,7 +1337,7 @@ else if ($function === 'loadCountryOptions') {
     $result = ['ok' => true,
       'options' => $options,
     ];
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -1353,7 +1353,7 @@ else if ($function === 'loadCountryDomain') {
     $result = ['ok' => true,
       'domain' => $domain,
     ];
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);

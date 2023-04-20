@@ -43,7 +43,7 @@ SQL;
     }
 
     $result = ['ok' => true, 'users' => $users];
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 
@@ -71,7 +71,7 @@ SQL;
     $database->execute($sql, $params);
 
     $result = ['ok' => true];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage(), 'errorcode' => $e->getCode()];
   }
   echo json_encode($result);
@@ -87,7 +87,7 @@ else if ($function === 'deleteUser') {
       if ($database->rowCount === 0) throw new Exception('Kan mens niet verwijderen.');
     }
     $result = ['ok' => true];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -106,7 +106,7 @@ else if ($function === 'saveNewTranslation') {
     $database->execute($sql, $params);
 
     $result = ['ok' => true];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -126,7 +126,7 @@ else if ($function === 'deleteTranslation') {
     $database->execute($sql, $params);
 
     $result = ['ok' => true];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -153,7 +153,7 @@ SQL;
     $texts = $database->fetchAll($sql, $params);
 
     $result = ['ok' => true, 'texts' => $texts];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);
@@ -184,7 +184,7 @@ SQL;
     $database->execute($sql, $params, true);
 
     $result = ['ok' => true];
-  } catch (Exception $e){
+  } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);

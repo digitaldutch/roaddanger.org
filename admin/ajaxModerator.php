@@ -25,7 +25,7 @@ if ($function === 'loadTranslations') {
     $user->getTranslations();
 
     $result = ['ok' => true, 'translationsEnglish' => $translationsEnglish];
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 
@@ -52,7 +52,7 @@ else if ($function === 'saveTranslations') {
     $result = ['ok' => true];
     $result['user'] = $user->info();
 
-  } catch (Exception $e) {
+  } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
 

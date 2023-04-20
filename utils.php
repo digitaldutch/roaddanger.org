@@ -246,7 +246,7 @@ function getPageMediaMetaData($url){
       $date         = new DateTime($dateText);
       $current_date = new DateTime();
       if ($date < $current_date) $meta['other']['time'] = $date->format('Y-m-d');
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
       // Silent exception
     }
   }

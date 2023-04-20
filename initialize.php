@@ -40,7 +40,7 @@ try {
 
   try {
     $database->open();
-  } catch (Exception $e){
+  } catch (\Exception $e){
     die('Internal error: Database connection failed');
   }
 
@@ -48,7 +48,7 @@ try {
 
   $user = new User($database);
 
-} catch (Exception $e){
+} catch (\Exception $e){
   die('Internal error: Initialization failed');
 }
 
