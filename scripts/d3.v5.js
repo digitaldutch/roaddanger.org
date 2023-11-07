@@ -5390,8 +5390,8 @@ function contours() {
   // Marching squares with isolines stitched into rings.
   // Based on https://github.com/topojson/topojson-client/blob/v3.0.0/src/stitch.js
   function isorings(values, value, callback) {
-    var fragmentByStart = new Array,
-        fragmentByEnd = new Array,
+    var fragmentByStart = [],
+        fragmentByEnd = [],
         x, y, t0, t1, t2, t3;
 
     // Special case for the first row (y = -1, t2 = t3 = 0).

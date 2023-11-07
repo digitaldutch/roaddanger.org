@@ -1,6 +1,6 @@
 # roaddanger.org
 
-A database for news reports about traffic crashes around the world.
+A website and database for news reports about traffic crashes around the world.
 
 Website: [roaddanger.org](https://www.roaddanger.org)
 
