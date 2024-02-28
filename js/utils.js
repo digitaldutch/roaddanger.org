@@ -638,7 +638,7 @@ function bechdelAnswerToText(answer) {
 }
 
 function initPage(){
-  document.onclick = closeAllPopups;
+  document.addEventListener('click', closeAllPopups);
   initMenuSwipe();
 
   tippy.setDefaultProps({

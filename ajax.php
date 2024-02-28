@@ -25,6 +25,12 @@ function addPeriodWhereSql(&$sqlWhere, &$params, $filter){
     case '30days':
       addSQLWhere($sqlWhere, ' DATE(c.date) > SUBDATE(CURDATE(), 30) ');
       break;
+    case '2024':
+      addSQLWhere($sqlWhere, ' YEAR(c.date) = 2024 ');
+      break;
+    case '2023':
+      addSQLWhere($sqlWhere, ' YEAR(c.date) = 2023 ');
+      break;
     case '2022':
       addSQLWhere($sqlWhere, ' YEAR(c.date) = 2022 ');
       break;

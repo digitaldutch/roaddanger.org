@@ -5,24 +5,25 @@ use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
 abstract class PageType {
-  const lastChanged                        = 0;
-  const crash                         = 1;
-  const moderations                   = 2;
+  const lastChanged = 0;
+  const crash = 1;
+  const moderations = 2;
   const statisticsTransportationModes = 3;
-  const statisticsGeneral             = 4;
-  const statisticsCrashPartners       = 5;
-  const recent                        = 6;
-  const deCorrespondent               = 7;
-  const mosaic                        = 8;
-  const export                        = 9;
-  const map                           = 10;
-  const childDeaths                   = 11;
-  const translations                  = 12;
-  const longTexts                     = 13;
-  const humans                        = 14;
-  const questionnaireOptions          = 15;
-  const questionnaireResults          = 16;
-  const questionnaireFillIn           = 17;
+  const statisticsGeneral = 4;
+  const statisticsHumanizationTest = 18;
+  const statisticsCrashPartners = 5;
+  const recent = 6;
+  const deCorrespondent = 7;
+  const mosaic = 8;
+  const export = 9;
+  const map = 10;
+  const childDeaths = 11;
+  const translations = 12;
+  const longTexts = 13;
+  const humans = 14;
+  const questionnaireOptions = 15;
+  const questionnaireResults = 16;
+  const questionnaireFillIn = 17;
 }
 
 abstract class QuestionnaireType {

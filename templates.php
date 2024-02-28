@@ -36,7 +36,7 @@ HTML;
     $countryOptions .= "<div $class onclick=\"selectCountry('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url({$country['flagFile']});'></div>{$country['name']}</div>";
   }
 
-  $languages       = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
+  $languages = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
   $languageOptions = '';
   foreach ($languages as $language) {
     $class = $language['id'] === $user->languageId? "class='menuSelected'" : '';
@@ -210,7 +210,8 @@ function getNavigation(){
   $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
     'Child_deaths', 'Mosaic', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
     'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
-    'Version', 'Questionnaires', 'fill_in', 'settings', 'results', 'Reporting_experiences', 'Research']);
+    'Version', 'Questionnaires', 'fill_in', 'settings', 'results', 'Reporting_experiences', 'Research',
+    'Graphs_and_statistics', 'Media_humanization_test']);
 
   $websiteTitle = WEBSITE_TITLE;
 
@@ -233,7 +234,8 @@ function getNavigation(){
     </div>
 
     <div class="navigationSection">
-      <div class="navigationSectionHeader">{$texts['Statistics']}</div>
+      <div class="navigationSectionHeader">{$texts['Graphs_and_statistics']}</div>
+      <a href="/statistics/media_humanization" class="navItem">{$texts['Media_humanization_test']}</a>
       <a href="/statistics/counterparty" class="navItem">{$texts['Counterparty_in_crashes']}</a>
       <a href="/statistics/transportation_modes" class="navItem">{$texts['Transportation_modes']}</a>
       <a href="/statistics/general" class="navItem">{$texts['General']}</a>
@@ -666,6 +668,8 @@ function getSearchPeriodHtml($onInputFunctionName = ''){
     <option value="yesterday">{$texts['Yesterday']}</option> 
     <option value="7days">7 {$texts['days']}</option> 
     <option value="30days">30 {$texts['days']}</option> 
+    <option value="2024">2024</option>
+    <option value="2023">2023</option>
     <option value="2022">2022</option>
     <option value="2021">2021</option>
     <option value="2020">2020</option>

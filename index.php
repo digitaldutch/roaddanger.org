@@ -14,6 +14,7 @@ else if (str_starts_with($uri, '/moderations'))                     $pageType = 
 else if (str_starts_with($uri, '/mosaic'))                          $pageType = PageType::mosaic;
 else if (str_starts_with($uri, '/child_deaths'))                    $pageType = PageType::childDeaths;
 else if (str_starts_with($uri, '/statistics/general'))              $pageType = PageType::statisticsGeneral;
+else if (str_starts_with($uri, '/statistics/media_humanization'))   $pageType = PageType::statisticsHumanizationTest;
 else if (str_starts_with($uri, '/statistics/counterparty'))         $pageType = PageType::statisticsCrashPartners;
 else if (str_starts_with($uri, '/statistics/transportation_modes')) $pageType = PageType::statisticsTransportationModes;
 else if (str_starts_with($uri, '/statistics'))                      $pageType = PageType::statisticsGeneral;
@@ -23,7 +24,7 @@ else $pageType = PageType::recent;
 $addSearchBar   = false;
 $showButtonAdd  = false;
 $head = "<script src='/js/main.js?v=$VERSION'></script>";
-if ($pageType === PageType::statisticsCrashPartners){
+if (in_array($pageType, [PageType::statisticsCrashPartners, PageType::statisticsHumanizationTest])) {
   $head .= "<script src='/scripts/d3.v5.js?v=$VERSION'></script><script src='/js/d3CirclePlot.js?v=$VERSION'></script>";
 }
 
@@ -133,6 +134,34 @@ HTML;
   <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
 </div>
 HTML;
+} else if ($pageType === PageType::statisticsHumanizationTest) {
+
+  $texts = translateArray(['Media_humanization_test']);
+
+  $mainHTML = <<<HTML
+<div id="pageMain">
+
+  <div style="width: 100%; max-width: 700px;">
+
+  <div style="display: flex; flex-direction: column; align-items: center">
+    <div style="text-align: left;">
+      <div class="pageSubTitleFont">{$texts['Media_humanization_test']}</div>
+    </div>
+  </div>
+  
+  <div id="pageInfo" style="display: none; margin: 10px 0;">
+</div>
+
+  <div id="statistics">
+  
+    <div id="graphMediaHumanization" style="position: relative;"></div>
+   
+  </div>
+  
+  <div id="spinnerLoad"><img src="/images/spinner.svg" alt="Spinner"></div>
+  </div>
+</div>
+HTML;
 } else if ($pageType === PageType::statisticsCrashPartners) {
 
   $texts = translateArray(['Counterparty_in_crashes', 'Always', 'days', 'the_correspondent_week', 'Custom_period',
@@ -186,7 +215,7 @@ HTML;
    
   </div>
   
-  <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+  <div id="spinnerLoad"><img src="/images/spinner.svg" alt="Spinner"></div>
   </div>
 </div>
 HTML;
