@@ -4,37 +4,37 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-abstract class PageType {
-  const lastChanged = 0;
-  const crash = 1;
-  const moderations = 2;
-  const statisticsTransportationModes = 3;
-  const statisticsGeneral = 4;
-  const statisticsHumanizationTest = 18;
-  const statisticsCrashPartners = 5;
-  const recent = 6;
-  const deCorrespondent = 7;
-  const mosaic = 8;
-  const export = 9;
-  const map = 10;
-  const childDeaths = 11;
-  const translations = 12;
-  const longTexts = 13;
-  const humans = 14;
-  const questionnaireOptions = 15;
-  const questionnaireResults = 16;
-  const questionnaireFillIn = 17;
+enum PageType {
+  case lastChanged;
+  case crash;
+  case moderations;
+  case statisticsTransportationModes;
+  case statisticsGeneral;
+  case statisticsHumanizationTest;
+  case statisticsCrashPartners;
+  case recent;
+  case deCorrespondent;
+  case mosaic;
+  case export;
+  case map;
+  case childDeaths;
+  case translations;
+  case longTexts;
+  case humans;
+  case questionnaireOptions;
+  case questionnaireResults;
+  case questionnaireFillIn;
 }
 
-abstract class QuestionnaireType {
-  const standard = 0;
-  const bechdel  = 1;
+enum QuestionnaireType: int {
+  case standard = 0;
+  case bechdel = 1;
 }
 
-abstract class Answer {
-  const no               = 0;
-  const yes              = 1;
-  const notDeterminable  = 2;
+enum Answer: int {
+  case no = 0;
+  case yes = 1;
+  case notDeterminable = 2;
 }
 
 function translate($key){
@@ -348,19 +348,6 @@ function addPersonsWhereSql(&$sqlWhere, &$sqlJoin, $filterPersons) {
       if ($unilateral) addSQLWhere($sqlWhere, "c.unilateral = 1");
     }
   }
-}
-
-function formatMessage($text){
-  require_once "./scripts/lib_autolink.php";
-
-  $text = htmlspecialchars($text); // Escape all html special characters for protection
-  $text = nl2br($text);            // Replace line endings with html equivalent
-  $text = autolink($text);         // Linkify all links
-
-  // PHPBB link style: [url=https://www.roaddanger.org]Roaddanger[/url]
-  $text = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/', '<a href="$1">$2</a>', $text);
-
-  return $text;
 }
 
 function getHtmlYearOptions($addEmpty=true, $amountYears=50){

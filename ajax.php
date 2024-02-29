@@ -512,19 +512,19 @@ else if ($function === 'loadCrashes') {
   try {
     $data = json_decode(file_get_contents('php://input'), true);
 
-    $offset      = (int)$data['offset']?? 0;
-    $count       = (int)$data['count']?? 20;
-    $crashId     = $data['id']?? null;
+    $offset = isset($data['offset'])? (int)$data['offset'] : 0;
+    $count = isset($data['count'])? (int)$data['count'] : 20;
+    $crashId = $data['id']?? null;
     $moderations = isset($data['moderations'])? (int)$data['moderations'] : 0;
-    $sort        = $data['sort']?? '';
-    $filter      = $data['filter'];
+    $sort = $data['sort']?? '';
+    $filter = $data['filter'];
 
     if ($count > 1000) throw new Exception('Internal error: Count to high.');
     if ($moderations && (! $user->isModerator())) throw new Exception('Moderaties zijn alleen zichtbaar voor moderators.');
 
-    $crashes      = [];
-    $articles     = [];
-    $params       = [];
+    $crashes = [];
+    $articles = [];
+    $params = [];
     $sqlModerated = '';
     if ($moderations) {
       $sqlModerated = ' (c.awaitingmoderation=1) OR (c.id IN (SELECT crashid FROM articles WHERE awaitingmoderation=1)) ';
@@ -634,9 +634,11 @@ SQL;
       if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);
 
       if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
-      if ($joinPersonsTable)  $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
+      if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
 
-      addPersonsWhereSql($SQLWhere, $SQLJoin, $filter['persons']);
+      if (isset($filter['persons'])) {
+        addPersonsWhereSql($SQLWhere, $SQLJoin, $filter['persons']);
+      }
 
       $orderField = ($sort === 'crashDate')? 'c.date DESC, c.streamdatetime DESC' : 'c.streamdatetime DESC';
 
@@ -771,7 +773,7 @@ else if ($function === 'loadUserData') {
       'extraData',
     ];
 
-    if ($data->getQuestionnaireCountries === true) {
+    if (isset($data->getQuestionnaireCountries) && $data->getQuestionnaireCountries === true) {
       $result['extraData']['questionnaireCountries'] = $database->getQuestionnaireCountries();
     }
   } catch (\Exception $e) {

@@ -3,27 +3,26 @@
 require_once 'scripts/Parsedown.php';
 $parsedown = new Parsedown();
 
-abstract class UserPermission {
-  const newuser   = 0;
-  const admin     = 1;
-  const moderator = 2;
+enum UserPermission: int {
+  case newuser = 0;
+  case admin = 1;
+  case moderator = 2;
 }
 
 class User {
-  /* @var Database */
-  private $database;
-  public $id;
-  public $loggedIn = false;
-  public $firstName;
-  public $lastName;
-  public $email;
-  public $emailExists = false;
-  public $languageId = 'en';
-  public $countryId;
-  public $country;
+  private Database $database;
+  public int $id;
+  public bool $loggedIn = false;
+  public string $firstName;
+  public string $lastName;
+  public string $email;
+  public bool $emailExists = false;
+  public string $languageId = 'en';
+  public string $countryId;
+  public array $country;
   public $translations;
-  public $admin = false;
-  public $permission;
+  public bool $admin = false;
+  public UserPermission $permission;
 
   public function __construct($database){
     $this->database = $database;
@@ -50,7 +49,7 @@ class User {
   }
 
   function isModerator(){
-    return ($this->permission === UserPermission::admin) || ($this->permission === UserPermission::moderator);
+    return in_array($this->permission, [UserPermission::admin, UserPermission::moderator]);
   }
 
   private function clearData(){
@@ -88,8 +87,8 @@ class User {
         $this->lastName   = $user['lastname'];
         $this->email      = $user['email'];
         $this->languageId = $user['language']?? $this->languageId;
-        $this->permission = (int)$user['permission'];
-        $this->admin      = $this->permission == 1;
+        $this->permission = UserPermission::from($user['permission']);
+        $this->admin      = $this->permission === UserPermission::admin;
         $this->loggedIn   = true;
       }
     }
@@ -233,9 +232,15 @@ SQL;
 
     $expires = time() + 60 * 60 * 24 * 365 * 1; // 1 year cookie expiration time
 
-    setcookie('user_id',     $this->id, ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
-    setcookie('login_id',    $id,       ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
-    setcookie('login_token', $token,    ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
+    setcookie('login_token', $token, ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
+
+    // httponly: Cookie can only be read in PHP. Not in JavaScript.
+    setcookie('user_id', $this->id, ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'httponly' => true, 'domain' => COOKIE_DOMAIN]);
+    setcookie('login_id', $id, ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'httponly' => true, 'domain' => COOKIE_DOMAIN]);
+
+//    setcookie('user_id',     $this->id, ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
+//    setcookie('login_id',    $id,       ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
+//    setcookie('login_token', $token,    ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
   }
 
   public function login($email, $password, $stayLoggedIn=false){
@@ -387,7 +392,7 @@ SQL;
         'emailexists'  => $this->emailExists,
         'admin'        => $this->admin,
         'moderator'    => $this->isModerator(),
-        'permission'   => $this->permission,
+        'permission'   => $this->permission->value,
       ];
     else $info = [
       'loggedin'     => false,

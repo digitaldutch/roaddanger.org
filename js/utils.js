@@ -12,14 +12,14 @@ const mapboxKey     = 'pk.eyJ1IjoiamFuZGVyayIsImEiOiJjazI4dTVzNW8zOWw4M2NtdnRhMG
 const websiteTitle  = 'Roaddanger.org';
 
 // Enumerated types
-const UserPermission     = Object.freeze({newuser: 0, admin: 1, moderator: 2});
+const UserPermission = Object.freeze({newUser: 0, admin: 1, moderator: 2});
 const TransportationMode = Object.freeze({
   unknown: 0, pedestrian: 1, bicycle: 2, motorScooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,
   bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15, scooter: 16});
-const Health             = Object.freeze({unknown: 0, unharmed: 1, injured: 2, dead: 3});
-const StreamTopType      = Object.freeze({unknown: 0, edited: 1, articleAdded: 2, placedOnTop: 3});
-const QuestionnaireType  = Object.freeze({standard: 0, bechdel: 1});
-const QuestionAnswer     = Object.freeze({no: 0, yes: 1, notDeterminable: 2});
+const Health = Object.freeze({unknown: 0, unharmed: 1, injured: 2, dead: 3});
+const StreamTopType = Object.freeze({unknown: 0, edited: 1, articleAdded: 2, placedOnTop: 3});
+const QuestionnaireType = Object.freeze({standard: 0, bechdel: 1});
+const QuestionAnswer = Object.freeze({no: 0, yes: 1, notDeterminable: 2});
 
 if (!Date.prototype.addDays) {
   Date.prototype.addDays = function(days) {
@@ -339,8 +339,8 @@ function updateLoginGUI(userNew){
 
   document.querySelectorAll('.buttonEditPost').forEach(
     button => {
-      const buttonUserId   = parseInt(button.getAttribute('data-userid'));
-      const canEditArticle = user.loggedin && ((user.permission !== UserPermission.newuser) || (buttonUserId === user.id));
+      const buttonUserId = parseInt(button.getAttribute('data-userid'));
+      const canEditArticle = user.loggedin && ((user.permission !== UserPermission.newUser) || (buttonUserId === user.id));
       button.style.display = canEditArticle? 'inline-block' : 'none';
     }
   );
@@ -642,10 +642,10 @@ function initPage(){
   initMenuSwipe();
 
   tippy.setDefaultProps({
-    arrow:       true,
-    arrowType:   'round',
+    arrow: true,
+    arrowType: 'round',
     interactive: false,
-    duration:    100
+    duration: 100
   });
   tippy('[data-tippy-content]');
 }

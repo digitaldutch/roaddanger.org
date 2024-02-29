@@ -11,12 +11,14 @@ let mapEdit;
 let mapCrash;
 let markerEdit;
 let questionnaireCountries = [];
-let PageType = Object.freeze({
+
+const PageType = Object.freeze({
   stream:                        0,
   crash:                         1,
   moderations:                   2,
   statisticsTransportationModes: 3,
   statisticsGeneral:             4,
+  statisticsMediaHumanization:   12,
   statisticsCrashPartners:       5,
   recent:                        6,
   deCorrespondent:               7,
@@ -29,14 +31,15 @@ let PageType = Object.freeze({
 
 async function initMain() {
   initPage();
+
   const data = await loadUserData({getQuestionnaireCountries: true});
   questionnaireCountries = data.questionnaireCountries;
   initSearchBar();
 
   spinnerLoad = document.getElementById('spinnerLoad');
 
-  const url                 = new URL(location.href);
-  const crashID             = getCrashNumberFromPath(url.pathname);
+  const url                  = new URL(location.href);
+  const crashID           = getCrashNumberFromPath(url.pathname);
   const articleID           = url.searchParams.get('articleid');
   const searchText          = url.searchParams.get('search');
   const searchCountry       = url.searchParams.get('country');
@@ -59,6 +62,7 @@ async function initMain() {
   else if (pathName.startsWith('/statistics/general'))              pageType = PageType.statisticsGeneral;
   else if (pathName.startsWith('/statistics/counterparty'))         pageType = PageType.statisticsCrashPartners;
   else if (pathName.startsWith('/statistics/transportation_modes')) pageType = PageType.statisticsTransportationModes;
+  else if (pathName.startsWith('/statistics/media_humanization'))   pageType = PageType.statisticsMediaHumanization;
   else if (pathName.startsWith('/statistics'))                      pageType = PageType.statisticsGeneral;
   else if (pathName.startsWith('/export'))                          pageType = PageType.export;
   else if (crashID)                                                 pageType = PageType.crash;
@@ -87,9 +91,7 @@ async function initMain() {
 
   initWatchPopStart();
 
-  if ((pageType === PageType.statisticsTransportationModes) ||
-      (pageType === PageType.statisticsGeneral) ||
-      (pageType === PageType.statisticsCrashPartners)) {
+  if ([PageType.statisticsTransportationModes, PageType.statisticsGeneral, PageType.statisticsCrashPartners, PageType.statisticsMediaHumanization].includes(pageType)) {
     initStatistics();
     loadStatistics();
   } else if (pageType === PageType.childDeaths){
@@ -172,6 +174,9 @@ function initExport(){
   document.getElementById('tbodyHealth').innerHTML = html;
 }
 
+function showStatisticsMediaHumanization(data) {
+
+}
 function showCrashVictimsGraph(crashVictims){
 
   function getCrashPartnerVictims(victimMode, partnerMode){
@@ -387,6 +392,7 @@ async function loadStatistics() {
 
     switch (pageType) {
       case PageType.statisticsTransportationModes: {serverData.type = 'transportationModes'; break;}
+      case PageType.statisticsMediaHumanization:   {serverData.type = 'media_humanization'; break;}
       case PageType.statisticsGeneral:             {serverData.type = 'general';             break;}
       case PageType.statisticsCrashPartners:       {serverData.type = 'crashPartners';       break;}
     }
@@ -415,29 +421,31 @@ async function loadStatistics() {
 
       let url = window.location.origin + '/statistics';
       switch (pageType) {
-        case PageType.statisticsGeneral:             {url += '/general';      break;}
-        case PageType.statisticsCrashPartners:       {url += '/counterparty'; break;}
-        case PageType.statisticsTransportationModes: {url += '/transportation_modes';  break;}
+        case PageType.statisticsGeneral: {url += '/general'; break;}
+        case PageType.statisticsCrashPartners: {url += '/counterparty'; break;}
+        case PageType.statisticsTransportationModes: {url += '/transportation_modes'; break;}
+        case PageType.statisticsMediaHumanization: {url += '/media_humanization'; break;}
       }
 
       if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
         url += '?period=' + serverData.filter.period;
-        if (serverData.filter.countryId)     url += '&country=' + serverData.filter.countryId;
-        if (serverData.filter.text)          url += '&search=' + encodeURIComponent(serverData.filter.text);
-        if (serverData.filter.child)         url += '&child=1';
+        if (serverData.filter.countryId) url += '&country=' + serverData.filter.countryId;
+        if (serverData.filter.text) url += '&search=' + encodeURIComponent(serverData.filter.text);
+        if (serverData.filter.child) url += '&child=1';
         if (serverData.filter.healthInjured) url += '&hi=1';
         if (serverData.filter.period === 'custom') {
           if (serverData.filter.dateFrom) url += '&date_from=' + serverData.filter.dateFrom;
-          if (serverData.filter.dateTo)   url += '&date_to='   + serverData.filter.dateTo;
+          if (serverData.filter.dateTo) url += '&date_to=' + serverData.filter.dateTo;
         }
       }
 
       window.history.replaceState(null, null, url);
 
       switch (pageType) {
-        case PageType.statisticsGeneral:             {showStatisticsGeneral(response.statistics);              break;}
-        case PageType.statisticsCrashPartners:       {showCrashVictimsGraph(response.statistics.crashVictims); break;}
-        case PageType.statisticsTransportationModes: {showStatisticsTransportation(response.statistics);       break;}
+        case PageType.statisticsGeneral: {showStatisticsGeneral(response.statistics); break;}
+        case PageType.statisticsCrashPartners: {showCrashVictimsGraph(response.statistics.crashVictims); break;}
+        case PageType.statisticsTransportationModes: {showStatisticsTransportation(response.statistics); break;}
+        case PageType.statisticsMediaHumanization: {showStatisticsTransportation(response.statistics); break;}
       }
     }
   } catch (error) {
@@ -520,7 +528,7 @@ async function loadChildDeaths(){
 }
 
 async function loadCrashesFromServer(serverData){
-  const url      = '/ajax.php?function=loadCrashes';
+  const url = '/ajax.php?function=loadCrashes';
   const response = await fetchFromServer(url, serverData);
 
   if (response.error) {showError(response.error); return [];}
@@ -778,7 +786,7 @@ function crashHasActiveQuestionnaires(crash) {
   return questionnaireCountries.includes('UN') || questionnaireCountries.includes(crash.countryid);
 }
 
-function getCrashListHTML(crashID, isNew=false){
+function getCrashListHTML(crashID){
   const crash         = getCrashFromId(crashID);
   const crashArticles = getCrashArticles(crash.id, articles);
   const canEditCrash  = user.moderator || (crash.userid === user.id);
@@ -1506,7 +1514,7 @@ function editArticle(crashID, articleID) {
   document.getElementById('formEditCrash').style.display    = 'flex';
   document.getElementById('editCrashSection').style.display = 'none';
 
-  const text = getArticleText(articleID).then(
+  getArticleText(articleID).then(
     text => {
       document.getElementById('editArticleAllText').value    = text;
       document.getElementById('editArticleAllText').readonly = false;

@@ -1,10 +1,10 @@
 <?php
 
 
-abstract class LogLevel {
-  const info    = 1;
-  const warning = 2;
-  const error   = 3;
+enum LogLevel: int {
+  case info = 1;
+  case warning = 2;
+  case error = 3;
 }
 
 
@@ -176,19 +176,17 @@ class Database {
     }
   }
 
-  public function log($userId, $level=LogLevel::info, $info=''){
-    $ip     = substr(getCallerIP(), 0, 45);
-    $sql    = 'INSERT INTO logs (userid, level, ip, info) VALUES (:userId, :level, :ip, :info)';
-    $params = [':userId' => $userId, ':level' => $level, ':ip' => $ip, ':info' => substr($info, 0, 500)];
+  public function log(?int $userId, LogLevel $level=LogLevel::info, string $info=''): bool {
+    $ip = substr(getCallerIP(), 0, 45);
+
+    $sql = 'INSERT INTO logs (userid, level, ip, info) VALUES (:userId, :level, :ip, :info)';
+    $params = [
+      ':userId' => $userId,
+      ':level' => $level->value,
+      ':ip' => $ip,
+      ':info' => substr($info, 0, 500),
+      ];
     return $this->execute($sql, $params);
-  }
-
-  public function logError($info=''){
-    $this->log(null,LogLevel::error, $info);
-  }
-
-  public function logText($text=''){
-    $this->log(null,LogLevel::info, $text);
   }
 
   public function loadCountries() {
@@ -217,7 +215,7 @@ class Database {
     return $this->fetchAllValues("SELECT DISTINCT country_id FROM questionnaires WHERE active=1 ORDER BY id;");
   }
 
-  public function getCountry($id) {
+  public function getCountry(string $id) {
     foreach ($this->countries AS $country) {
       if ($country['id'] === $id) return $country;
     }

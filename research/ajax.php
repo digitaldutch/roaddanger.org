@@ -273,7 +273,7 @@ SQL;
     addPersonsWhereSql($SQLWhereAnd, $SQLJoin, $filter['persons']);
 
     // Get questionnaire answers
-    if ($questionnaire['type'] === QuestionnaireType::standard) {
+    if ($questionnaire['type'] === QuestionnaireType::standard->value) {
       $sql = <<<SQL
 SELECT
   a.questionid AS id,
