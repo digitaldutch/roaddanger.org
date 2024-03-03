@@ -25,7 +25,7 @@ $addSearchBar   = false;
 $showButtonAdd  = false;
 $head = "<script src='/js/main.js?v=$VERSION'></script>";
 if (in_array($pageType, [PageType::statisticsCrashPartners, PageType::statisticsHumanizationTest])) {
-  $head .= "<script src='/scripts/d3.v5.js?v=$VERSION'></script><script src='/js/d3CirclePlot.js?v=$VERSION'></script>";
+  $head .= "<script src='/scripts/d3.v7.js?v=$VERSION'></script><script src='/js/d3CirclePlot.js?v=$VERSION'></script>";
 }
 
 // Open streetmap

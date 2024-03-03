@@ -1,7 +1,7 @@
-let crashes          = [];
-let crashesFound     = [];
-let articles         = [];
-let articlesFound    = [];
+let crashes = [];
+let crashesFound = [];
+let articles = [];
+let articlesFound = [];
 let editCrashPersons = [];
 let spinnerLoad;
 let pageType;

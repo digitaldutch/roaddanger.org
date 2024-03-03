@@ -26,9 +26,11 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .attr("preserveAspectRatio", "xMinYMin meet")
     .attr("viewBox", `0 0 ${widthContainer} ${heightContainer}`)
 
-  const victimModes  = d3.map(data, d => d.victimMode).keys();
-  const partnerModes = d3.map(data, d => d.partnerMode).keys();
-  const valueExtent  = d3.extent(data.map(d => d.value));
+  const victimModes  = [];
+  const partnerModes  = [];
+  data.forEach(d => {if (!victimModes.includes(d.victimMode)) victimModes.push(d.victimMode)});
+  data.forEach(d => {if (!partnerModes.includes(d.partnerMode)) partnerModes.push(d.partnerMode)});
+  const valueExtent = d3.extent(data, d => d.value);
 
   const victimTotals  = [];
   const partnerTotals = [];
@@ -167,7 +169,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     tooltip.style('display', 'flex');
 
     d3.select(this)
-      .style('cursor', data => data.value===0? 'default' : 'pointer')
+      .style('cursor', data => data.value === 0? 'default' : 'pointer')
       .select('.data-circle')
       .style('stroke', '#000000')
       .transition()
@@ -181,13 +183,13 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
       .style('font-size', '15px');
   };
 
-  const mousemoveItem = function(data) {
-    const pointMouse  = d3.mouse(this);
-    const svgWidth    = d3.select('#' + divID).node().getBoundingClientRect().width;
+  const mousemoveItem = (event, data) => {
+    const [pointer_x, pointer_y] = d3.pointer(event);
+    const svgWidth = d3.select('#' + divID).node().getBoundingClientRect().width;
     const scaleFactor = svgWidth / widthContainer;
 
-    let xMouse = xScale(data.partnerMode) + pointMouse[0];
-    let yMouse = yScale(data.victimMode) + pointMouse[1];
+    let xMouse = xScale(data.partnerMode) + pointer_x;
+    let yMouse = yScale(data.victimMode) + pointer_y;
     xMouse = xMouse * scaleFactor + 25;
     yMouse = yMouse * scaleFactor - 25;
 
@@ -221,8 +223,6 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
       .style('font-size', '10px');
   };
 
-  const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
   // Data item
   const dataElement = svg.selectAll()
     .data(data)
@@ -251,7 +251,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .append("g")
     .attr("transform", d => `translate(${xScale(d.partnerMode) + xScale.bandwidth()/2}, ${yScale(d.victimMode) + yScale.bandwidth()/2})`)
     .on('mouseover',  mouseoverItem)
-    .on('mousemove',  iOS? null : mousemoveItem)
+    .on('mousemove',  mousemoveItem)
     .on('mouseleave', mouseleaveItem);
 
   // Data circles
