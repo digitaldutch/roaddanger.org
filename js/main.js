@@ -91,10 +91,12 @@ async function initMain() {
 
   initWatchPopStart();
 
-  if ([PageType.statisticsTransportationModes, PageType.statisticsGeneral, PageType.statisticsCrashPartners, PageType.statisticsMediaHumanization].includes(pageType)) {
+  if ([PageType.statisticsTransportationModes, PageType.statisticsGeneral, PageType.statisticsCrashPartners].includes(pageType)) {
     initStatistics();
     loadStatistics();
-  } else if (pageType === PageType.childDeaths){
+  } else if (pageType === PageType.statisticsMediaHumanization) {
+    // showMessage('Coming soon');
+  } else if (pageType === PageType.childDeaths) {
     initObserver(loadChildDeaths);
 
     document.getElementById('filterChildDead').classList.add('buttonSelectedBlue'); // Dead is selected by default

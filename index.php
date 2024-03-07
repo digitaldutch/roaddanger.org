@@ -153,6 +153,8 @@ HTML;
 </div>
 
   <div id="statistics">
+  <div style="text-align: center;margin-top: 20px;">Coming soon...</div>
+  
   
     <div id="graphMediaHumanization" style="position: relative;"></div>
    
