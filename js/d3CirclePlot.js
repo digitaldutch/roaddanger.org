@@ -1,11 +1,14 @@
 
 function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
-  let widthContainer = 700;
-  let heightContainer = 500;
+  let widthContainer = 800;
+  let heightContainer = 600;
+
   let xLabel = '';
   let yLabel = '';
+
   const margin = {top: 60, left: 70, right: 10, bottom: 10};
   const iconWidth = 30;
+  const fontSize = '12px';
 
   if (optionsUser) {
     if (optionsUser.width) widthContainer = optionsUser.width;
@@ -15,7 +18,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   }
 
   // Clear current chart
-  d3.select('#' + divID).selectAll('svg').remove();
+  d3.select('#' + divID).selectAll('*').remove();
 
   // Create new graph
   const svg = d3.select('#' + divID)
@@ -49,7 +52,8 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
 
   const yScale = d3.scaleBand()
     .domain(victimModes.reverse())
-    .range([heightContainer - margin.bottom, margin.top]);
+    .range([heightContainer - margin.bottom, margin.top])
+    .paddingInner(0.3);
 
   const colorScale = d3.scaleLinear()
     .domain(valueExtent)
@@ -58,12 +62,12 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   // Radius scale is a square root scale, because value = area πr2
   const rScale = d3.scaleSqrt()
     .domain(valueExtent)
-    .range([1, 0.7 * yScale.bandwidth()]);
+    .range([1, 0.8 * yScale.bandwidth()]);
 
   // x-axis
   svg.append('g')
     .attr('class', 'x-axis')
-    .style('font-size', 12)
+    .style('font-size', fontSize)
     .attr('transform', `translate(0, ${margin.top - 15})`)
     .call(d3.axisTop(xScale).tickSize(0))
     .select('.domain').remove();
@@ -71,13 +75,13 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   // y-axis
   svg.append('g')
     .attr('class', 'y-axis')
-    .style('font-size', 12)
+    .style('font-size', fontSize)
     .attr('transform', `translate(${margin.left}, 0)`)
     .call(d3.axisLeft(yScale).tickSize(0))
     .select('.domain').remove();
 
   // x-axis
-  // Remove mode texts
+  // Remove mode integer texts. We replace these with icons
   svg.select('.x-axis').selectAll('text').remove();
 
   // x-axis
@@ -86,7 +90,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   // x-axis icons
   x_tick
     .append('image')
-    .attr('xlink:href', d => getModeImage(parseInt(d)))
+    .attr('xlink:href', d => getTransportationModeIcon(parseInt(d)))
     .attr('x', (-iconWidth / 2) + 'px')
     .attr('y', (-iconWidth + 5) + 'px')
     .attr('width', iconWidth)
@@ -95,15 +99,14 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   // x-axis total texts
   x_tick
     .append("text")
-    .attr('class', 'data-text')
     .attr('dx', 0)
     .attr('dy', '13px')
-    .style('font-size', '10px')
+    .style('font-size', fontSize)
     .style('fill', '#000000')
-    .text(d => d3.format('.2~s')(partnerTotals[parseInt(d)]));
+    .text(d => d3.format('.3~s')(partnerTotals[parseInt(d)]));
 
   // y-axis
-  // Remove mode texts
+  // Remove integer mode texts. We replace these with icons
   svg.select('.y-axis').selectAll('text').remove();
 
   const y_tick = svg.selectAll('.y-axis .tick').data(victimModes);
@@ -111,7 +114,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   // y-axis image ticks
   y_tick
     .append('image')
-    .attr('xlink:href', d => getModeImage(parseInt(d)))
+    .attr('xlink:href', d => getTransportationModeIcon(parseInt(d)))
     .attr('x', (-iconWidth / 2 - 35) + 'px')
     .attr('y', (-iconWidth / 2) + 'px')
     .attr('width', iconWidth)
@@ -120,16 +123,14 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   // y-axis total texts
   y_tick
     .append("text")
-    .attr('class', 'data-text')
     .attr('dx', '8px')
     .attr('dy', '3px')
-    .style('font-size', '10px')
+    .style('font-size', fontSize)
     .style('fill', '#000000')
-    .text(d => d3.format('.2~s')(victimTotals[parseInt(d)]));
+    .text(d => d3.format('.3~s')(victimTotals[parseInt(d)]));
 
   if (xLabel) {
     svg.append('text')
-      .attr('class', 'graphTitle')
       .attr('transform', `translate(${widthContainer / 2}, 30)`)
       .attr('dy', '-1em')
       .style('text-anchor', 'middle')
@@ -139,7 +140,6 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   if (yLabel) {
     svg.append('text')
       .attr('transform', 'rotate(-90)')
-      .attr('class', 'graphTitle')
       .attr('x', - heightContainer / 2)
       .attr('y', 0)
       .attr('dy', '1em')
@@ -147,24 +147,31 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
       .text(yLabel);
   }
 
-  // create a tooltip
+  // create the tooltip element
   const tooltip = d3.select('#' + divID)
     .append('div')
-    .attr('class', 'tooltip')
+    .attr('id', 'tooltip' + divID)
     .style('display', 'none')
     .style('position', 'absolute')
     .style('background-color', 'white')
-    .style('font-size', '12px')
+    .style('font-size', fontSize)
     .style('border', 'solid 1px #666')
     .style('border-radius', '5px')
     .style('padding', '2px 5px');
 
-  function getModeImage(value){
-    return value === -1? '/images/unilateral.svg' : '/images/transportation_modes/' + transportationImageFileName(value);
+  function getTransportationModeIcon(transportationModeValue){
+    return transportationModeValue === -1? '/images/unilateral.svg' : '/images/transportation_modes/' + transportationImageFileName(transportationModeValue);
   }
 
   const mouseoverItem = (event, data) => {
-    tooltip.style('display', 'flex');
+    const modeText = data.partnerMode === -1? translate('One-sided_crash') : translate('Counterparty') + ': ' + transportationModeText(data.partnerMode);
+
+    let html = modeText + '<br>';
+    html += `${d3.format('.3~s')(data.value)}&nbsp${transportationModeText(data.victimMode)}&nbsp`;
+    html += data.value === 1? translate('dead_(single)') : translate('dead_(multiple)');
+    if (filter.healthInjured) html += '/' + translate('injured');
+
+    tooltip.html(html).style('display', 'flex');
 
     d3.select(event.currentTarget)
       .style('cursor', data => data.value === 0? 'default' : 'pointer')
@@ -192,14 +199,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     xMouse = xMouse * scaleFactor + 25;
     yMouse = yMouse * scaleFactor - 25;
 
-    const modeText = data.partnerMode === -1? translate('One-sided_crash') : translate('Counterparty') + ': ' + transportationModeText(data.partnerMode);
-
-    let html = modeText + '<br>';
-    html += `${d3.format('.3~s')(data.value)}&nbsp${transportationModeText(data.victimMode)}&nbsp`;
-    html += data.value === 1? translate('dead_(single)') : translate('dead_(multiple)');
-    if (filter.healthInjured) html += '/' + translate('injured');
-
-    tooltip.html(html)
+    tooltip
       .style('left', xMouse + 'px')
       .style('top', yMouse + 'px');
   };
@@ -219,7 +219,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
       .select('.data-text')
       .transition()
       .duration(500)
-      .style('font-size', '11px');
+      .style('font-size', fontSize);
   };
 
   // Data item
@@ -228,8 +228,6 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .enter()
     .append("a")
     .attr("xlink:href", d => {
-
-      let search = filter.text;
       let url = '/?search=';
       if (filter.text) url += encodeURIComponent(filter.text);
       url += '&persons=' + d.victimMode + 'd';
@@ -253,7 +251,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .on('mousemove', mousemoveItem)
     .on('mouseleave', mouseleaveItem);
 
-  // Data circles
+  // Red data circles
   dataElement.append('circle')
     .attr('class', 'data-circle')
     .attr('r', d => d.value > 0? rScale(d.value) : 1)
@@ -261,14 +259,15 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .style('opacity', 0.8);
 
   // Data text
-  dataElement.filter(d => d.value > 0)
+  dataElement
+    .filter(d => d.value > 0)
     .append("text")
     .attr('class', 'data-text')
     .attr('text-anchor', 'middle')
     .attr('alignment-baseline', 'central')
     .attr('dominant-baseline', 'middle')
     // Smaller font if it does not fit the circle
-    .style('font-size', '11px')
+    .style('font-size', fontSize)
     .style('fill', '#000000')
     .text(d => d3.format('.3~s')(d.value));
 

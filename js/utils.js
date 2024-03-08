@@ -739,25 +739,25 @@ function transportationModeText(transportationMode) {
   }
 }
 
-function transportationImageFileName(transportationMode){
-  switch (transportationMode) {
-    case 0:   return 'unknown.svg';
-    case 1:   return 'pedestrian.svg';
-    case 2:   return 'bicycle.svg';
-    case 3:   return 'motor_scooter.svg';
-    case 4:   return 'motorcycle.svg';
-    case 5:   return 'car.svg';
-    case 6:   return 'taxi.svg';
-    case 7:   return 'emergencyvehicle.svg';
-    case 8:   return 'deliveryvan.svg';
-    case 9:   return 'tractor.svg';
-    case 10:  return 'bus.svg';
-    case 11:  return 'tram.svg';
-    case 12:  return 'truck.svg';
-    case 13:  return 'train.svg';
-    case 14:  return 'wheelchair.svg';
-    case 15:  return 'mopedcar.svg';
-    case 16:  return 'scooter.svg';
+function transportationImageFileName(transportationModeValue){
+  switch (transportationModeValue) {
+    case 0:  return 'unknown.svg';
+    case 1:  return 'pedestrian.svg';
+    case 2:  return 'bicycle.svg';
+    case 3:  return 'motor_scooter.svg';
+    case 4:  return 'motorcycle.svg';
+    case 5:  return 'car.svg';
+    case 6:  return 'taxi.svg';
+    case 7:  return 'emergencyvehicle.svg';
+    case 8:  return 'deliveryvan.svg';
+    case 9:  return 'tractor.svg';
+    case 10: return 'bus.svg';
+    case 11: return 'tram.svg';
+    case 12: return 'truck.svg';
+    case 13: return 'train.svg';
+    case 14: return 'wheelchair.svg';
+    case 15: return 'mopedcar.svg';
+    case 16: return 'scooter.svg';
   }
 }
 
