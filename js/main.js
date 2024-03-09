@@ -95,7 +95,7 @@ async function initMain() {
     initStatistics();
     loadStatistics();
   } else if (pageType === PageType.statisticsMediaHumanization) {
-    // showMessage('Coming soon');
+    loadGraphMediaHumanzation();
   } else if (pageType === PageType.childDeaths) {
     initObserver(loadChildDeaths);
 
@@ -457,6 +457,9 @@ async function loadStatistics() {
   }
 }
 
+async function loadGraphMediaHumanzation() {
+  showMessage('Boe');
+}
 
 function clearTable(){
   document.getElementById('dataTableBody').innerHTML = '';
@@ -468,12 +471,12 @@ async function loadChildDeaths(){
 
   let newCrashes = [];
   const serverData = {
-    count:   50,
-    offset:  crashes.length,
-    sort:    'crashDate',
+    count: 50,
+    offset: crashes.length,
+    sort: 'crashDate',
     filter: {
-      child:         1,
-      healthDead:    document.getElementById('filterChildDead').classList.contains('buttonSelectedBlue')? 1 : 0,
+      child: 1,
+      healthDead: document.getElementById('filterChildDead').classList.contains('buttonSelectedBlue')? 1 : 0,
       healthInjured: document.getElementById('filterChildInjured').classList.contains('buttonSelectedBlue')? 1 : 0,
     },
   }
@@ -497,7 +500,7 @@ async function loadChildDeaths(){
         }
 
         let htmlIconsChildren = '';
-        let htmlIconsOther    = '';
+        let htmlIconsOther = '';
         crash.persons.forEach(p => {
           if (p.health === Health.dead) {
             if (p.child === 1) htmlIconsChildren += '<img src="/images/persondead.svg" style="width: 10px;">';

@@ -15,16 +15,16 @@ if (! $user->isModerator()) {
 
 $function = $_REQUEST['function'];
 
-function getBechdelResult($answers) {
+function getBechdelResult(array $answers): array {
 
   $bechdelResult = Answer::yes;
 
   $totalQuestionsPassed = 0;
   foreach ($answers as $answer) {
-    if      ($answer === Answer::no)              {$bechdelResult = Answer::no; break;}
-    else if ($answer === Answer::notDeterminable) {$bechdelResult = Answer::notDeterminable; break;}
-    else if ($answer === null)                    {$bechdelResult = null; break;}
-    else if (($answer === Answer::yes))           {$totalQuestionsPassed += 1;}
+    if ($answer === Answer::no->value) {$bechdelResult = Answer::no; break;}
+    else if ($answer === Answer::notDeterminable->value) {$bechdelResult = Answer::notDeterminable; break;}
+    else if ($answer === null) {$bechdelResult = null; break;}
+    else if (($answer === Answer::yes->value)) {$totalQuestionsPassed += 1;}
   }
 
   return ['result' => $bechdelResult, 'total_questions_passed' => $totalQuestionsPassed];
@@ -322,6 +322,20 @@ ORDER BY qq.question_order
 SQL;
       $questionnaire['questions'] = $database->fetchAll($sql, $params);
 
+      function getInitBechdelResults($questionCount) {
+        $results = [
+          'yes'                    => 0,
+          'no'                     => 0,
+          'not_determinable'       => 0,
+          'total_articles'         => 0,
+          'total_questions_passed' => [],
+        ];
+
+        for ($i=0; $i<=count($questionCount); $i++) {$results['total_questions_passed'][$i] = 0;};
+
+        return $results;
+      }
+
       $sql = <<<SQL
 SELECT
   ar.crashid,
@@ -341,31 +355,21 @@ FROM answers a
   LEFT JOIN questionnaire_questions qq ON qq.question_id = a.questionid
   $SQLJoin
 WHERE a.questionid in (SELECT question_id FROM questionnaire_questions WHERE questionnaire_id=:questionnaire_id)
-  AND c.countryid = (SELECT country_id FROM questionnaires WHERE id=1)
+  AND c.countryid = (SELECT country_id FROM questionnaires WHERE id=:questionnaire_id2)
   $SQLWhereAnd
 GROUP BY a.articleid
 ORDER BY a.articleid;
 SQL;
-
-      function getInitBechdelResults($questionCount) {
-        $results = [
-          'yes'                    => 0,
-          'no'                     => 0,
-          'not_determinable'       => 0,
-          'total_articles'         => 0,
-          'total_questions_passed' => [],
-        ];
-
-        for ($i=0; $i<=count($questionCount); $i++) {$results['total_questions_passed'][$i] = 0;};
-
-        return $results;
-      }
+      $params = [
+        ':questionnaire_id' => $data['filter']['questionnaireId'],
+        ':questionnaire_id2' => $data['filter']['questionnaireId'],
+      ];
 
       $articles = [];
-      $crashes  = [];
+      $crashes = [];
 
       $statement = $database->prepare($sql);
-      $statement->execute([':questionnaire_id' => $data['filter']['questionnaireId']]);
+      $statement->execute($params);
       while ($article = $statement->fetch(PDO::FETCH_ASSOC)) {
 
         // Format and clean up article questions and answers data
