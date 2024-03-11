@@ -268,6 +268,7 @@ HTML;
       <select id="filterResearchGroup" class="searchInput" onchange="selectFilterQuestionnaireResults();">
         <option value="" selected>No groups</option>
         <option value="year">Group by year</option>
+<!--        <option value="month">Group by month</option>-->
         <option value="source">Group by source</option>
       </select>
     </div>

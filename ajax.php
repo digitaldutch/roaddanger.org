@@ -1019,8 +1019,8 @@ SQL;
     VALUES (:userid, :awaitingmoderation, :crashid, :url, :title, :text, :alltext, :publishedtime, :sitename, :urlimage);
 SQL;
         // Article moderation is only required if the crash is not awaiting moderation
-        $article['userid']             = $user->id;
-        $article['crashid']         = $crash['id'];
+        $article['userid'] = $user->id;
+        $article['crashid'] = $crash['id'];
         $article['awaitingmoderation'] = $articleIsAwaitingModeration;
         $params = [
           ':userid'             => $article['userid'],

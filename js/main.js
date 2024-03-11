@@ -458,7 +458,7 @@ async function loadStatistics() {
 }
 
 async function loadGraphMediaHumanzation() {
-  showMessage('Boe');
+  // showMessage('Boe');
 }
 
 function clearTable(){

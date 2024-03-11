@@ -24,9 +24,9 @@ create table logins
 (
   id        int auto_increment
     primary key,
-  userid    int                      null,
-  tokenhash varchar(60) charset utf8 null,
-  lastlogin timestamp                null
+  userid    int         null,
+  tokenhash varchar(60) null,
+  lastlogin timestamp   null
 );
 
 create table logs
@@ -89,7 +89,7 @@ create table users
 (
   id                   int auto_increment
     primary key,
-  email                varchar(254) charset utf8             not null,
+  email                varchar(254)                          not null,
   firstname            varchar(100)                          null,
   lastname             varchar(100)                          null,
   language             char(2)                               null,
@@ -134,7 +134,7 @@ create table crashes
   trafficjam         tinyint(1) default 0                   null,
   unilateral         tinyint(1)                             null,
   hitrun             tinyint(1) default 0                   null,
-  website            varchar(1000) charset utf8             null,
+  website            varchar(1000)                          null,
   pet                tinyint(1) default 0                   null,
   streamdatetime     timestamp  default current_timestamp() not null,
   constraint posts_id_uindex
@@ -152,18 +152,18 @@ create table articles
 (
   id                 int auto_increment
     primary key,
-  crashid            int                                                       null,
-  userid             int                                                       null,
-  awaitingmoderation tinyint(1)                  default 1                     null,
-  createtime         timestamp                   default current_timestamp()   null,
-  streamdatetime     timestamp                   default current_timestamp()   not null,
-  publishedtime      timestamp                   default '0000-00-00 00:00:00' not null,
-  title              varchar(500) charset utf8                                 not null,
-  text               varchar(500) charset utf8                                 not null,
-  alltext            varchar(10000) charset utf8 default ''                    null,
-  url                varchar(1000) charset utf8                                not null,
-  urlimage           varchar(1000) charset utf8                                not null,
-  sitename           varchar(200) charset utf8                                 not null,
+  crashid            int                                          null,
+  userid             int                                          null,
+  awaitingmoderation tinyint(1)     default 1                     null,
+  createtime         timestamp      default current_timestamp()   null,
+  streamdatetime     timestamp      default current_timestamp()   not null,
+  publishedtime      timestamp      default '0000-00-00 00:00:00' not null,
+  title              varchar(500)                                 not null,
+  text               varchar(500)                                 not null,
+  alltext            varchar(10000) default ''                    null,
+  url                varchar(1000)                                not null,
+  urlimage           varchar(1000)                                not null,
+  sitename           varchar(200)                                 not null,
   constraint articles_id_uindex
     unique (id),
   constraint articles___fk_crashes

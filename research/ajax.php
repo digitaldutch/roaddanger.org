@@ -16,7 +16,6 @@ if (! $user->isModerator()) {
 $function = $_REQUEST['function'];
 
 function getBechdelResult(array $answers): array {
-
   $bechdelResult = Answer::yes;
 
   $totalQuestionsPassed = 0;
@@ -27,7 +26,10 @@ function getBechdelResult(array $answers): array {
     else if (($answer === Answer::yes->value)) {$totalQuestionsPassed += 1;}
   }
 
-  return ['result' => $bechdelResult, 'total_questions_passed' => $totalQuestionsPassed];
+  return [
+    'result' => $bechdelResult,
+    'total_questions_passed' => $totalQuestionsPassed,
+  ];
 }
 
 function passesArticleFilter($article, $articleFilter) {
@@ -50,9 +52,269 @@ function passesArticleFilter($article, $articleFilter) {
   return true;
 }
 
+function loadQuestionaireResults(array $data): array {
+  global $database;
+
+  $filter = $data['filter'];
+  $articleFilter = $data['articleFilter'];
+  $group = $data['group']?? '';
+  $bechdelResults = null;
+
+  $result = ['ok' => true];
+
+  // Get questionnaire info
+  $sql = <<<SQL
+SELECT
+  q.title,
+  q.country_id,
+  c.name AS country,
+  q.type
+FROM questionnaires q
+LEFT JOIN countries c ON q.country_id = c.id
+WHERE q.id=:questionnaire_id;
+SQL;
+
+  $params = [':questionnaire_id' => $filter['questionnaireId']];
+  $questionnaire = $database->fetch($sql, $params);
+
+  $result['questionnaire'] = $questionnaire;
+
+  $SQLJoin          = '';
+  $SQLWhereAnd      = ' ';
+  $joinPersonsTable = false;
+
+  addHealthWhereSql($SQLWhereAnd, $joinPersonsTable, $filter);
+
+  if (isset($filter['persons']) && (count($filter['persons'])) > 0) $joinPersonsTable = true;
+
+  if (! empty($filter['year'])){
+    addSQLWhere($SQLWhereAnd, 'YEAR(c.date)=' . intval($filter['year']));
+  }
+
+  if (isset($filter['child']) && ($filter['child'] === 1)){
+    $joinPersonsTable = true;
+    addSQLWhere($SQLWhereAnd, "cp.child=1 ");
+  }
+
+  if (isset($filter['noUnilateral']) && ($filter['noUnilateral'] === 1)){
+    addSQLWhere($SQLWhereAnd, " c.unilateral !=1 ");
+  }
+
+  if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
+
+  addPersonsWhereSql($SQLWhereAnd, $SQLJoin, $filter['persons']);
+
+  // Get questionnaire answers
+  if ($questionnaire['type'] === QuestionnaireType::standard->value) {
+    $sql = <<<SQL
+SELECT
+  a.questionid AS id,
+  q.text,
+  a.answer,
+  count(a.answer) AS aantal
+FROM answers a
+  LEFT JOIN articles ar                ON ar.id = a.articleid
+  LEFT JOIN crashes c                  ON ar.crashid = c.id
+  LEFT JOIN questionnaire_questions qq ON qq.question_id = a.questionid
+  LEFT JOIN questions q                ON a.questionid = q.id
+  $SQLJoin
+WHERE qq.questionnaire_id=:questionnaire_id
+  $SQLWhereAnd
+GROUP BY qq.question_order, answer
+ORDER BY qq.question_order
+SQL;
+
+    $params = [':questionnaire_id' => $data['filter']['questionnaireId']];
+    $dbQuestions = $database->fetchAllGroup($sql, $params);
+
+    $questions = [];
+    foreach ($dbQuestions as $questionId => $dbQuestion) {
+      $questions[] = [
+        'question_id'      => $questionId,
+        'question'         => $dbQuestion[0]['text'],
+        'no'               => $dbQuestion[0]['aantal'] ?? 0,
+        'yes'              => $dbQuestion[1]['aantal'] ?? 0,
+        'not_determinable' => $dbQuestion[2]['aantal'] ?? 0,
+      ];
+    }
+    $result['questions'] = $questions;
+
+  } else {
+    // Bechdel type
+
+    // Get questionnaire questions
+    $sql = <<<SQL
+SELECT
+  q.id,
+  q.text
+FROM questionnaire_questions qq
+LEFT JOIN questions q ON q.id = qq.question_id
+WHERE qq.questionnaire_id=:questionnaire_id
+ORDER BY qq.question_order
+SQL;
+    $questionnaire['questions'] = $database->fetchAll($sql, $params);
+
+    function getInitBechdelResults($questionCount) {
+      $results = [
+        'yes'                    => 0,
+        'no'                     => 0,
+        'not_determinable'       => 0,
+        'total_articles'         => 0,
+        'total_questions_passed' => [],
+      ];
+
+      for ($i=0; $i<=count($questionCount); $i++) {$results['total_questions_passed'][$i] = 0;};
+
+      return $results;
+    }
+
+    $sql = <<<SQL
+SELECT
+  ar.crashid,
+  ar.id,
+  ar.title,
+  ar.url,
+  ar.sitename,
+  c.date                               AS crash_date,
+  c.unilateral                         AS crash_unilateral,
+  c.countryid                          AS crash_countryid,
+  YEAR(c.date)                         AS crash_year,
+  EXTRACT(YEAR_MONTH FROM c.date)      AS crash_year_month,
+  GROUP_CONCAT(a.questionid ORDER BY qq.question_order) AS question_ids,
+  GROUP_CONCAT(a.answer     ORDER BY qq.question_order) AS answers
+FROM answers a
+  LEFT JOIN articles ar                ON ar.id = a.articleid
+  LEFT JOIN crashes c                  ON ar.crashid = c.id
+  LEFT JOIN questionnaire_questions qq ON qq.question_id = a.questionid
+  $SQLJoin
+WHERE a.questionid in (SELECT question_id FROM questionnaire_questions WHERE questionnaire_id=:questionnaire_id)
+  AND c.countryid = (SELECT country_id FROM questionnaires WHERE id=:questionnaire_id2)
+  $SQLWhereAnd
+GROUP BY a.articleid
+ORDER BY a.articleid;
+SQL;
+    $params = [
+      ':questionnaire_id' => $data['filter']['questionnaireId'],
+      ':questionnaire_id2' => $data['filter']['questionnaireId'],
+    ];
+
+    $articles = [];
+    $crashes = [];
+
+    $statement = $database->prepare($sql);
+    $statement->execute($params);
+    while ($article = $statement->fetch(PDO::FETCH_ASSOC)) {
+
+      // Format and clean up article questions and answers data
+      $articleQuestionIds = explode(',', $article['question_ids']);
+      $articleAnswers     = explode(',', $article['answers']);
+
+      $article['questions'] = [];
+      foreach ($questionnaire['questions'] as $question) {
+        $index  = array_search($question['id'], $articleQuestionIds);
+        $answer = $index === false? null : (int)$articleAnswers[$index];
+        $article['questions'][$question['id']] = $answer;
+      }
+
+      unset($article['question_ids']);
+      unset($article['answers']);
+
+      $articleBechdel = getBechdelResult($article['questions']);
+
+      switch ($group) {
+        case 'year': {
+          $bechdelResultsGroup = &$bechdelResults[$article['crash_year']];
+          break;
+        }
+
+        case 'month': {
+          $bechdelResultsGroup = &$bechdelResults[$article['crash_year_month']];
+          break;
+        }
+
+        case 'source': {
+          $bechdelResultsGroup = &$bechdelResults[$article['sitename']];
+          break;
+        }
+
+        default: $bechdelResultsGroup = &$bechdelResults;
+      }
+
+      if (! isset($bechdelResultsGroup)) $bechdelResultsGroup = getInitBechdelResults($questionnaire['questions']);
+
+      if ($articleBechdel['result'] !== null) {
+        switch ($articleBechdel['result']) {
+
+          case Answer::no: {
+            $bechdelResultsGroup['no'] += 1;
+            $bechdelResultsGroup['total_articles'] += 1;
+            $bechdelResultsGroup['total_questions_passed'][$articleBechdel['total_questions_passed']] += 1;
+            break;
+          }
+
+          case Answer::yes: {
+            $bechdelResultsGroup['yes'] += 1;
+            $bechdelResultsGroup['total_articles'] += 1;
+            $bechdelResultsGroup['total_questions_passed'][$articleBechdel['total_questions_passed']] += 1;
+            break;
+          }
+
+          case Answer::notDeterminable: {
+            $bechdelResultsGroup['not_determinable'] += 1;
+            break;
+          }
+
+          default: throw new Exception('Internal error: Unknown Bechdel result');
+        }
+
+        if ($articleFilter['getArticles']) {
+          $article['bechdelResult'] = $articleBechdel;
+
+          if (passesArticleFilter($article, $articleFilter)) {
+            $articles[] = $article;
+            $crashes[] = [
+              'id'         => $article['crashid'],
+              'date'       => $article['crash_date'],
+              'countryid'  => $article['crash_countryid'],
+              'unilateral' => $article['crash_unilateral'] === 1,
+            ];
+          }
+        }
+      }
+
+    }
+
+    if ($group === 'year') {
+      $resultsArray = [];
+      foreach ($bechdelResults as $year => $bechdelResult) {
+        $bechdelResult['year'] = $year;
+        $resultsArray[] = $bechdelResult;
+      }
+      $result['bechdelResults'] = $resultsArray;
+    } else if ($group === 'source') {
+      $resultsArray = [];
+      foreach ($bechdelResults as $source => $bechdelResult) {
+        $bechdelResult['sitename'] = $source;
+        $resultsArray[] = $bechdelResult;
+      }
+      $result['bechdelResults'] = $resultsArray;
+    } else $result['bechdelResults'] = $bechdelResults;
+  }
+
+  if ($articleFilter['getArticles']) {
+    $result = [
+      'ok'       => true,
+      'crashes'  => $crashes,
+      'articles' => array_slice($articles, $articleFilter['offset'], 1000),
+    ];
+  } else $result['questionnaire'] = $questionnaire;
+
+  return $result;
+}
+
+
 if ($function === 'loadQuestionnaires') {
   try{
-
     $sql = <<<SQL
 SELECT 
   id,
@@ -223,263 +485,7 @@ else if ($function === 'loadQuestionnaireResults') {
   try{
     $data = json_decode(file_get_contents('php://input'), true);
 
-    $filter         = $data['filter'];
-    $articleFilter  = $data['articleFilter'];
-    $group          = $data['group']?? '';
-    $bechdelResults = null;
-
-    $result = ['ok' => true];
-
-    // Get questionnaire info
-    $sql = <<<SQL
-SELECT
-  q.title,
-  q.country_id,
-  c.name AS country,
-  q.type
-FROM questionnaires q
-LEFT JOIN countries c ON q.country_id = c.id
-WHERE q.id=:questionnaire_id
-SQL;
-
-    $params = [':questionnaire_id' => $filter['questionnaireId']];
-    $questionnaire = $database->fetch($sql, $params);
-
-    $result['questionnaire'] = $questionnaire;
-
-    $SQLJoin          = '';
-    $SQLWhereAnd      = ' ';
-    $joinPersonsTable = false;
-
-    addHealthWhereSql($SQLWhereAnd, $joinPersonsTable, $filter);
-
-    if (isset($filter['persons']) && (count($filter['persons'])) > 0) $joinPersonsTable = true;
-
-    if (! empty($filter['year'])){
-      addSQLWhere($SQLWhereAnd, 'YEAR(c.date)=' . intval($filter['year']));
-    }
-
-    if (isset($filter['child']) && ($filter['child'] === 1)){
-      $joinPersonsTable = true;
-      addSQLWhere($SQLWhereAnd, "cp.child=1 ");
-    }
-
-    if (isset($filter['noUnilateral']) && ($filter['noUnilateral'] === 1)){
-      addSQLWhere($SQLWhereAnd, " c.unilateral !=1 ");
-    }
-
-    if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
-
-    addPersonsWhereSql($SQLWhereAnd, $SQLJoin, $filter['persons']);
-
-    // Get questionnaire answers
-    if ($questionnaire['type'] === QuestionnaireType::standard->value) {
-      $sql = <<<SQL
-SELECT
-  a.questionid AS id,
-  q.text,
-  a.answer,
-  count(a.answer) AS aantal
-FROM answers a
-  LEFT JOIN articles ar                ON ar.id = a.articleid
-  LEFT JOIN crashes c                  ON ar.crashid = c.id
-  LEFT JOIN questionnaire_questions qq ON qq.question_id = a.questionid
-  LEFT JOIN questions q                ON a.questionid = q.id
-  $SQLJoin
-WHERE qq.questionnaire_id=:questionnaire_id
-  $SQLWhereAnd
-GROUP BY qq.question_order, answer
-ORDER BY qq.question_order
-SQL;
-
-      $params = [':questionnaire_id' => $data['filter']['questionnaireId']];
-      $dbQuestions = $database->fetchAllGroup($sql, $params);
-
-      $questions = [];
-      foreach ($dbQuestions as $questionId => $dbQuestion) {
-        $questions[] = [
-          'question_id'      => $questionId,
-          'question'         => $dbQuestion[0]['text'],
-          'no'               => $dbQuestion[0]['aantal'] ?? 0,
-          'yes'              => $dbQuestion[1]['aantal'] ?? 0,
-          'not_determinable' => $dbQuestion[2]['aantal'] ?? 0,
-        ];
-      }
-      $result['questions'] = $questions;
-
-    } else {
-      // Bechdel type
-
-      // Get questionnaire questions
-      $sql = <<<SQL
-SELECT
-  q.id,
-  q.text
-FROM questionnaire_questions qq
-LEFT JOIN questions q ON q.id = qq.question_id
-WHERE qq.questionnaire_id=:questionnaire_id
-ORDER BY qq.question_order
-SQL;
-      $questionnaire['questions'] = $database->fetchAll($sql, $params);
-
-      function getInitBechdelResults($questionCount) {
-        $results = [
-          'yes'                    => 0,
-          'no'                     => 0,
-          'not_determinable'       => 0,
-          'total_articles'         => 0,
-          'total_questions_passed' => [],
-        ];
-
-        for ($i=0; $i<=count($questionCount); $i++) {$results['total_questions_passed'][$i] = 0;};
-
-        return $results;
-      }
-
-      $sql = <<<SQL
-SELECT
-  ar.crashid,
-  ar.id,
-  ar.title,
-  ar.url,
-  ar.sitename,
-  c.date       AS crash_date,
-  c.unilateral AS crash_unilateral,
-  c.countryid  AS crash_countryid,
-  YEAR(c.date) AS crash_year,
-  GROUP_CONCAT(a.questionid ORDER BY qq.question_order) AS question_ids,
-  GROUP_CONCAT(a.answer     ORDER BY qq.question_order) AS answers
-FROM answers a
-  LEFT JOIN articles ar                ON ar.id = a.articleid
-  LEFT JOIN crashes c                  ON ar.crashid = c.id
-  LEFT JOIN questionnaire_questions qq ON qq.question_id = a.questionid
-  $SQLJoin
-WHERE a.questionid in (SELECT question_id FROM questionnaire_questions WHERE questionnaire_id=:questionnaire_id)
-  AND c.countryid = (SELECT country_id FROM questionnaires WHERE id=:questionnaire_id2)
-  $SQLWhereAnd
-GROUP BY a.articleid
-ORDER BY a.articleid;
-SQL;
-      $params = [
-        ':questionnaire_id' => $data['filter']['questionnaireId'],
-        ':questionnaire_id2' => $data['filter']['questionnaireId'],
-      ];
-
-      $articles = [];
-      $crashes = [];
-
-      $statement = $database->prepare($sql);
-      $statement->execute($params);
-      while ($article = $statement->fetch(PDO::FETCH_ASSOC)) {
-
-        // Format and clean up article questions and answers data
-        $articleQuestionIds = explode(',', $article['question_ids']);
-        $articleAnswers     = explode(',', $article['answers']);
-
-        $article['questions'] = [];
-        foreach ($questionnaire['questions'] as $question) {
-          $index  = array_search($question['id'], $articleQuestionIds);
-          $answer = $index === false? null : (int)$articleAnswers[$index];
-          $article['questions'][$question['id']] = $answer;
-        }
-
-        unset($article['question_ids']);
-        unset($article['answers']);
-
-        $articleBechdel = getBechdelResult($article['questions']);
-
-        switch ($group) {
-
-          case 'year': {
-            $bechdelResultsGroup = &$bechdelResults[$article['crash_year']];
-
-            if (! isset($bechdelResultsGroup)) $bechdelResultsGroup = getInitBechdelResults($questionnaire['questions']);
-
-            break;
-          }
-
-          case 'source': {
-            $bechdelResultsGroup = &$bechdelResults[$article['sitename']];
-
-            if (! isset($bechdelResultsGroup)) $bechdelResultsGroup = getInitBechdelResults($questionnaire['questions']);
-
-            break;
-          }
-
-          default: {
-            $bechdelResultsGroup = &$bechdelResults;
-
-            if (! isset($bechdelResultsGroup)) $bechdelResultsGroup = getInitBechdelResults($questionnaire['questions']);
-          }
-        }
-
-        if ($articleBechdel['result'] !== null) {
-          switch ($articleBechdel['result']) {
-
-            case Answer::no: {
-              $bechdelResultsGroup['no'] += 1;
-              $bechdelResultsGroup['total_articles'] += 1;
-              $bechdelResultsGroup['total_questions_passed'][$articleBechdel['total_questions_passed']] += 1;
-              break;
-            }
-
-            case Answer::yes: {
-              $bechdelResultsGroup['yes'] += 1;
-              $bechdelResultsGroup['total_articles'] += 1;
-              $bechdelResultsGroup['total_questions_passed'][$articleBechdel['total_questions_passed']] += 1;
-              break;
-            }
-
-            case Answer::notDeterminable: {
-              $bechdelResultsGroup['not_determinable'] += 1;
-              break;
-            }
-
-            default: throw new Exception('Internal error: Unknown Bechdel result');
-          }
-
-          if ($articleFilter['getArticles']) {
-            $article['bechdelResult'] = $articleBechdel;
-
-            if (passesArticleFilter($article, $articleFilter)) {
-              $articles[] = $article;
-              $crashes[] = [
-                'id'         => $article['crashid'],
-                'date'       => $article['crash_date'],
-                'countryid'  => $article['crash_countryid'],
-                'unilateral' => $article['crash_unilateral'] === 1,
-              ];
-            }
-          }
-        }
-
-      }
-
-      if ($group === 'year') {
-        $resultsArray = [];
-        foreach ($bechdelResults as $year => $bechdelResult) {
-          $bechdelResult['year'] = $year;
-          $resultsArray[] = $bechdelResult;
-        }
-        $result['bechdelResults'] = $resultsArray;
-      } else if ($group === 'source') {
-        $resultsArray = [];
-        foreach ($bechdelResults as $source => $bechdelResult) {
-          $bechdelResult['sitename'] = $source;
-          $resultsArray[] = $bechdelResult;
-        }
-        $result['bechdelResults'] = $resultsArray;
-      } else $result['bechdelResults'] = $bechdelResults;
-    }
-
-    if ($articleFilter['getArticles']) {
-      $result = [
-        'ok'       => true,
-        'crashes'  => $crashes,
-        'articles' => array_slice($articles, $articleFilter['offset'], 1000),
-      ];
-    } else $result['questionnaire'] = $questionnaire;
-
+    $result = loadQuestionaireResults($data);
   } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }

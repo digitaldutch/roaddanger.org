@@ -27,9 +27,14 @@ class Database {
     // ssh -L 3306:localhost:3306 loginname@databaseserver.com
     try {
       $options = [
-        PDO::ATTR_EMULATE_PREPARES   => false,              // Forces native MySQL prepares. Required before PHP 8.1 to return native fields (integer & float instead of strings) See: https://stackoverflow.com/questions/10113562/pdo-mysql-use-pdoattr-emulate-prepares-or-not
-        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'", // Unicode support
-        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        // Forces native MySQL prepares. Required before PHP 8.1 to return native fields (integer & float instead of strings)
+        // See: https://stackoverflow.com/questions/10113562/pdo-mysql-use-pdoattr-emulate-prepares-or-not
+        PDO::ATTR_EMULATE_PREPARES => false,
+
+        // Unicode support. utf8mb4 also supports emojis, which UTF8 does not.
+        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
       ];
 
       $this->pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD, $options);
@@ -109,71 +114,38 @@ class Database {
     }
   }
 
-  public function fetchSingleValue($sql, $params=null){
-    try {
-      $statement = $this->pdo->prepare($sql);
-      $statement->execute($params);
-      return $statement->fetchColumn();
-    } catch (\Exception $e) {
-      return false;
-    }
+  public function fetchSingleValue(string $sql, array|null $params=null): mixed{
+    $statement = $this->pdo->prepare($sql);
+    $statement->execute($params);
+    return $statement->fetchColumn();
   }
 
-  public function lastInsertID(){
+  public function lastInsertID(): bool|string {
     return $this->pdo->lastInsertId();
   }
 
-  /**
-   * @param $sql
-   * @param null $params
-   * @return bool
-   */
-  public function execute($sql, $params=null, $doRowCount=false){
-    try {
-      $statement = $this->pdo->prepare($sql);
-      $result    = $statement->execute($params);
+  public function execute(string $sql, array|null $params=null, bool $doRowCount=false): bool {
+    $statement = $this->pdo->prepare($sql);
+    $result = $statement->execute($params);
 
-      if ($doRowCount) $this->rowCount = $statement->rowCount();
+    if ($doRowCount) $this->rowCount = $statement->rowCount();
 
-      return $result;
-    } catch (\Exception $e) {
-      return false;
-    }
+    return $result;
   }
 
-  public function prepare($sql){
-    try {
-      return $this->pdo->prepare($sql);
-    } catch (\Exception $e) {
-      return false;
-    }
+  public function prepare($sql): PDOStatement|false {
+    return $this->pdo->prepare($sql);
   }
 
-  /**
-   * @param array $params
-   * @param PDOStatement $statement
-   * @return bool <b>TRUE</b> on success or <b>FALSE</b> on failure.
-   */
-  public function executePrepared($params, $statement){
-    try {
-      return $statement->execute($params);
-    } catch (\Exception $e) {
-      return false;
-    }
+  public function executePrepared(PDOStatement $statement, array|null $params=null, $doRowCount=false): bool {
+    $result = $statement->execute($params);
+    if ($doRowCount) $this->rowCount = $statement->rowCount();
+    return $result;
   }
 
-  /**
-   * @param PDOStatement $statement
-   * @param null $params
-   * @return array | false
-   */
-  public function fetchAllPrepared($statement, $params=null){
-    try {
-      $statement->execute($params);
-      return $statement->fetchAll(PDO::FETCH_ASSOC);
-    } catch (\Exception $e) {
-      return false;
-    }
+  public function fetchAllPrepared(PDOStatement $statement, mixed $params=null): array|false {
+    $statement->execute($params);
+    return $statement->fetchAll(PDO::FETCH_ASSOC);
   }
 
   public function log(?int $userId, LogLevel $level=LogLevel::info, string $info=''): bool {
