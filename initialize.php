@@ -35,7 +35,6 @@ require_once 'users.php';
 require_once 'utils.php';
 
 try {
-
   $database = new Database();
 
   try {
@@ -49,6 +48,6 @@ try {
   $user = new User($database);
 
 } catch (\Exception $e){
-  die('Internal error: Initialization failed');
+  die('Internal error: Initialization failed: ' . $e->getMessage());
 }
 
