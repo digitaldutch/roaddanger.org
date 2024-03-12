@@ -84,7 +84,7 @@ HTML;
   
     <table id="table_questionnaires" class="dataTable" style="min-width: 500px;">
       <thead>
-        <tr><th>Id</th><th>Title</th><th>Type</th><th>Country ID</th><th>Active</th></tr>
+        <tr><th>Id</th><th>Title</th><th>Type</th><th>Country ID</th><th>Active</th><th>Public results</th></tr>
       </thead>
       <tbody id="tableBodyQuestionnaires" onclick="tableDataClick(event, 1);" ondblclick="editQuestionnaire();">    
      </tbody>
@@ -161,6 +161,8 @@ HTML;
     <select id="questionnaireCountryId">$countryOptions</select>    
 
     <label><input id="questionnaireActive" type="checkbox">Active</label>
+    
+    <label><input id="questionnairePublic" type="checkbox">Public results</label>
 
     <div class="formSubHeader">Questions</div> 
     
@@ -258,7 +260,7 @@ HTML;
 
     $mainHTML = <<<HTML
 <div id="pageMain">
-<div id="pageInner">
+<div class="pageInner">
   <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['results']}</div>
   
   <div class="searchBar" style="display: flex;">
@@ -268,7 +270,7 @@ HTML;
       <select id="filterResearchGroup" class="searchInput" onchange="selectFilterQuestionnaireResults();">
         <option value="" selected>No groups</option>
         <option value="year">Group by year</option>
-<!--        <option value="month">Group by month</option>-->
+        <option value="month">Group by month</option>
         <option value="source">Group by source</option>
       </select>
     </div>

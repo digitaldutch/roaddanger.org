@@ -1,4 +1,4 @@
-create table countries
+create table roaddanger.countries
 (
   id                char(2)     not null
     primary key,
@@ -10,7 +10,7 @@ create table countries
     unique (id)
 );
 
-create table languages
+create table roaddanger.languages
 (
   id           char(2)     not null
     primary key,
@@ -20,7 +20,7 @@ create table languages
     unique (id)
 );
 
-create table logins
+create table roaddanger.logins
 (
   id        int auto_increment
     primary key,
@@ -29,7 +29,7 @@ create table logins
   lastlogin timestamp   null
 );
 
-create table logs
+create table roaddanger.logs
 (
   id        int auto_increment
     primary key,
@@ -42,7 +42,7 @@ create table logs
     unique (id)
 );
 
-create table longtexts
+create table roaddanger.longtexts
 (
   id          char(100)            not null,
   language_id char(2) default 'en' not null,
@@ -50,18 +50,19 @@ create table longtexts
   primary key (id, language_id)
 );
 
-create table questionnaires
+create table roaddanger.questionnaires
 (
   id         int auto_increment
     primary key,
-  active     smallint default 0 null,
-  type       smallint default 0 null comment '0: standard
+  active     smallint   default 0 null,
+  type       smallint   default 0 null comment '0: standard
 1: Bechdel test',
-  country_id char(2)            null,
-  title      varchar(100)       null
+  country_id char(2)              null,
+  title      varchar(100)         null,
+  public     tinyint(1) default 0 null
 );
 
-create table questions
+create table roaddanger.questions
 (
   id             int auto_increment
     primary key,
@@ -71,21 +72,21 @@ create table questions
   explanation    varchar(200)         null
 );
 
-create table questionnaire_questions
+create table roaddanger.questionnaire_questions
 (
   questionnaire_id int      not null,
   question_id      int      not null,
   question_order   smallint null,
   primary key (questionnaire_id, question_id),
   constraint quest_questions_questionnaires_id_fk
-    foreign key (questionnaire_id) references questionnaires (id)
+    foreign key (questionnaire_id) references roaddanger.questionnaires (id)
       on update cascade on delete cascade,
   constraint quest_questions_questions_id_fk
-    foreign key (question_id) references questions (id)
+    foreign key (question_id) references roaddanger.questions (id)
       on update cascade
 );
 
-create table users
+create table roaddanger.users
 (
   id                   int auto_increment
     primary key,
@@ -105,15 +106,15 @@ create table users
   constraint users_id_uindex
     unique (id),
   constraint users_FK
-    foreign key (language) references languages (id)
+    foreign key (language) references roaddanger.languages (id)
       on update cascade on delete set null,
   constraint users_FK_country
-    foreign key (countryid) references countries (id)
+    foreign key (countryid) references roaddanger.countries (id)
       on update cascade on delete set null
 )
   comment 'permission: 0=helper; 1=admin; 2=moderator';
 
-create table crashes
+create table roaddanger.crashes
 (
   id                 int auto_increment
     primary key,
@@ -140,15 +141,15 @@ create table crashes
   constraint posts_id_uindex
     unique (id),
   constraint crashes_countries_id_fk
-    foreign key (countryid) references countries (id)
+    foreign key (countryid) references roaddanger.countries (id)
       on update cascade on delete set null,
   constraint posts___fk_user
-    foreign key (userid) references users (id)
+    foreign key (userid) references roaddanger.users (id)
       on update cascade on delete cascade
 )
   comment 'streamtoptype: 1: edited, 2: article added, 3: placed on top';
 
-create table articles
+create table roaddanger.articles
 (
   id                 int auto_increment
     primary key,
@@ -167,14 +168,14 @@ create table articles
   constraint articles_id_uindex
     unique (id),
   constraint articles___fk_crashes
-    foreign key (crashid) references crashes (id)
+    foreign key (crashid) references roaddanger.crashes (id)
       on update cascade on delete cascade,
   constraint articles___fk_user
-    foreign key (userid) references users (id)
+    foreign key (userid) references roaddanger.users (id)
       on update cascade on delete cascade
 );
 
-create table answers
+create table roaddanger.answers
 (
   questionid  int          not null,
   articleid   int          not null,
@@ -183,32 +184,32 @@ create table answers
   constraint answers_pk
     unique (questionid, articleid),
   constraint answers_articles_id_fk
-    foreign key (articleid) references articles (id)
+    foreign key (articleid) references roaddanger.articles (id)
       on update cascade on delete cascade,
   constraint answers_questions_id_fk
-    foreign key (questionid) references questions (id)
+    foreign key (questionid) references roaddanger.questions (id)
       on update cascade on delete cascade
 );
 
 create index articles__index_crashid
-  on articles (crashid);
+  on roaddanger.articles (crashid);
 
 create fulltext index title
-  on articles (title, text);
+  on roaddanger.articles (title, text);
 
 create index crashes__date_streamdate_index
-  on crashes (date, streamdatetime);
+  on roaddanger.crashes (date, streamdatetime);
 
 create index crashes__index_date
-  on crashes (date);
+  on roaddanger.crashes (date);
 
 create index crashes__index_streamdatetime
-  on crashes (streamdatetime);
+  on roaddanger.crashes (streamdatetime);
 
 create fulltext index title
-  on crashes (title, text);
+  on roaddanger.crashes (title, text);
 
-create table crashpersons
+create table roaddanger.crashpersons
 (
   id                 int auto_increment
     primary key,
@@ -220,14 +221,14 @@ create table crashpersons
   hitrun             tinyint(1)         null,
   groupid            int                null,
   constraint crashpersons___fkcrashes
-    foreign key (crashid) references crashes (id)
+    foreign key (crashid) references roaddanger.crashes (id)
       on update cascade on delete cascade
 )
   comment 'health: unknown: 0, unharmed: 1, injured: 2, dead: 3 | transportationmode: unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15';
 
 create index crashpersons___fkcrash
-  on crashpersons (crashid);
+  on roaddanger.crashpersons (crashid);
 
 create index crashpersons___fkgroup
-  on crashpersons (groupid);
+  on roaddanger.crashpersons (groupid);
 

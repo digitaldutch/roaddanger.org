@@ -34,16 +34,12 @@ async function initResearch(){
   }
 
   if (url.pathname.startsWith('/research/questionnaires/options')) {
-
     await loadQuestionnaires();
   } else if (url.pathname.startsWith('/research/questionnaires/fill_in')) {
-
     await loadArticlesUnanswered();
   } else if (url.pathname.startsWith('/research/questionnaires')) {
-
     const idQuestionnaire = url.searchParams.get('id');
     if (idQuestionnaire) document.getElementById('filterQuestionnaire').value = idQuestionnaire;
-
     await loadQuestionnaireResults();
   }
 }
@@ -153,8 +149,8 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
   if (! bechdelResults) return ['', '<div>No results found</div>'];
 
   const stats = {
-    yes:              bechdelResults.yes,
-    no:               bechdelResults.no,
+    yes: bechdelResults.yes,
+    no: bechdelResults.no,
     not_determinable: bechdelResults.not_determinable,
   };
   stats.total = stats.yes + stats.no + stats.not_determinable;
@@ -173,6 +169,7 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
   let groupData = '';
   switch (group) {
     case 'year':   groupData = bechdelResults.year; break;
+    case 'month':  groupData = bechdelResults.yearmonth; break;
     case 'source': groupData = bechdelResults.sitename; break;
   }
 
@@ -183,25 +180,25 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
     item.text = item.passed + '/' + questions.length;
     const score = item.passed / questions.length;
 
-    let color = '';
+    let colorBarSegment = '';
     switch (true) {
-      case score === 1:   color = '#8eff8e'; break;
-      case score >= 0.75: color = '#e8ec49'; break;
-      case score >= 0.50: color = '#ffdaa2'; break;
-      case score >= 0.25: color = '#ffb465'; break;
-      default:            color = '#ffa2a2';
+      case score === 1:   colorBarSegment = '#8eff8e'; break;
+      case score >= 0.75: colorBarSegment = '#e8ec49'; break;
+      case score >= 0.50: colorBarSegment = '#ffdaa2'; break;
+      case score >= 0.25: colorBarSegment = '#ffb465'; break;
+      default:            colorBarSegment = '#ffa2a2';
     }
 
     let htmlPassed = item.amount;
 
     if ((item.amount) && (total > 0)) {
-      htmlBar += getBarSegment(item.amountPercentage, color, item.text + ': ' + Math.round(item.amountPercentage) + '%');
+      htmlBar += getBarSegment(item.amountPercentage, colorBarSegment, item.text + ': ' + Math.round(item.amountPercentage) + '%');
 
       htmlPassed += ' (' + item.amountPercentage.toFixed(2) + ')%';
     }
 
-    htmlStatistics = `<tr data-questions-passed="${item.passed}" data-group="${groupData}"><td>Questions answered with Yes: <span style="border-bottom: 3px solid ${color}; padding: 3px;">${item.text}</span></td>` +
-      `<td style="text-align: center;"><span style="border-bottom: 3px solid ${color}; padding: 3px;">${htmlPassed}</span></td></tr>` + htmlStatistics;
+    htmlStatistics = `<tr data-questions-passed="${item.passed}" data-group="${groupData}"><td>Questions answered with Yes: <span style="border-bottom: 3px solid ${colorBarSegment}; padding: 3px;">${item.text}</span></td>` +
+      `<td style="text-align: center;"><span style="border-bottom: 3px solid ${colorBarSegment}; padding: 3px;">${htmlPassed}</span></td></tr>` + htmlStatistics;
   });
 
   if (stats.total > 0) {
@@ -212,7 +209,7 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
 
   if (! htmlBar) htmlBar = '<table><tr><td>&nbsp;</td></tr></table>';
   htmlBar = '<div class="questionnaireBar" style="white-space: nowrap;">' + htmlBar + '</div>';
-  htmlStatistics += `<tr data-questions-passed="nd"><td>Not determinable</td><td style="text-align: center;">${stats.not_determinable}</td></tr>`;
+  htmlStatistics += `<tr data-questions-passed="nd" data-group="${groupData}"><td>Not determinable</td><td style="text-align: center;">${stats.not_determinable}</td></tr>`;
 
   return [htmlBar, htmlStatistics];
 }
@@ -269,9 +266,9 @@ async function loadQuestionnaireResults() {
         ` | Country: ` + response.questionnaire.country;
 
       let htmlQuestions = '';
-      let htmlHead      = '';
-      let htmlBody      = '';
-      let htmlBars      = '';
+      let htmlHead = '';
+      let htmlBody = '';
+      let htmlBars = '';
 
       if (response.questionnaire.type === QuestionnaireType.standard) {
 
@@ -283,7 +280,7 @@ async function loadQuestionnaireResults() {
       } else if (response.questionnaire.type === QuestionnaireType.bechdel) {
 
         let i=1;
-        for (let question of response.questionnaire.questions) {
+        for (const question of response.questionnaire.questions) {
           htmlQuestions += `<div>${i}) ${question.text}</div>`;
           i += 1;
         }
@@ -303,6 +300,24 @@ async function loadQuestionnaireResults() {
             [htmlBar, htmlStats] = getBechdelBarHtml(groupResults, response.questionnaire.questions, group);
 
             const htmlYearHeader = `<div><span style="font-weight: bold; margin-top: 5px;">${groupResults.year}</span> · ${groupResults.total_articles} articles</div>`;
+            htmlBars += htmlYearHeader + htmlBar;
+            htmlBody += htmlYearHeader + htmlStats;
+          }
+
+        } else if (group === 'month') {
+          if (minArticles) response.bechdelResults = response.bechdelResults.filter(r => r.total_articles >= minArticles);
+
+          response.bechdelResults.sort((a, b) => b.yearmonth - a.yearmonth);
+
+          for (const groupResults of response.bechdelResults) {
+            [htmlBar, htmlStats] = getBechdelBarHtml(groupResults, response.questionnaire.questions, group);
+
+            const groupYear = parseInt(groupResults.yearmonth.substring(0,4));
+            const groupMonth = parseInt(groupResults.yearmonth.substring(4, 6));
+            const tempDate = new Date(groupYear, groupMonth-1, 1);
+            const monthText = tempDate.toLocaleString('default', { month: 'long' });
+
+            const htmlYearHeader = `<div><span style="font-weight: bold; margin-top: 5px;">${groupYear + ' ' +  monthText}</span> · ${groupResults.total_articles} articles</div>`;
             htmlBars += htmlYearHeader + htmlBar;
             htmlBody += htmlYearHeader + htmlStats;
           }
@@ -354,12 +369,15 @@ function getQuestionTableRow(question){
 
 function getQuestionnaireTableRow(questionnaire){
   const activeText = questionnaire.active? '✔' : '';
+  const publicText = questionnaire.public? '✔' : '';
+
   return `<tr id="tr1_${questionnaire.id}">
   <td>${questionnaire.id}</td>
   <td>${questionnaire.title}</td>
   <td>${questionnaireTypeToText(questionnaire.type)}</td>
   <td>${questionnaire.country_id}</td>
   <td style="text-align: center">${activeText}</td>
+  <td style="text-align: center">${publicText}</td>
 </tr>`;
 }
 
@@ -441,6 +459,7 @@ function newQuestionnaire() {
   document.getElementById('questionnaireType').value                = null;
   document.getElementById('questionnaireCountryId').value           = null;
   document.getElementById('questionnaireActive').checked            = false;
+  document.getElementById('questionnairePublic').checked            = false;
   document.getElementById('tbodyQuestionnaireQuestions').innerHTML = '';
 
   document.getElementById('headerQuestionnaire').innerText   = 'New questionnaire';
@@ -453,11 +472,12 @@ return `<tr id="tr2_${question.id}" draggable="true" ondragstart="onDragRowStart
 }
 
 function editQuestionnaire() {
-  document.getElementById('questionnaireId').value            = selectedTableData[1].id;
-  document.getElementById('questionnaireTitle').value         = selectedTableData[1].title;
-  document.getElementById('questionnaireType').value          = selectedTableData[1].type;
-  document.getElementById('questionnaireCountryId').value     = selectedTableData[1].country_id;
-  document.getElementById('questionnaireActive').checked      = selectedTableData[1].active;
+  document.getElementById('questionnaireId').value        = selectedTableData[1].id;
+  document.getElementById('questionnaireTitle').value     = selectedTableData[1].title;
+  document.getElementById('questionnaireType').value      = selectedTableData[1].type;
+  document.getElementById('questionnaireCountryId').value = selectedTableData[1].country_id;
+  document.getElementById('questionnaireActive').checked  = selectedTableData[1].active;
+  document.getElementById('questionnairePublic').checked  = selectedTableData[1].public;
 
   document.getElementById('tbodyQuestionnaireQuestions').innerHTML = '';
   document.getElementById('headerQuestionnaire').innerText         = 'Edit questionnaire';
@@ -542,6 +562,7 @@ async function saveQuestionnaire() {
     type:        parseInt(document.getElementById('questionnaireType').value),
     countryId:   document.getElementById('questionnaireCountryId').value,
     active:      document.getElementById('questionnaireActive').checked,
+    public:      document.getElementById('questionnairePublic').checked,
     questionIds: questionIds,
   };
 
@@ -549,7 +570,7 @@ async function saveQuestionnaire() {
   if (serverData.type === null) {showError('No type selected'); return;}
   if (! serverData.countryId)   {showError('No country selected'); return;}
 
-  const url      = '/research/ajax.php?function=savequestionnaire';
+  const url = '/research/ajax.php?function=savequestionnaire';
   const response = await fetchFromServer(url, serverData);
 
   if (response.error) showError(response.error);
@@ -681,12 +702,10 @@ function selectFilterQuestionnaireFillIn() {
 async function onClickStatisticsTable() {
   const trTarget = event.target.closest('tr');
 
-  const group           = document.getElementById('filterResearchGroup').value;
+  const group = document.getElementById('filterResearchGroup').value;
   const questionsPassed = trTarget.getAttribute('data-questions-passed');
-  const groupData       = trTarget.getAttribute('data-group');
-
+  const groupData = trTarget.getAttribute('data-group');
   const header = trTarget.cells[0].innerText;
-
   const divResult = document.getElementById('resultArticles');
   document.getElementById('headerResultArticles').innerText = 'Articles | ' + header;
   document.getElementById('formResultArticles').style.display = 'flex';
@@ -702,21 +721,23 @@ async function onClickStatisticsTable() {
 
   const response = await downloadQuestionnaireResults(articleFilter);
   articles = response.articles;
-  crashes  = response.crashes;
+  crashes = response.crashes;
 
   let html = '';
   for (const article of response.articles) {
-    let result = bechdelAnswerToText(article.bechdelResult.result);
+    const result = bechdelAnswerToText(article.bechdelResult.result);
+    const publishedtime  = new Date(article.publishedtime);
+
     html += `
       <tr id="article${article.id}" onclick="showQuestionsForm(${article.crashid}, ${article.id})">
-        <td style="text-align: right;">${article.crashid}</td>
-        <td style="text-align: right;">${result} | ${article.bechdelResult.total_questions_passed}</td>
-        <td style="text-align: right;">${article.crash_year}</td>
+        <td>${article.crashid}</td>
+        <td>${article.bechdelResult.total_questions_passed}/${article.bechdelResult.total_questions}: ${result}</td>
+        <td>${publishedtime.pretty()}</td>
         <td class="td400">${article.sitename}</td>
       </tr>`;
   }
 
-  if (html) html = `<table class="dataTable"><tr><th>Id</th><th>Bechdel result</th><th>Year</th><th>Source</th></tr>${html}</table>`;
+  if (html) html = `<table class="dataTable"><tr><th>Article Id</th><th>Bechdel result</th><th>Published</th><th>Source</th></tr>${html}</table>`;
 
   divResult.innerHTML = html;
 }

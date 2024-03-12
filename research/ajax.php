@@ -20,10 +20,10 @@ function getBechdelResult(array $answers): array {
 
   $totalQuestionsPassed = 0;
   foreach ($answers as $answer) {
-    if ($answer === Answer::no->value) {$bechdelResult = Answer::no; break;}
+    if      ($answer === Answer::no->value)              {$bechdelResult = Answer::no; break;}
     else if ($answer === Answer::notDeterminable->value) {$bechdelResult = Answer::notDeterminable; break;}
-    else if ($answer === null) {$bechdelResult = null; break;}
-    else if (($answer === Answer::yes->value)) {$totalQuestionsPassed += 1;}
+    else if ($answer === null)                           {$bechdelResult = null; break;}
+    else if (($answer === Answer::yes->value))           {$totalQuestionsPassed += 1;}
   }
 
   return [
@@ -32,19 +32,20 @@ function getBechdelResult(array $answers): array {
   ];
 }
 
-function passesArticleFilter($article, $articleFilter) {
+function passesArticleFilter($article, $articleFilter): bool {
 
   if ($articleFilter['questionsPassed'] === 'nd') {
-    if ($article['bechdelResult']['result'] != Answer::notDeterminable) return false;
+    if ($article['bechdelResult']['result']->value != Answer::notDeterminable->value) return false;
   } else {
-    if ($article['bechdelResult']['result'] === Answer::notDeterminable) return false;
+    if ($article['bechdelResult']['result']->value === Answer::notDeterminable->value) return false;
 
-    // Note: != compare as filter is a string
     if ($article['bechdelResult']['total_questions_passed'] !== (int)$articleFilter['questionsPassed']) return false;
   }
 
   if ($articleFilter['group'] === 'year') {
-    if ($articleFilter['groupData'] != $article['crash_year']) return false;
+    if ($articleFilter['groupData'] != $article['article_year']) return false;
+  } else if ($articleFilter['group'] === 'month') {
+    if ($articleFilter['groupData'] != $article['article_year_month']) return false;
   } else if ($articleFilter['group'] === 'source') {
     if ($articleFilter['groupData'] != $article['sitename']) return false;
   }
@@ -154,7 +155,7 @@ ORDER BY qq.question_order
 SQL;
     $questionnaire['questions'] = $database->fetchAll($sql, $params);
 
-    function getInitBechdelResults($questionCount) {
+    function getInitBechdelResults($questions) {
       $results = [
         'yes'                    => 0,
         'no'                     => 0,
@@ -163,7 +164,9 @@ SQL;
         'total_questions_passed' => [],
       ];
 
-      for ($i=0; $i<=count($questionCount); $i++) {$results['total_questions_passed'][$i] = 0;};
+      for ($i=0; $i<=count($questions); $i++) {
+        $results['total_questions_passed'][$i] = 0;
+      };
 
       return $results;
     }
@@ -172,14 +175,15 @@ SQL;
 SELECT
   ar.crashid,
   ar.id,
+  ar.publishedtime,
   ar.title,
   ar.url,
   ar.sitename,
-  c.date                               AS crash_date,
-  c.unilateral                         AS crash_unilateral,
-  c.countryid                          AS crash_countryid,
-  YEAR(c.date)                         AS crash_year,
-  EXTRACT(YEAR_MONTH FROM c.date)      AS crash_year_month,
+  c.date                                                AS crash_date,
+  c.unilateral                                          AS crash_unilateral,
+  c.countryid                                           AS crash_countryid,
+  YEAR(ar.publishedtime)                                AS article_year,
+  EXTRACT(YEAR_MONTH FROM ar.publishedtime)             AS article_year_month,
   GROUP_CONCAT(a.questionid ORDER BY qq.question_order) AS question_ids,
   GROUP_CONCAT(a.answer     ORDER BY qq.question_order) AS answers
 FROM answers a
@@ -191,7 +195,7 @@ WHERE a.questionid in (SELECT question_id FROM questionnaire_questions WHERE que
   AND c.countryid = (SELECT country_id FROM questionnaires WHERE id=:questionnaire_id2)
   $SQLWhereAnd
 GROUP BY a.articleid
-ORDER BY a.articleid;
+ORDER BY ar.publishedtime;
 SQL;
     $params = [
       ':questionnaire_id' => $data['filter']['questionnaireId'],
@@ -204,10 +208,11 @@ SQL;
     $statement = $database->prepare($sql);
     $statement->execute($params);
     while ($article = $statement->fetch(PDO::FETCH_ASSOC)) {
+      $article['publishedtime'] = datetimeDBToISO8601($article['publishedtime']);
 
       // Format and clean up article questions and answers data
       $articleQuestionIds = explode(',', $article['question_ids']);
-      $articleAnswers     = explode(',', $article['answers']);
+      $articleAnswers = explode(',', $article['answers']);
 
       $article['questions'] = [];
       foreach ($questionnaire['questions'] as $question) {
@@ -220,15 +225,17 @@ SQL;
       unset($article['answers']);
 
       $articleBechdel = getBechdelResult($article['questions']);
+      $articleBechdel['total_questions'] = count($article['questions']);
 
+      // Get group where the article belongs to
       switch ($group) {
         case 'year': {
-          $bechdelResultsGroup = &$bechdelResults[$article['crash_year']];
+          $bechdelResultsGroup = &$bechdelResults[$article['article_year']];
           break;
         }
 
         case 'month': {
-          $bechdelResultsGroup = &$bechdelResults[$article['crash_year_month']];
+          $bechdelResultsGroup = &$bechdelResults[$article['article_year_month']];
           break;
         }
 
@@ -240,6 +247,7 @@ SQL;
         default: $bechdelResultsGroup = &$bechdelResults;
       }
 
+      // Initialize every to zero if first article in group
       if (! isset($bechdelResultsGroup)) $bechdelResultsGroup = getInitBechdelResults($questionnaire['questions']);
 
       if ($articleBechdel['result'] !== null) {
@@ -291,6 +299,13 @@ SQL;
         $resultsArray[] = $bechdelResult;
       }
       $result['bechdelResults'] = $resultsArray;
+    } else if ($group === 'month') {
+      $resultsArray = [];
+      foreach ($bechdelResults as $yearMonth => $bechdelResult) {
+        $bechdelResult['yearmonth'] = (string)$yearMonth;
+        $resultsArray[] = $bechdelResult;
+      }
+      $result['bechdelResults'] = $resultsArray;
     } else if ($group === 'source') {
       $resultsArray = [];
       foreach ($bechdelResults as $source => $bechdelResult) {
@@ -321,7 +336,8 @@ SELECT
   title, 
   type,
   country_id,
-  active
+  active,
+  public
 FROM questionnaires;
 SQL;
 
@@ -409,7 +425,7 @@ else if ($function === 'saveQuestionsOrder') {
     $statement = $database->prepare($sql);
     foreach ($ids as $order=>$id){
       $params = [':id' => $id, ':question_order' => $order];
-      $database->executePrepared($params, $statement);
+      $database->executePrepared($statement,$params);
     }
 
     $result = ['ok' => true];
@@ -424,18 +440,19 @@ else if ($function === 'savequestionnaire') {
 
     $isNew = (empty($questionnaire->id));
     if ($isNew) {
-      $sql = "INSERT INTO questionnaires (title, type, country_id, active) VALUES (:title, :type, :country_id, :active);";
+      $sql = "INSERT INTO questionnaires (title, type, country_id, active, public) VALUES (:title, :type, :country_id, :active, :public);";
 
       $params = [
         ':title'      => $questionnaire->title,
         ':type'       => $questionnaire->type,
         ':country_id' => $questionnaire->countryId,
         ':active'     => intval($questionnaire->active),
+        ':public'     => intval($questionnaire->public),
       ];
       $dbResult = $database->execute($sql, $params);
       $questionnaire->id = (int)$database->lastInsertID();
     } else {
-      $sql = "UPDATE questionnaires SET title=:title, type=:type, country_id=:country_id, active=:active WHERE id=:id;";
+      $sql = "UPDATE questionnaires SET title=:title, type=:type, country_id=:country_id, active=:active, public=:public WHERE id=:id;";
 
       $params = [
         ':id'         => $questionnaire->id,
@@ -443,6 +460,7 @@ else if ($function === 'savequestionnaire') {
         ':type'       => $questionnaire->type,
         ':country_id' => $questionnaire->countryId,
         ':active'     => intval($questionnaire->active),
+        ':public'     => intval($questionnaire->public),
       ];
       $dbResult = $database->execute($sql, $params);
     }
@@ -457,7 +475,7 @@ else if ($function === 'savequestionnaire') {
     $order = 1;
     foreach ($questionnaire->questionIds as $questionId){
       $params = [':questionnaire_id' => $questionnaire->id, ':question_id' => $questionId, ':question_order' => $order];
-      $database->executePrepared($params, $statement);
+      $database->executePrepared($statement, $params);
       $order += 1;
     }
 
