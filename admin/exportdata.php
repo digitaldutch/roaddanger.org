@@ -50,8 +50,8 @@ SELECT
   url,
   urlimage,
   title,
-  text AS 'summary',
   $allText       
+  text AS 'summary'
 FROM articles
 WHERE crashid=:crashid
 SQL;
