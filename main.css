@@ -1513,8 +1513,13 @@ table.tableDragging td div {
 }
 
 #questionnaireBars {
-  width:      100%;
-  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 1fr 10fr;
+  gap: 5px;
+}
+
+#questionnaireBars > div:nth-child(1n) {
+  text-align: right;
 }
 
 .questionnaireBar {

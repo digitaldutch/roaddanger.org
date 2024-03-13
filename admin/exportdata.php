@@ -7,10 +7,6 @@ global $user;
 
 $function = $_REQUEST['function'];
 
-function removeCommas($text){
-  return str_replace(",", "", $text);
-}
-
 if ($function === 'downloadData'){
   try{
 
@@ -24,7 +20,12 @@ if ($function === 'downloadData'){
 
     // Recreate backup if existing backup file older than 24 hours
     if ((!file_exists($filename)) || (time()-filemtime($filename) > 24 * 3600)) {
-      $maxRows = 10000;
+
+      // We need more memory to parse all data. 128MB allows a little over 10,000 crashes.
+      // 1028M should allow 80,000 crashes with all text.
+      // 4095M is the max for 32bit.
+      ini_set('memory_limit', '1028M');
+      $maxDownloadCrashes = 100000;
 
       $sql = <<<SQL
 SELECT
@@ -49,8 +50,8 @@ SELECT
   url,
   urlimage,
   title,
+  text AS 'summary',
   $allText       
-  text AS 'summary'
 FROM articles
 WHERE crashid=:crashid
 SQL;
@@ -69,7 +70,7 @@ SELECT DISTINCT
   ac.trafficjam 
 FROM crashes ac
 ORDER BY date DESC 
-LIMIT 0, $maxRows
+LIMIT 0, $maxDownloadCrashes
 SQL;
 
       $DBResults = $database->fetchAll($sql);

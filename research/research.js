@@ -180,9 +180,9 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
     item.text = item.passed + '/' + questions.length;
     const score = item.passed / questions.length;
 
-    let colorBarSegment = '';
+    let colorBarSegment;
     switch (true) {
-      case score === 1:   colorBarSegment = '#8eff8e'; break;
+      case score === 1:   colorBarSegment = '#82f182'; break;
       case score >= 0.75: colorBarSegment = '#e8ec49'; break;
       case score >= 0.50: colorBarSegment = '#ffdaa2'; break;
       case score >= 0.25: colorBarSegment = '#ffb465'; break;
@@ -202,12 +202,12 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
   });
 
   if (stats.total > 0) {
-    stats.yes_percentage              = 100 * stats.yes / stats.total;
-    stats.no_percentage               = 100 * stats.no / stats.total;
+    stats.yes_percentage = 100 * stats.yes / stats.total;
+    stats.no_percentage = 100 * stats.no / stats.total;
     stats.not_determinable_percentage = 100 * stats.not_determinable / stats.total;
   }
 
-  if (! htmlBar) htmlBar = '<table><tr><td>&nbsp;</td></tr></table>';
+  if (! htmlBar) htmlBar = '<div></div>';
   htmlBar = '<div class="questionnaireBar" style="white-space: nowrap;">' + htmlBar + '</div>';
   htmlStatistics += `<tr data-questions-passed="nd" data-group="${groupData}"><td>Not determinable</td><td style="text-align: center;">${stats.not_determinable}</td></tr>`;
 
@@ -299,9 +299,11 @@ async function loadQuestionnaireResults() {
           for (const groupResults of response.bechdelResults) {
             [htmlBar, htmlStats] = getBechdelBarHtml(groupResults, response.questionnaire.questions, group);
 
-            const htmlYearHeader = `<div><span style="font-weight: bold; margin-top: 5px;">${groupResults.year}</span> · ${groupResults.total_articles} articles</div>`;
-            htmlBars += htmlYearHeader + htmlBar;
-            htmlBody += htmlYearHeader + htmlStats;
+            const htmlBarLabel = `<div>${groupResults.year}</div>`;
+            const htmlStatsLabel = `<div><span style="font-weight: bold; margin-top: 5px;">${groupResults.year}</span> · ${groupResults.total_articles} articles</div>`;
+
+            htmlBars += htmlBarLabel + htmlBar;
+            htmlBody += htmlStatsLabel + htmlStats;
           }
 
         } else if (group === 'month') {
@@ -315,11 +317,13 @@ async function loadQuestionnaireResults() {
             const groupYear = parseInt(groupResults.yearmonth.substring(0,4));
             const groupMonth = parseInt(groupResults.yearmonth.substring(4, 6));
             const tempDate = new Date(groupYear, groupMonth-1, 1);
-            const monthText = tempDate.toLocaleString('default', { month: 'long' });
+            const monthText = tempDate.toLocaleString('default', { month: 'short' });
 
-            const htmlYearHeader = `<div><span style="font-weight: bold; margin-top: 5px;">${groupYear + ' ' +  monthText}</span> · ${groupResults.total_articles} articles</div>`;
-            htmlBars += htmlYearHeader + htmlBar;
-            htmlBody += htmlYearHeader + htmlStats;
+            const htmlBarLabel = `<div>${groupYear + ' ' +  monthText}</div>`;
+            const htmlStatsLabel = `<div><span style="font-weight: bold; margin-top: 5px;">${groupYear + '&nbsp;' +  monthText}</span> · ${groupResults.total_articles} articles</div>`;
+
+            htmlBars += htmlBarLabel + htmlBar;
+            htmlBody += htmlStatsLabel + htmlStats;
           }
 
         } else if (group === 'source') {
@@ -330,14 +334,16 @@ async function loadQuestionnaireResults() {
           for (const groupResults of response.bechdelResults) {
             [htmlBar, htmlStats] = getBechdelBarHtml(groupResults, response.questionnaire.questions, group);
 
-            const htmlBarHeader = `<div><span style="font-weight: bold; margin-top: 5px;">${groupResults.sitename}</span> · ${groupResults.total_articles} articles</div>`;
-            htmlBars += htmlBarHeader + htmlBar;
-            htmlBody += htmlBarHeader + htmlStats;
+            const htmlBarLabel = `<div>${groupResults.sitename}</div>`;
+            const htmlStatsLabel = `<div><span style="font-weight: bold; margin-top: 5px;">${groupResults.sitename}</span> · ${groupResults.total_articles} articles</div>`;
+
+            htmlBars += htmlBarLabel + htmlBar;
+            htmlBody += htmlStatsLabel + htmlStats;
           }
 
         } else {
           [htmlBar, htmlStats] = getBechdelBarHtml(response.bechdelResults, response.questionnaire.questions);
-          htmlBars += htmlBar;
+          htmlBars += '<div>All articles</div>' + htmlBar;
           htmlBody += htmlStats;
         }
 
