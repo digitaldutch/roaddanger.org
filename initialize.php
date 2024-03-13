@@ -47,7 +47,8 @@ try {
 
   $user = new User($database);
 
-} catch (\Exception $e){
-  die('Internal error: Initialization failed: ' . $e->getMessage());
+} catch (\Exception $e) {
+  $message = 'Internal error: Initialization failed: ' . $e->getMessage() . "\n\n" . $e->getTraceAsString();
+  die($message);
 }
 

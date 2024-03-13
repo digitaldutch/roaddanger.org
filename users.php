@@ -94,7 +94,7 @@ class User {
     }
 
     if ($this->loggedIn) {
-      $sql    = 'UPDATE users SET lastactive=CURRENT_TIMESTAMP WHERE id=:id;';
+      $sql = 'UPDATE users SET lastactive=CURRENT_TIMESTAMP WHERE id=:id;';
       $params = [':id' => $this->id];
       $this->database->execute($sql, $params);
 
@@ -107,8 +107,12 @@ class User {
   }
 
   private function loadUserFromDBByToken($userId, $loginId, $loginToken) {
-    $sql    = "SELECT tokenhash FROM logins WHERE userid=:userid AND id=:loginid";
-    $params = [':userid' => $userId, ':loginid' => $loginId];
+    $sql = "SELECT tokenhash FROM logins WHERE userid=:userid AND id=:loginid";
+    $params = [
+      ':userid' => $userId,
+      ':loginid' => $loginId,
+    ];
+
     $row = $this->database->fetch($sql, $params);
 
     // Kill the token even if login fails. One time use only to block tokens from stolen cookies.
@@ -128,7 +132,7 @@ class User {
       $token = $_COOKIE['login_token'];
 
       $tokenHash = password_hash($token, PASSWORD_DEFAULT);
-      $sql = "DELETE FROM logins WHERE tokenhash=?;";
+      $sql = "DELETE FROM logins WHERE tokenhash=:tokenhash;";
       $params = ['tokenhash' => $tokenHash];
       $this->database->execute($sql, $params);
 
@@ -144,7 +148,7 @@ class User {
     $this->loadUserFromDBIntern('', $email, $password);
   }
 
-  private function loadTranslations(){
+  private function loadTranslations() {
     // First get English translations
     $sql = "SELECT translations FROM languages WHERE id='en';";
     $translations_json = $this->database->fetchSingleValue($sql);
