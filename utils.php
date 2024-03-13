@@ -101,8 +101,8 @@ function parse_url_all($url){
 function getWebsiteUserAgent($url) {
   // Some websites only use with certain User agents. Set a custom user agent for websites that do not work with the default one.
 
-  // Chrome 108 agent
-  $agentChrome = "User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36";
+  // Chrome 122 agent
+  $agentChrome = "User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
 
   if (str_contains($url, 'www.jn.pt')) return $agentChrome;
   return null;

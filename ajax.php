@@ -799,7 +799,7 @@ else if ($function === 'getPageMetaData'){
       return $result;
     }
 
-    $metaData     = getPageMediaMetaData($url);
+    $metaData = getPageMediaMetaData($url);
 
     $ldJsonTags   = $metaData['json-ld'];
     $ogTags       = $metaData['og'];

@@ -1790,7 +1790,6 @@ async function articleModerateOK(articleID) {
 function domainBlacklisted(url){
   const domainBlacklist = [
     {domain: 'drimble.nl',        reason: 'Drimble is geen media website, maar een nieuws verzamelwebsite. Zoek de bron op de drimble.nl pagina en plaats die.'},
-    // {domain: 'onswestbrabant.nl', reason: 'Website staat vol met buggy tags (Dec 2018). Zoek een andere bron.'},
   ];
 
   return domainBlacklist.find(d => url.includes(d.domain));
@@ -1838,7 +1837,7 @@ async function getArticleMetaData() {
   }
 
   const isNewArticle = document.getElementById('articleIDHidden').value === '';
-  const url          = '/ajax.php?function=getPageMetaData';
+  const url = '/ajax.php?function=getPageMetaData';
 
   document.getElementById('spinnerMeta').style.display = 'flex';
   document.getElementById('tarantulaResults').innerHTML = '<img src="/images/spinner.svg" style="height: 30px;">';
