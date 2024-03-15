@@ -865,8 +865,8 @@ ${translate('Approval_required')}
   }
 
   const htmlTopIcons = getCrashTopIcons(crash, true);
-  let titleSmall     = translate('created_by') + ' ' + crash.user;
-  let titleModified  = '';
+  let titleSmall = translate('created_by') + ' ' + crash.user;
+  let titleModified = '';
   if (crash.streamtopuser) {
     switch (crash.streamtoptype) {
       case StreamTopType.edited:       titleModified = ' | ' + translate('edited_by')            + ' ' + crash.streamtopuser; break;
@@ -1959,7 +1959,7 @@ async function saveArticleCrash(){
     return;
   }
 
-  // No reload only if editing crash. Other cases for now give problems and require a full page reload.
+  // No reload only if editing crash.
   if (editingCrash && pageIsCrashPage(pageType)) {
     if (saveCrash){
       // Save changes in crashes cache
@@ -2003,6 +2003,10 @@ async function saveArticleCrash(){
     // New crash
     if (pageType === PageType.recent) {
       crashEdited.id = response.crashId;
+      crashEdited.userid = user.id;
+      crashEdited.user = user.firstname + ' ' + user.lastname;
+      crashEdited.createtime = new Date();
+
       prepareCrashServerData(crashEdited);
       crashes.unshift(crashEdited);
 

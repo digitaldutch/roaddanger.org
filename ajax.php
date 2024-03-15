@@ -866,15 +866,15 @@ else if ($function === 'getPageMetaData'){
 } //==========
 else if ($function === 'saveArticleCrash'){
   try {
-    $data                         = json_decode(file_get_contents('php://input'), true);
-    $article                      = $data['article']?? null;
-    $crash                        = $data['crash'];
-    $saveArticle                  = $data['saveArticle'];
-    $saveCrash                    = $data['saveCrash'];
-    $isNewCrash                   = (! isset($crash['id'])) || ($crash['id'] <= 0);
-    $moderationRequired           = ! $user->isModerator();
-    $crashIsAwaitingModeration    = $moderationRequired && $isNewCrash;
-    $articleIsAwaitingModeration  = $moderationRequired && (! $crashIsAwaitingModeration);
+    $data                        = json_decode(file_get_contents('php://input'), true);
+    $article                     = $data['article']?? null;
+    $crash                       = $data['crash'];
+    $saveArticle                 = $data['saveArticle'];
+    $saveCrash                   = $data['saveCrash'];
+    $isNewCrash                  = (! isset($crash['id'])) || ($crash['id'] <= 0);
+    $moderationRequired          = ! $user->isModerator();
+    $crashIsAwaitingModeration   = $moderationRequired && $isNewCrash;
+    $articleIsAwaitingModeration = $moderationRequired && (! $crashIsAwaitingModeration);
 
     $database->beginTransaction();
 
@@ -928,6 +928,7 @@ SQL;
 
         $database->execute($sql, $params, true);
         if ($database->rowCount === 0) throw new Exception('Helpers kunnen alleen hun eigen ongelukken updaten.');
+
       } else {
         // New crash
 
@@ -957,11 +958,11 @@ SQL;
       }
 
       // Save crash persons
-      $sql    = "DELETE FROM crashpersons WHERE crashid=:crashId;";
+      $sql = "DELETE FROM crashpersons WHERE crashid=:crashId;";
       $params = ['crashId' => $crash['id']];
       $database->execute($sql, $params);
 
-    $sql         = <<<SQL
+    $sql = <<<SQL
 INSERT INTO crashpersons (crashid, groupid, transportationmode, health, child, underinfluence, hitrun) 
 VALUES (:crashid, :groupid, :transportationmode, :health, :child, :underinfluence, :hitrun);
 SQL;
@@ -1001,15 +1002,15 @@ SQL;
       WHERE id=:id $sqlANDOwnOnly
 SQL;
         $params = [
-          ':crashId'     => $crash['id'],
-          ':url'         => $article['url'],
-          ':title'       => substr($article['title'], 0 , 500),
-          ':text'        => substr($article['text'], 0 , 500),
-          ':alltext'     => substr($article['alltext'], 0 , 10000),
-          ':sitename'    => substr($article['sitename'], 0 , 200),
-          ':date'        => $article['date'],
-          ':urlimage'    => $article['urlimage'],
-          ':id'          => $article['id'],
+          ':crashId'  => $crash['id'],
+          ':url'      => $article['url'],
+          ':title'    => substr($article['title'], 0 , 500),
+          ':text'     => substr($article['text'], 0 , 500),
+          ':alltext'  => substr($article['alltext'], 0 , 10000),
+          ':sitename' => substr($article['sitename'], 0 , 200),
+          ':date'     => $article['date'],
+          ':urlimage' => $article['urlimage'],
+          ':id'       => $article['id'],
         ];
 
         if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
@@ -1048,7 +1049,10 @@ SQL;
     }
 
     $database->commit();
-    $result = ['ok' => true, 'crashId' => $crash['id']];
+    $result = [
+      'ok' => true,
+      'crashId' => $crash['id'],
+    ];
 
     if ($saveArticle) {
       $sqlArticleSelect = getArticleSelect();
