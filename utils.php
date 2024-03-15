@@ -162,12 +162,18 @@ function parse_ld_json($json, &$result) {
   else parseLdObject($result, $ld);
 }
 
-/**
- * @param string $url
- * @return array
- * @throws Exception
- */
-function getPageMediaMetaData($url){
+function downloadWebPage(string $url): string|false {
+  // If mobiele website: Use desktop website instead
+  if (str_contains($url, '//m.')){
+    $url = str_replace('//m.', '//www.', $url);
+  }
+  $url = str_replace('//m.', '//www.', $url);
+
+  return curlDownload($url);
+}
+
+
+function getPageMediaMetaData(string $html, string $url): array{
   $meta = [
     'json-ld'  => [],
     'og'       => [],
@@ -176,18 +182,6 @@ function getPageMediaMetaData($url){
     'itemprop' => [],
     'other'    => []
   ];
-
-  // If mobiele website: Use desktop website instead
-  if (str_contains($url, '//m.')){
-    $url = str_replace('//m.', '//www.', $url);
-    $arrContextOptions['http']['follow_location'] = true;
-  }
-
-  $url = str_replace('//m.', '//www.', $url);
-
-  $html = curlDownload($url);
-
-  if ($html === false) throw new Exception(translate('Unable_to_load_url') . '<br>' . $url);
 
   // Handle UTF 8 properly
   $html = mb_convert_encoding($html, 'UTF-8',  mb_detect_encoding($html, 'UTF-8, ISO-8859-1', true));

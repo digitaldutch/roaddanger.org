@@ -393,7 +393,7 @@ function getFormEditCrash(){
      
       <input id="crashIDHidden" type="hidden">
   
-      <div data-hidehelper class="flexColumn">
+      <div data-crash-edit-only class="flexColumn">
         <label for="editCrashTitle">{$texts['Title']}</label> 
         <div style="display: flex;">
           <input id="editCrashTitle" class="popupInput" type="text" maxlength="500" autocomplete="off" data-readonlyhelper>

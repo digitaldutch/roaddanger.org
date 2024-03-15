@@ -56,7 +56,7 @@ async function fetchFromServer(url, data={}, parseJSON=true){
     credentials: 'same-origin',
   };
 
-  const response     = await fetch(url, optionsFetch);
+  const response = await fetch(url, optionsFetch);
   const responseText = await response.text();
   if (! responseText) throw new Error('Internal error: No response from server');
 
@@ -817,39 +817,6 @@ function healthImage(healthStatus) {
     case Health.dead:     return 'bgDead';
     default:               return 'bgUnknown';
   }
-}
-
-function clone(obj) {
-  // See: https://stackoverflow.com/questions/728360/most-elegant-way-to-clone-a-javascript-object
-  // Handle the 3 simple types, and null or undefined
-  if (null == obj || "object" != typeof obj) return obj;
-
-  // Handle Date
-  if (obj instanceof Date) {
-    let lDate = new Date();
-    lDate.setTime(obj.getTime());
-    return lDate;
-  }
-
-  // Handle Array
-  if (obj instanceof Array) {
-    let lArray = [];
-    for (let i = 0, len = obj.length; i < len; i++) {
-      lArray[i] = clone(obj[i]);
-    }
-    return lArray;
-  }
-
-  // Handle Object
-  if (obj instanceof Object) {
-    let objectClone = {};
-    for (let attr in obj) {
-      if (obj.hasOwnProperty(attr)) objectClone[attr] = clone(obj[attr]);
-    }
-    return objectClone;
-  }
-
-  throw new Error("Unable to copy object. Type not supported.");
 }
 
 function acceptCookies() {

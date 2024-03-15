@@ -784,8 +784,8 @@ else if ($function === 'loadUserData') {
 } //==========
 else if ($function === 'getPageMetaData'){
   try{
-    $data       = json_decode(file_get_contents('php://input'), true);
-    $url        = $data['url'];
+    $data = json_decode(file_get_contents('php://input'), true);
+    $url = $data['url'];
     $newArticle = $data['newArticle'];
 
     function getLongestAvailableTag($tags): string {
@@ -799,7 +799,10 @@ else if ($function === 'getPageMetaData'){
       return $result;
     }
 
-    $metaData = getPageMediaMetaData($url);
+    $pageHtml = downloadWebPage($url);
+    if ($pageHtml === false) throw new Exception(translate('Unable_to_load_url') . '<br>' . $url);
+
+    $metaData = getPageMediaMetaData($pageHtml, $url);
 
     $ldJsonTags   = $metaData['json-ld'];
     $ogTags       = $metaData['og'];
@@ -873,6 +876,8 @@ else if ($function === 'saveArticleCrash'){
     $crashIsAwaitingModeration    = $moderationRequired && $isNewCrash;
     $articleIsAwaitingModeration  = $moderationRequired && (! $crashIsAwaitingModeration);
 
+    $database->beginTransaction();
+
     // Check if new article url already in database.
     if ($saveArticle && ($article['id'] < 1)){
       $exists = urlExists($database, $article['url']);
@@ -932,20 +937,20 @@ SQL;
 SQL;
 
         $params = [
-          ':userid'                => $user->id,
-          ':awaitingmoderation'    => intval($moderationRequired),
-          ':title'                 => $crash['title'],
-          ':text'                  => $crash['text'],
-          ':date'                  => $crash['date'],
-          ':countryId'             => $crash['countryid'],
-          ':latitude'              => $crash['latitude'],
-          ':longitude'             => $crash['longitude'],
-          ':latitude2'             => $crash['latitude'],
-          ':longitude2'            => $crash['longitude'],
-          ':unilateral'            => intval($crash['unilateral']),
-          ':pet'                   => intval($crash['pet']),
-          ':trafficjam'            => intval($crash['trafficjam']),
-          ':tree'                  => intval($crash['tree']),
+          ':userid'             => $user->id,
+          ':awaitingmoderation' => intval($moderationRequired),
+          ':title'              => substr($crash['title'], 0, 500),
+          ':text'               => substr($crash['text'], 0, 500),
+          ':date'               => $crash['date'],
+          ':countryId'          => $crash['countryid'],
+          ':latitude'           => $crash['latitude'],
+          ':longitude'          => $crash['longitude'],
+          ':latitude2'          => $crash['latitude'],
+          ':longitude2'         => $crash['longitude'],
+          ':unilateral'         => intval($crash['unilateral']),
+          ':pet'                => intval($crash['pet']),
+          ':trafficjam'         => intval($crash['trafficjam']),
+          ':tree'               => intval($crash['tree']),
         ];
         $dbResult = $database->execute($sql, $params);
         $crash['id'] = (int)$database->lastInsertID();
@@ -985,7 +990,7 @@ SQL;
 
         $sql = <<<SQL
     UPDATE articles SET
-      crashid    = :crashId,
+      crashid       = :crashId,
       url           = :url,
       title         = :title,
       text          = :text,
@@ -998,11 +1003,11 @@ SQL;
         $params = [
           ':crashId'     => $crash['id'],
           ':url'         => $article['url'],
-          ':title'       => $article['title'],
-          ':text'        => $article['text'],
-          ':alltext'     => $article['alltext'],
+          ':title'       => substr($article['title'], 0 , 500),
+          ':text'        => substr($article['text'], 0 , 500),
+          ':alltext'     => substr($article['alltext'], 0 , 10000),
+          ':sitename'    => substr($article['sitename'], 0 , 200),
           ':date'        => $article['date'],
-          ':sitename'    => $article['sitename'],
           ':urlimage'    => $article['urlimage'],
           ':id'          => $article['id'],
         ];
@@ -1027,10 +1032,10 @@ SQL;
           ':awaitingmoderation' => intval($article['awaitingmoderation']),
           ':crashid'            => $article['crashid'],
           ':url'                => $article['url'],
-          ':title'              => $article['title'],
-          ':text'               => $article['text'],
-          ':alltext'            => $article['alltext'],
-          ':sitename'           => $article['sitename'],
+          ':title'              => substr($article['title'], 0, 500),
+          ':text'               => substr($article['text'], 0, 500),
+          ':alltext'            => substr($article['alltext'], 0, 10000),
+          ':sitename'           => substr($article['sitename'], 0, 200),
           ':publishedtime'      => $article['date'],
           ':urlimage'           => $article['urlimage'],
         ];
@@ -1042,6 +1047,7 @@ SQL;
       }
     }
 
+    $database->commit();
     $result = ['ok' => true, 'crashId' => $crash['id']];
 
     if ($saveArticle) {
@@ -1055,6 +1061,7 @@ SQL;
     }
 
   } catch (\Exception $e){
+    $database->rollback();
     $result = ['ok' => false, 'error' => $e->getMessage(), 'errorcode' => $e->getCode()];
   }
 

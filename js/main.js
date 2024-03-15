@@ -1229,11 +1229,12 @@ function selectCrash(crashID, smooth=false) {
 }
 
 function showNewCrashForm() {
-  showEditCrashForm();
+  showEditCrashForm(true);
+
   showMapEdit();
 }
 
-function showEditCrashForm() {
+function showEditCrashForm(isNewCrash=false) {
   closeAllPopups();
 
   if (! user.loggedin){
@@ -1267,7 +1268,7 @@ function showEditCrashForm() {
   document.getElementById('editCrashTree').classList.remove('buttonSelected');
 
   editCrashPersons = [];
-  refreshCrashPersonsGUI(editCrashPersons);
+  refreshCrashPersonsIcons(editCrashPersons);
 
   document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'inline-flex';});
 
@@ -1278,7 +1279,8 @@ function showEditCrashForm() {
   document.getElementById('editArticleUrl').focus();
 
   document.querySelectorAll('[data-readonlyhelper]').forEach(d => {d.readOnly = ! user.moderator;});
-  document.querySelectorAll('[data-hidehelper]').forEach(d => {d.style.display = ! user.moderator? 'none' : 'flex';});
+
+  document.querySelectorAll('[data-crash-edit-only]').forEach(d => {d.style.display = isNewCrash? 'none' : 'flex';});
 }
 
 function addEditPersonButtons(){
@@ -1412,7 +1414,7 @@ function savePerson(stayOpen=false) {
     editCrashPersons.push(person);
   }
 
-  refreshCrashPersonsGUI(editCrashPersons);
+  refreshCrashPersonsIcons(editCrashPersons);
 
   if (stayOpen !== true) closeEditPersonForm();
   else showMessage(translate('Saved'), 0.5);
@@ -1423,38 +1425,36 @@ function deletePerson() {
     function () {
       const personID      = parseInt(document.getElementById('personIDHidden').value);
       editCrashPersons = editCrashPersons.filter(person => person.id !== personID);
-      refreshCrashPersonsGUI(editCrashPersons);
+      refreshCrashPersonsIcons(editCrashPersons);
       closeEditPersonForm();
     });
 }
 
-function refreshCrashPersonsGUI(persons=[]) {
+function refreshCrashPersonsIcons(persons=[]) {
   let html = '';
 
-  for (let person of persons){
+  for (const person of persons){
     const iconTransportation = transportationModeIcon(person.transportationmode);
-    const iconHealth         = healthIcon(person.health);
-    let buttonsOptions = '';
-    if (person.child)          buttonsOptions += `<div class="iconSmall bgChild" data-tippy-content="${translate('Child')}"></div>`;
-    if (person.underinfluence) buttonsOptions += `<div class="iconSmall bgAlcohol" data-tippy-content="${translate('Intoxicated')}"></div>`;
-    if (person.hitrun)         buttonsOptions += `<div class="iconSmall bgHitRun" data-tippy-content="${translate('Drive_on_or_fleeing')}"></div>`;
+    const iconHealth = healthIcon(person.health);
+    let iconsOptions = '';
+    if (person.child) iconsOptions += `<div class="iconSmall bgChild" data-tippy-content="${translate('Child')}"></div>`;
+    if (person.underinfluence) iconsOptions += `<div class="iconSmall bgAlcohol" data-tippy-content="${translate('Intoxicated')}"></div>`;
+    if (person.hitrun) iconsOptions += `<div class="iconSmall bgHitRun" data-tippy-content="${translate('Drive_on_or_fleeing')}"></div>`;
 
     html += `<div class="editCrashPerson" onclick="showEditPersonForm(${person.id});">
-${iconHealth} ${iconTransportation} ${buttonsOptions}
-</div>
-`;
+${iconHealth} ${iconTransportation} ${iconsOptions}
+</div>`;
   }
 
   document.getElementById('editCrashPersons').innerHTML = html;
   tippy('[data-tippy-content]', {allowHTML: true});
 }
 
-function setNewArticleCrashFields(crashID){
+function setArticleCrashFields(crashID){
   const crash = getCrashFromId(crashID);
   const crashDatetime = new Date(crash.date);
 
-  // Shallow copy
-  editCrashPersons = clone(crash.persons);
+  editCrashPersons = structuredClone(crash.persons);
 
   document.getElementById('crashIDHidden').value      = crash.id;
 
@@ -1470,7 +1470,7 @@ function setNewArticleCrashFields(crashID){
   selectButton('editCrashTrafficJam',  crash.trafficjam);
   selectButton('editCrashTree',        crash.tree);
 
-  refreshCrashPersonsGUI(crash.persons);
+  refreshCrashPersonsIcons(crash.persons);
 
   showMapEdit(crash.latitude, crash.longitude);
 }
@@ -1496,8 +1496,9 @@ function toggleAllText(element, event, articleDivId, articleId){
 }
 
 function editArticle(crashID, articleID) {
-  showEditCrashForm(crashID);
-  setNewArticleCrashFields(crashID);
+  showEditCrashForm();
+
+  setArticleCrashFields(crashID);
 
   const article = getArticleFromId(articleID);
 
@@ -1528,8 +1529,8 @@ function editArticle(crashID, articleID) {
 }
 
 function addArticleToCrash(crashID) {
-  showEditCrashForm(crashID);
-  setNewArticleCrashFields(crashID);
+  showEditCrashForm();
+  setArticleCrashFields(crashID);
 
   document.getElementById('editHeader').innerText           = translate('Add_article');
   document.getElementById('editCrashSection').style.display = 'none';
@@ -1537,8 +1538,8 @@ function addArticleToCrash(crashID) {
 
 function editCrash(crashID) {
   closeAllPopups();
-  showEditCrashForm(crashID);
-  setNewArticleCrashFields(crashID);
+  showEditCrashForm();
+  setArticleCrashFields(crashID);
 
   document.getElementById('editHeader').innerText             = translate('Edit_crash');
   document.getElementById('editArticleSection').style.display = 'none';
@@ -1837,12 +1838,18 @@ async function getArticleMetaData() {
   }
 
   const isNewArticle = document.getElementById('articleIDHidden').value === '';
+
+  const dataServer = {
+    url: urlArticle,
+    newArticle: isNewArticle
+  }
+
   const url = '/ajax.php?function=getPageMetaData';
 
   document.getElementById('spinnerMeta').style.display = 'flex';
   document.getElementById('tarantulaResults').innerHTML = '<img src="/images/spinner.svg" style="height: 30px;">';
   try {
-    const response = await fetchFromServer(url, {url: urlArticle, newArticle: isNewArticle});
+    const response = await fetchFromServer(url, dataServer);
 
     if (response.error) showError(response.error);
     else {
@@ -1883,7 +1890,8 @@ async function saveArticleCrash(){
       date:     document.getElementById('editArticleDate').value,
       alltext:  document.getElementById('editArticleAllText').value.trim(),
     };
-    if (articleEdited.id)  articleEdited.id = parseInt(articleEdited.id);
+
+    if (articleEdited.id) articleEdited.id = parseInt(articleEdited.id);
 
     const domain = domainBlacklisted(articleEdited.url);
     if (domain) {
@@ -1923,10 +1931,14 @@ async function saveArticleCrash(){
   };
 
   if (crashEdited.id) crashEdited.id = parseInt(crashEdited.id);
+  const editingCrash = crashEdited.id !== '';
 
   const saveCrash = document.getElementById('editCrashSection').style.display !== 'none';
-  if (saveCrash){
-    if (saveArticle && (! user.moderator)) crashEdited.title = articleEdited.title;
+  if (saveCrash) {
+    if (! editingCrash) {
+      crashEdited.title = articleEdited.title;
+    }
+
     if (!crashEdited.title)               {showError(translate('Crash_title_not_filled_in')); return;}
     if (!crashEdited.date)                {showError(translate('Crash_date_not_filled_in')); return;}
     if (crashEdited.persons.length === 0) {showError(translate('No_involved_humans_added')); return;}
@@ -1946,8 +1958,6 @@ async function saveArticleCrash(){
     showError(response.error, 10);
     return;
   }
-
-  const editingCrash = crashEdited.id !== '';
 
   // No reload only if editing crash. Other cases for now give problems and require a full page reload.
   if (editingCrash && pageIsCrashPage(pageType)) {
