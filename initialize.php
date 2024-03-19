@@ -32,7 +32,7 @@ require_once __DIR__ . '/config.php';
 require_once 'templates.php';
 require_once 'database.php';
 require_once 'users.php';
-require_once 'utils.php';
+require_once 'general/utils.php';
 
 try {
   $database = new Database();

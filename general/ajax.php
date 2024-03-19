@@ -2,7 +2,7 @@
 
 header('Content-Type: application/json; charset=utf-8');
 
-require_once 'initialize.php';
+require_once '../initialize.php';
 
 global $database;
 global $user;
@@ -788,76 +788,19 @@ else if ($function === 'getPageMetaData'){
     $url = $data['url'];
     $newArticle = $data['newArticle'];
 
-    function getLongestAvailableTag($tags): string {
-      $result = '';
-      foreach ($tags as $tag) {
-        if (isset($tag)) {
-          $tag = trim($tag);
-          if ((! empty($tag)) && (strlen($tag) > strlen($result))) $result = $tag;
-        }
-      }
-      return $result;
-    }
-
-    $pageHtml = downloadWebPage($url);
-    if ($pageHtml === false) throw new Exception(translate('Unable_to_load_url') . '<br>' . $url);
-
-    $metaData = getPageMediaMetaData($pageHtml, $url);
-
-    $ldJsonTags   = $metaData['json-ld'];
-    $ogTags       = $metaData['og'];
-    $twitterTags  = $metaData['twitter'];
-    $articleTags  = $metaData['article'];
-    $itemPropTags = $metaData['itemprop'];
-    $tagCount     = [
-      'json_ld'  => count($metaData['json-ld']),
-      'og'       => count($metaData['og']),
-      'twitter'  => count($metaData['twitter']),
-      'article'  => count($metaData['article']),
-      'itemprop' => count($metaData['itemprop']),
-      'other'    => count($metaData['other']),
-      ];
-
-    // Decode HTML entities to normal text
-    $media = [
-      'url'            => getLongestAvailableTag([$ogTags['og:url'], $url]),
-      'urlimage'       => getLongestAvailableTag([$ldJsonTags['image'], $ogTags['og:image']]),
-      'title'          => html_entity_decode(htmlspecialchars_decode(strip_tags(getLongestAvailableTag([$ldJsonTags['headline'], $ogTags['og:title'], $twitterTags['twitter:title']]))),ENT_QUOTES),
-      'description'    => html_entity_decode(strip_tags(htmlspecialchars_decode(getLongestAvailableTag([$ldJsonTags['description'], $ogTags['og:description'], $twitterTags['twitter:description']]))),ENT_QUOTES),
-      'article_body'   => html_entity_decode(strip_tags(htmlspecialchars_decode(getLongestAvailableTag([$ldJsonTags['articleBody']]))),ENT_QUOTES),
-      'sitename'       => html_entity_decode(htmlspecialchars_decode(getLongestAvailableTag([$ldJsonTags['publisher'], $ogTags['og:site_name'], $metaData['other']['domain']])),ENT_QUOTES),
-      'published_time' => getLongestAvailableTag([$ldJsonTags['datePublished'], $ogTags['og:article:published_time'], $articleTags['article:published_time'], $itemPropTags['datePublished'], $articleTags['article:modified_time']]),
-    ];
-
-    // Replace http with https on image tags. Hart van Nederland sends unsecure links
-    $media['urlimage'] = str_replace('http://', 'https://', $media['urlimage']);
-    if (substr($media['urlimage'], 0, 1) === '/') {
-      $parse = parse_url($media['url']);
-      $media['urlimage'] = 'https://' . $parse['host'] . $media['urlimage'];
-    }
-
-    // Plan C if no other info available: Use H1 for title. Description for description
-    if (($media['title']          === '') && (isset($metaData['other']['h1'])))          $media['title']          = $metaData['other']['h1'];
-    if (($media['description']    === '') && (isset($metaData['other']['description']))) $media['description']    = $metaData['other']['description'];
-    if (($media['published_time'] === '') && (isset($metaData['other']['time'])))        $media['published_time'] = $metaData['other']['time'];
-
-    // Check if valid published_time string
-    if (strlen($media['published_time']) >= 1) {
-      try {
-        $dateTime = new DateTime($media['published_time']);
-        $media['published_time'] = $dateTime->format(DateTime::ISO8601);
-      } catch (\Exception $e) {
-        if (strlen($media['published_time']) > 10) {
-          $media['published_time'] = substr($media['published_time'], 0, 10);
-        }
-      }
-    }
+    require_once 'meta_parser_utils.php';
+    $resultParser = parseMetaDataFromUrl($url);
 
     // Check if new article url already in database.
-    if ($newArticle) $urlExists = urlExists($database, $media['url']);
+    if ($newArticle) $urlExists = urlExists($database, $url);
     else $urlExists = false;
 
-    $result = ['ok' => true, 'media' => $media, 'tagcount' => $tagCount, 'urlExists' => $urlExists];
+    $result = [
+      'ok' => true,
+      'media' => $resultParser['media'],
+      'tagcount' => $resultParser['tagCount'],
+      'urlExists' => $urlExists,
+      ];
   } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }

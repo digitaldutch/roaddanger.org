@@ -280,7 +280,7 @@ function showLoginError(text) {
 
 async function logOut() {
   closeMessage();
-  const url  = "/ajax.php?function=logout";
+  const url  = "/general/ajax.php?function=logout";
   const user = await fetchFromServer(url);
   if (! user.loggedin) {
     showMessage(translate('Logged_out_successfully'), 1);
@@ -289,7 +289,7 @@ async function logOut() {
 }
 
 async function loginIntern(email, password, stayLoggedIn=0) {
-  const url = "/ajax.php?function=login" +
+  const url = "/general/ajax.php?function=login" +
     "&email="        + encodeURIComponent(email) +
     "&password="     + encodeURIComponent(password) +
     "&stayLoggedIn=" + stayLoggedIn;
@@ -352,7 +352,7 @@ function updateLoginGUI(userNew){
 }
 
 async function selectCountry(countryId) {
-  const urlServer = '/ajax.php?function=loadCountryDomain';
+  const urlServer = '/general/ajax.php?function=loadCountryDomain';
   const response  = await fetchFromServer(urlServer, {countryId: countryId});
 
   if (response.error) {
@@ -368,7 +368,7 @@ async function selectCountry(countryId) {
 }
 
 async function setLanguage(languageId){
-  const url      = '/ajax.php?function=setLanguage&id=' + languageId;
+  const url      = '/general/ajax.php?function=setLanguage&id=' + languageId;
   const response = await fetchFromServer(url);
 
   if (response.error) {
@@ -434,7 +434,7 @@ async function checkRegistration(){
 
     document.getElementById('spinnerLogin').style.display = 'block';
     try {
-      const url      = '/ajax.php?function=register';
+      const url      = '/general/ajax.php?function=register';
       const response = await fetchFromServer(url, userNew);
 
       if (response.error) {
@@ -477,7 +477,7 @@ function loginForgotPassword() {
 }
 
 async function sendResetPasswordInstructions(email) {
-  const url      = '/ajax.php?function=sendPasswordResetInstructions&email=' + encodeURIComponent(email);
+  const url      = '/general/ajax.php?function=sendPasswordResetInstructions&email=' + encodeURIComponent(email);
   const response = await fetchFromServer(url);
 
   if (response.error) showError(response.error);
@@ -657,7 +657,7 @@ function initPageUser(){
 
 async function loadUserData(options=[]) {
   try {
-    const url = '/ajax.php?function=loadUserData';
+    const url = '/general/ajax.php?function=loadUserData';
     const response = await fetchFromServer(url, options);
     if (response.user) updateLoginGUI(response.user);
 
@@ -983,7 +983,7 @@ function tabBarClick() {
 }
 
 async function getQuestions(questionnaireId) {
-  const url      = '/ajax.php?function=getQuestions&questionnaireId=' + questionnaireId;
+  const url      = '/general/ajax.php?function=getQuestions&questionnaireId=' + questionnaireId;
   const response = await fetchFromServer(url);
 
   if (response.error) showError(response.error, 10);

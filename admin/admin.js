@@ -319,7 +319,7 @@ async function changeUserLanguage(){
   await saveTranslations();
 
   const languageId = document.getElementById('selectLanguage').value;
-  const url        = '/ajax.php?function=setLanguage&id=' + languageId;
+  const url        = '/general/ajax.php?function=setLanguage&id=' + languageId;
   const response   = await fetchFromServer(url);
 
   if (response.error) {
