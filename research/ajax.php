@@ -517,7 +517,6 @@ else if ($function === 'loadArticlesUnanswered') {
     $filter = $data['filter'];
 
     // Get active questionnaires
-    $SQLWhereCountry = $user->countryId === 'UN'? '' : " AND country_id='" . $user->countryId . "'";
     $sql = <<<SQL
 SELECT
   id,
@@ -525,7 +524,6 @@ SELECT
   type
 FROM questionnaires
 WHERE active = 1
-$SQLWhereCountry
 ORDER BY id;
 SQL;
 
