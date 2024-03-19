@@ -12,7 +12,7 @@ else if (str_starts_with($uri, '/decorrespondent'))                 $pageType = 
 else if (str_starts_with($uri, '/map'))                             $pageType = PageType::map;
 else if (str_starts_with($uri, '/moderations'))                     $pageType = PageType::moderations;
 else if (str_starts_with($uri, '/mosaic'))                          $pageType = PageType::mosaic;
-else if (str_starts_with($uri, '/child_deaths'))                    $pageType = PageType::childDeaths;
+else if (str_starts_with($uri, '/child_victims'))                   $pageType = PageType::childVictims;
 else if (str_starts_with($uri, '/statistics/general'))              $pageType = PageType::statisticsGeneral;
 else if (str_starts_with($uri, '/statistics/media_humanization'))   $pageType = PageType::statisticsHumanizationTest;
 else if (str_starts_with($uri, '/statistics/counterparty'))         $pageType = PageType::statisticsCrashPartners;
@@ -76,17 +76,17 @@ if ($pageType === PageType::statisticsGeneral) {
   </div>
 </div>
 HTML;
-} else if ($pageType === PageType::childDeaths) {
+} else if ($pageType === PageType::childVictims) {
 
   $showButtonAdd = true;
-  $texts = translateArray(['Child_deaths', 'Injury', 'Dead_(adjective)', 'Injured', 'Help_improve_data_accuracy']);
-  $intro = $user->translateLongText('child_deaths_info');
+  $texts = translateArray(['Child_victims', 'Injury', 'Dead_(adjective)', 'Injured', 'Help_improve_data_accuracy']);
+  $intro = $user->translateLongText('child_victims_info');
 
   $mainHTML = <<<HTML
 
 <div id="pageMain">
 
-  <div class="pageSubTitle"><img src="/images/child.svg" style="height: 20px; position: relative; top: 2px;"> {$texts['Child_deaths']}</div>
+  <div class="pageSubTitle"><img src="/images/child.svg" style="height: 20px; position: relative; top: 2px;"> {$texts['Child_victims']}</div>
   <div style="display: flex; flex-direction: column; align-items: center">
     <div style="text-align: left;">
       <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">{$texts['Help_improve_data_accuracy']}</div>
@@ -100,8 +100,8 @@ HTML;
   <div class="searchBar" style="display: flex; padding-bottom: 0;">
 
     <div class="toolbarItem">
-      <span id="filterChildDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterChildDeaths();"></span>      
-      <span id="filterChildInjured" class="menuButton bgInjuredBlack" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterChildDeaths();"></span>      
+      <span id="filterChildDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterChildVictims();"></span>      
+      <span id="filterChildInjured" class="menuButton bgInjuredBlack" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterChildVictims();"></span>      
     </div>
     
   </div>

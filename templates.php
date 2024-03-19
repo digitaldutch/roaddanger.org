@@ -208,7 +208,7 @@ function getNavigation(){
   global $VERSION_DATE;
 
   $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
-    'Child_deaths', 'Mosaic', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
+    'Child_victims', 'Mosaic', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
     'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
     'Version', 'Questionnaires', 'fill_in', 'settings', 'results', 'Reporting_experiences', 'Research',
     'Graphs_and_statistics', 'Media_humanization_test']);
@@ -227,9 +227,8 @@ function getNavigation(){
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Crashes']}</div>
       <a id="nav_recent_crashes" href="/" class="navItem">{$texts['Recent_crashes']}</a>
-      <a href="/child_deaths" class="navItem">{$texts['Child_deaths']}</a>
+      <a href="/child_victims" class="navItem">{$texts['Child_victims']}</a>
       <a href="/mosaic" class="navItem">{$texts['Mosaic']}</a>
-      <a href="/decorrespondent" class="navItem">{$texts['The_correspondent_week']}</a>
       <a href="/map" class="navItem">{$texts['Map']}</a>
     </div>
 
@@ -251,6 +250,7 @@ function getNavigation(){
 
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Other']}</div>
+      <a href="/decorrespondent" class="navItem">{$texts['The_correspondent_week']}</a>
       <a href="/export/" class="navItem">{$texts['Export_data']}</a>
       <a href="/aboutthissite/" class="navItem">{$texts['About_this_site']}</a>
     </div>

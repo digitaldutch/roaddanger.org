@@ -25,7 +25,7 @@ const PageType = Object.freeze({
   mosaic:                        8,
   export:                        9,
   map:                           10,
-  childDeaths:                   11,
+  childVictims:                  11,
 });
 
 async function initMain() {
@@ -37,26 +37,26 @@ async function initMain() {
 
   spinnerLoad = document.getElementById('spinnerLoad');
 
-  const url                  = new URL(location.href);
-  const crashID           = getCrashNumberFromPath(url.pathname);
-  const articleID           = url.searchParams.get('articleid');
-  const searchText          = url.searchParams.get('search');
-  const searchCountry       = url.searchParams.get('country');
-  const searchPeriod        = url.searchParams.get('period');
-  const searchDateFrom      = url.searchParams.get('date_from');
-  const searchDateTo        = url.searchParams.get('date_to');
-  const searchSiteName      = url.searchParams.get('sitename');
-  const searchPersons       = url.searchParams.get('persons');
-  const searchHealthDead    = url.searchParams.get('hd');
-  const searchHealthInjured = url.searchParams.get('hi');
-  const searchChild         = url.searchParams.get('child');
-  const pathName            = decodeURIComponent(url.pathname);
+  const url = new URL(location.href);
+  const crashID = getCrashNumberFromPath(url.pathname);
+  const articleID = url.searchParams.get('articleid');
+  const searchText = url.searchParams.get('search');
+  const searchCountry = url.searchParams.get('country');
+  const searchPeriod = url.searchParams.get('period');
+  const searchDateFrom = url.searchParams.get('date_from');
+  const searchDateTo = url.searchParams.get('date_to');
+  const searchSiteName = url.searchParams.get('sitename');
+  const searchPersons = url.searchParams.get('persons');
+  const searchHealthDead = parseInt(url.searchParams.get('hd')?? 1);
+  const searchHealthInjured = parseInt(url.searchParams.get('hi')?? 1);
+  const searchChild = url.searchParams.get('child');
+  const pathName = decodeURIComponent(url.pathname);
 
   if      (pathName.startsWith('/moderations'))                     pageType = PageType.moderations;
   else if (pathName.startsWith('/last_changed'))                    pageType = PageType.lastChanged;
   else if (pathName.startsWith('/decorrespondent'))                 pageType = PageType.deCorrespondent;
   else if (pathName.startsWith('/mosaic'))                          pageType = PageType.mosaic;
-  else if (pathName.startsWith('/child_deaths'))                    pageType = PageType.childDeaths;
+  else if (pathName.startsWith('/child_victims'))                   pageType = PageType.childVictims;
   else if (pathName.startsWith('/map'))                             pageType = PageType.map;
   else if (pathName.startsWith('/statistics/general'))              pageType = PageType.statisticsGeneral;
   else if (pathName.startsWith('/statistics/counterparty'))         pageType = PageType.statisticsCrashPartners;
@@ -95,13 +95,13 @@ async function initMain() {
     loadStatistics();
   } else if (pageType === PageType.statisticsMediaHumanization) {
     loadGraphMediaHumanzation();
-  } else if (pageType === PageType.childDeaths) {
-    initObserver(loadChildDeaths);
+  } else if (pageType === PageType.childVictims) {
+    initObserver(loadChildVictims);
 
-    document.getElementById('filterChildDead').classList.add('buttonSelectedBlue'); // Dead is selected by default
+    if (searchHealthDead) document.getElementById('filterChildDead').classList.add('buttonSelectedBlue');
     if (searchHealthInjured) document.getElementById('filterChildInjured').classList.add('buttonSelectedBlue');
 
-    loadChildDeaths();
+    loadChildVictims();
   } else if (pageType === PageType.export){
     initExport();
   } else if (pageType === PageType.map){
@@ -236,20 +236,20 @@ function selectFilterStats() {
   loadStatistics();
 }
 
-function selectFilterChildDeaths() {
+function selectFilterChildVictims() {
   event.target.classList.toggle('buttonSelectedBlue');
   clearTable();
 
-  const dead    = document.getElementById('filterChildDead').classList.contains('buttonSelectedBlue');
+  const dead = document.getElementById('filterChildDead').classList.contains('buttonSelectedBlue');
   const injured = document.getElementById('filterChildInjured').classList.contains('buttonSelectedBlue');
 
   const url = new URL(window.location);
-  if (dead)    url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
-  if (injured) url.searchParams.set('hi', 1); else url.searchParams.delete('hi');
+  if (dead)    url.searchParams.set('hd', 1); else url.searchParams.set('hd', 0);
+  if (injured) url.searchParams.set('hi', 1); else url.searchParams.set('hi', 0);
 
   window.history.pushState(null, null, url.toString());
 
-  loadChildDeaths();
+  loadChildVictims();
 }
 
 async function loadStatistics() {
@@ -466,7 +466,7 @@ function clearTable(){
   articles = [];
 }
 
-async function loadChildDeaths(){
+async function loadChildVictims(){
 
   let newCrashes = [];
   const serverData = {
@@ -2037,7 +2037,7 @@ function showArticleMenu(event, articleDivId) {
 }
 
 function pageIsCrashList(){
-  return [PageType.recent, PageType.lastChanged, PageType.mosaic, PageType.deCorrespondent, PageType.moderations, PageType.childDeaths, PageType.map].includes(pageType);
+  return [PageType.recent, PageType.lastChanged, PageType.mosaic, PageType.deCorrespondent, PageType.moderations, PageType.childVictims, PageType.map].includes(pageType);
 }
 
 function pageIsCrashPage(){

@@ -17,7 +17,7 @@ enum PageType {
   case mosaic;
   case export;
   case map;
-  case childDeaths;
+  case childVictims;
   case translations;
   case longTexts;
   case humans;
@@ -72,7 +72,7 @@ function pageWithEditMap($pageType){
       PageType::mosaic,
       PageType::crash,
       PageType::moderations,
-      PageType::childDeaths,
+      PageType::childVictims,
       PageType::map,
     ]);
 }
