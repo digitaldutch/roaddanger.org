@@ -192,14 +192,12 @@ FROM answers a
   LEFT JOIN questionnaire_questions qq ON qq.question_id = a.questionid
   $SQLJoin
 WHERE a.questionid in (SELECT question_id FROM questionnaire_questions WHERE questionnaire_id=:questionnaire_id)
-  AND c.countryid = (SELECT country_id FROM questionnaires WHERE id=:questionnaire_id2)
   $SQLWhereAnd
 GROUP BY a.articleid
 ORDER BY ar.publishedtime;
 SQL;
     $params = [
       ':questionnaire_id' => $data['filter']['questionnaireId'],
-      ':questionnaire_id2' => $data['filter']['questionnaireId'],
     ];
 
     $articles = [];
