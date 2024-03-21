@@ -88,6 +88,10 @@ SQL;
 
   if (isset($filter['persons']) && (count($filter['persons'])) > 0) $joinPersonsTable = true;
 
+  if (! empty($filter['country']) and ($filter['country'] !== 'UN')){
+    addSQLWhere($SQLWhereAnd, 'c.countryid="' . $filter['country'] . '"');
+  }
+
   if (! empty($filter['year'])){
     addSQLWhere($SQLWhereAnd, 'YEAR(c.date)=' . intval($filter['year']));
   }
@@ -196,6 +200,7 @@ WHERE a.questionid in (SELECT question_id FROM questionnaire_questions WHERE que
 GROUP BY a.articleid
 ORDER BY ar.publishedtime;
 SQL;
+
     $params = [
       ':questionnaire_id' => $data['filter']['questionnaireId'],
     ];
@@ -239,6 +244,11 @@ SQL;
 
         case 'source': {
           $bechdelResultsGroup = &$bechdelResults[$article['sitename']];
+          break;
+        }
+
+        case 'country': {
+          $bechdelResultsGroup = &$bechdelResults[$article['crash_countryid']];
           break;
         }
 
@@ -311,13 +321,20 @@ SQL;
         $resultsArray[] = $bechdelResult;
       }
       $result['bechdelResults'] = $resultsArray;
+    } else if ($group === 'country') {
+      $resultsArray = [];
+      foreach ($bechdelResults as $countryId => $bechdelResult) {
+        $bechdelResult['countryid'] = $countryId;
+        $resultsArray[] = $bechdelResult;
+      }
+      $result['bechdelResults'] = $resultsArray;
     } else $result['bechdelResults'] = $bechdelResults;
   }
 
   if ($articleFilter['getArticles']) {
     $result = [
-      'ok'       => true,
-      'crashes'  => $crashes,
+      'ok' => true,
+      'crashes' => $crashes,
       'articles' => array_slice($articles, $articleFilter['offset'], 1000),
     ];
   } else $result['questionnaire'] = $questionnaire;

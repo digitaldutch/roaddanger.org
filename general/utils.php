@@ -172,8 +172,10 @@ function addPersonsWhereSql(&$sqlWhere, &$sqlJoin, $filterPersons) {
 }
 
 function getHtmlYearOptions($addEmpty=true, $amountYears=50){
+  $texts = translateArray(['Always']);
+
   $yearNow = intval(date("Y"));
-  $options = $addEmpty? '<option value="">Always</option>' : '';
+  $options = $addEmpty? "<option value=''>{$texts['Always']}</option>" : '';
   for ($year=$yearNow; $year >= $yearNow - $amountYears; $year--) $options .= "<option value={$year}>{$year}</option>";
   return $options;
 }

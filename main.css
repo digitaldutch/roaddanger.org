@@ -1514,12 +1514,15 @@ table.tableDragging td div {
 
 #questionnaireBars {
   display: grid;
-  grid-template-columns: 1fr 10fr;
+  grid-template-columns: 1fr 5fr;
   gap: 5px;
+  white-space: nowrap;
 }
 
-#questionnaireBars > div:nth-child(1n) {
+#questionnaireBars > div:nth-child(2n-1) {
   text-align: right;
+  overflow: hidden;
+  /*text-overflow: ellipsis;*/
 }
 
 .questionnaireBar {

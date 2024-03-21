@@ -257,6 +257,7 @@ HTML;
 
     $optionsYear = getHtmlYearOptions();
     $htmlSearchPersons = getSearchPersonsHtml();
+    $htmlSearchCountry = getSearchCountryHtml('', 'filterResearchCountry', 'UN');
 
     $mainHTML = <<<HTML
 <div id="pageMain">
@@ -272,6 +273,7 @@ HTML;
         <option value="year">Group by year</option>
         <option value="month">Group by month</option>
         <option value="source">Group by source</option>
+        <option value="country">Group by country</option>
       </select>
     </div>
   
@@ -296,13 +298,17 @@ HTML;
     </div>
     
     <div class="toolbarItem">
+      $htmlSearchCountry
+    </div>
+    
+    <div class="toolbarItem">
       <select id="filterResearchYear" class="searchInput">$optionsYear</select>
     </div>
     
     $htmlSearchPersons
     
     <div class="toolbarItem">
-      <div class="button buttonMobileSmall" onclick="selectFilterQuestionnaireResults(event)">{$texts['Filter']}</div>
+      <div class="button buttonMobileSmall" style="margin-left: 0;" onclick="selectFilterQuestionnaireResults(event)">{$texts['Filter']}</div>
     </div>
 
   </div>

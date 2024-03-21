@@ -126,7 +126,7 @@ function getHtmlSearchBar(){
   $texts = translateArray(['Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source', 'Search_text_hint']);
 
   $htmlSearchCountry = getSearchCountryHtml();
-  $htmlSearchPeriod  = getSearchPeriodHtml();
+  $htmlSearchPeriod = getSearchPeriodHtml();
   $htmlSearchPersons = getSearchPersonsHtml();
 
   return <<<HTML
@@ -701,22 +701,24 @@ HTML;
 
 }
 
-function getSearchCountryHtml($onInputFunctionName = '', $selectId='searchCountry'){
+function getSearchCountryHtml(string $onInputFunctionName = '', string $elementId='searchCountry', string $selectedCountryId=''): string {
+  global $database;
+  global $user;
+
+  if ($selectedCountryId === '') $selectedCountryId = $user->country['id'];
+
   $texts = translateArray(['Country']);
 
   $onInputFunction = $onInputFunctionName === ''? '' : 'oninput="' . $onInputFunctionName . '();"';
 
-  global $database;
-  global $user;
-
   $countryOptions = '';
   foreach ($database->countries as $country) {
-    $selected = $country['id'] === $user->country['id']? "selected" : '';
+    $selected = $country['id'] === $selectedCountryId? "selected" : '';
     $countryOptions .= "<option value='{$country['id']}' $selected>{$country['name']}</option>";
   }
 
   return <<<HTML
-<select id="$selectId" class="searchInput" $onInputFunction data-tippy-content="{$texts['Country']}">
+<select id="$elementId" class="searchInput" $onInputFunction data-tippy-content="{$texts['Country']}">
   $countryOptions
 </select>
 HTML;

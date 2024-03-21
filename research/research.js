@@ -15,6 +15,7 @@ async function initResearch(){
   const searchHealthDead   = url.searchParams.get('hd');
   const searchChild        = url.searchParams.get('child');
   const searchYear         = url.searchParams.get('year');
+  const searchCountry      = url.searchParams.get('year');
   const searchGroup        = url.searchParams.get('group');
   const searchMinArticles  = url.searchParams.get('minArticles');
   const searchPersons      = url.searchParams.get('persons');
@@ -23,6 +24,7 @@ async function initResearch(){
   if (searchHealthDead)  document.getElementById('filterResearchDead').classList.add('buttonSelectedBlue');
   if (searchChild)       document.getElementById('filterResearchChild').classList.add('buttonSelectedBlue');
   if (searchYear)        document.getElementById('filterResearchYear').value = searchYear;
+  if (searchCountry)     document.getElementById('filterResearchCountry').value = searchCountry;
   if (searchGroup)       document.getElementById('filterResearchGroup').value = searchGroup;
   if (searchMinArticles) document.getElementById('filterMinArticles').value = searchMinArticles;
   if (searchPersons)     setPersonsFilter(searchPersons);
@@ -236,6 +238,7 @@ async function downloadQuestionnaireResults(articleFilter={}) {
       child:           document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
       noUnilateral:    document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue')? 1 : 0,
       year:            document.getElementById('filterResearchYear').value,
+      country:         document.getElementById('filterResearchCountry').value,
       persons:         getPersonsFromFilter(),
     },
     group: document.getElementById('filterResearchGroup').value,
@@ -335,6 +338,21 @@ async function loadQuestionnaireResults() {
             [htmlBar, htmlStats] = getBechdelBarHtml(groupResults, response.questionnaire.questions, group);
 
             const htmlBarLabel = `<div>${groupResults.sitename}</div>`;
+            const htmlStatsLabel = `<div><span style="font-weight: bold; margin-top: 5px;">${groupResults.sitename}</span> · ${groupResults.total_articles} articles</div>`;
+
+            htmlBars += htmlBarLabel + htmlBar;
+            htmlBody += htmlStatsLabel + htmlStats;
+          }
+
+        } else if (group === 'country') {
+          if (minArticles) response.bechdelResults = response.bechdelResults.filter(r => r.total_articles >= minArticles);
+
+          response.bechdelResults.sort((a, b) => compareBechdelResults(a, b));
+
+          for (const groupResults of response.bechdelResults) {
+            [htmlBar, htmlStats] = getBechdelBarHtml(groupResults, response.questionnaire.questions, group);
+
+            const htmlBarLabel = `<div>${groupResults.countryid}</div>`;
             const htmlStatsLabel = `<div><span style="font-weight: bold; margin-top: 5px;">${groupResults.sitename}</span> · ${groupResults.total_articles} articles</div>`;
 
             htmlBars += htmlBarLabel + htmlBar;
@@ -667,9 +685,10 @@ function selectFilterQuestionnaireResults() {
   const dead         = document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue');
   const child        = document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue');
   const noUnilateral = document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue');
-  const year         = document.getElementById('filterResearchYear').value;
-  const group        = document.getElementById('filterResearchGroup').value;
-  const minArticles  = document.getElementById('filterMinArticles').value;
+  const year                 = document.getElementById('filterResearchYear').value;
+  const country              = document.getElementById('filterResearchCountry').value;
+  const group                = document.getElementById('filterResearchGroup').value;
+  const minArticles          = document.getElementById('filterMinArticles').value;
 
   const searchPersons = getPersonsFromFilter();
 
@@ -678,6 +697,7 @@ function selectFilterQuestionnaireResults() {
   if (child)                    url.searchParams.set('child', 1); else url.searchParams.delete('child');
   if (! noUnilateral)           url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
   if (year)                     url.searchParams.set('year', year); else url.searchParams.delete('year');
+  if (country)                  url.searchParams.set('country', country); else url.searchParams.delete('country');
   if (group)                    url.searchParams.set('group', group); else url.searchParams.delete('group');
   if (minArticles > 0)          url.searchParams.set('minArticles', minArticles); else url.searchParams.delete('minArticles');
   if (searchPersons.length > 0) url.searchParams.set('persons', searchPersons.join()); else url.searchParams.delete('persons');
