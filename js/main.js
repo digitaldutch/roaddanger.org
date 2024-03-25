@@ -503,7 +503,7 @@ async function loadChildVictims(){
         crash.persons.forEach(p => {
           if (p.health === Health.dead) {
             if (p.child === 1) htmlIconsChildren += '<img src="/images/persondead.svg" style="width: 10px;">';
-            else htmlIconsOther += '<img src="/images/persondead_black.svg" style="width: 10px;">';
+            else htmlIconsOther += '<img src="/images/persondead_white.svg" style="width: 10px;">';
           }
 
           if (p.health === Health.injured) {

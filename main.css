@@ -1,55 +1,41 @@
 :root {
-  --bg-color-hover:       #dddddd;
-  --bg-color-selected-heavy: #4d90fe;
-  --color-hover:          #000000;
-  --bg-color-selected:    #bfd4fe;
-  --click-color:          #df5b57;
-  --color-ready:          #eeffd3;
-  --light-border-color:   #eee;
-  --fancy-font:          'Playfair Display', serif;
+  --bg-level2: #3c3c3c;
+  --bg-color-hover: #f58579;
+  --bg-color-selected-heavy: #f23825;
+  --color-selected-heavy: #ffffff;
+  --color-hover: #000000;
+  --bg-color-selected: #f23825;
+  --color-selected: #ffffff;
+  --bg-color-menu-header: #626262;
+  --color-menu-header: #fff;
+  --click-color: #f23825;
+  --color-ready: #eeffd3;
+  --light-border-color: #eee;
 }
 
-/* playfair-display-400 */
 @font-face {
-  font-family: 'Playfair Display';
+  font-family: 'Usual';
   font-style: normal;
   font-weight: 400;
-  src: local('Playfair Display Regular'), local('PlayfairDisplay-Regular'),
-  url('./fonts/playfair-display-v13-latin-regular.woff2') format('woff2'),
-  url('./fonts/playfair-display-v13-latin-regular.woff') format('woff');
+  src: local('Usual Regular'), local('Usual-Regular'), url('./fonts/Usual_Medium.woff2') format('woff2');
 }
 
-/* playfair-display-700 - latin */
 @font-face {
-  font-family: 'Playfair Display';
+  font-family: 'Usual';
   font-style: normal;
-  font-weight: 700;
-  src: local('Playfair Display Bold'), local('PlayfairDisplay-Bold'),
-  url('./fonts/playfair-display-v13-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-  url('./fonts/playfair-display-v13-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+  font-weight: 500;
+  src: local('Usual Medium'), local('Usual-Medium'), url('./fonts/Usual_Medium.woff2') format('woff2');
 }
 
-/* merriweather-regular - latin */
 @font-face {
-  font-family: 'Merriweather';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Merriweather Regular'), local('Merriweather-Regular'),
-  url('./fonts/merriweather-v19-latin-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-  url('./fonts/merriweather-v19-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
-}
-/* merriweather-700 - latin */
-@font-face {
-  font-family: 'Merriweather';
+  font-family: 'Usual';
   font-style: normal;
   font-weight: 700;
-  src: local('Merriweather Bold'), local('Merriweather-Bold'),
-  url('./fonts/merriweather-v19-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-  url('./fonts/merriweather-v19-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+  src: local('Usual Bold'), local('Usual-Bold'), url('./fonts/Usual_Bold.woff2') format('woff2');
 }
 
 * {
-  font-family: "Segoe UI", Arial, sans-serif;
+  font-family: Usual, sans-serif;
 }
 
 html, body {
@@ -69,23 +55,24 @@ input[readonly], textarea[readonly], .readOnlyInput {
 }
 
 a, .link {
-  color:           var(--click-color);
-  font-family:     inherit;
+  color: var(--click-color);
+  font-family: inherit;
   text-decoration: none;
-  cursor:          pointer;
+  cursor: pointer;
 }
 a:hover, .link:hover {
   text-decoration: underline;
 }
 
 .pageTitle, .pageTitle * {
-  font-size:   25px;
-  font-family: var(--fancy-font);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   white-space: nowrap;
 }
 
 .postText {
-  font-family: 'Merriweather', serif;
+  /*font-family: 'Merriweather', serif;*/
 }
 
 .cardTitle *, .postText * {
@@ -122,12 +109,14 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 #pageMain {
-  padding:        5px;
-  display:        flex;
+  padding: 5px;
+  display: flex;
   flex-direction: column;
-  flex-grow:      1;
-  align-items:    center;
-  overflow:       auto;
+  flex-grow: 1;
+  align-items: center;
+  overflow: auto;
+  color: #fff;
+  background-image: radial-gradient(farthest-corner at 0 0, #f23825 0%, black 60%);
 }
 
 .scrollPage {
@@ -174,7 +163,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 .cardTitle {
   font-size:     18px;
   font-weight:   700;
-  font-family:   'Merriweather', serif;
+  /*font-family:   'Merriweather', serif;*/
   margin-bottom: 0.2em;
 }
 
@@ -356,7 +345,6 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .smallFont {
   font-size: 10px;
-  color:     #666;
 }
 
 .cardSiteName {
@@ -376,8 +364,7 @@ h2, .pageSubTitleFont, .sectionTitle {
   flex:             0 1 auto;
   align-items:      center;
   padding:          3px;
-  border-bottom:    solid 1px #dddddd;
-  background-color: #ffffff;
+  background-color: #000;
 }
 
 .searchBar {
@@ -387,6 +374,7 @@ h2, .pageSubTitleFont, .sectionTitle {
   align-items:     center;
   justify-content: center;
   padding:         10px 20px 10px 10px;
+  background-color: var(--bg-level2);
 }
 
 .searchInput {
@@ -407,27 +395,28 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .dropInput {
-  display:       flex;
-  width:         150px;
-  align-items:   center;
-  overflow:      hidden;
+  display: flex;
+  width: 150px;
+  align-items: center;
+  overflow: hidden;
   padding-right: 20px;
-  user-select:   text;
+  user-select: text;
+  background-color: #fff;
 }
 
 .inputIcons {
-  display:     flex;
+  display: flex;
   align-items: center;
-  flex-wrap:   nowrap;
-  color:       #888;
+  flex-wrap: nowrap;
+  color: #888;
 }
 
 .inputIconGroup {
-  display:       flex;
-  align-items:   center;
-  flex-wrap:     nowrap;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
   border-bottom: 1px solid #aaa;
-  margin-right:  2px;
+  margin-right: 2px;
 }
 
 .inputArrowDown {
@@ -485,7 +474,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .headerMain a{
   text-decoration: none;
-  color:           #000;
+  color:           #fff;
 }
 
 .menuButton {
@@ -496,15 +485,38 @@ h2, .pageSubTitleFont, .sectionTitle {
   width:               30px;
   padding:             1px;
   cursor:              pointer;
-  opacity:             0.5;
   background-size:     25px;
   background-repeat:   no-repeat;
   background-position: center;
   border-radius:       3px;
 }
 
+.menuButton:hover {
+  background-color: #eeeeee;
+}
+
+.menuButtonBlack {
+  position:            relative;
+  display:             inline-block;
+  outline:             none;
+  height:              28px;
+  width:               28px;
+  padding:             1px;
+  cursor:              pointer;
+  background-size:     25px;
+  background-repeat:   no-repeat;
+  background-position: center;
+  border-radius:       3px;
+  border: 2px solid #000;
+}
+
+.menuButtonBlack:hover {
+  border-color: var(--click-color);
+}
+
 .menuSelected {
   background-color: var(--bg-color-selected);
+  color: var(--color-selected);
 }
 
 .buttonIcon {
@@ -589,24 +601,19 @@ h2, .pageSubTitleFont, .sectionTitle {
   background-color: #dddddd;
 }
 
-.menuButton:hover, .buttonLight:hover {
-  opacity:          1;
-  background-color: #eeeeee;
-}
-
 .iconTooltip:hover {
   opacity:          1;
 }
 
-.buttonLight {
+.buttonHeader {
   display:          inline-flex;
+  background-color: #fff;
   height:           30px;
   min-width:        30px;
   align-items:      center;
   justify-content:  center;
   padding:          0 3px;
   margin:           0 4px;
-  opacity:          0.7;
   font-weight:      bold;
   cursor:           pointer;
   border-radius:    3px;
@@ -616,8 +623,8 @@ h2, .pageSubTitleFont, .sectionTitle {
   opacity: inherit;
 }
 
-.buttonLight:hover {
-  border-color: #bbb;
+.buttonHeader:hover {
+  background-color: var(--click-color);
 }
 
 .iconTooltip {
@@ -645,14 +652,18 @@ h2, .pageSubTitleFont, .sectionTitle {
 .buttonSelectedBlue {
   opacity:          1;
   background-color: var(--bg-color-selected) !important;
+  color: var(--color-selected) !important;
 }
 
 .bgAdd         {background-image: url(/images/add.svg);}
+.bgAddWhite    {background-image: url(/images/add_white.svg);}
 .bgRemove      {background-image: url(/images/remove.svg);}
 .bgPerson      {background-image: url(/images/person.svg);}
 .bgLanguage    {background-image: url(/images/language.svg);}
 .bgSearch      {background-image: url(/images/search.svg);}
+.bgSearchWhite {background-image: url(/images/search_white.svg);}
 .bgMenu        {background-image: url(/images/menu.svg);}
+.bgMenuWhite   {background-image: url(/images/menu_white.svg);}
 .bgArticle     {background-image: url(/images/article.svg);}
 .bgGeo         {background-image: url(/images/geo.svg);}
 .bgTripleDots  {background-image: url(/images/tripledots.svg);}
@@ -663,8 +674,10 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .bgDead {                  background-image: url(/images/persondead.svg);}
 .bgDeadBlack {             background-image: url(/images/persondead_black.svg);}
+.bgDeadWhite {             background-image: url(/images/persondead_white.svg);}
 .bgInjured {               background-image: url(/images/person_injured.svg);}
 .bgInjuredBlack {          background-image: url(/images/person_injured_black.svg);}
+.bgInjuredWhite {          background-image: url(/images/person_injured_white.svg);}
 .bgUnharmed {              background-image: url(/images/unharmed.svg);}
 .bgRestricted {            background-image: url(/images/restricted.svg);}
 
@@ -688,6 +701,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .bgUnilateral {            background-image: url(/images/unilateral.svg);}
 .bgChild {                 background-image: url(/images/child.svg);}
+.bgChildWhite {            background-image: url(/images/child_white.svg);}
 .bgNoUnilateral{           background-image: url(/images/no_unilateral.svg);}
 .bgPet {                   background-image: url(/images/pet.svg);}
 .bgAlcohol {               background-image: url(/images/alcohol.svg);}
@@ -709,25 +723,15 @@ h2, .pageSubTitleFont, .sectionTitle {
   text-decoration:  none;
 }
 
-.buttonPopupMenu > div, .buttonPopupMenu > a, .buttonPopupMenuTemp > div {
+.buttonPopupMenu > div:not(.navigationSectionHeader),
+.buttonPopupMenu > a,
+.buttonPopupMenuTemp > div {
   display:         flex;
   align-items:     center;
   white-space:     nowrap;
   padding:         10px;
   cursor:          pointer;
-  color:           #000000 !important;
   text-decoration: none !important;
-}
-
-.menuHeader {
-  background-color: #eeeeee;
-  font-size:        16px;
-  border-bottom:    1px solid #dddddd;
-  cursor:           default !important;
-}
-
-.menuHeader:hover {
-  background-color: #eee !important;
 }
 
 .popupOuter {
@@ -848,11 +852,10 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .popupHeader {
-  font-family:   var(--fancy-font);
-  font-size:     20px;
-  text-align:    center;
+  font-size: 20px;
+  text-align: center;
   margin-bottom: 10px;
-  padding:       0 15px;
+  padding: 0 15px;
 }
 
 .popupCloseCross {
@@ -863,12 +866,19 @@ h2, .pageSubTitleFont, .sectionTitle {
   background-size: 25px;
   height:          20px;
   width:           20px;
-  opacity:         0.6;
+  opacity:         0.8;
   cursor:          pointer;
-  transition:      all .25s;
 }
 
-.popupCloseCrossWhite {
+.popupCloseCross:hover {
+  opacity: 1;
+}
+
+.closeCrossWhite {
+  background: url("/images/closewhite.svg") no-repeat center;
+}
+
+  .popupCloseCrossWhiteFullScreen {
   position:        fixed;
   right:           23px;
   top:             4px;
@@ -881,12 +891,8 @@ h2, .pageSubTitleFont, .sectionTitle {
   cursor:          pointer;
 }
 
-.popupCloseCrossWhite:hover{
+.popupCloseCrossWhiteFullScreen:hover{
   background-color: #999999;
-}
-
-.popupCloseCross:hover {
-  opacity: 1;
 }
 
 .crossWhite {
@@ -1116,22 +1122,23 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .navHeader {
-  padding:          5px 5px 5px 10px;
-  background-color: #eeeeee;
-  border-bottom:    1px solid #dddddd;
+  padding: 5px 5px 5px 10px;
+  background-color: var(--click-color);
+  color: #fff;
+  border-bottom: 1px solid #dddddd;
 }
 
 .navFooter {
-  padding:          5px 10px;
-  background-color: #eeeeee;
-  border-bottom:    1px solid #dddddd;
-  font-size:        12px;
+  padding: 5px 10px;
+  background-color: var(--bg-color-menu-header);
+  color: #fff;
+  font-size: 12px;
 }
 
 .navHeaderTop {
-  display:       flex;
+  display: flex;
   align-content: center;
-  font-size:     20px;
+  font-size: 20px;
 }
 
 .marginLeftAuto {
@@ -1140,20 +1147,18 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .navigationSectionHeader {
   padding:          7px 10px;
-  background-color: #eeeeee;
+  background-color: var(--bg-color-menu-header);
+  color: var(--color-menu-header);
   font-size:        16px;
-  border-bottom:    1px solid #dddddd;
 }
 
 .navigationSectionHeader > select{
   background-color: #eeeeee;
   font-size:        16px;
-  border:           1px solid #dddddd;
   margin-left:      5px;
 }
 
 .navigationSection {
-  border-bottom: 1px solid #dddddd;
   font-size:     16px;
 }
 
@@ -1171,14 +1176,19 @@ h2, .pageSubTitleFont, .sectionTitle {
   color: #000000 !important;
 }
 
-.buttonPopupMenu > div:hover, .buttonPopupMenu > a:hover, .buttonPopupMenuTemp div:hover, .navItem:hover,
-.dataTable tbody tr:hover, .optionCheckImage:hover {
+.buttonPopupMenu > div:not(.navigationSectionHeader):hover,
+.buttonPopupMenu > a:hover,
+.buttonPopupMenuTemp div:hover,
+.navItem:hover,
+.dataTable tbody tr:hover,
+.optionCheckImage:hover {
   color:            var(--color-hover);
   background-color: var(--bg-color-hover);
 }
 
 .itemSelected, .trSelected td {
   background-color: var(--bg-color-selected);
+  color: var(--color-selected);
 }
 
 .tabBar {
@@ -1201,6 +1211,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .tabSelected {
   border-color: var(--bg-color-selected-heavy) !important;
+  color: var(--color-selected-heavy) !important;
 }
 
 .dataTable {

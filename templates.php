@@ -5,8 +5,8 @@ function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $addSearchB
 
   $texts = translateArray(['Cookie_warning', 'More_info', 'Accept']);
 
-  if ($pageTitle !== '') $title = $pageTitle . ' | ' . WEBSITE_TITLE;
-  else $title = WEBSITE_TITLE;
+  if ($pageTitle !== '') $title = $pageTitle . ' | ' . WEBSITE_NAME;
+  else $title = WEBSITE_NAME;
 
   $initScript = ($initFunction !== '')? "<script>document.addEventListener('DOMContentLoaded', $initFunction);</script>" : '';
   $navigation = getNavigation();
@@ -23,8 +23,8 @@ HTML;
   } else $cookieWarning = '';
 
   $buttons = '';
-  if ($addSearchBar)  $buttons .= '<div id="buttonSearch" class="menuButton bgSearch" onclick="toggleSearchBar(event);"></div>';
-  if ($showButtonAdd) $buttons .= '<div id="buttonNewCrash" style="display: none;" class="menuButton bgAdd" onclick="showNewCrashForm();"></div>';
+  if ($addSearchBar)  $buttons .= '<div id="buttonSearch" class="menuButtonBlack bgSearchWhite" onclick="toggleSearchBar(event);"></div>';
+  if ($showButtonAdd) $buttons .= '<div id="buttonNewCrash" style="display: none;" class="menuButtonBlack bgAddWhite" onclick="showNewCrashForm();"></div>';
 
   global $database;
   global $user;
@@ -44,7 +44,7 @@ HTML;
   }
 
   $texts = translateArray(['Log_out', 'Log_in', 'Account', 'Country', 'Language']);
-  $websiteTitle = WEBSITE_TITLE;
+  $websiteName = WEBSITE_NAME;
 
   $htmlSearchBar  = $addSearchBar? getHtmlSearchBar() : '';
 
@@ -72,11 +72,11 @@ $navigation
 <div class="flexToFullPage">
 
   <div id="topBar">
-    <span class="menuButton bgMenu" onclick="toggleNavigation(event);"></span>
+    <span class="menuButtonBlack bgMenuWhite" onclick="toggleNavigation(event);"></span>
   
     <div class="headerMain pageTitle">
       <span>
-        <a href="/">{$websiteTitle}<span id="titleCountry" class="hideOnMobile"></span></a>        
+        <a href="/">$websiteName<span id="titleCountry" class="hideOnMobile"></span></a>        
         <img id="spinnerTitle" src="/images/spinner.svg" style="display: none; height: 17px; margin-left: 5px;" alt="Spinner">
       </span>
     </div>
@@ -85,14 +85,14 @@ $navigation
       $buttons
       
       <span style="position: relative;">
-        <div class="buttonLight" onclick="loginClick(event);">
+        <div class="buttonHeader" onclick="loginClick(event);">
           <div id="buttonPerson" class="buttonIcon bgPerson"></div>
           <div id="loginText" class="hideOnMobile">...</div>
           <div id="loginName" class="hideOnMobile"></div>
         </div>
   
         <div id="menuPerson" class="buttonPopupMenu">
-          <div id="menuProfile" class="menuHeader"></div>
+          <div id="menuProfile" class="navigationSectionHeader"></div>
           <a href="/account">{$texts['Account']}</a>
           <div id="menuLogin" onclick="showLoginForm();">{$texts['Log_in']}</div> 
           <div id="menuLogout" style="display: none;" onclick="logOut();">{$texts['Log_out']}</div>
@@ -100,7 +100,7 @@ $navigation
       </span>
   
       <span style="position: relative;">
-        <div id="buttonLanguages" class="buttonLight" onclick="countryClick(event);">
+        <div id="buttonLanguages" class="buttonHeader" onclick="countryClick(event);">
           <div id="iconCountry" class="buttonIcon"></div>
           <div class="buttonIcon bgLanguage"></div>
         </div>
@@ -130,13 +130,13 @@ function getHtmlSearchBar(){
   $htmlSearchPersons = getSearchPersonsHtml();
 
   return <<<HTML
-  <div id="searchBar" class="searchBar" style="border-bottom: solid 1px #aaa;">
-    <div class="popupCloseCross" onclick="toggleSearchBar();"></div>
+  <div id="searchBar" class="searchBar">
+    <div class="popupCloseCross closeCrossWhite" onclick="toggleSearchBar();"></div>
 
     <div class="toolbarItem">
-      <span id="searchPersonHealthDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Dead_(adjective)']}" onclick="selectSearchPersonDead();"></span>      
-      <span id="searchPersonHealthInjured" class="menuButton bgInjuredBlack" data-tippy-content="{$texts['Injured']}" onclick="selectSearchPersonInjured();"></span>      
-      <span id="searchPersonChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectSearchPersonChild();"></span>      
+      <span id="searchPersonHealthDead" class="menuButton bgDeadWhite" data-tippy-content="{$texts['Dead_(adjective)']}" onclick="selectSearchPersonDead();"></span>      
+      <span id="searchPersonHealthInjured" class="menuButton bgInjuredWhite" data-tippy-content="{$texts['Injured']}" onclick="selectSearchPersonInjured();"></span>      
+      <span id="searchPersonChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectSearchPersonChild();"></span>      
     </div>
 
     <div class="toolbarItem">
@@ -213,13 +213,13 @@ function getNavigation(){
     'Version', 'Questionnaires', 'fill_in', 'settings', 'results', 'Reporting_experiences', 'Research',
     'Graphs_and_statistics', 'Media_humanization_test']);
 
-  $websiteTitle = WEBSITE_TITLE;
+  $websiteTitle = WEBSITE_NAME;
 
   return <<<HTML
 <div id="navShadow" class="navShadow" onclick="closeNavigation()"></div>
 <div id="navigation" onclick="closeNavigation();">
   <div class="navHeader">
-    <div class="popupCloseCross" onclick="closeNavigation();"></div>
+    <div class="popupCloseCross closeCrossWhite" onclick="closeNavigation();"></div>
     <div class="navHeaderTop"><span class="pageTitle">{$websiteTitle}</span></div>      
   </div>
   <div style="overflow-y: auto;">
@@ -455,7 +455,7 @@ HTML;
 function getFormCrash(){
   return <<<HTML
 <div id="formCrash" class="popupOuter" onclick="closeCrashDetails();">
-    <div class="popupCloseCrossWhite hideOnMobile" onclick="closeCrashDetails();"></div>
+    <div class="popupCloseCrossWhiteFullScreen hideOnMobile" onclick="closeCrashDetails();"></div>
 
   <div class="formFullPage" onclick="event.stopPropagation();">    
     <div class="showOnMobile" style="height: 15px"></div>
@@ -683,14 +683,14 @@ function getSearchPeriodHtml($onInputFunctionName = ''){
 HTML;
 }
 
-function getSearchPersonsHtml($onInputFunctionName = '') {
+function getSearchPersonsHtml() {
   $texts = translateArray(['Humans']);
 
   return <<<HTML
     <div class="toolbarItem">
       <div class="dropInputWrapper">
         <div class="searchInput dropInput" tabindex="0" onclick="toggleSearchPersons(event);">
-          <span id="inputSearchPersons" class="inputIcons">{$texts['Humans']}</span>
+          <span id="inputSearchPersons">{$texts['Humans']}</span>
           <div id="arrowSearchPersons" class="inputArrowDown"></div>  
         </div>
         

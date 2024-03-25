@@ -335,7 +335,7 @@ function updateLoginGUI(userNew){
 
   document.getElementById('iconCountry').style.backgroundImage = `url(/images/flags/${user.countryid.toLowerCase()}.svg)`;
 
-  document.getElementById('titleCountry').innerHTML = ' | ' + user.country.name;
+  document.getElementById('titleCountry').innerHTML = ' · ' + user.country.name;
 
   document.querySelectorAll('.buttonEditPost').forEach(
     button => {
