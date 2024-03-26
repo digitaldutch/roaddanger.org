@@ -1,16 +1,18 @@
 :root {
   --bg-level2: #3c3c3c;
-  --bg-color-hover: #f58579;
-  --bg-color-selected-heavy: #f23825;
-  --color-selected-heavy: #ffffff;
+  --row-hover-bgcolor: #f58579;
   --color-hover: #000000;
-  --bg-color-selected: #f23825;
-  --color-selected: #ffffff;
-  --bg-color-menu-header: #626262;
-  --color-menu-header: #fff;
-  --click-color: #f23825;
+  --selected-bgcolor: #f23825;
+  --selected-color: #ffffff;
+  --menu-header-bgcolor: #626262;
+  --menu-header-color: #ffffff;
+  --link-color: #f23825;
+  --button-important-bgcolor: #ffbe0d;
+  --button-important-color: #000000;
+  --tooltip-bgcolor: #ffbe0d;
+  --tooltip-color: #000000;
+  --table-data-border-color: #eee;
   --color-ready: #eeffd3;
-  --light-border-color: #eee;
 }
 
 @font-face {
@@ -55,7 +57,7 @@ input[readonly], textarea[readonly], .readOnlyInput {
 }
 
 a, .link {
-  color: var(--click-color);
+  color: var(--link-color);
   font-family: inherit;
   text-decoration: none;
   cursor: pointer;
@@ -349,7 +351,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .cardSiteName {
   font-weight: bold;
-  color:       var(--click-color);
+  color:       var(--link-color);
 }
 
 #pageFooter {
@@ -507,16 +509,16 @@ h2, .pageSubTitleFont, .sectionTitle {
   background-repeat:   no-repeat;
   background-position: center;
   border-radius:       3px;
-  border: 2px solid #000;
+  border: 2px solid rgba(255,255,255,0);
 }
 
 .menuButtonBlack:hover {
-  border-color: var(--click-color);
+  border-color: var(--link-color);
 }
 
 .menuSelected {
-  background-color: var(--bg-color-selected);
-  color: var(--color-selected);
+  background-color: var(--selected-bgcolor);
+  color: var(--selected-color);
 }
 
 .buttonIcon {
@@ -602,7 +604,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .iconTooltip:hover {
-  opacity:          1;
+  opacity: 1;
 }
 
 .buttonHeader {
@@ -624,7 +626,12 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .buttonHeader:hover {
-  background-color: var(--click-color);
+  background-color: var(--link-color);
+}
+
+.tippy-box[data-theme~='light'] {
+  background-color: var(--tooltip-bgcolor);
+  color: var(--tooltip-color);
 }
 
 .iconTooltip {
@@ -640,7 +647,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .tooltipLink {
-  color:           #FFFFFF;
+  color: #ffffff;
   text-decoration: underline;
 }
 
@@ -651,8 +658,8 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .buttonSelectedBlue {
   opacity:          1;
-  background-color: var(--bg-color-selected) !important;
-  color: var(--color-selected) !important;
+  background-color: var(--selected-bgcolor) !important;
+  color: var(--selected-color) !important;
 }
 
 .bgAdd         {background-image: url(/images/add.svg);}
@@ -931,23 +938,23 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .button {
-  display:          inline-flex;
-  align-items:      center;
-  justify-content:  center;
-  height:           30px;
-  min-width:        90px;
-  box-sizing:       border-box;
-  border:           none;
-  padding:          2px 8px 3px 8px;
-  margin-left:      5px;
-  border-radius:    3px;
-  background-color: #000;
-  color:            #FFFFFF;
-  font-weight:      bold;
-  text-decoration:  none;
-  white-space:      nowrap;
-  cursor:           pointer;
-  transition:       all .25s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  min-width: 90px;
+  box-sizing: border-box;
+  border: none;
+  padding: 2px 8px 3px 8px;
+  margin-left: 5px;
+  border-radius: 3px;
+  background-color: #000000;
+  color: #ffffff;
+  font-weight: bold;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all .25s;
 }
 
 .formError {
@@ -959,9 +966,14 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .button:hover {
-  color:            var(--click-color);
-  background-color: #000;
-  text-decoration:  none;
+  color: var(--link-color);
+  background-color: #000000;
+  text-decoration: none;
+}
+
+.buttonImportant {
+  background-color: var(--button-important-bgcolor) !important;
+  color: var(--button-important-color) !important;
 }
 
 .buttonGray {
@@ -973,20 +985,20 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .buttonLine {
-  height:      auto !important;
+  height: auto !important;
   font-weight: normal !important;
 }
 
 .spinner {
-  display:         none;
-  position:        absolute;
-  z-index:         10;
-  top:             0;
-  left:            0;
-  right:           0;
-  bottom:          0;
-  color:           #ffffff00;
-  background:      #ffffff url("/images/spinner.svg") no-repeat center;
+  display: none;
+  position: absolute;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  color: #ffffff00;
+  background: #ffffff url("/images/spinner.svg") no-repeat center;
   background-size: 30px;
 }
 
@@ -1123,14 +1135,14 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .navHeader {
   padding: 5px 5px 5px 10px;
-  background-color: var(--click-color);
+  background-color: var(--link-color);
   color: #fff;
   border-bottom: 1px solid #dddddd;
 }
 
 .navFooter {
   padding: 5px 10px;
-  background-color: var(--bg-color-menu-header);
+  background-color: var(--menu-header-bgcolor);
   color: #fff;
   font-size: 12px;
 }
@@ -1147,8 +1159,8 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .navigationSectionHeader {
   padding:          7px 10px;
-  background-color: var(--bg-color-menu-header);
-  color: var(--color-menu-header);
+  background-color: var(--menu-header-bgcolor);
+  color: var(--menu-header-color);
   font-size:        16px;
 }
 
@@ -1183,12 +1195,12 @@ h2, .pageSubTitleFont, .sectionTitle {
 .dataTable tbody tr:hover,
 .optionCheckImage:hover {
   color:            var(--color-hover);
-  background-color: var(--bg-color-hover);
+  background-color: var(--row-hover-bgcolor);
 }
 
 .itemSelected, .trSelected td {
-  background-color: var(--bg-color-selected);
-  color: var(--color-selected);
+  background-color: var(--selected-bgcolor);
+  color: var(--selected-color);
 }
 
 .tabBar {
@@ -1205,13 +1217,13 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .tabBar > div:hover {
   color:            var(--color-hover);
-  background-color: var(--bg-color-hover);
+  background-color: var(--row-hover-bgcolor);
   cursor:           pointer;
 }
 
 .tabSelected {
-  border-color: var(--bg-color-selected-heavy) !important;
-  color: var(--color-selected-heavy) !important;
+  border-color: var(--selected-bgcolor) !important;
+  color: var(--selected-color) !important;
 }
 
 .dataTable {
@@ -1222,7 +1234,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .dataTable td {
-  border-bottom:   solid 1px var(--light-border-color);
+  border-bottom:   solid 1px var(--table-data-border-color);
   vertical-align:  top;
   padding:         5px;
 }
@@ -1283,7 +1295,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .editDetails:hover {
-  color: var(--click-color);
+  color: var(--link-color);
 }
 
 .filterIcon{
@@ -1343,7 +1355,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .searchRow:hover {
   color:            var(--color-hover);
-  background-color: var(--bg-color-hover);
+  background-color: var(--row-hover-bgcolor);
 }
 
 .textArea{

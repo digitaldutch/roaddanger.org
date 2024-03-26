@@ -134,9 +134,9 @@ function getHtmlSearchBar(){
     <div class="popupCloseCross closeCrossWhite" onclick="toggleSearchBar();"></div>
 
     <div class="toolbarItem">
-      <span id="searchPersonHealthDead" class="menuButton bgDeadWhite" data-tippy-content="{$texts['Dead_(adjective)']}" onclick="selectSearchPersonDead();"></span>      
-      <span id="searchPersonHealthInjured" class="menuButton bgInjuredWhite" data-tippy-content="{$texts['Injured']}" onclick="selectSearchPersonInjured();"></span>      
-      <span id="searchPersonChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectSearchPersonChild();"></span>      
+      <span id="searchPersonHealthDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Dead_(adjective)']}" onclick="selectSearchPersonDead();"></span>      
+      <span id="searchPersonHealthInjured" class="menuButtonBlack bgInjuredWhite" data-tippy-content="{$texts['Injured']}" onclick="selectSearchPersonInjured();"></span>      
+      <span id="searchPersonChild" class="menuButtonBlack bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectSearchPersonChild();"></span>      
     </div>
 
     <div class="toolbarItem">
@@ -154,7 +154,7 @@ function getHtmlSearchBar(){
     </div>
 
     <div class="toolbarItem">
-      <div class="button buttonMobileSmall" style="margin-left: 0;" onclick="startSearch(event)">{$texts['Search']}</div>
+      <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="startSearch(event)">{$texts['Search']}</div>
     </div>
   </div>      
 HTML;

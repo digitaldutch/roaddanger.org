@@ -642,11 +642,14 @@ function initPage(){
   initMenuSwipe();
 
   tippy.setDefaultProps({
+    theme: 'light',
     arrow: true,
     arrowType: 'round',
     interactive: false,
-    duration: 100
+    duration: 100,
+    backgroundColor: 'ffbe0d',
   });
+
   tippy('[data-tippy-content]');
 }
 
