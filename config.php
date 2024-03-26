@@ -1,7 +1,7 @@
 <?php
 
-$VERSION = 506;
-$VERSION_DATE = '25 March 2024';
+$VERSION = 510;
+$VERSION_DATE = '26 March 2024';
 
 require_once 'configsecret.php';
 
@@ -22,7 +22,6 @@ require_once 'configsecret.php';
 
 const COOKIE_DOMAIN = '';
 
-const WEBSITE_TITLE = 'roaddanger.org';
 const WEBSITE_NAME = 'roaddanger';
 
 const DEFAULT_COUNTRY_ID = 'NL';

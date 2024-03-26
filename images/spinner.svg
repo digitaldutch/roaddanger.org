@@ -1,62 +1,32 @@
-<svg class="lds-spinner" preserveAspectRatio="xMidYMid" version="1.1" viewBox="0 0 58 58" xmlns="http://www.w3.org/2000/svg">
- <g transform="translate(-21,-21)">
-  <rect x="48.5" y="21" width="3" height="16" rx="0" ry="0">
-   <animate attributeName="opacity" begin="-1.1916666666666667s" dur="1.3s" keyTimes="0;1" repeatCount="indefinite" values="1;0"/>
-  </rect>
- </g>
- <g transform="rotate(30 78.687 .31347)">
-  <rect x="48.5" y="21" width="3" height="16" rx="0" ry="0">
-   <animate attributeName="opacity" begin="-1.0833333333333333s" dur="1.3s" keyTimes="0;1" repeatCount="indefinite" values="1;0"/>
-  </rect>
- </g>
- <g transform="rotate(60 57.687 21.313)">
-  <rect x="48.5" y="21" width="3" height="16" rx="0" ry="0">
-   <animate attributeName="opacity" begin="-0.9750000000000001s" dur="1.3s" keyTimes="0;1" repeatCount="indefinite" values="1;0"/>
-  </rect>
- </g>
- <g transform="rotate(90,50,29)">
-  <rect x="48.5" y="21" width="3" height="16" rx="0" ry="0">
-   <animate attributeName="opacity" begin="-0.8666666666666667s" dur="1.3s" keyTimes="0;1" repeatCount="indefinite" values="1;0"/>
-  </rect>
- </g>
- <g transform="rotate(120 45.562 33.438)">
-  <rect x="48.5" y="21" width="3" height="16" rx="0" ry="0">
-   <animate attributeName="opacity" begin="-0.7583333333333333s" dur="1.3s" keyTimes="0;1" repeatCount="indefinite" values="1;0"/>
-  </rect>
- </g>
- <g transform="rotate(150 42.313 36.687)">
-  <rect x="48.5" y="21" width="3" height="16" rx="0" ry="0">
-   <animate attributeName="opacity" begin="-0.65s" dur="1.3s" keyTimes="0;1" repeatCount="indefinite" values="1;0"/>
-  </rect>
- </g>
- <g transform="rotate(180,39.5,39.5)">
-  <rect x="48.5" y="21" width="3" height="16" rx="0" ry="0">
-   <animate attributeName="opacity" begin="-0.5416666666666666s" dur="1.3s" keyTimes="0;1" repeatCount="indefinite" values="1;0"/>
-  </rect>
- </g>
- <g transform="rotate(210 36.687 42.313)">
-  <rect x="48.5" y="21" width="3" height="16" rx="0" ry="0">
-   <animate attributeName="opacity" begin="-0.43333333333333335s" dur="1.3s" keyTimes="0;1" repeatCount="indefinite" values="1;0"/>
-  </rect>
- </g>
- <g transform="rotate(240 33.438 45.562)">
-  <rect x="48.5" y="21" width="3" height="16" rx="0" ry="0">
-   <animate attributeName="opacity" begin="-0.325s" dur="1.3s" keyTimes="0;1" repeatCount="indefinite" values="1;0"/>
-  </rect>
- </g>
- <g transform="rotate(-90,29,50)">
-  <rect x="48.5" y="21" width="3" height="16" rx="0" ry="0">
-   <animate attributeName="opacity" begin="-0.21666666666666667s" dur="1.3s" keyTimes="0;1" repeatCount="indefinite" values="1;0"/>
-  </rect>
- </g>
- <g transform="rotate(-60 21.313 57.687)">
-  <rect x="48.5" y="21" width="3" height="16" rx="0" ry="0">
-   <animate attributeName="opacity" begin="-0.10833333333333334s" dur="1.3s" keyTimes="0;1" repeatCount="indefinite" values="1;0"/>
-  </rect>
- </g>
- <g transform="rotate(-30 .31347 78.687)">
-  <rect x="48.5" y="21" width="3" height="16" rx="0" ry="0">
-   <animate attributeName="opacity" begin="0s" dur="1.3s" keyTimes="0;1" repeatCount="indefinite" values="1;0"/>
-  </rect>
- </g>
+<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        .spinner_block {
+          animation: motion 2.4s linear infinite;
+          animation-delay: -2.4s;
+        }
+
+        .block2{
+          animation-delay: -1.6s;
+          fill: #ffffff;
+        }
+
+        .block3{
+          animation-delay: -.8s;
+          fill: #ffbe0d;
+        }
+
+        @keyframes motion {
+          8.33% {x:13px;y:1px}
+          25% {x:13px;y:1px}
+          33.3% {x:13px;y:13px}
+          50% {x:13px;y:13px}
+          58.33% {x:1px;y:13px}
+          75% {x:1px;y:13px}
+          83.33% {x:1px;y:1px}
+        }
+    </style>
+
+    <rect class="spinner_block" fill="#f23825" x="1" y="1" rx="1" width="10" height="10"/>
+    <rect class="spinner_block block2" x="1" y="1" rx="1" width="10" height="10"/>
+    <rect class="spinner_block block3" x="1" y="1" rx="1" width="10" height="10"/>
 </svg>

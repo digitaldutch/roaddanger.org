@@ -322,10 +322,10 @@ HTML;
 
   $title = '';
   switch ($pageType){
-    case PageType::lastChanged:          $title = translate('Last_modified_crashes'); break;
+    case PageType::lastChanged: $title = translate('Last_modified_crashes'); break;
     case PageType::deCorrespondent: $title = translate('The_correspondent_week') . '<br>14-20 jan. 2019'; break;
-    case PageType::moderations:     $title = translate('Moderations'); break;
-    case PageType::recent:          $title = translate('Recent_crashes'); break;
+    case PageType::moderations: $title = translate('Moderations'); break;
+    case PageType::recent: $title = translate('Recent_crashes') . '<span id="countryName"></span>'; break;
   }
 
   $introText = "<div id='pageSubTitle' class='pageSubTitle'>$title</div>";

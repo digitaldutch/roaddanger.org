@@ -516,6 +516,26 @@ h2, .pageSubTitleFont, .sectionTitle {
   border-color: var(--link-color);
 }
 
+.buttonHeader {
+  display: inline-flex;
+  background-color: #000000;
+  color: #ffffff;
+  height: 30px;
+  min-width: 30px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  margin: 0 4px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 3px;
+  border: 2px solid rgba(255,255,255,0);
+}
+
+.buttonHeader:hover {
+  border-color: var(--link-color);
+}
+
 .menuSelected {
   background-color: var(--selected-bgcolor);
   color: var(--selected-color);
@@ -527,7 +547,6 @@ h2, .pageSubTitleFont, .sectionTitle {
   outline:             none;
   padding:             1px;
   margin-right:        3px;
-  opacity:             0.7;
   height:              20px;
   width:               20px;
   background-size:     20px;
@@ -607,31 +626,26 @@ h2, .pageSubTitleFont, .sectionTitle {
   opacity: 1;
 }
 
-.buttonHeader {
-  display:          inline-flex;
-  background-color: #fff;
-  height:           30px;
-  min-width:        30px;
-  align-items:      center;
-  justify-content:  center;
-  padding:          0 3px;
-  margin:           0 4px;
-  font-weight:      bold;
-  cursor:           pointer;
-  border-radius:    3px;
-}
-
 #buttonPerson {
   opacity: inherit;
-}
-
-.buttonHeader:hover {
-  background-color: var(--link-color);
 }
 
 .tippy-box[data-theme~='light'] {
   background-color: var(--tooltip-bgcolor);
   color: var(--tooltip-color);
+}
+
+.tippy-box[data-theme~='light'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: var(--tooltip-bgcolor);
+}
+.tippy-box[data-theme~='light'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: var(--tooltip-bgcolor);
+}
+.tippy-box[data-theme~='light'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: var(--tooltip-bgcolor);
+}
+.tippy-box[data-theme~='light'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: var(--tooltip-bgcolor);
 }
 
 .iconTooltip {
@@ -657,7 +671,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .buttonSelectedBlue {
-  opacity:          1;
+  opacity: 1;
   background-color: var(--selected-bgcolor) !important;
   color: var(--selected-color) !important;
 }
@@ -666,7 +680,9 @@ h2, .pageSubTitleFont, .sectionTitle {
 .bgAddWhite    {background-image: url(/images/add_white.svg);}
 .bgRemove      {background-image: url(/images/remove.svg);}
 .bgPerson      {background-image: url(/images/person.svg);}
+.bgPersonWhite {background-image: url(/images/person_white.svg);}
 .bgLanguage    {background-image: url(/images/language.svg);}
+.bgLanguageWhite {background-image: url(/images/language_white.svg);}
 .bgSearch      {background-image: url(/images/search.svg);}
 .bgSearchWhite {background-image: url(/images/search_white.svg);}
 .bgMenu        {background-image: url(/images/menu.svg);}
@@ -679,66 +695,67 @@ h2, .pageSubTitleFont, .sectionTitle {
   background-image: url(/images/person_loggedin.svg);
 }
 
-.bgDead {                  background-image: url(/images/persondead.svg);}
-.bgDeadBlack {             background-image: url(/images/persondead_black.svg);}
-.bgDeadWhite {             background-image: url(/images/persondead_white.svg);}
-.bgInjured {               background-image: url(/images/person_injured.svg);}
-.bgInjuredBlack {          background-image: url(/images/person_injured_black.svg);}
-.bgInjuredWhite {          background-image: url(/images/person_injured_white.svg);}
-.bgUnharmed {              background-image: url(/images/unharmed.svg);}
-.bgRestricted {            background-image: url(/images/restricted.svg);}
+.bgDead { background-image: url(/images/persondead.svg);}
+.bgDeadBlack { background-image: url(/images/persondead_black.svg);}
+.bgDeadWhite { background-image: url(/images/persondead_white.svg);}
+.bgInjured { background-image: url(/images/person_injured.svg);}
+.bgInjuredBlack { background-image: url(/images/person_injured_black.svg);}
+.bgInjuredWhite { background-image: url(/images/person_injured_white.svg);}
+.bgUnharmed { background-image: url(/images/unharmed.svg);}
+.bgRestricted { background-image: url(/images/restricted.svg);}
 
-.bgPedestrian {            background-image: url(/images/transportation_modes/pedestrian.svg);}
-.bgScooter {               background-image: url(/images/transportation_modes/scooter.svg);}
-.bgBicycle {               background-image: url(/images/transportation_modes/bicycle.svg);}
-.bgMotorScooter {          background-image: url(/images/transportation_modes/motor_scooter.svg);}
-.bgMotorcycle {            background-image: url(/images/transportation_modes/motorcycle.svg);}
-.bgCar {                   background-image: url(/images/transportation_modes/car.svg);}
-.bgTaxi {                  background-image: url(/images/transportation_modes/taxi.svg);}
-.bgEmergencyVehicle {      background-image: url(/images/transportation_modes/emergencyvehicle.svg);}
-.bgTractor {               background-image: url(/images/transportation_modes/tractor.svg);}
-.bgDeliveryVan {           background-image: url(/images/transportation_modes/deliveryvan.svg);}
-.bgBus {                   background-image: url(/images/transportation_modes/bus.svg);}
-.bgTram {                  background-image: url(/images/transportation_modes/tram.svg);}
-.bgTruck {                 background-image: url(/images/transportation_modes/truck.svg);}
-.bgTrain {                 background-image: url(/images/transportation_modes/train.svg);}
-.bgWheelchair {            background-image: url(/images/transportation_modes/wheelchair.svg);}
-.bgMopedCar {              background-image: url(/images/transportation_modes/mopedcar.svg);}
-.bgUnknown {               background-image: url(/images/transportation_modes/unknown.svg);}
+.bgPedestrian { background-image: url(/images/transportation_modes/pedestrian.svg);}
+.bgScooter { background-image: url(/images/transportation_modes/scooter.svg);}
+.bgBicycle { background-image: url(/images/transportation_modes/bicycle.svg);}
+.bgMotorScooter { background-image: url(/images/transportation_modes/motor_scooter.svg);}
+.bgMotorcycle { background-image: url(/images/transportation_modes/motorcycle.svg);}
+.bgCar { background-image: url(/images/transportation_modes/car.svg);}
+.bgTaxi { background-image: url(/images/transportation_modes/taxi.svg);}
+.bgEmergencyVehicle { background-image: url(/images/transportation_modes/emergencyvehicle.svg);}
+.bgTractor { background-image: url(/images/transportation_modes/tractor.svg);}
+.bgDeliveryVan { background-image: url(/images/transportation_modes/deliveryvan.svg);}
+.bgBus { background-image: url(/images/transportation_modes/bus.svg);}
+.bgTram { background-image: url(/images/transportation_modes/tram.svg);}
+.bgTruck { background-image: url(/images/transportation_modes/truck.svg);}
+.bgTrain { background-image: url(/images/transportation_modes/train.svg);}
+.bgWheelchair { background-image: url(/images/transportation_modes/wheelchair.svg);}
+.bgMopedCar { background-image: url(/images/transportation_modes/mopedcar.svg);}
+.bgUnknown { background-image: url(/images/transportation_modes/unknown.svg);}
 
-.bgUnilateral {            background-image: url(/images/unilateral.svg);}
-.bgChild {                 background-image: url(/images/child.svg);}
-.bgChildWhite {            background-image: url(/images/child_white.svg);}
-.bgNoUnilateral{           background-image: url(/images/no_unilateral.svg);}
-.bgPet {                   background-image: url(/images/pet.svg);}
-.bgAlcohol {               background-image: url(/images/alcohol.svg);}
-.bgHitRun {                background-image: url(/images/hitrun.svg);}
-.bgTrafficJam {            background-image: url(/images/trafficjam.svg);}
-.bgTree {                  background-image: url(/images/tree.svg);}
+.bgUnilateral { background-image: url(/images/unilateral.svg);}
+.bgChild { background-image: url(/images/child.svg);}
+.bgChildWhite { background-image: url(/images/child_white.svg);}
+.bgNoUnilateral{ background-image: url(/images/no_unilateral.svg);}
+.bgPet { background-image: url(/images/pet.svg);}
+.bgAlcohol { background-image: url(/images/alcohol.svg);}
+.bgHitRun { background-image: url(/images/hitrun.svg);}
+.bgTrafficJam { background-image: url(/images/trafficjam.svg);}
+.bgTree { background-image: url(/images/tree.svg);}
 
 .buttonPopupMenu, .buttonPopupMenuTemp {
-  display:          none;
-  position:         absolute;
-  right:            0;
-  min-width:        200px;
-  text-align:       left;
-  z-index:          10;
-  padding:          0;
+  display: none;
+  position: absolute;
+  right: 0;
+  min-width: 200px;
+  text-align: left;
+  z-index: 10;
+  padding: 0;
   background-color: #ffffff;
-  color:            #000;
-  box-shadow:       0 2px 10px 0 rgba(0,0,0,0.2);
-  text-decoration:  none;
+  color: #000;
+  box-shadow: 0 2px 10px 0 rgba(0,0,0,0.2);
+  text-decoration: none;
 }
 
 .buttonPopupMenu > div:not(.navigationSectionHeader),
 .buttonPopupMenu > a,
 .buttonPopupMenuTemp > div {
-  display:         flex;
-  align-items:     center;
-  white-space:     nowrap;
-  padding:         10px;
-  cursor:          pointer;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 10px;
+  cursor: pointer;
   text-decoration: none !important;
+  color: inherit;
 }
 
 .popupOuter {
@@ -1009,7 +1026,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 #spinnerLoad img, #spinnerLoad img, .spinnerLine img {
-  height: 24px;
+  height: 30px;
 }
 
 .spiderBackground {
@@ -1565,9 +1582,15 @@ table.tableDragging td div {
 .ready {
   background-color: var(--color-ready) !important;
 }
+
+/* Small screens */
 @media (max-width: 750px) {
   .hideOnMobile {
     display: none !important;
+  }
+
+  .pageTitle, .pageTitle * {
+    font-size: 24px;
   }
 
   .showOnMobile {
@@ -1580,5 +1603,12 @@ table.tableDragging td div {
 
   .buttonMobileSmall {
     min-width: 70px !important;
+  }
+}
+
+/* Really small screens*/
+@media (max-width: 450px) {
+  .pageTitle, .pageTitle * {
+    font-size: 18px;
   }
 }

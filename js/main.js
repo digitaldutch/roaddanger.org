@@ -13,19 +13,19 @@ let markerEdit;
 let questionnaireCountries = [];
 
 const PageType = Object.freeze({
-  stream:                        0,
-  crash:                         1,
-  moderations:                   2,
+  stream: 0,
+  crash: 1,
+  moderations: 2,
   statisticsTransportationModes: 3,
-  statisticsGeneral:             4,
-  statisticsMediaHumanization:   12,
-  statisticsCrashPartners:       5,
-  recent:                        6,
-  deCorrespondent:               7,
-  mosaic:                        8,
-  export:                        9,
-  map:                           10,
-  childVictims:                  11,
+  statisticsGeneral: 4,
+  statisticsMediaHumanization: 12,
+  statisticsCrashPartners: 5,
+  recent: 6,
+  deCorrespondent: 7,
+  mosaic: 8,
+  export: 9,
+  map: 10,
+  childVictims: 11,
 });
 
 async function initMain() {
@@ -577,8 +577,8 @@ async function loadCrashes(crashId=null, articleId=null){
     spinnerLoad.style.display = 'block';
 
     const serverData = {
-      count:   maxLoadCount,
-      offset:  crashes.length,
+      count: maxLoadCount,
+      offset: crashes.length,
     };
 
     serverData.filter = getSearchFilter();
@@ -587,7 +587,7 @@ async function loadCrashes(crashId=null, articleId=null){
     if (pageType  === PageType.moderations) serverData.moderations=1;
     else if ((pageType === PageType.recent) || (pageType === PageType.mosaic)) serverData.sort = 'crashDate';
     else if (pageType  === PageType.deCorrespondent) {
-      serverData.sort          = 'crashDate';
+      serverData.sort = 'crashDate';
       serverData.filter.period = 'decorrespondent';
     }
 
@@ -652,7 +652,7 @@ async function loadMapDataFromServer(){
       lonMax: bounds._ne.lng,
     }
 
-    const url      = '/general/ajax.php?function=loadCrashes';
+    const url = '/general/ajax.php?function=loadCrashes';
     const response = await fetchFromServer(url, serverData);
 
     if (response.user) updateLoginGUI(response.user);

@@ -24,7 +24,7 @@ HTML;
 
   $buttons = '';
   if ($addSearchBar)  $buttons .= '<div id="buttonSearch" class="menuButtonBlack bgSearchWhite" onclick="toggleSearchBar(event);"></div>';
-  if ($showButtonAdd) $buttons .= '<div id="buttonNewCrash" style="display: none;" class="menuButtonBlack bgAddWhite" onclick="showNewCrashForm();"></div>';
+  if ($showButtonAdd) $buttons .= '<div id="buttonNewCrash" style="display: none; margin-left: 4px;" class="menuButtonBlack bgAdd buttonImportant" onclick="showNewCrashForm();"></div>';
 
   global $database;
   global $user;
@@ -76,7 +76,7 @@ $navigation
   
     <div class="headerMain pageTitle">
       <span>
-        <a href="/">$websiteName<span id="titleCountry" class="hideOnMobile"></span></a>        
+        <a href="/">$websiteName</a>        
         <img id="spinnerTitle" src="/images/spinner.svg" style="display: none; height: 17px; margin-left: 5px;" alt="Spinner">
       </span>
     </div>
@@ -85,8 +85,8 @@ $navigation
       $buttons
       
       <span style="position: relative;">
-        <div class="buttonHeader" onclick="loginClick(event);">
-          <div id="buttonPerson" class="buttonIcon bgPerson"></div>
+        <div class="buttonHeader" onclick="profileClick(event);">
+          <div id="buttonPerson" class="buttonIcon bgPersonWhite"></div>
           <div id="loginText" class="hideOnMobile">...</div>
           <div id="loginName" class="hideOnMobile"></div>
         </div>
@@ -102,7 +102,7 @@ $navigation
       <span style="position: relative;">
         <div id="buttonLanguages" class="buttonHeader" onclick="countryClick(event);">
           <div id="iconCountry" class="buttonIcon"></div>
-          <div class="buttonIcon bgLanguage"></div>
+          <div class="buttonIcon bgLanguageWhite"></div>
         </div>
         
         <div id="menuCountries" class="buttonPopupMenu">

@@ -335,8 +335,6 @@ function updateLoginGUI(userNew){
 
   document.getElementById('iconCountry').style.backgroundImage = `url(/images/flags/${user.countryid.toLowerCase()}.svg)`;
 
-  document.getElementById('titleCountry').innerHTML = ' · ' + user.country.name;
-
   document.querySelectorAll('.buttonEditPost').forEach(
     button => {
       const buttonUserId = parseInt(button.getAttribute('data-userid'));
@@ -349,6 +347,9 @@ function updateLoginGUI(userNew){
   document.querySelectorAll('[data-moderator]').forEach(d => {d.style.display = user.moderator? 'block' : 'none'});
   document.querySelectorAll('[data-admin]').forEach(d => {d.style.display = user.admin? 'block' : 'none'});
   document.querySelectorAll('[data-inline-admin]').forEach(d => {d.style.display = user.admin? 'inline-block' : 'none'});
+
+  const divCountry = document.getElementById('countryName');
+  if (divCountry) divCountry.innerHTML = ' · ' + user.country.name;
 }
 
 async function selectCountry(countryId) {
@@ -670,31 +671,30 @@ async function loadUserData(options=[]) {
   }
 }
 
-function loginClick(event) {
+function profileClick(event) {
   event.stopPropagation();
+
+  const div = document.getElementById('menuPerson');
+  const isOpen = div.style.display === 'block';
+
   closeAllPopups();
 
   if (! user) return;
 
-  if (user.loggedin) togglePersonMenu();
-  else showLoginForm();
+  if (user.loggedin) {
+    div.style.display = isOpen? 'none' : 'block';
+  } else showLoginForm();
 }
 
 function countryClick(event){
   event.stopPropagation();
 
-  const div    = document.getElementById('menuCountries');
+  const div = document.getElementById('menuCountries');
   const isOpen = div.style.display === 'block';
 
   closeAllPopups();
 
   div.style.display = isOpen? 'none' : 'block';
-}
-
-function togglePersonMenu(){
-  const div = document.getElementById('menuPerson');
-
-  div.style.display = div.style.display === 'block'? 'none' : 'block';
 }
 
 function toggleNavigation(event) {
