@@ -328,6 +328,7 @@ HTML;
     case PageType::recent: $title = translate('Recent_crashes') . '<span id="countryName"></span>'; break;
   }
 
+  $pageTitle = WEBSITE_NAME;
   $introText = "<div id='pageSubTitle' class='pageSubTitle'>$title</div>";
 
   if (isset($messageHTML) && in_array($pageType, [PageType::recent, PageType::lastChanged, PageType::deCorrespondent, PageType::crash])) {
@@ -337,6 +338,7 @@ HTML;
   $mainHTML = <<<HTML
 <div id="pageMain">
   <div class="pageInner">
+    <div id="largeTitle">$pageTitle</div>
     $introText
     <div id="cards"></div>
     <div id="spinnerLoad"><img src="/images/spinner.svg"></div>

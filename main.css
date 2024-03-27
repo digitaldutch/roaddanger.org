@@ -73,6 +73,17 @@ a:hover, .link:hover {
   white-space: nowrap;
 }
 
+#largeTitle {
+  display: flex;
+  justify-content: center;
+  font-size: 110px;
+  font-weight: 500;
+  letter-spacing: -0.08em;
+  background: linear-gradient(to right, #ffffff 0%, #f23825 70%);
+  background-clip: text;
+  color: transparent;
+}
+
 .postText {
   /*font-family: 'Merriweather', serif;*/
 }
@@ -1593,6 +1604,10 @@ table.tableDragging td div {
     font-size: 24px;
   }
 
+  #largeTitle {
+    font-size: 80px;
+  }
+
   .showOnMobile {
     display: flex !important;
   }
@@ -1610,5 +1625,9 @@ table.tableDragging td div {
 @media (max-width: 450px) {
   .pageTitle, .pageTitle * {
     font-size: 18px;
+  }
+
+  #largeTitle {
+    font-size: 40px;
   }
 }
