@@ -316,9 +316,9 @@ HTML;
 </div>
 HTML;
 } else {
-  $addSearchBar  = true;
+  $addSearchBar = true;
   $showButtonAdd = true;
-  $messageHTML   = translateLongText('website_info');
+  $messageHTML = translateLongText('website_info');
 
   $title = '';
   switch ($pageType){

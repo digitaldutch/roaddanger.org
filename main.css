@@ -7,8 +7,8 @@
   --menu-header-bgcolor: #626262;
   --menu-header-color: #ffffff;
   --link-color: #f23825;
-  --button-important-bgcolor: #ffbe0d;
-  --button-important-color: #000000;
+  --important-bgcolor: #ffbe0d;
+  --important-color: #000000;
   --tooltip-bgcolor: #ffbe0d;
   --tooltip-color: #000000;
   --table-data-border-color: #eee;
@@ -530,7 +530,6 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .buttonHeader {
   display: inline-flex;
-  background-color: #8f8f8f;
   color: #ffffff;
   box-sizing: border-box;
   height: 30px;
@@ -550,8 +549,8 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .menuSelected {
-  background-color: var(--selected-bgcolor);
-  color: var(--selected-color);
+  background-color: var(--selected-bgcolor) !important;
+  color: var(--selected-color) !important;
 }
 
 .buttonIcon {
@@ -820,8 +819,8 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 #floatingMessage,  #floatingMessage a, .notice {
-  color:            #fff;
-  background-color: #4d90fe;
+  color: var(--important-color);
+  background-color: var(--important-bgcolor);
 }
 
 .notice {
@@ -831,20 +830,19 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 #cookieWarning {
-  position:         fixed;
-  bottom:           0;
-  left:             0;
-  right:            0;
-  z-index:          1000;
-  color:            #fff;
-  background-color: #4d90fe;
-  padding:         20px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: var(--important-bgcolor) !important;
+  color: var(--important-color) !important;
+  padding: 20px;
   justify-content: space-between;
 }
 
 .errorMessage, .errorMessage a {
-  color:            #000000 !important;
-  background-color: #F9BDBD !important;
+  background-color: #f23825 !important;
 }
 
 #messageText {
@@ -1000,8 +998,8 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .buttonImportant {
-  background-color: var(--button-important-bgcolor) !important;
-  color: var(--button-important-color) !important;
+  background-color: var(--important-bgcolor) !important;
+  color: var(--important-color) !important;
 }
 
 .buttonGray {

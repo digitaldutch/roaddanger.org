@@ -104,8 +104,8 @@ $navigation
         <div id="menuPerson" class="buttonPopupMenu">
           <div id="menuProfile" class="navigationSectionHeader"></div>
           <a href="/account">{$texts['Account']}</a>
-          <div id="menuLogin" class="buttonInsideMargin" onclick="showLoginForm();">{$texts['Log_in']}</div> 
-          <div id="menuLogout" class="buttonInsideMargin" style="display: none;" onclick="logOut();">{$texts['Log_out']}</div>
+          <div id="menuLogin" onclick="showLoginForm();">{$texts['Log_in']}</div> 
+          <div id="menuLogout" style="display: none;" onclick="logOut();">{$texts['Log_out']}</div>
         </div>
       </span>
   

@@ -150,15 +150,13 @@ function showError(text, secondsVisible=5) {
 
 function showMessage(text, secondsVisible=3, errorMessage=false) {
   clearTimeout(showMessage.timeoutMessage);
-  const divForm  = document.getElementById('floatingMessage');
+  const divForm = document.getElementById('floatingMessage');
   const divCross = document.getElementById('messageCloseCross');
 
   if (errorMessage) {
     divForm.classList.add('errorMessage');
-    divCross.classList.remove('crossWhite');
   } else {
     divForm.classList.remove('errorMessage');
-    divCross.classList.add('crossWhite');
   }
 
   document.getElementById('messageText').innerHTML = text;
