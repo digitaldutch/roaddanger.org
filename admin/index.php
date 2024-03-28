@@ -1,6 +1,7 @@
 <?php
 
 require_once '../initialize.php';
+require_once '../HtmlBuilder.php';
 
 global $database;
 global $user;
@@ -95,7 +96,7 @@ HTML;
 HTML;
     }
 
-    $htmlEnd = getFormEditUser();
+    $htmlEnd = HtmlBuilder::getFormEditUser();
   } else if ($pageType === PageType::translations) {
 
     $languages       = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
@@ -208,8 +209,8 @@ HTML;
 }
 
 $html =
-  getHTMLBeginMain('Admin', $head, 'initAdmin', false, false) .
+  HtmlBuilder::getHTMLBeginMain('Admin', $head, 'initAdmin', false, false) .
   $mainHTML .
-  getHTMLEnd($htmlEnd);
+  HtmlBuilder::getHTMLEnd($htmlEnd);
 
 echo $html;

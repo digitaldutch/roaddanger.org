@@ -1,6 +1,7 @@
 <?php
 
 require_once '../initialize.php';
+require_once '../HtmlBuilder.php';
 
 global $database;
 global $user;
@@ -211,7 +212,7 @@ HTML;
       'Filter']);
 
     $textIntro = translateLongText('questionnaires_fill_in');
-    $htmlSearchPersons = getSearchPersonsHtml();
+    $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml();
 
     $mainHTML = <<<HTML
 <div id="pageMain">
@@ -256,8 +257,8 @@ HTML;
     }
 
     $optionsYear = getHtmlYearOptions();
-    $htmlSearchPersons = getSearchPersonsHtml();
-    $htmlSearchCountry = getSearchCountryHtml('', 'filterResearchCountry', 'UN');
+    $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml();
+    $htmlSearchCountry = HtmlBuilder::getSearchCountryHtml('', 'filterResearchCountry', 'UN');
 
     $mainHTML = <<<HTML
 <div id="pageMain">
@@ -353,8 +354,8 @@ HTML;
 }
 
 $html =
-  getHTMLBeginMain('Research', $head, 'initResearch', false, false) .
+  HtmlBuilder::getHTMLBeginMain('Research', $head, 'initResearch', false, false) .
   $mainHTML .
-  getHTMLEnd($htmlEnd);
+  HtmlBuilder::getHTMLEnd($htmlEnd);
 
 echo $html;

@@ -1,6 +1,7 @@
 <?php
 
 require_once 'initialize.php';
+require_once 'HtmlBuilder.php';
 
 global $VERSION;
 global $database;
@@ -86,7 +87,7 @@ HTML;
 
 <div id="pageMain">
 
-  <div class="pageSubTitle"><img src="/images/child.svg" style="height: 20px; position: relative; top: 2px;"> {$texts['Child_victims']}</div>
+  <div class="pageSubTitle"><img src="/images/child_white.svg" style="height: 20px; position: relative; top: 2px;"> {$texts['Child_victims']}</div>
   <div style="display: flex; flex-direction: column; align-items: center">
     <div style="text-align: left;">
       <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">{$texts['Help_improve_data_accuracy']}</div>
@@ -94,14 +95,14 @@ HTML;
   </div>
   
   <div id="pageInfo" style="display: none; max-width: 600px; margin: 10px 0;">
-  $intro
-</div>
+    $intro
+  </div>
 
-  <div class="searchBar" style="display: flex; padding-bottom: 0;">
+  <div class="searchBarTransparent" style="display: flex; padding-bottom: 0;">
 
     <div class="toolbarItem">
-      <span id="filterChildDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterChildVictims();"></span>      
-      <span id="filterChildInjured" class="menuButton bgInjuredBlack" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterChildVictims();"></span>      
+      <span id="filterChildDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterChildVictims();"></span>      
+      <span id="filterChildInjured" class="menuButtonBlack bgInjuredWhite" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterChildVictims();"></span>      
     </div>
     
   </div>
@@ -171,8 +172,8 @@ HTML;
     'Search', 'Filter']);
   $intoText = $user->translateLongText('counter_party_info');
 
-  $htmlSearchCountry = getSearchCountryHtml('selectFilterStats');
-  $htmlSearchPeriod  = getSearchPeriodHtml('selectFilterStats');
+  $htmlSearchCountry = HtmlBuilder::getSearchCountryHtml('selectFilterStats');
+  $htmlSearchPeriod  = HtmlBuilder::getSearchPeriodHtml('selectFilterStats');
 
   $mainHTML = <<<HTML
 <div id="pageMain">
@@ -228,8 +229,8 @@ HTML;
     'Intoxicated', 'Drive_on_or_fleeing', 'Dead_(adjective)', 'Injured', 'Unharmed', 'Unknown', 'Search_text_hint',
     'Search', 'Filter']);
 
-  $htmlSearchCountry = getSearchCountryHtml();
-  $htmlSearchPeriod  = getSearchPeriodHtml();
+  $htmlSearchCountry = HtmlBuilder::getSearchCountryHtml();
+  $htmlSearchPeriod  = HtmlBuilder::getSearchPeriodHtml();
 
   $mainHTML = <<<HTML
 <div class="pageInner">
@@ -350,8 +351,8 @@ HTML;
 }
 
 $html =
-  getHTMLBeginMain('', $head, 'initMain', $addSearchBar, $showButtonAdd) .
+  HtmlBuilder::getHTMLBeginMain('', $head, 'initMain', $addSearchBar, $showButtonAdd) .
   $mainHTML .
-  getHTMLEnd();
+  HtmlBuilder::getHTMLEnd();
 
 echo $html;

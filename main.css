@@ -381,13 +381,19 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .searchBar {
-  display:         none;
-  position:        relative;
-  flex-wrap:       wrap;
-  align-items:     center;
+  display: none;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
-  padding:         10px 20px 10px 10px;
+  padding: 10px 20px 10px 10px;
   background-color: var(--bg-level2);
+}
+
+.searchBarTransparent {
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 .searchInput {

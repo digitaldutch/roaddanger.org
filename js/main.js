@@ -467,7 +467,6 @@ function clearTable(){
 }
 
 async function loadChildVictims(){
-
   let newCrashes = [];
   const serverData = {
     count: 50,
@@ -501,14 +500,13 @@ async function loadChildVictims(){
         let htmlIconsChildren = '';
         let htmlIconsOther = '';
         crash.persons.forEach(p => {
+          // Only child victims are shown
           if (p.health === Health.dead) {
-            if (p.child === 1) htmlIconsChildren += '<img src="/images/persondead.svg" style="width: 10px;">';
-            else htmlIconsOther += '<img src="/images/persondead_white.svg" style="width: 10px;">';
+            if (p.child === 1) htmlIconsChildren += '<img src="/images/persondead_white.svg" style="width: 10px;">';
           }
 
           if (p.health === Health.injured) {
-            if (p.child === 1) htmlIconsChildren += '<img src="/images/person_injured.svg" style="width: 10px;">';
-            else htmlIconsOther += '<img src="/images/person_injured_black.svg" style="width: 10px;">';
+            if (p.child === 1) htmlIconsChildren += '<img src="/images/person_injured_white.svg" style="width: 10px;">';
           }
         });
 

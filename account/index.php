@@ -1,6 +1,7 @@
 <?php
 
 require_once '../initialize.php';
+require_once '../HtmlBuilder.php';
 
 global $VERSION;
 global $database;
@@ -101,8 +102,8 @@ $head = <<<HTML
 HTML;
 
 $html =
-  getHTMLBeginMain('Reset wachtwoord', $head, 'initAccount') .
+  HtmlBuilder::getHTMLBeginMain('Reset wachtwoord', $head, 'initAccount') .
   $htmlMain .
-  getHTMLEnd();
+  HtmlBuilder::getHTMLEnd();
 
 echo $html;

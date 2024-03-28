@@ -1,6 +1,7 @@
 <?php
 
 require_once '../initialize.php';
+require_once '../HtmlBuilder.php';
 
 global $user;
 $pageText = $user->translateLongText('reporting_experiences');
@@ -16,8 +17,8 @@ $pageText
 HTML;
 
 $html =
-  getHTMLBeginMain($texts['Reporting_experiences'], '', 'initPageUser') .
+  HtmlBuilder::getHTMLBeginMain($texts['Reporting_experiences'], '', 'initPageUser') .
   $mainHTML .
-  getHTMLEnd();
+  HtmlBuilder::getHTMLEnd();
 
 echo $html;

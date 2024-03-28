@@ -1,6 +1,7 @@
 <?php
 
 require_once '../initialize.php';
+require_once '../HtmlBuilder.php';
 
 global $user;
 $aboutUsText = $user->translateLongText('about_us');
@@ -16,8 +17,8 @@ $aboutUsText
 HTML;
 
 $html =
-  getHTMLBeginMain($texts['About_this_site'], '', 'initPageUser') .
+  HtmlBuilder::getHTMLBeginMain($texts['About_this_site'], '', 'initPageUser') .
   $mainHTML .
-  getHTMLEnd();
+  HtmlBuilder::getHTMLEnd();
 
 echo $html;

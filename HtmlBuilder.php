@@ -1,18 +1,20 @@
 <?php
 
-function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $addSearchBar=false, $showButtonAdd=false){
-  global $VERSION;
+class HtmlBuilder {
 
-  $texts = translateArray(['Cookie_warning', 'More_info', 'Accept', 'Add']);
+  public static function getHTMLBeginMain($pageTitle = '', $head = '', $initFunction = '', $addSearchBar = false, $showButtonAdd = false) {
+    global $VERSION;
 
-  if ($pageTitle !== '') $title = $pageTitle . ' | ' . WEBSITE_NAME;
-  else $title = WEBSITE_NAME;
+    $texts = translateArray(['Cookie_warning', 'More_info', 'Accept', 'Add']);
 
-  $initScript = ($initFunction !== '')? "<script>document.addEventListener('DOMContentLoaded', $initFunction);</script>" : '';
-  $navigation = getNavigation();
+    if ($pageTitle !== '') $title = $pageTitle . ' | ' . WEBSITE_NAME;
+    else $title = WEBSITE_NAME;
 
-  if (! cookiesApproved()) {
-    $cookieWarning = <<<HTML
+    $initScript = ($initFunction !== '') ? "<script>document.addEventListener('DOMContentLoaded', $initFunction);</script>" : '';
+    $navigation = self::getNavigation();
+
+    if (!cookiesApproved()) {
+      $cookieWarning = <<<HTML
     <div id="cookieWarning" class="flexRow">
       <div>{$texts['Cookie_warning']}
         <a href="/aboutthissite/#cookies" style="text-decoration: underline; color: inherit;">{$texts['More_info']}</a>
@@ -20,45 +22,45 @@ function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $addSearchB
       <div class="button" onclick="acceptCookies();">{$texts['Accept']}</div>
     </div>
 HTML;
-  } else $cookieWarning = '';
+    } else $cookieWarning = '';
 
-  $buttons = '';
-  if ($addSearchBar) {
-    $buttons .= '<div id="buttonSearch" class="menuButtonBlack bgSearchWhite" onclick="toggleSearchBar(event);"></div>';
-  }
+    $buttons = '';
+    if ($addSearchBar) {
+      $buttons .= '<div id="buttonSearch" class="menuButtonBlack bgSearchWhite" onclick="toggleSearchBar(event);"></div>';
+    }
 
-  if ($showButtonAdd) {
-    $buttons .= <<<HTML
+    if ($showButtonAdd) {
+      $buttons .= <<<HTML
 <div id="buttonNewCrash" class="buttonHeader buttonImportant" onclick="showNewCrashForm();">
   <div class="buttonIcon bgAdd"></div>
   <div class="hideOnMobile buttonInsideMargin">{$texts['Add']}</div>
 </div>
 HTML;
-  }
+    }
 
-  global $database;
-  global $user;
+    global $database;
+    global $user;
 
-  // Add countries
-  $countryOptions = '';
-  foreach ($database->countries as $country) {
-    $class = $country['id'] === $user->country['id']? "class='menuSelected'" : '';
-    $countryOptions .= "<div $class onclick=\"selectCountry('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url({$country['flagFile']});'></div>{$country['name']}</div>";
-  }
+    // Add countries
+    $countryOptions = '';
+    foreach ($database->countries as $country) {
+      $class = $country['id'] === $user->country['id'] ? "class='menuSelected'" : '';
+      $countryOptions .= "<div $class onclick=\"selectCountry('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url({$country['flagFile']});'></div>{$country['name']}</div>";
+    }
 
-  $languages = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
-  $languageOptions = '';
-  foreach ($languages as $language) {
-    $class = $language['id'] === $user->languageId? "class='menuSelected'" : '';
-    $languageOptions .= "<div $class onclick=\"setLanguage('{$language['id']}')\">{$language['name']}</div>";
-  }
+    $languages = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
+    $languageOptions = '';
+    foreach ($languages as $language) {
+      $class = $language['id'] === $user->languageId ? "class='menuSelected'" : '';
+      $languageOptions .= "<div $class onclick=\"setLanguage('{$language['id']}')\">{$language['name']}</div>";
+    }
 
-  $texts = translateArray(['Log_out', 'Log_in', 'Account', 'Country', 'Language']);
-  $websiteName = WEBSITE_NAME;
+    $texts = translateArray(['Log_out', 'Log_in', 'Account', 'Country', 'Language']);
+    $websiteName = WEBSITE_NAME;
 
-  $htmlSearchBar  = $addSearchBar? getHtmlSearchBar() : '';
+    $htmlSearchBar = $addSearchBar ? self::getHtmlSearchBar() : '';
 
-  return <<<HTML
+    return <<<HTML
 <!DOCTYPE html>
 <html lang="$user->languageId">
 <head>
@@ -130,16 +132,16 @@ $navigation
   
   $cookieWarning
 HTML;
-}
+  }
 
-function getHtmlSearchBar(){
-  $texts = translateArray(['Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source', 'Search_text_hint']);
+  public static function getHtmlSearchBar() {
+    $texts = translateArray(['Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source', 'Search_text_hint']);
 
-  $htmlSearchCountry = getSearchCountryHtml();
-  $htmlSearchPeriod = getSearchPeriodHtml();
-  $htmlSearchPersons = getSearchPersonsHtml();
+    $htmlSearchCountry = self::getSearchCountryHtml();
+    $htmlSearchPeriod = self::getSearchPeriodHtml();
+    $htmlSearchPersons = self::getSearchPersonsHtml();
 
-  return <<<HTML
+    return <<<HTML
   <div id="searchBar" class="searchBar">
     <div class="popupCloseCross closeCrossWhite" onclick="toggleSearchBar();"></div>
 
@@ -169,12 +171,12 @@ function getHtmlSearchBar(){
   </div>      
 HTML;
 
-}
+  }
 
-function getHTMLEnd($htmlEnd=''){
-  $forms    = getHTMLConfirm() . getLoginForm() . getFormCrash() . getFormEditCrash() . getFormMergeCrash() .
-    getFormEditPerson() . getFormQuestionnaires();
-  return <<<HTML
+  public static function getHTMLEnd($htmlEnd = '') {
+    $forms = self::getHTMLConfirm() . self::getLoginForm() . self::getFormCrash() . self::getFormEditCrash() . self::getFormMergeCrash() .
+      self::getFormEditPerson() . self::getFormQuestionnaires();
+    return <<<HTML
 </div>
     $htmlEnd 
     <div id="floatingMessage" onclick="closeMessage();">
@@ -186,12 +188,12 @@ function getHTMLEnd($htmlEnd=''){
     $forms
 </body>
 HTML;
-}
+  }
 
-function getHTMLConfirm(){
-  $texts = translateArray(['Confirm', 'Ok', 'Cancel']);
+  public static function getHTMLConfirm() {
+    $texts = translateArray(['Confirm', 'Ok', 'Cancel']);
 
-  $formConfirm = <<<HTML
+    $formConfirm = <<<HTML
 <div id="formConfirmOuter" class="popupOuter" style="z-index: 1000" onclick="closeConfirm();">
   <form id="formConfirm" class="floatingForm" onclick="event.stopPropagation();">
 
@@ -209,23 +211,23 @@ function getHTMLConfirm(){
 </div>
 HTML;
 
-  return $formConfirm;
-}
+    return $formConfirm;
+  }
 
-function getNavigation(){
+  public static function getNavigation() {
 
-  global $VERSION;
-  global $VERSION_DATE;
+    global $VERSION;
+    global $VERSION_DATE;
 
-  $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
-    'Child_victims', 'Mosaic', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
-    'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
-    'Version', 'Questionnaires', 'fill_in', 'settings', 'results', 'Reporting_experiences', 'Research',
-    'Graphs_and_statistics', 'Media_humanization_test']);
+    $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
+      'Child_victims', 'Mosaic', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
+      'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
+      'Version', 'Questionnaires', 'fill_in', 'settings', 'results', 'Reporting_experiences', 'Research',
+      'Graphs_and_statistics', 'Media_humanization_test']);
 
-  $websiteTitle = WEBSITE_NAME;
+    $websiteTitle = WEBSITE_NAME;
 
-  return <<<HTML
+    return <<<HTML
 <div id="navShadow" class="navShadow" onclick="closeNavigation()"></div>
 <div id="navigation" onclick="closeNavigation();">
   <div class="navHeader">
@@ -284,13 +286,13 @@ function getNavigation(){
   </div>  
 </div>
 HTML;
-}
+  }
 
-function getLoginForm() {
-  $texts = translateArray(['Cancel', 'Email', 'Log_in_or_register', 'First_name', 'Last_name', 'Password', 'Confirm_password', 'Log_in',
-    'Register', 'Stay_logged_in', 'Forgot_password']);
+  public static function getLoginForm() {
+    $texts = translateArray(['Cancel', 'Email', 'Log_in_or_register', 'First_name', 'Last_name', 'Password', 'Confirm_password', 'Log_in',
+      'Register', 'Stay_logged_in', 'Forgot_password']);
 
-  return <<<HTML
+    return <<<HTML
 <div id="formLogin" class="popupOuter">
   <form class="formFullPage" onclick="event.stopPropagation();" onsubmit="checkLogin(); return false;">
 
@@ -335,19 +337,19 @@ function getLoginForm() {
   </form>
 </div>  
 HTML;
-}
+  }
 
-function getFormEditCrash(){
-  $texts = translateArray(['Article', 'Crash', 'Fetch_article', 'Link_url', 'Title', 'Media_source', 'Summary',
-    'Full_text',
-    'Photo_link_url', 'Same_as_article', 'Add_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
-    'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
-    'Location', 'Characteristics', 'Save', 'Cancel',
-    'Spider_is_working', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Accident_text_info', 'Edit_location_instructions']);
+  public static function getFormEditCrash() {
+    $texts = translateArray(['Article', 'Crash', 'Fetch_article', 'Link_url', 'Title', 'Media_source', 'Summary',
+      'Full_text',
+      'Photo_link_url', 'Same_as_article', 'Add_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
+      'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
+      'Location', 'Characteristics', 'Save', 'Cancel',
+      'Spider_is_working', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Accident_text_info', 'Edit_location_instructions']);
 
-  $htmlSearchCountry = getSearchCountryHtml('', 'editCrashCountry');
+    $htmlSearchCountry = self::getSearchCountryHtml('', 'editCrashCountry');
 
-  return <<<HTML
+    return <<<HTML
 <div id="formEditCrash" class="popupOuter">
 
   <form class="formFullPage" onclick="event.stopPropagation();">
@@ -460,10 +462,10 @@ function getFormEditCrash(){
   
 </div>
 HTML;
-}
+  }
 
-function getFormCrash(){
-  return <<<HTML
+  public static function getFormCrash() {
+    return <<<HTML
 <div id="formCrash" class="popupOuter" onclick="closeCrashDetails();">
     <div class="popupCloseCrossWhiteFullScreen hideOnMobile" onclick="closeCrashDetails();"></div>
 
@@ -477,11 +479,11 @@ function getFormCrash(){
   
 </div>
 HTML;
-}
+  }
 
-function getFormQuestionnaires() {
+  public static function getFormQuestionnaires() {
 
-  return <<<HTML
+    return <<<HTML
 <div id="formQuestions" class="popupOuter">
 
   <div class="formFullPage" onclick="event.stopPropagation();">
@@ -514,13 +516,13 @@ function getFormQuestionnaires() {
   
 </div>
 HTML;
-}
+  }
 
-function getFormMergeCrash(){
+  public static function getFormMergeCrash() {
 
-  $texts = translateArray(['Cancel']);
+    $texts = translateArray(['Cancel']);
 
-  return <<<HTML
+    return <<<HTML
 <div id="formMergeCrash" class="popupOuter" onclick="closePopupForm();">
 
   <form class="formFullPage" onclick="event.stopPropagation();">
@@ -574,13 +576,13 @@ function getFormMergeCrash(){
   
 </div>
 HTML;
-}
+  }
 
-function getFormEditPerson(){
-  $texts = translateArray(['Transportation_mode', 'Characteristics', 'Child', 'Intoxicated', 'Drive_on_or_fleeing', 'Injury',
-    'Close', 'Delete', 'Save_and_stay_open', 'Save_and_close']);
+  public static function getFormEditPerson() {
+    $texts = translateArray(['Transportation_mode', 'Characteristics', 'Child', 'Intoxicated', 'Drive_on_or_fleeing', 'Injury',
+      'Close', 'Delete', 'Save_and_stay_open', 'Save_and_close']);
 
-  return <<<HTML
+    return <<<HTML
 <div id="formEditPerson" class="popupOuter" style="z-index: 501;" onclick="closeEditPersonForm();">
 
   <div class="formFullPage" onclick="event.stopPropagation();">
@@ -619,15 +621,15 @@ function getFormEditPerson(){
   
 </div>
 HTML;
-}
+  }
 
-function getFormEditUser(){
+  public static function getFormEditUser() {
 
-  $texts = translateArray(['Save', 'Cancel', 'Helper', 'Moderator', 'Administrator', 'Email', 'First_name',
-    'Last_name', 'Permission']);
+    $texts = translateArray(['Save', 'Cancel', 'Helper', 'Moderator', 'Administrator', 'Email', 'First_name',
+      'Last_name', 'Permission']);
 
-  return
-    <<<HTML
+    return
+      <<<HTML
 <div id="formEditUser" class="popupOuter" onclick="closePopupForm();">
   <form class="formFullPage" onclick="event.stopPropagation();">
     
@@ -661,16 +663,16 @@ function getFormEditUser(){
   </form>
 </div>
 HTML;
-}
+  }
 
-function getSearchPeriodHtml($onInputFunctionName = ''){
-  $texts = translateArray(['Always', 'Today', 'Yesterday', 'days', 'The_correspondent_week', 'Custom_period', 'Period', 'Start_date', 'End_date']);
+  public static function getSearchPeriodHtml($onInputFunctionName = '') {
+    $texts = translateArray(['Always', 'Today', 'Yesterday', 'days', 'The_correspondent_week', 'Custom_period', 'Period', 'Start_date', 'End_date']);
 
-  $onInputFunction = $onInputFunctionName === ''? '' : $onInputFunctionName . '();';
-  $onInputSelect   = 'oninput="setCustomRangeVisibility();' . $onInputFunction . '"';
-  $onInputDates    = $onInputFunction? 'oninput="' . $onInputFunction . '"' : '';
+    $onInputFunction = $onInputFunctionName === '' ? '' : $onInputFunctionName . '();';
+    $onInputSelect = 'oninput="setCustomRangeVisibility();' . $onInputFunction . '"';
+    $onInputDates = $onInputFunction ? 'oninput="' . $onInputFunction . '"' : '';
 
-  return <<<HTML
+    return <<<HTML
 <div class="toolbarItem">
   <select id="searchPeriod" class="searchInput" $onInputSelect data-tippy-content="{$texts['Period']}">
     <option value="all" selected>{$texts['Always']}</option> 
@@ -691,12 +693,12 @@ function getSearchPeriodHtml($onInputFunctionName = ''){
 <input id="searchDateFrom" class="searchInput toolbarItem" type="date" data-tippy-content="{$texts['Start_date']}" $onInputDates>
 <input id="searchDateTo" class="searchInput toolbarItem" type="date" data-tippy-content="{$texts['End_date']}" $onInputDates>
 HTML;
-}
+  }
 
-function getSearchPersonsHtml() {
-  $texts = translateArray(['Humans']);
+  public static function getSearchPersonsHtml() {
+    $texts = translateArray(['Humans']);
 
-  return <<<HTML
+    return <<<HTML
     <div class="toolbarItem">
       <div class="dropInputWrapper">
         <div class="searchInput dropInput" tabindex="0" onclick="toggleSearchPersons(event);">
@@ -709,27 +711,28 @@ function getSearchPersonsHtml() {
     </div>
 HTML;
 
-}
-
-function getSearchCountryHtml(string $onInputFunctionName = '', string $elementId='searchCountry', string $selectedCountryId=''): string {
-  global $database;
-  global $user;
-
-  if ($selectedCountryId === '') $selectedCountryId = $user->country['id'];
-
-  $texts = translateArray(['Country']);
-
-  $onInputFunction = $onInputFunctionName === ''? '' : 'oninput="' . $onInputFunctionName . '();"';
-
-  $countryOptions = '';
-  foreach ($database->countries as $country) {
-    $selected = $country['id'] === $selectedCountryId? "selected" : '';
-    $countryOptions .= "<option value='{$country['id']}' $selected>{$country['name']}</option>";
   }
 
-  return <<<HTML
+  public static function getSearchCountryHtml(string $onInputFunctionName = '', string $elementId = 'searchCountry', string $selectedCountryId = ''): string {
+    global $database;
+    global $user;
+
+    if ($selectedCountryId === '') $selectedCountryId = $user->country['id'];
+
+    $texts = translateArray(['Country']);
+
+    $onInputFunction = $onInputFunctionName === '' ? '' : 'oninput="' . $onInputFunctionName . '();"';
+
+    $countryOptions = '';
+    foreach ($database->countries as $country) {
+      $selected = $country['id'] === $selectedCountryId ? "selected" : '';
+      $countryOptions .= "<option value='{$country['id']}' $selected>{$country['name']}</option>";
+    }
+
+    return <<<HTML
 <select id="$elementId" class="searchInput" $onInputFunction data-tippy-content="{$texts['Country']}">
   $countryOptions
 </select>
 HTML;
+  }
 }
