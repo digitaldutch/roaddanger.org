@@ -307,30 +307,32 @@ async function loginIntern(email, password, stayLoggedIn=0) {
 
 function updateLoginGUI(userNew){
   user = userNew;
-  const buttonPerson = document.getElementById('buttonPerson');
+  const buttonProfile = document.getElementById('buttonProfile');
 
   // New crash button is only visible after user data is loaded, because new crash function checks if user is logged in.
   const buttonNewCrash = document.getElementById('buttonNewCrash');
-  if (buttonNewCrash) buttonNewCrash.style.display = 'inline-block';
+  if (buttonNewCrash) buttonNewCrash.style.display = 'inline-flex';
 
   document.getElementById('menuProfile').style.display = user.loggedin? 'block' : 'none';
-  document.getElementById('menuLogin').style.display   = user.loggedin? 'none' : 'block';
-  document.getElementById('menuLogout').style.display  = user.loggedin? 'block' : 'none';
+  document.getElementById('menuLogin').style.display = user.loggedin? 'none' : 'block';
+  document.getElementById('menuLogout').style.display = user.loggedin? 'block' : 'none';
 
   if (user.loggedin) {
     document.getElementById('loginName').style.display = 'inline-block';
     document.getElementById('loginText').style.display = 'none';
-    document.getElementById('loginName').innerText     = user.firstname;
-    document.getElementById('menuProfile').innerHTML   = user.firstname + ' ' + user.lastname + '<div class="smallFont">' + permissionToText(user.permission) + '</div>';
-    buttonPerson.classList.remove('buttonPerson');
-    buttonPerson.classList.add('bgPersonLoggedIn');
+    document.getElementById('loginName').innerText = user.firstname;
+    document.getElementById('menuProfile').innerHTML = user.firstname + ' ' + user.lastname + '<div class="smallFont">' + permissionToText(user.permission) + '</div>';
+
+    buttonProfile.classList.remove('buttonProfile');
+    buttonProfile.classList.add('bgPersonLoggedIn');
   } else {
     document.getElementById('loginName').style.display = 'none';
     document.getElementById('loginText').style.display = 'inline-block';
-    document.getElementById('loginText').innerText     = 'Log in';
-    document.getElementById('menuProfile').innerText   = '';
-    buttonPerson.classList.add('buttonPerson');
-    buttonPerson.classList.remove('bgPersonLoggedIn');
+    document.getElementById('loginText').innerText = 'Log in';
+    document.getElementById('menuProfile').innerText = '';
+
+    buttonProfile.classList.add('buttonProfile');
+    buttonProfile.classList.remove('bgPersonLoggedIn');
   }
 
   document.getElementById('iconCountry').style.backgroundImage = `url(/images/flags/${user.countryid.toLowerCase()}.svg)`;
@@ -1154,8 +1156,8 @@ function getPersonsFromFilter(){
 
   for (const key of Object.keys(TransportationMode)){
     const transportationMode =  TransportationMode[key];
-    const buttonPerson       = document.getElementById('tm' + transportationMode);
-    if (buttonPerson.classList.contains('itemSelected')) {
+    const buttonProfile       = document.getElementById('tm' + transportationMode);
+    if (buttonProfile.classList.contains('itemSelected')) {
       let person = transportationMode;
 
       const deadSelected = document.getElementById('searchDeadTm' + transportationMode).classList.contains('inputSelectButtonSelected');

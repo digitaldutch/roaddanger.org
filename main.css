@@ -509,17 +509,18 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .menuButtonBlack {
-  position:            relative;
-  display:             inline-block;
-  outline:             none;
-  height:              28px;
-  width:               28px;
-  padding:             1px;
-  cursor:              pointer;
-  background-size:     25px;
-  background-repeat:   no-repeat;
+  position: relative;
+  display: inline-block;
+  outline: none;
+  height: 30px;
+  width: 30px;
+  box-sizing: border-box;
+  padding: 1px;
+  cursor: pointer;
+  background-size: 25px;
+  background-repeat: no-repeat;
   background-position: center;
-  border-radius:       3px;
+  border-radius: 3px;
   border: 2px solid rgba(255,255,255,0);
 }
 
@@ -529,8 +530,9 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .buttonHeader {
   display: inline-flex;
-  background-color: #000000;
+  background-color: #8f8f8f;
   color: #ffffff;
+  box-sizing: border-box;
   height: 30px;
   min-width: 30px;
   align-items: center;
@@ -553,16 +555,18 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .buttonIcon {
-  position:            relative;
-  display:             inline-block;
-  outline:             none;
-  padding:             1px;
-  margin-right:        3px;
-  height:              20px;
-  width:               20px;
-  background-size:     20px;
-  background-repeat:   no-repeat;
+  position: relative;
+  display: inline-block;
+  outline: none;
+  height: 20px;
+  width: 20px;
+  background-size: 20px;
+  background-repeat: no-repeat;
   background-position: center;
+}
+
+.buttonInsideMargin {
+  margin-left: 3px;
 }
 
 .menuIcon {
@@ -635,10 +639,6 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .iconTooltip:hover {
   opacity: 1;
-}
-
-#buttonPerson {
-  opacity: inherit;
 }
 
 .tippy-box[data-theme~='light'] {

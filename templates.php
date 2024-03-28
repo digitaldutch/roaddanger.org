@@ -3,7 +3,7 @@
 function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $addSearchBar=false, $showButtonAdd=false){
   global $VERSION;
 
-  $texts = translateArray(['Cookie_warning', 'More_info', 'Accept']);
+  $texts = translateArray(['Cookie_warning', 'More_info', 'Accept', 'Add']);
 
   if ($pageTitle !== '') $title = $pageTitle . ' | ' . WEBSITE_NAME;
   else $title = WEBSITE_NAME;
@@ -23,8 +23,18 @@ HTML;
   } else $cookieWarning = '';
 
   $buttons = '';
-  if ($addSearchBar)  $buttons .= '<div id="buttonSearch" class="menuButtonBlack bgSearchWhite" onclick="toggleSearchBar(event);"></div>';
-  if ($showButtonAdd) $buttons .= '<div id="buttonNewCrash" style="display: none; margin-left: 4px;" class="menuButtonBlack bgAdd buttonImportant" onclick="showNewCrashForm();"></div>';
+  if ($addSearchBar) {
+    $buttons .= '<div id="buttonSearch" class="menuButtonBlack bgSearchWhite" onclick="toggleSearchBar(event);"></div>';
+  }
+
+  if ($showButtonAdd) {
+    $buttons .= <<<HTML
+<div id="buttonNewCrash" class="buttonHeader buttonImportant" onclick="showNewCrashForm();">
+  <div id="buttonProfile" class="buttonIcon bgAdd"></div>
+  <div class="hideOnMobile buttonInsideMargin">{$texts['Add']}</div>
+</div>
+HTML;
+  }
 
   global $database;
   global $user;
@@ -86,23 +96,23 @@ $navigation
       
       <span style="position: relative;">
         <div class="buttonHeader" onclick="profileClick(event);">
-          <div id="buttonPerson" class="buttonIcon bgPersonWhite"></div>
-          <div id="loginText" class="hideOnMobile">...</div>
-          <div id="loginName" class="hideOnMobile"></div>
+          <div id="buttonProfile" class="buttonIcon bgPersonWhite"></div>
+          <div id="loginText" class="hideOnMobile buttonInsideMargin">...</div>
+          <div id="loginName" class="hideOnMobile buttonInsideMargin"></div>
         </div>
   
         <div id="menuPerson" class="buttonPopupMenu">
           <div id="menuProfile" class="navigationSectionHeader"></div>
           <a href="/account">{$texts['Account']}</a>
-          <div id="menuLogin" onclick="showLoginForm();">{$texts['Log_in']}</div> 
-          <div id="menuLogout" style="display: none;" onclick="logOut();">{$texts['Log_out']}</div>
+          <div id="menuLogin" class="buttonInsideMargin" onclick="showLoginForm();">{$texts['Log_in']}</div> 
+          <div id="menuLogout" class="buttonInsideMargin" style="display: none;" onclick="logOut();">{$texts['Log_out']}</div>
         </div>
       </span>
   
       <span style="position: relative;">
         <div id="buttonLanguages" class="buttonHeader" onclick="countryClick(event);">
           <div id="iconCountry" class="buttonIcon"></div>
-          <div class="buttonIcon bgLanguageWhite"></div>
+          <div class="buttonIcon buttonInsideMargin bgLanguageWhite"></div>
         </div>
         
         <div id="menuCountries" class="buttonPopupMenu">

@@ -2365,6 +2365,7 @@ function searchVisible(){
 
 function toggleSearchBar() {
   document.getElementById('searchBar').style.display = searchVisible()? 'none' : 'flex';
+
   if (searchVisible()) document.getElementById('searchText').focus();
 }
 
