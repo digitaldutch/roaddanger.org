@@ -30,7 +30,7 @@ HTML;
   if ($showButtonAdd) {
     $buttons .= <<<HTML
 <div id="buttonNewCrash" class="buttonHeader buttonImportant" onclick="showNewCrashForm();">
-  <div id="buttonProfile" class="buttonIcon bgAdd"></div>
+  <div class="buttonIcon bgAdd"></div>
   <div class="hideOnMobile buttonInsideMargin">{$texts['Add']}</div>
 </div>
 HTML;
