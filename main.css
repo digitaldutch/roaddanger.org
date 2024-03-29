@@ -132,6 +132,11 @@ h2, .pageSubTitleFont, .sectionTitle {
   background-image: radial-gradient(farthest-corner at 0 0, #f23825 0%, black 60%);
 }
 
+.blackOnWhite {
+  background-color: #ffffff;
+  color: #000;
+}
+
 .scrollPage {
   display:        flex;
   flex-direction: column;
@@ -739,9 +744,11 @@ h2, .pageSubTitleFont, .sectionTitle {
 .bgUnknown { background-image: url(/images/transportation_modes/unknown.svg);}
 
 .bgUnilateral { background-image: url(/images/unilateral.svg);}
+.bgUnilateralWhite { background-image: url(/images/unilateral_white.svg);}
 .bgChild { background-image: url(/images/child.svg);}
 .bgChildWhite { background-image: url(/images/child_white.svg);}
-.bgNoUnilateral{ background-image: url(/images/no_unilateral.svg);}
+.bgNoUnilateral { background-image: url(/images/no_unilateral.svg);}
+.bgNoUnilateralWhite { background-image: url(/images/no_unilateral_white.svg);}
 .bgPet { background-image: url(/images/pet.svg);}
 .bgAlcohol { background-image: url(/images/alcohol.svg);}
 .bgHitRun { background-image: url(/images/hitrun.svg);}
@@ -849,6 +856,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .errorMessage, .errorMessage a {
   background-color: #f23825 !important;
+  color: #ffffff !important;
 }
 
 #messageText {
@@ -898,15 +906,15 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .popupCloseCross {
-  position:        absolute;
-  right:           5px;
-  top:             4px;
-  background:      url("/images/close.svg") no-repeat center;
+  position: absolute;
+  right: 5px;
+  top: 4px;
+  background: url("/images/close.svg") no-repeat center;
   background-size: 25px;
-  height:          20px;
-  width:           20px;
-  opacity:         0.8;
-  cursor:          pointer;
+  height: 20px;
+  width: 20px;
+  opacity: 0.8;
+  cursor: pointer;
 }
 
 .popupCloseCross:hover {

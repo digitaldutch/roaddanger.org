@@ -229,6 +229,7 @@ function showCrashVictimsGraph(crashVictims){
   if (filter.child) options.yLabel += ' (' + translate('Children') + ')';
 
   graph = new CrashPartnerGraph('graphPartners', points, options, filter);
+  document.getElementById('graphWrapper').style.display = 'block';
 }
 
 function selectFilterStats() {
@@ -1304,7 +1305,7 @@ function showEditPersonForm(personID=null) {
   closeAllPopups();
   const person = getPersonFromID(personID);
 
-  document.getElementById('editPersonHeader').innerText       = person? 'Mens bewerken' : translate('Add_humans');
+  document.getElementById('editPersonHeader').innerText       = person? translate('Edit_humans') : translate('Add_humans');
   document.getElementById('personIDHidden').value             = person? person.id : '';
   document.getElementById('buttonDeletePerson').style.display = person? 'inline-flex' : 'none';
 
@@ -1787,7 +1788,7 @@ async function articleModerateOK(articleID) {
 
 function domainBlacklisted(url){
   const domainBlacklist = [
-    {domain: 'drimble.nl',        reason: 'Drimble is geen media website, maar een nieuws verzamelwebsite. Zoek de bron op de drimble.nl pagina en plaats die.'},
+    {domain: 'drimble.nl', reason: 'Drimble is geen media website, maar een nieuws verzamelwebsite. Zoek de bron op de drimble.nl pagina en plaats die.'},
   ];
 
   return domainBlacklist.find(d => url.includes(d.domain));
@@ -1830,7 +1831,7 @@ async function getArticleMetaData() {
 
   const domain = domainBlacklisted(urlArticle);
   if (domain) {
-    showMessage(`Links van "${domain.domain}" kunnen niet worden toegevoegd. ${domain.reason}`, 30);
+    showMessage(`Links from "${domain.domain}" can not be added. ${domain.reason}`, 30);
     return
   }
 
@@ -2137,18 +2138,18 @@ function deleteArticle(id) {
   closeAllPopups();
   const article = getArticleFromId(id);
 
-  confirmWarning(`Artikel "${article.title.substr(0, 100)}" verwijderen?`,
+  confirmWarning(translate('Delete_article') + '<br>' + article.title.substr(0, 100),
     function (){deleteArticleDirect(id)},
-    'Verwijder artikel', null, true);
+    translate('Delete'), null, true);
 }
 
 function deleteCrash(id) {
   closeAllPopups();
   const crash = getCrashFromId(id);
 
-  confirmWarning(`Ongeluk "${crash.title.substr(0, 100)}" verwijderen?`,
+  confirmWarning(translate('Delete_crash') + '<br>' + crash.title.substr(0, 100),
     function (){deleteCrashDirect(id)},
-    'Verwijder ongeluk');
+    translate('Delete'));
 }
 
 function crashRowHTML(crash, isSearch=false){
@@ -2298,10 +2299,11 @@ function mergeCrash() {
     }
   }
 
-  confirmMessage(`Ongeluk <br>#${crashFrom.id} ${crashFrom.title}<br><br>samenvoegen met<br>#${crashTo.id} ${crashTo.title}?`,
+  confirmMessage(translate('Merge_crashes') +
+    `<ul><li>${crashFrom.id} | ${crashFrom.title}</li><li>${crashTo.id} | ${crashTo.title}</li></ul>`,
     function () {
       mergeCrashesOnServer(fromID, toID);
-    }, 'Ja, voeg samen');
+    }, translate('Ok'));
 }
 
 

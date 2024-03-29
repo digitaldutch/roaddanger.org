@@ -155,8 +155,10 @@ function showMessage(text, secondsVisible=3, errorMessage=false) {
 
   if (errorMessage) {
     divForm.classList.add('errorMessage');
+    divCross.classList.add('closeCrossWhite');
   } else {
     divForm.classList.remove('errorMessage');
+    divCross.classList.remove('closeCrossWhite');
   }
 
   document.getElementById('messageText').innerHTML = text;
@@ -297,8 +299,8 @@ async function loginIntern(email, password, stayLoggedIn=0) {
   const user = await fetchFromServer(url);
   if (user.error) showLoginError(user.error);
   else {
-    if      (! user.emailexists) showLoginError(translate('Email_adres_unknown'));
-    else if (! user.loggedin)    showLoginError(translate('Password_incorrect'));
+    if (! user.emailexists) showLoginError(translate('Email_adres_unknown'));
+    else if (! user.loggedin) showLoginError(translate('Password_incorrect'));
     return user;
   }
 }
@@ -399,7 +401,7 @@ async function checkLogin() {
         updateLoginGUI(user);
 
         hideElement('formLogin');
-        showMessage(translate('Log_in_successful'), 1);
+        showMessage(translate('Log_in_successful'));
         window.location.reload();
       } else document.getElementById('spinnerLogin').style.display = 'none';
 
@@ -472,13 +474,13 @@ async function checkRegistration(){
 function loginForgotPassword() {
   let email = document.getElementById('loginEmail').value.trim().toLowerCase();
 
-  if (! email)                     showLoginError(translate('Email_not_filled_in'));
+  if (! email) showLoginError(translate('Email_not_filled_in'));
   else if (! validateEmail(email)) showLoginError(translate('Email_not_valid'));
   else sendResetPasswordInstructions(email);
 }
 
 async function sendResetPasswordInstructions(email) {
-  const url      = '/general/ajax.php?function=sendPasswordResetInstructions&email=' + encodeURIComponent(email);
+  const url = '/general/ajax.php?function=sendPasswordResetInstructions&email=' + encodeURIComponent(email);
   const response = await fetchFromServer(url);
 
   if (response.error) showError(response.error);

@@ -180,7 +180,7 @@ HTML;
 </div>
     $htmlEnd 
     <div id="floatingMessage" onclick="closeMessage();">
-      <div id="messageCloseCross" class="popupCloseCross crossWhite"></div>
+      <div id="messageCloseCross" class="popupCloseCross"></div>
       <div id="messageText"></div>
     </div>
     <div style="clear: both;"></div>
@@ -518,28 +518,27 @@ HTML;
 HTML;
   }
 
-  public static function getFormMergeCrash() {
-
-    $texts = translateArray(['Cancel']);
+  public static function getFormMergeCrash(): string {
+    $texts = translateArray(['Cancel', 'Merge', 'Date', 'Crash', 'Merge_crashes', 'Search']);
 
     return <<<HTML
 <div id="formMergeCrash" class="popupOuter" onclick="closePopupForm();">
 
   <form class="formFullPage" onclick="event.stopPropagation();">
     
-    <div class="popupHeader">Ongeluk samenvoegen</div>
+    <div class="popupHeader">{$texts['Merge_crashes']}</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
 
     <input id="mergeFromCrashIDHidden" type="hidden">
 
     <div class="flexColumn">
-      <div class="formSubHeader">Ongeluk</div>
+      <div class="formSubHeader">{$texts['Crash']}</div>
      
       <div id="mergeCrashFrom" class="crashRow"></div>
     </div>
             
     <div id="mergeCrashSection" class="flexColumn">
-      <div class="formSubHeader">Samenvoegen met</div>
+      <div class="formSubHeader">Merge with</div>
      
       <input id="mergeToCrashIDHidden" type="hidden">
       <div id="mergeCrashTo" class="crashRow"></div>  
@@ -547,19 +546,19 @@ HTML;
       <div class="flexRow">
         
         <div class="flexColumn" style="flex-grow: 1;">
-          <label for="mergeCrashSearch">Zoek ongeluk</label>
-          <input id="mergeCrashSearch" class="popupInput" style="margin-right: 5px;" type="search" autocomplete="off"  placeholder="Zoek tekst" onkeyup="searchMergeCrashDelayed();">
+          <label for="mergeCrashSearch">&nbsp;</label>
+          <input id="mergeCrashSearch" class="popupInput" style="margin-right: 5px;" type="search" autocomplete="off"  placeholder="{$texts['Search']}" onkeyup="searchMergeCrashDelayed();">
         </div>
         
         <div class="flexColumn">
-        <label>Datum</label>
+        <label>{$texts['Date']}</label>
         <select id="mergeCrashSearchDay" oninput="searchMergeCrashDelayed();">
           <option value=""></option>
-          <option value="0">Zelfde dag</option>
-          <option value="1">1 dag marge</option>
-          <option value="2">2 dagen marge</option>
-          <option value="7">7 dagen marge</option>
-          <option value="30">30 dagen marge</option>
+          <option value="0">Same day</option>
+          <option value="1">1 day margin</option>
+          <option value="2">2 days margin</option>
+          <option value="7">7 days margin</option>
+          <option value="30">30 days margin</option>
         </select>
         </div>
       </div>
@@ -569,7 +568,7 @@ HTML;
     </div>
             
     <div class="popupFooter">
-      <input id="buttonMergeArticle" type="button" class="button" value="Voeg samen" onclick="mergeCrash();">
+      <input id="buttonMergeArticle" type="button" class="button" value="{$texts['Merge']}" onclick="mergeCrash();">
       <input type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">
     </div>    
   </form>
@@ -587,7 +586,7 @@ HTML;
 
   <div class="formFullPage" onclick="event.stopPropagation();">
     
-    <div id="editPersonHeader" class="popupHeader">Nieuw mens toevoegen</div>
+    <div id="editPersonHeader" class="popupHeader"></div>
     <div class="popupCloseCross" onclick="closeEditPersonForm();"></div>
 
     <input id="personIDHidden" type="hidden">
@@ -649,8 +648,8 @@ HTML;
 
     <label for="userPermission">{$texts['Permission']}</label>
     <select id="userPermission">
-      <option value="0">{$texts['Helper']} (ongelukken worden gemodereerd)</option>
-      <option value="2">{$texts['Moderator']} (kan alle ongelukken bewerken)</option>
+      <option value="0">{$texts['Helper']} (crashes are moderated)</option>
+      <option value="2">{$texts['Moderator']} (can edit all crashes)</option>
       <option value="1">{$texts['Administrator']}</option>
     </select>
     
@@ -661,6 +660,108 @@ HTML;
       <input type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">
     </div>    
   </form>
+</div>
+HTML;
+  }
+
+  public static function pageChildVictims(): string {
+    global $user;
+    $texts = translateArray(['Child_victims', 'Injury', 'Dead_(adjective)', 'Injured', 'Help_improve_data_accuracy']);
+    $intro = $user->translateLongText('child_victims_info');
+
+    return <<<HTML
+
+<div id="pageMain">
+
+  <div class="pageSubTitle"><img src="/images/child_white.svg" style="height: 20px; position: relative; top: 2px;"> {$texts['Child_victims']}</div>
+  <div style="display: flex; flex-direction: column; align-items: center">
+    <div style="text-align: left;">
+      <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">{$texts['Help_improve_data_accuracy']}</div>
+    </div>
+  </div>
+  
+  <div id="pageInfo" style="display: none; max-width: 600px; margin: 10px 0;">
+    $intro
+  </div>
+
+  <div class="searchBarTransparent" style="display: flex; padding-bottom: 0;">
+
+    <div class="toolbarItem">
+      <span id="filterChildDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterChildVictims();"></span>      
+      <span id="filterChildInjured" class="menuButtonBlack bgInjuredWhite" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterChildVictims();"></span>      
+    </div>
+    
+  </div>
+
+  <div class="panelTableOverflow">
+    <table class="dataTable">
+      <tbody id="dataTableBody"></tbody>
+    </table>
+    <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+  </div>
+  
+</div>
+HTML;
+  }
+
+  public static function pageStatsTransportationModes(): string {
+    $texts = translateArray(['Counterparty_in_crashes', 'Always', 'days', 'the_correspondent_week', 'Custom_period',
+      'Help_improve_data_accuracy', 'Child', 'Injury', 'Injured', 'Dead_(adjective)', 'Search_text_hint',
+      'Search', 'Filter']);
+
+    global $user;
+    $intoText = $user->translateLongText('counter_party_info');
+
+    $htmlSearchCountry = HtmlBuilder::getSearchCountryHtml('selectFilterStats');
+    $htmlSearchPeriod  = HtmlBuilder::getSearchPeriodHtml('selectFilterStats');
+
+    return <<<HTML
+<div id="pageMain">
+
+  <div style="width: 100%; max-width: 700px;">
+
+  <div style="display: flex; flex-direction: column; align-items: center">
+    <div style="text-align: left;">
+      <div class="pageSubTitleFont">{$texts['Counterparty_in_crashes']}</div>
+      <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">{$texts['Help_improve_data_accuracy']}</div>
+    </div>
+  </div>
+  
+  <div id="pageInfo" style="display: none; margin: 10px 0;">
+  $intoText
+</div>
+
+  <div id="statistics">
+  
+    <div class="searchBarTransparent" style="display: flex;">
+
+      <div class="toolbarItem">
+        <span id="filterStatsDead" class="menuButton bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterStats();"></span>      
+        <span id="filterStatsInjured" class="menuButton bgInjuredWhite" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterStats();"></span>      
+        <span id="filterStatsChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
+      </div>
+      
+      <div class="toolbarItem">$htmlSearchCountry</div>
+      $htmlSearchPeriod
+      
+      <div class="toolbarItem">
+        <input id="searchText" class="searchInput textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startStatsSearchKey(event);" autocomplete="off">  
+      </div>
+
+      <div class="toolbarItem">
+        <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="loadStatistics(event)">{$texts['Search']}</div>
+      </div>
+
+    </div>
+
+    <div id="graphWrapper" style="display: none; background-color: #fff; margin-top: 10px; padding: 5px;">
+      <div id="graphPartners" style="position: relative;"></div>  
+    </div>
+   
+  </div>
+  
+  <div id="spinnerLoad"><img src="/images/spinner.svg" alt="Spinner"></div>
+  </div>
 </div>
 HTML;
   }
@@ -702,7 +803,7 @@ HTML;
     <div class="toolbarItem">
       <div class="dropInputWrapper">
         <div class="searchInput dropInput" tabindex="0" onclick="toggleSearchPersons(event);">
-          <span id="inputSearchPersons">{$texts['Humans']}</span>
+          <div id="inputSearchPersons" style="display: flex">{$texts['Humans']}</div>
           <div id="arrowSearchPersons" class="inputArrowDown"></div>  
         </div>
         

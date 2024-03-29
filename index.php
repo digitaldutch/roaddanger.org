@@ -80,51 +80,14 @@ HTML;
 } else if ($pageType === PageType::childVictims) {
 
   $showButtonAdd = true;
-  $texts = translateArray(['Child_victims', 'Injury', 'Dead_(adjective)', 'Injured', 'Help_improve_data_accuracy']);
-  $intro = $user->translateLongText('child_victims_info');
 
-  $mainHTML = <<<HTML
-
-<div id="pageMain">
-
-  <div class="pageSubTitle"><img src="/images/child_white.svg" style="height: 20px; position: relative; top: 2px;"> {$texts['Child_victims']}</div>
-  <div style="display: flex; flex-direction: column; align-items: center">
-    <div style="text-align: left;">
-      <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">{$texts['Help_improve_data_accuracy']}</div>
-    </div>
-  </div>
-  
-  <div id="pageInfo" style="display: none; max-width: 600px; margin: 10px 0;">
-    $intro
-  </div>
-
-  <div class="searchBarTransparent" style="display: flex; padding-bottom: 0;">
-
-    <div class="toolbarItem">
-      <span id="filterChildDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterChildVictims();"></span>      
-      <span id="filterChildInjured" class="menuButtonBlack bgInjuredWhite" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterChildVictims();"></span>      
-    </div>
-    
-  </div>
-
-  <div class="panelTableOverflow">
-    <table class="dataTable">
-      <tbody id="dataTableBody"></tbody>
-    </table>
-    <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
-  </div>
-  
-</div>
-  
-HTML;
+  $mainHTML = HtmlBuilder::pageChildVictims();
 
 } else if ($pageType === PageType::map) {
   $showButtonAdd = true;
-  $addSearchBar  = true;
+  $addSearchBar = true;
 
-  $mainHTML = <<<HTML
-  <div id="mapMain"></div>
-HTML;
+  $mainHTML = '<div id="mapMain"></div>';
 
 } else if ($pageType === PageType::mosaic) {
   $showButtonAdd = true;
@@ -166,63 +129,7 @@ HTML;
 </div>
 HTML;
 } else if ($pageType === PageType::statisticsCrashPartners) {
-
-  $texts = translateArray(['Counterparty_in_crashes', 'Always', 'days', 'the_correspondent_week', 'Custom_period',
-    'Help_improve_data_accuracy', 'Child', 'Injury', 'Injured', 'Dead_(adjective)', 'Search_text_hint',
-    'Search', 'Filter']);
-  $intoText = $user->translateLongText('counter_party_info');
-
-  $htmlSearchCountry = HtmlBuilder::getSearchCountryHtml('selectFilterStats');
-  $htmlSearchPeriod  = HtmlBuilder::getSearchPeriodHtml('selectFilterStats');
-
-  $mainHTML = <<<HTML
-<div id="pageMain">
-
-  <div style="width: 100%; max-width: 700px;">
-
-  <div style="display: flex; flex-direction: column; align-items: center">
-    <div style="text-align: left;">
-      <div class="pageSubTitleFont">{$texts['Counterparty_in_crashes']}</div>
-      <div class="smallFont" style="text-decoration: underline; cursor: pointer" onclick="togglePageInfo();">{$texts['Help_improve_data_accuracy']}</div>
-    </div>
-  </div>
-  
-  <div id="pageInfo" style="display: none; margin: 10px 0;">
-  $intoText
-</div>
-
-  <div id="statistics">
-  
-    <div class="searchBar" style="display: flex;">
-
-      <div class="toolbarItem">
-        <span id="filterStatsDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterStats();"></span>      
-        <span id="filterStatsInjured" class="menuButton bgInjuredBlack" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterStats();"></span>      
-        <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
-      </div>
-      
-      <div class="toolbarItem">$htmlSearchCountry</div>
-      $htmlSearchPeriod
-      
-      <div class="toolbarItem">
-        <input id="searchText" class="searchInput textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startStatsSearchKey(event);" autocomplete="off">  
-      </div>
-
-      <div class="toolbarItem">
-        <div class="button buttonMobileSmall" style="margin-left: 0;" onclick="loadStatistics(event)">{$texts['Search']}</div>
-      </div>
-
-    </div>
-
-    <div id="graphPartners" style="position: relative;"></div>
-   
-  </div>
-  
-  <div id="spinnerLoad"><img src="/images/spinner.svg" alt="Spinner"></div>
-  </div>
-</div>
-HTML;
-
+  $mainHTML = HtmlBuilder::pageStatsTransportationModes();
 } else if ($pageType === PageType::statisticsTransportationModes) {
 
   $texts = translateArray(['Statistics', 'Transportation_modes', 'Transportation_mode', 'Child', 'Country',
@@ -234,7 +141,7 @@ HTML;
 
   $mainHTML = <<<HTML
 <div class="pageInner">
-  <div class="pageSubTitle">{$texts['Statistics']} - {$texts['Transportation_modes']}<span class="iconTooltip" data-tippy-content="Dit zijn de cijfers over de ongelukken tot nog toe in de database."></span></div>
+  <div class="pageSubTitle">{$texts['Statistics']} - {$texts['Transportation_modes']}</div>
   
   <div id="statistics">
   

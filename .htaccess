@@ -3,17 +3,12 @@
     RewriteEngine On
     RewriteBase /
 
+    # Redirect old hetongeluk.nl url's
     RewriteCond %{HTTP_HOST} ^(www\.)?hetongeluk\.nl$ [NC]
     RewriteRule ^ https://nl.roaddanger.org%{REQUEST_URI} [R=301,L,NE]
 
     RewriteCond %{HTTP_HOST} ^(www\.)?hetongeluk\.be$ [NC]
     RewriteRule ^ https://be.roaddanger.org%{REQUEST_URI} [R=301,L,NE]
-
-    RewriteCond %{HTTP_HOST} ^(.*)thecrashes.org [NC]
-    RewriteRule ^(.*)$ https://%1roaddanger.org/$1 [R=301,L,NE]
-
-#    RewriteCond %{HTTP_HOST} ^(www\.)?thecrashes\.org$ [NC]
-#    RewriteRule ^ https://www.roaddanger.org%{REQUEST_URI} [R=301,L,NE]
 
     # Add www if not a subdomain
     RewriteCond %{HTTP_HOST} !^(.*)\.(.*)\. [NC]

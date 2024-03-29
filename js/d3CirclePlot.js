@@ -153,6 +153,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .attr('id', 'tooltip' + divID)
     .style('display', 'none')
     .style('position', 'absolute')
+    .style('color', 'black')
     .style('background-color', 'white')
     .style('font-size', fontSize)
     .style('border', 'solid 1px #666')

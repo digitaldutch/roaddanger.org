@@ -307,17 +307,11 @@ function getStatsDatabase($database){
   return $stats;
 }
 
-/**
- * @param Database $database
- * @param string $url
- * @return array | false
- *@throws Exception
- */
-function urlExists($database, $url){
+function urlExists(Database $database, string $url): array | false {
   $sql = "SELECT id, crashid FROM articles WHERE url=:url LIMIT 1;";
   $params = [':url' => $url];
-  $DBResults = $database->fetchAll($sql, $params);
-  foreach ($DBResults as $found) {
+  $dbResults = $database->fetchAll($sql, $params);
+  foreach ($dbResults as $found) {
     return [
       'articleId' => (int)$found['id'],
       'crashId'   => (int)$found['crashid'],
@@ -420,24 +414,24 @@ else if ($function == 'sendPasswordResetInstructions') {
   try {
     $result = [];
     if (! isset($_REQUEST['email'])) throw new Exception('No email adres');
-    $email  = trim($_REQUEST['email']);
+    $email = trim($_REQUEST['email']);
 
     $recoveryID = $user->resetPasswordRequest($email);
     if (! $recoveryID) throw new Exception('Interne fout: Kan geen recoveryID aanmaken');
 
-    $domain            = $_SERVER['SERVER_NAME'];
-    $subject           = $domain . ' wachtwoord resetten';
-    $server            = $_SERVER['SERVER_NAME'];
-    $emailEncoded      = urlencode($email);
+    $domain = $_SERVER['SERVER_NAME'];
+    $subject = $domain . ' wachtwoord resetten';
+    $server = $_SERVER['SERVER_NAME'];
+    $emailEncoded = urlencode($email);
     $recoveryIDEncoded = urlencode($recoveryID);
-    $body    = <<<HTML
-<p>Hallo,</p>
+    $body = <<<HTML
+<p>Hi,</p>
 
-<p>We hebben een verzoek ontvangen om het wachtwoord verbonden aan je emailadres ($email) te resetten. Om je wachtwoord te resetten, klik op de onderstaande link:</p>
+<p>We received a request to reset the password for $email. To reset your password, click the link below:</p>
 
 <p><a href="https://$server/account/resetpassword?email=$emailEncoded&recoveryid=$recoveryIDEncoded">Wachtwoord resetten</a></p>
 
-<p>Vriendelijke groeten,<br>
+<p>Greetings,<br>
 $domain</p>
 HTML;
 
@@ -824,7 +818,7 @@ else if ($function === 'saveArticleCrash'){
     // Check if new article url already in database.
     if ($saveArticle && ($article['id'] < 1)){
       $exists = urlExists($database, $article['url']);
-      if ($exists) throw new Exception("<a href='/{$exists['crashId']}}' style='text-decoration: underline;'>Er is al een ongeluk met deze link</a>", 1);
+      if ($exists) throw new Exception("<a href='/{$exists['crashId']}}' style='text-decoration: underline;'>There is already a crash with this link</a>", 1);
     }
 
     if ($saveCrash) {
@@ -870,7 +864,7 @@ SQL;
         if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
         $database->execute($sql, $params, true);
-        if ($database->rowCount === 0) throw new Exception('Helpers kunnen alleen hun eigen ongelukken updaten.');
+        if ($database->rowCount === 0) throw new Exception('Helpers can only edit their own crashes');
 
       } else {
         // New crash

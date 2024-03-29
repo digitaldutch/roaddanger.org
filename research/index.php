@@ -222,26 +222,27 @@ HTML;
     $textIntro  
   </div>
 
-  <div id="searchBar" class="searchBar" style="display: flex;">
+  <div id="searchBar" class="searchBarTransparent" style="display: flex;">
     <div class="toolbarItem">
-      <span id="filterResearchDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
-      <span id="filterResearchChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireOption();"></span>      
-      <span id="filterResearchNoUnilateral" class="menuButton bgNoUnilateral" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchDead" class="menuButton bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchNoUnilateral" class="menuButton bgNoUnilateralWhite" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickQuestionnaireOption();"></span>      
     </div>
   
     $htmlSearchPersons
 
     <div class="toolbarItem">
-      <div class="button buttonMobileSmall" onclick="selectFilterQuestionnaireFillIn(event)">{$texts['Filter']}</div>
+      <div class="button buttonMobileSmall buttonImportant" onclick="selectFilterQuestionnaireFillIn(event)">{$texts['Filter']}</div>
     </div>
     
   </div>
   
-  <div class="panelTableOverflow">
+  <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+  
+  <div id="tableWrapper" class="panelTableOverflow blackOnWhite" style="display: none;">
     <table class="dataTable">
       <tbody id="dataTableArticles"></tbody>
     </table>
-    <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
   </div>
 HTML;
 

@@ -123,6 +123,7 @@ async function loadArticlesUnanswered() {
       }
 
       document.getElementById('dataTableArticles').innerHTML = html;
+      document.getElementById('tableWrapper').style.display = 'block';
     }
   } catch (error) {
     showError(error.message);
