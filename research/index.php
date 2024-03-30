@@ -266,7 +266,7 @@ HTML;
 <div class="pageInner">
   <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['results']}</div>
   
-  <div class="searchBar" style="display: flex;">
+  <div class="searchBarTransparent" style="display: flex;">
     <div class="toolbarItem"><select id="filterQuestionnaire" class="searchInput" oninput="questionnaireFilterChange()">$questionnairesOptions</select></div>
     
     <div class="toolbarItem">
@@ -292,11 +292,11 @@ HTML;
   
   </div>
   
-  <div id="searchBar" class="searchBar" style="display: flex;">
+  <div id="searchBar" class="searchBarTransparent" style="display: flex;">
     <div class="toolbarItem">
-      <span id="filterResearchDead" class="menuButton bgDeadBlack" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
-      <span id="filterResearchChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireOption();"></span>      
-      <span id="filterResearchNoUnilateral" class="menuButton bgNoUnilateral" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchDead" class="menuButton bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchNoUnilateral" class="menuButton bgNoUnilateralWhite" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickQuestionnaireOption();"></span>      
     </div>
     
     <div class="toolbarItem">
@@ -310,7 +310,7 @@ HTML;
     $htmlSearchPersons
     
     <div class="toolbarItem">
-      <div class="button buttonMobileSmall" style="margin-left: 0;" onclick="selectFilterQuestionnaireResults(event)">{$texts['Filter']}</div>
+      <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="selectFilterQuestionnaireResults(event)">{$texts['Filter']}</div>
     </div>
 
   </div>

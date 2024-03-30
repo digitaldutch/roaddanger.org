@@ -171,9 +171,10 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
 
   let groupData = '';
   switch (group) {
-    case 'year':   groupData = bechdelResults.year; break;
-    case 'month':  groupData = bechdelResults.yearmonth; break;
+    case 'year': groupData = bechdelResults.year; break;
+    case 'month': groupData = bechdelResults.yearmonth; break;
     case 'source': groupData = bechdelResults.sitename; break;
+    case 'country': groupData = bechdelResults.countryid; break;
   }
 
   let htmlStatistics = '';
@@ -185,11 +186,11 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
 
     let colorBarSegment;
     switch (true) {
-      case score === 1:   colorBarSegment = '#82f182'; break;
-      case score >= 0.75: colorBarSegment = '#e8ec49'; break;
-      case score >= 0.50: colorBarSegment = '#ffdaa2'; break;
-      case score >= 0.25: colorBarSegment = '#ffb465'; break;
-      default:            colorBarSegment = '#ffa2a2';
+      case score === 1: colorBarSegment = '#f9d1cb'; break;
+      case score >= 0.75: colorBarSegment = '#f6ada2'; break;
+      case score >= 0.50: colorBarSegment = '#f58679'; break;
+      case score >= 0.25: colorBarSegment = '#f56051'; break;
+      default: colorBarSegment = '#f23826';
     }
 
     let htmlPassed = item.amount;
@@ -354,7 +355,7 @@ async function loadQuestionnaireResults() {
             [htmlBar, htmlStats] = getBechdelBarHtml(groupResults, response.questionnaire.questions, group);
 
             const htmlBarLabel = `<div>${groupResults.countryid}</div>`;
-            const htmlStatsLabel = `<div><span style="font-weight: bold; margin-top: 5px;">${groupResults.sitename}</span> · ${groupResults.total_articles} articles</div>`;
+            const htmlStatsLabel = `<div><span style="font-weight: bold; margin-top: 5px;">${groupResults.countryid}</span> · ${groupResults.total_articles} articles</div>`;
 
             htmlBars += htmlBarLabel + htmlBar;
             htmlBody += htmlStatsLabel + htmlStats;
@@ -369,9 +370,9 @@ async function loadQuestionnaireResults() {
         htmlHead = '';
       }
 
-      document.getElementById('questionnaireBars').innerHTML    = htmlBars;
-      document.getElementById('tableStatisticsHead').innerHTML  = htmlHead;
-      document.getElementById('tableStatisticsBody').innerHTML  = htmlBody;
+      document.getElementById('questionnaireBars').innerHTML = htmlBars;
+      document.getElementById('tableStatisticsHead').innerHTML = htmlHead;
+      document.getElementById('tableStatisticsBody').innerHTML = htmlBody;
       document.getElementById('headerStatistics').style.display = 'block';
     }
 

@@ -1603,12 +1603,11 @@ table.tableDragging td div {
 #questionnaireBars > div:nth-child(2n-1) {
   text-align: right;
   overflow: hidden;
-  /*text-overflow: ellipsis;*/
 }
 
 .questionnaireBar {
-  display:          flex;
-  background-color: #dddddd;
+  display: flex;
+  color: #000;
 }
 
 .questionnaireBar > div {
