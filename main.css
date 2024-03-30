@@ -1601,6 +1601,7 @@ table.tableDragging td div {
 }
 
 #questionnaireBars > div:nth-child(2n-1) {
+  min-width: 80px;
   text-align: right;
   overflow: hidden;
 }
