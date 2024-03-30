@@ -693,18 +693,19 @@ HTML;
     
   </div>
 
-  <div class="panelTableOverflow">
+  <div class="pageInner">
     <table class="dataTable">
       <tbody id="dataTableBody"></tbody>
-    </table>
-    <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+    </table>  
   </div>
-  
+
+  <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+   
 </div>
 HTML;
   }
 
-  public static function pageStatsTransportationModes(): string {
+  public static function pageStatsCrashPartners(): string {
     $texts = translateArray(['Counterparty_in_crashes', 'Always', 'days', 'the_correspondent_week', 'Custom_period',
       'Help_improve_data_accuracy', 'Child', 'Injury', 'Injured', 'Dead_(adjective)', 'Search_text_hint',
       'Search', 'Filter']);
@@ -728,8 +729,8 @@ HTML;
   </div>
   
   <div id="pageInfo" style="display: none; margin: 10px 0;">
-  $intoText
-</div>
+    $intoText
+  </div>
 
   <div id="statistics">
   
@@ -765,6 +766,60 @@ HTML;
 </div>
 HTML;
   }
+
+  public static function pageStatsTransportationModes(): string {
+    $texts = translateArray(['Statistics', 'Transportation_modes', 'Transportation_mode', 'Child', 'Country',
+      'Intoxicated', 'Drive_on_or_fleeing', 'Dead_(adjective)', 'Injured', 'Unharmed', 'Unknown', 'Search_text_hint',
+      'Search', 'Filter']);
+
+    $htmlSearchCountry = HtmlBuilder::getSearchCountryHtml();
+    $htmlSearchPeriod  = HtmlBuilder::getSearchPeriodHtml();
+
+    return <<<HTML
+<div id="pageMain">
+  <div class="pageSubTitle">{$texts['Statistics']} - {$texts['Transportation_modes']}</div>
+  
+  <div id="statistics">
+  
+    <div class="searchBarTransparent" style="display: flex;">
+      <div class="toolbarItem">
+        <span id="filterStatsChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
+      </div>
+
+      <div class="toolbarItem">$htmlSearchCountry</div>
+      $htmlSearchPeriod
+
+      <div class="toolbarItem">
+        <input id="searchText" class="searchInput textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startStatsSearchKey(event);" autocomplete="off">  
+      </div>
+
+      <div class="toolbarItem">
+        <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="loadStatistics(event)">{$texts['Filter']}</div>
+      </div>
+      
+    </div>
+
+    <table class="dataTable" style="margin-top: 10px;">
+      <thead>
+        <tr>
+          <th style="text-align: left;">{$texts['Transportation_mode']}</th>
+          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgDeadWhite" data-tippy-content="{$texts['Dead_(adjective)']}"></div> <div class="hideOnMobile">{$texts['Dead_(adjective)']}</div></div></th>
+          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgInjuredWhite" data-tippy-content="{$texts['Injured']}"></div> <div  class="hideOnMobile">{$texts['Injured']}</div></div></th>
+          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnharmed" data-tippy-content="{$texts['Unharmed']}"></div> <div  class="hideOnMobile">{$texts['Unharmed']}</div></div></th>
+          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnknownWhite" data-tippy-content="{$texts['Unknown']}"></div> <div  class="hideOnMobile">{$texts['Unknown']}</div></div></th>
+          <th style="text-align: right;"><div class="iconSmall bgChildWhite" data-tippy-content="{$texts['Child']}"></div></th>
+          <th style="text-align: right;"><div class="iconSmall bgAlcoholWhite" data-tippy-content="{$texts['Intoxicated']}"></div></th>
+          <th style="text-align: right;"><div class="iconSmall bgHitRunWhite" data-tippy-content="{$texts['Drive_on_or_fleeing']}"></div></th>
+        </tr>
+      </thead>  
+      <tbody id="tableStatsBody">
+        
+      </tbody>
+    </table>      
+  </div>
+  <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+</div>
+HTML;  }
 
   public static function getSearchPeriodHtml($onInputFunctionName = '') {
     $texts = translateArray(['Always', 'Today', 'Yesterday', 'days', 'The_correspondent_week', 'Custom_period', 'Period', 'Start_date', 'End_date']);

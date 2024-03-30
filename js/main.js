@@ -258,7 +258,7 @@ async function loadStatistics() {
   function showStatisticsTransportation(dbStats) {
     let html = '';
     for (const stat of dbStats.total) {
-      const icon = transportationModeIcon(stat.transportationmode, false);
+      const icon = transportationModeIcon(stat.transportationmode, false, false, true);
       html += `<tr>
 <td><div class="flexRow">${icon}<span class="hideOnMobile" style="margin-left: 5px;">${transportationModeText(stat.transportationmode)}</span></div></td>
 <td style="text-align: right;">${stat.dead}</td>
@@ -395,8 +395,8 @@ async function loadStatistics() {
     switch (pageType) {
       case PageType.statisticsTransportationModes: {serverData.type = 'transportationModes'; break;}
       case PageType.statisticsMediaHumanization:   {serverData.type = 'media_humanization'; break;}
-      case PageType.statisticsGeneral:             {serverData.type = 'general';             break;}
-      case PageType.statisticsCrashPartners:       {serverData.type = 'crashPartners';       break;}
+      case PageType.statisticsGeneral:             {serverData.type = 'general'; break;}
+      case PageType.statisticsCrashPartners:       {serverData.type = 'crashPartners'; break;}
     }
 
     const injuredButton = document.getElementById('filterStatsInjured');
@@ -414,7 +414,7 @@ async function loadStatistics() {
       };
     }
 
-    const url      = '/general/ajax.php?function=getStatistics';
+    const url = '/general/ajax.php?function=getStatistics';
     const response = await fetchFromServer(url, serverData);
 
     if (response.user) updateLoginGUI(response.user);
@@ -447,7 +447,7 @@ async function loadStatistics() {
         case PageType.statisticsGeneral: {showStatisticsGeneral(response.statistics); break;}
         case PageType.statisticsCrashPartners: {showCrashVictimsGraph(response.statistics.crashVictims); break;}
         case PageType.statisticsTransportationModes: {showStatisticsTransportation(response.statistics); break;}
-        case PageType.statisticsMediaHumanization: {showStatisticsTransportation(response.statistics); break;}
+        case PageType.statisticsMediaHumanization: {break;}
       }
     }
   } catch (error) {

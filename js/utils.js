@@ -766,35 +766,40 @@ function transportationImageFileName(transportationModeValue){
   }
 }
 
-function transportationModeImage(transportationMode) {
+function transportationModeImage(transportationMode, white=false) {
+  let className;
   switch (transportationMode) {
-    case TransportationMode.unknown:          return 'bgUnknown';
-    case TransportationMode.pedestrian:       return 'bgPedestrian';
-    case TransportationMode.bicycle:          return 'bgBicycle';
-    case TransportationMode.scooter:          return 'bgScooter';
-    case TransportationMode.motorScooter:     return 'bgMotorScooter';
-    case TransportationMode.motorcycle:       return 'bgMotorcycle';
-    case TransportationMode.car:              return 'bgCar';
-    case TransportationMode.taxi:             return 'bgTaxi';
-    case TransportationMode.emergencyVehicle: return 'bgEmergencyVehicle';
-    case TransportationMode.deliveryVan:      return 'bgDeliveryVan';
-    case TransportationMode.tractor:          return 'bgTractor';
-    case TransportationMode.bus:              return 'bgBus';
-    case TransportationMode.tram:             return 'bgTram';
-    case TransportationMode.truck:            return 'bgTruck';
-    case TransportationMode.train:            return 'bgTrain';
-    case TransportationMode.wheelchair:       return 'bgWheelchair';
-    case TransportationMode.mopedCar:         return 'bgMopedCar';
-    default:                                   return 'bgUnknown';
+    case TransportationMode.unknown: className = 'bgUnknown'; break;
+    case TransportationMode.pedestrian: className = 'bgPedestrian'; break;
+    case TransportationMode.bicycle: className = 'bgBicycle'; break;
+    case TransportationMode.scooter: className = 'bgScooter'; break;
+    case TransportationMode.motorScooter: className = 'bgMotorScooter'; break;
+    case TransportationMode.motorcycle: className = 'bgMotorcycle'; break;
+    case TransportationMode.car: className = 'bgCar'; break;
+    case TransportationMode.taxi: className = 'bgTaxi'; break;
+    case TransportationMode.emergencyVehicle: className = 'bgEmergencyVehicle'; break;
+    case TransportationMode.deliveryVan: className = 'bgDeliveryVan'; break;
+    case TransportationMode.tractor: className = 'bgTractor'; break;
+    case TransportationMode.bus: className = 'bgBus'; break;
+    case TransportationMode.tram: className = 'bgTram'; break;
+    case TransportationMode.truck: className = 'bgTruck'; break;
+    case TransportationMode.train: className = 'bgTrain'; break;
+    case TransportationMode.wheelchair: className = 'bgWheelchair'; break;
+    case TransportationMode.mopedCar: className = 'bgMopedCar'; break;
+    default: className = 'bgUnknown';
   }
+
+  if (white) className += 'White';
+
+  return className;
 }
 
-function transportationModeIcon(transportationMode, addTooltip=true, small=false) {
-  const bg        = transportationModeImage(transportationMode);
-  const text      = translate('Transportation_mode')  + ': ' + transportationModeText(transportationMode);
-  const tooltip   = addTooltip? 'data-tippy-content="' + text + '"' : '';
+function transportationModeIcon(transportationMode, addTooltip=true, small=false, white=false) {
+  const image = transportationModeImage(transportationMode, white);
+  const text = translate('Transportation_mode')  + ': ' + transportationModeText(transportationMode);
+  const tooltip = addTooltip? 'data-tippy-content="' + text + '"' : '';
   const className = small? 'iconSmall' : 'iconMedium';
-  return `<div class="${className} ${bg}" ${tooltip}></div>`;
+  return `<div class="${className} ${image}" ${tooltip}></div>`;
 }
 
 function healthIcon(healthStatus, addTooltip=true) {

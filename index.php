@@ -129,62 +129,9 @@ HTML;
 </div>
 HTML;
 } else if ($pageType === PageType::statisticsCrashPartners) {
-  $mainHTML = HtmlBuilder::pageStatsTransportationModes();
+  $mainHTML = HtmlBuilder::pageStatsCrashPartners();
 } else if ($pageType === PageType::statisticsTransportationModes) {
-
-  $texts = translateArray(['Statistics', 'Transportation_modes', 'Transportation_mode', 'Child', 'Country',
-    'Intoxicated', 'Drive_on_or_fleeing', 'Dead_(adjective)', 'Injured', 'Unharmed', 'Unknown', 'Search_text_hint',
-    'Search', 'Filter']);
-
-  $htmlSearchCountry = HtmlBuilder::getSearchCountryHtml();
-  $htmlSearchPeriod  = HtmlBuilder::getSearchPeriodHtml();
-
-  $mainHTML = <<<HTML
-<div class="pageInner">
-  <div class="pageSubTitle">{$texts['Statistics']} - {$texts['Transportation_modes']}</div>
-  
-  <div id="statistics">
-  
-    <div class="searchBar" style="display: flex;">
-      <div class="toolbarItem">
-        <span id="filterStatsChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
-      </div>
-
-      <div class="toolbarItem">$htmlSearchCountry</div>
-      $htmlSearchPeriod
-
-      <div class="toolbarItem">
-        <input id="searchText" class="searchInput textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startStatsSearchKey(event);" autocomplete="off">  
-      </div>
-
-      <div class="toolbarItem">
-        <div class="button buttonMobileSmall" style="margin-left: 0;" onclick="loadStatistics(event)">{$texts['Filter']}</div>
-      </div>
-      
-    </div>
-
-    <table class="dataTable">
-      <thead>
-        <tr>
-          <th style="text-align: left;">{$texts['Transportation_mode']}</th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgDead" data-tippy-content="{$texts['Dead_(adjective)']}"></div> <div class="hideOnMobile">{$texts['Dead_(adjective)']}</div></div></th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgInjured" data-tippy-content="{$texts['Injured']}"></div> <div  class="hideOnMobile">{$texts['Injured']}</div></div></th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnharmed" data-tippy-content="{$texts['Unharmed']}"></div> <div  class="hideOnMobile">{$texts['Unharmed']}</div></div></th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnknown" data-tippy-content="{$texts['Unknown']}"></div> <div  class="hideOnMobile">{$texts['Unknown']}</div></div></th>
-          <th style="text-align: right;"><div class="iconSmall bgChild" data-tippy-content="{$texts['Child']}"></div></th>
-          <th style="text-align: right;"><div class="iconSmall bgAlcohol" data-tippy-content="{$texts['Intoxicated']}"></div></th>
-          <th style="text-align: right;"><div class="iconSmall bgHitRun" data-tippy-content="{$texts['Drive_on_or_fleeing']}"></div></th>
-        </tr>
-      </thead>  
-      <tbody id="tableStatsBody">
-        
-      </tbody>
-    </table>  
-  </div>
-  <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
-</div>
-HTML;
-
+  $mainHTML = HtmlBuilder::pageStatsTransportationModes();
 } else if ($pageType === PageType::export) {
   $mainHTML = <<<HTML
 <div id="main" class="pageInner">

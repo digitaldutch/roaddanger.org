@@ -726,22 +726,39 @@ h2, .pageSubTitleFont, .sectionTitle {
 .bgRestricted { background-image: url(/images/restricted.svg);}
 
 .bgPedestrian { background-image: url(/images/transportation_modes/pedestrian.svg);}
+.bgPedestrianWhite { background-image: url(/images/transportation_modes/pedestrian_white.svg);}
 .bgScooter { background-image: url(/images/transportation_modes/scooter.svg);}
+.bgScooterWhite { background-image: url(/images/transportation_modes/scooter_white.svg);}
 .bgBicycle { background-image: url(/images/transportation_modes/bicycle.svg);}
+.bgBicycleWhite { background-image: url(/images/transportation_modes/bicycle_white.svg);}
 .bgMotorScooter { background-image: url(/images/transportation_modes/motor_scooter.svg);}
+.bgMotorScooterWhite { background-image: url(/images/transportation_modes/motor_scooter_white.svg);}
 .bgMotorcycle { background-image: url(/images/transportation_modes/motorcycle.svg);}
+.bgMotorcycleWhite { background-image: url(/images/transportation_modes/motorcycle_white.svg);}
 .bgCar { background-image: url(/images/transportation_modes/car.svg);}
+.bgCarWhite { background-image: url(/images/transportation_modes/car_white.svg);}
 .bgTaxi { background-image: url(/images/transportation_modes/taxi.svg);}
+.bgTaxiWhite { background-image: url(/images/transportation_modes/taxi_white.svg);}
 .bgEmergencyVehicle { background-image: url(/images/transportation_modes/emergencyvehicle.svg);}
+.bgEmergencyVehicleWhite { background-image: url(/images/transportation_modes/emergencyvehicle_white.svg);}
 .bgTractor { background-image: url(/images/transportation_modes/tractor.svg);}
+.bgTractorWhite { background-image: url(/images/transportation_modes/tractor_white.svg);}
 .bgDeliveryVan { background-image: url(/images/transportation_modes/deliveryvan.svg);}
+.bgDeliveryVanWhite { background-image: url(/images/transportation_modes/deliveryvan_white.svg);}
 .bgBus { background-image: url(/images/transportation_modes/bus.svg);}
+.bgBusWhite { background-image: url(/images/transportation_modes/bus_white.svg);}
 .bgTram { background-image: url(/images/transportation_modes/tram.svg);}
+.bgTramWhite { background-image: url(/images/transportation_modes/tram_white.svg);}
 .bgTruck { background-image: url(/images/transportation_modes/truck.svg);}
+.bgTruckWhite { background-image: url(/images/transportation_modes/truck_white.svg);}
 .bgTrain { background-image: url(/images/transportation_modes/train.svg);}
+.bgTrainWhite { background-image: url(/images/transportation_modes/train_white.svg);}
 .bgWheelchair { background-image: url(/images/transportation_modes/wheelchair.svg);}
+.bgWheelchairWhite { background-image: url(/images/transportation_modes/wheelchair_white.svg);}
 .bgMopedCar { background-image: url(/images/transportation_modes/mopedcar.svg);}
+.bgMopedCarWhite { background-image: url(/images/transportation_modes/mopedcar_white.svg);}
 .bgUnknown { background-image: url(/images/transportation_modes/unknown.svg);}
+.bgUnknownWhite { background-image: url(/images/transportation_modes/unknown_white.svg);}
 
 .bgUnilateral { background-image: url(/images/unilateral.svg);}
 .bgUnilateralWhite { background-image: url(/images/unilateral_white.svg);}
@@ -751,7 +768,9 @@ h2, .pageSubTitleFont, .sectionTitle {
 .bgNoUnilateralWhite { background-image: url(/images/no_unilateral_white.svg);}
 .bgPet { background-image: url(/images/pet.svg);}
 .bgAlcohol { background-image: url(/images/alcohol.svg);}
+.bgAlcoholWhite { background-image: url(/images/alcohol_white.svg);}
 .bgHitRun { background-image: url(/images/hitrun.svg);}
+.bgHitRunWhite { background-image: url(/images/hitrun_white.svg);}
 .bgTrafficJam { background-image: url(/images/trafficjam.svg);}
 .bgTree { background-image: url(/images/tree.svg);}
 
@@ -1267,9 +1286,9 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .dataTable {
-  width:           100%;
-  border-spacing:  0;
-  user-select:     none;
+  width: 100%;
+  border-spacing: 0;
+  user-select: none;
   border-collapse: collapse;
 }
 
@@ -1280,14 +1299,13 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .dataTable th {
-  position:         sticky;
-  top:              0;
-  z-index:          1;
-  background-color: #ffffff;
-  border-bottom:    solid 1px #d1d1d1;
-  padding:          6px 6px;
-  font-weight:      bold;
-  text-align:       center;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: solid 1px #d1d1d1;
+  padding: 6px 6px;
+  font-weight: bold;
+  text-align: center;
 }
 
  .dataTable input[type='checkbox']{
