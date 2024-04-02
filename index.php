@@ -25,8 +25,12 @@ else $pageType = PageType::recent;
 $addSearchBar   = false;
 $showButtonAdd  = false;
 $head = "<script src='/js/main.js?v=$VERSION'></script>";
-if (in_array($pageType, [PageType::statisticsCrashPartners, PageType::statisticsHumanizationTest])) {
-  $head .= "<script src='/scripts/d3.v7.js?v=$VERSION'></script><script src='/js/d3CirclePlot.js?v=$VERSION'></script>";
+if ($pageType === PageType::statisticsCrashPartners) {
+  $head .= "<script src='/scripts/d3.v7.js?v=$VERSION'></script>
+<script src='/js/d3CirclePlot.js?v=$VERSION'></script>";
+} elseif ($pageType === PageType::statisticsHumanizationTest) {
+  $head .= "<script src='/scripts/d3.v7.js?v=$VERSION'></script>
+<script src='/scripts/plot.js?v=$VERSION'></script>";
 }
 
 // Open streetmap
@@ -117,8 +121,6 @@ HTML;
 </div>
 
   <div id="statistics">
-  <div style="text-align: center;margin-top: 20px;">Coming soon...</div>
-  
   
     <div id="graphMediaHumanization" style="position: relative;"></div>
    

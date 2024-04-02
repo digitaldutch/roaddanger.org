@@ -14,8 +14,8 @@ async function initResearch(){
   const url = new URL(location.href);
   const searchHealthDead   = url.searchParams.get('hd');
   const searchChild        = url.searchParams.get('child');
-  const searchYear         = url.searchParams.get('year');
-  const searchCountry      = url.searchParams.get('year');
+  const searchTimeSpan     = url.searchParams.get('timeSpan');
+  const searchCountry      = url.searchParams.get('country');
   const searchGroup        = url.searchParams.get('group');
   const searchMinArticles  = url.searchParams.get('minArticles');
   const searchPersons      = url.searchParams.get('persons');
@@ -23,7 +23,7 @@ async function initResearch(){
 
   if (searchHealthDead)  document.getElementById('filterResearchDead').classList.add('buttonSelectedBlue');
   if (searchChild)       document.getElementById('filterResearchChild').classList.add('buttonSelectedBlue');
-  if (searchYear)        document.getElementById('filterResearchYear').value = searchYear;
+  if (searchTimeSpan)    document.getElementById('filterResearchTimeSpan').value = searchTimeSpan;
   if (searchCountry)     document.getElementById('filterResearchCountry').value = searchCountry;
   if (searchGroup)       document.getElementById('filterResearchGroup').value = searchGroup;
   if (searchMinArticles) document.getElementById('filterMinArticles').value = searchMinArticles;
@@ -160,7 +160,7 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
 
   let bechdelItems = [];
   let total = 0;
-  for (let i=bechdelResults.total_questions_passed.length - 1; i >=0 ; i--) {
+  for (let i= bechdelResults.total_questions_passed.length - 1; i >= 0 ; i--) {
     const amount = bechdelResults.total_questions_passed[i];
 
     total += amount;
@@ -169,12 +169,12 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
     bechdelItems.push(segment);
   }
 
-  let groupData = '';
+  let groupName = '';
   switch (group) {
-    case 'year': groupData = bechdelResults.year; break;
-    case 'month': groupData = bechdelResults.yearmonth; break;
-    case 'source': groupData = bechdelResults.sitename; break;
-    case 'country': groupData = bechdelResults.countryid; break;
+    case 'year': groupName = bechdelResults.year; break;
+    case 'month': groupName = bechdelResults.yearmonth; break;
+    case 'source': groupName = bechdelResults.sitename; break;
+    case 'country': groupName = bechdelResults.countryid; break;
   }
 
   let htmlStatistics = '';
@@ -201,7 +201,7 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
       htmlPassed += ' (' + item.amountPercentage.toFixed(2) + ')%';
     }
 
-    htmlStatistics = `<tr data-questions-passed="${item.passed}" data-group="${groupData}"><td>Questions answered with Yes: <span style="border-bottom: 3px solid ${colorBarSegment}; padding: 3px;">${item.text}</span></td>` +
+    htmlStatistics = `<tr data-questions-passed="${item.passed}" data-group="${groupName}"><td>Questions answered with Yes: <span style="border-bottom: 3px solid ${colorBarSegment}; padding: 3px;">${item.text}</span></td>` +
       `<td style="text-align: center;"><span style="border-bottom: 3px solid ${colorBarSegment}; padding: 3px;">${htmlPassed}</span></td></tr>` + htmlStatistics;
   });
 
@@ -213,7 +213,7 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
 
   if (! htmlBar) htmlBar = '<div></div>';
   htmlBar = '<div class="questionnaireBar" style="white-space: nowrap;">' + htmlBar + '</div>';
-  htmlStatistics += `<tr data-questions-passed="nd" data-group="${groupData}"><td>Not determinable</td><td style="text-align: center;">${stats.not_determinable}</td></tr>`;
+  htmlStatistics += `<tr data-questions-passed="nd" data-group="${groupName}"><td>Not determinable</td><td style="text-align: center;">${stats.not_determinable}</td></tr>`;
 
   return [htmlBar, htmlStatistics];
 }
@@ -239,8 +239,9 @@ async function downloadQuestionnaireResults(articleFilter={}) {
       healthDead:      document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue')? 1 : 0,
       child:           document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
       noUnilateral:    document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue')? 1 : 0,
-      year:            document.getElementById('filterResearchYear').value,
+      timeSpan:        document.getElementById('filterResearchTimeSpan').value,
       country:         document.getElementById('filterResearchCountry').value,
+      minArticles:     parseInt(document.getElementById('filterMinArticles').value),
       persons:         getPersonsFromFilter(),
     },
     group: document.getElementById('filterResearchGroup').value,
@@ -257,10 +258,6 @@ async function loadQuestionnaireResults() {
     spinnerLoad.style.display = 'block';
 
     const group = document.getElementById('filterResearchGroup').value;
-
-    const selectMinArticles = document.getElementById('filterMinArticles');
-    selectMinArticles.style.display = group? 'inline-block' : 'none';
-    const minArticles = parseInt(selectMinArticles.value);
 
     const response = await downloadQuestionnaireResults();
 
@@ -297,8 +294,6 @@ async function loadQuestionnaireResults() {
         let htmlBar;
         let htmlStats;
         if (group === 'year') {
-          if (minArticles) response.bechdelResults = response.bechdelResults.filter(r => r.total_articles >= minArticles);
-
           response.bechdelResults.sort((a, b) => b.year - a.year);
 
           for (const groupResults of response.bechdelResults) {
@@ -312,8 +307,6 @@ async function loadQuestionnaireResults() {
           }
 
         } else if (group === 'month') {
-          if (minArticles) response.bechdelResults = response.bechdelResults.filter(r => r.total_articles >= minArticles);
-
           response.bechdelResults.sort((a, b) => b.yearmonth - a.yearmonth);
 
           for (const groupResults of response.bechdelResults) {
@@ -332,8 +325,6 @@ async function loadQuestionnaireResults() {
           }
 
         } else if (group === 'source') {
-          if (minArticles) response.bechdelResults = response.bechdelResults.filter(r => r.total_articles >= minArticles);
-
           response.bechdelResults.sort((a, b) => compareBechdelResults(a, b));
 
           for (const groupResults of response.bechdelResults) {
@@ -347,8 +338,6 @@ async function loadQuestionnaireResults() {
           }
 
         } else if (group === 'country') {
-          if (minArticles) response.bechdelResults = response.bechdelResults.filter(r => r.total_articles >= minArticles);
-
           response.bechdelResults.sort((a, b) => compareBechdelResults(a, b));
 
           for (const groupResults of response.bechdelResults) {
@@ -687,7 +676,7 @@ function selectFilterQuestionnaireResults() {
   const dead         = document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue');
   const child        = document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue');
   const noUnilateral = document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue');
-  const year                 = document.getElementById('filterResearchYear').value;
+  const timeSpan             = document.getElementById('filterResearchTimeSpan').value;
   const country              = document.getElementById('filterResearchCountry').value;
   const group                = document.getElementById('filterResearchGroup').value;
   const minArticles          = document.getElementById('filterMinArticles').value;
@@ -698,7 +687,7 @@ function selectFilterQuestionnaireResults() {
   if (dead)                     url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
   if (child)                    url.searchParams.set('child', 1); else url.searchParams.delete('child');
   if (! noUnilateral)           url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
-  if (year)                     url.searchParams.set('year', year); else url.searchParams.delete('year');
+  if (timeSpan)                 url.searchParams.set('timeSpan', timeSpan); else url.searchParams.delete('timeSpan');
   if (country)                  url.searchParams.set('country', country); else url.searchParams.delete('country');
   if (group)                    url.searchParams.set('group', group); else url.searchParams.delete('group');
   if (minArticles > 0)          url.searchParams.set('minArticles', minArticles); else url.searchParams.delete('minArticles');
@@ -740,11 +729,11 @@ async function onClickStatisticsTable() {
   divResult.innerHTML = 'Loading...';
 
   const articleFilter = {
-    getArticles:     true,
-    offset:          0,
+    getArticles: true,
+    offset: 0,
     questionsPassed: questionsPassed,
-    group:           group,
-    groupData:       groupData,
+    group: group,
+    groupData: groupData,
   }
 
   const response = await downloadQuestionnaireResults(articleFilter);
@@ -761,11 +750,12 @@ async function onClickStatisticsTable() {
         <td>${article.crashid}</td>
         <td>${article.bechdelResult.total_questions_passed}/${article.bechdelResult.total_questions}: ${result}</td>
         <td>${publishedtime.pretty()}</td>
+        <td>${article.countryid}</td>
         <td class="td400">${article.sitename}</td>
       </tr>`;
   }
 
-  if (html) html = `<table class="dataTable"><tr><th>Article Id</th><th>Bechdel result</th><th>Published</th><th>Source</th></tr>${html}</table>`;
+  if (html) html = `<table class="dataTable"><tr><th>Article Id</th><th>Bechdel result</th><th>Published</th><th>Country</th><th>Source</th></tr>${html}</table>`;
 
   divResult.innerHTML = html;
 }

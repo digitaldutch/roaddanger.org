@@ -128,17 +128,12 @@ SQL;
   return $stats;
 }
 
-/**c
- * @param Database $database
- * @param $filter
- * @return array
- */
-function getStatsCrashPartners($database, $filter){
-  $SQLWhere          = '';
-  $SQLJoin           = '';
-  $params            = [];
+function getStatsCrashPartners(Database $database, array $filter): array{
+  $SQLWhere = '';
+  $SQLJoin = '';
+  $params = [];
   $joinArticlesTable = false;
-  $joinPersonsTable  = true;
+  $joinPersonsTable = true;
 
   // Only do full text search if text has 3 characters or more
   if (isset($filter['text']) && strlen($filter['text']) > 2){
@@ -239,6 +234,32 @@ SQL;
   return ['crashVictims' => $crashVictims2Out];
 }
 
+function getStatsMediaHumanization(Database $database): array {
+
+  try {
+    $filter = [
+      "questionnaireId" => 6,
+      "healthDead" =>  0,
+      "child" => 0,
+      "noUnilateral" =>  1,
+      "year" => "",
+      "timeSpan" => "2year",
+      "country" => "NL",
+      "persons" => [],
+      "minArticles" => 3,
+    ];
+
+    $group = 'month';
+
+    require_once '../research/Research.php';
+    $result = Research::loadQuestionnaireResults($filter, $group, [], true);
+
+  } catch (\Exception $e){
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+
+  return $result;
+}
 
 
 /**
@@ -1267,14 +1288,15 @@ else if ($function === 'getStatistics') {
     $type   = $data['type'] ?? '';
     $filter = $data['filter'] ?? '';
 
-    if      ($type === 'general')       $stats = getStatsDatabase($database);
+    if ($type === 'general') $stats = getStatsDatabase($database);
     else if ($type === 'crashPartners') $stats = getStatsCrashPartners($database, $filter);
-    else                                $stats = getStatsTransportation($database, $filter);
+    else if ($type === 'media_humanization') $stats = getStatsMediaHumanization($database);
+    else $stats = getStatsTransportation($database, $filter);
 
     $user->getTranslations();
     $result = ['ok' => true,
       'statistics' => $stats,
-      'user'       => $user->info(),
+      'user' => $user->info(),
     ];
   } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];

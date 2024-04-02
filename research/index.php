@@ -248,7 +248,7 @@ HTML;
 
   } else if ($pageType === PageType::questionnaireResults) {
     $texts = translateArray(['Filter', 'Questionnaires', 'results', 'Injury', 'Dead_(adjective)', 'Child',
-      'Exclude_unilateral']);
+      'Exclude_unilateral', 'Always']);
 
     $questionnaires = $database->getQuestionnaires();
 
@@ -257,7 +257,6 @@ HTML;
       $questionnairesOptions .= "<option value='{$questionnaire['id']}'>{$questionnaire['title']}</option>";
     }
 
-    $optionsYear = getHtmlYearOptions();
     $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml();
     $htmlSearchCountry = HtmlBuilder::getSearchCountryHtml('', 'filterResearchCountry', 'UN');
 
@@ -304,7 +303,14 @@ HTML;
     </div>
     
     <div class="toolbarItem">
-      <select id="filterResearchYear" class="searchInput">$optionsYear</select>
+      <select id="filterResearchTimeSpan" class="searchInput">
+        <option value="">[{$texts['Always']}]</option>
+        <option value="1year">1 year</option>
+        <option value="2year">2 years</option>
+        <option value="3year">3 years</option>
+        <option value="5year">5 years</option>
+        <option value="10year">10 years</option>
+      </select>
     </div>
     
     $htmlSearchPersons

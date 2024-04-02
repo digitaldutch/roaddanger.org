@@ -90,7 +90,8 @@ async function initMain() {
 
   initWatchPopStart();
 
-  if ([PageType.statisticsTransportationModes, PageType.statisticsGeneral, PageType.statisticsCrashPartners].includes(pageType)) {
+  if ([PageType.statisticsTransportationModes, PageType.statisticsGeneral, PageType.statisticsCrashPartners,
+       PageType.statisticsMediaHumanization].includes(pageType)) {
     initStatistics();
     loadStatistics();
   } else if (pageType === PageType.statisticsMediaHumanization) {
@@ -175,8 +176,64 @@ function initExport(){
   document.getElementById('tbodyHealth').innerHTML = html;
 }
 
-function showStatisticsMediaHumanization(data) {
+function showMediaHumanizationGraph(stats) {
 
+  let data = [];
+  for (const serverItem of stats.bechdelResults) {
+
+    const totalQuestions = serverItem.total_questions_passed.length - 1;
+    let passed = 0;
+    for (const value of serverItem.total_questions_passed) {
+
+      const groupYear = parseInt(serverItem.yearmonth.substring(0,4));
+      const groupMonth = parseInt(serverItem.yearmonth.substring(4, 6));
+      const itemDate = new Date(groupYear, groupMonth-1, 1);
+
+      const dataRow = {
+        date: itemDate,
+        yearmonth: serverItem.yearmonth,
+        category: passed.toString() + ' of ' + totalQuestions,
+        amount: value,
+      };
+
+      data.push(dataRow);
+      passed++;
+    }
+  }
+
+  const scaleColor = d3.scaleLinear([0, 3], ["red", "blue"]);
+
+  const plot = Plot.plot({
+    color: {
+      legend: true,
+      type: 'categorical',
+      scheme: 'reds'
+    },
+    y: {
+      percent: true,
+      label: '↑  Questions (%)',
+    },
+    grid: true,
+    marks: [
+      Plot.frame(),
+      Plot.areaY(data,
+        Plot.stackY(
+          {
+            offset: "normalize",
+            reverse: false
+          },
+          {
+            x: "date",
+            y: "amount",
+            fill: "category"
+
+          }
+        )
+      ),
+    ]
+  });
+
+  document.getElementById('graphMediaHumanization').append(plot);
 }
 function showCrashVictimsGraph(crashVictims){
 
@@ -245,7 +302,7 @@ function selectFilterChildVictims() {
   const injured = document.getElementById('filterChildInjured').classList.contains('buttonSelectedBlue');
 
   const url = new URL(window.location);
-  if (dead)    url.searchParams.set('hd', 1); else url.searchParams.set('hd', 0);
+  if (dead) url.searchParams.set('hd', 1); else url.searchParams.set('hd', 0);
   if (injured) url.searchParams.set('hi', 1); else url.searchParams.set('hi', 0);
 
   window.history.pushState(null, null, url.toString());
@@ -400,7 +457,7 @@ async function loadStatistics() {
     }
 
     const injuredButton = document.getElementById('filterStatsInjured');
-    const deadButton    = document.getElementById('filterStatsDead');
+    const deadButton = document.getElementById('filterStatsDead');
     if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
       serverData.filter = {
         period:        document.getElementById('searchPeriod').value,
@@ -447,7 +504,7 @@ async function loadStatistics() {
         case PageType.statisticsGeneral: {showStatisticsGeneral(response.statistics); break;}
         case PageType.statisticsCrashPartners: {showCrashVictimsGraph(response.statistics.crashVictims); break;}
         case PageType.statisticsTransportationModes: {showStatisticsTransportation(response.statistics); break;}
-        case PageType.statisticsMediaHumanization: {break;}
+        case PageType.statisticsMediaHumanization: {showMediaHumanizationGraph(response.statistics); break;}
       }
     }
   } catch (error) {
