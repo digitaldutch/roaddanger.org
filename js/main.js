@@ -211,7 +211,7 @@ function showMediaHumanizationGraph(stats) {
     },
     y: {
       percent: true,
-      label: '↑  Questions (%)',
+      label: '↑  Articles (%)',
     },
     grid: true,
     marks: [
