@@ -250,6 +250,8 @@ HTML;
     $texts = translateArray(['Filter', 'Questionnaires', 'results', 'Injury', 'Dead_(adjective)', 'Child',
       'Exclude_unilateral', 'Always']);
 
+    $head .= "\n<script src='/scripts/d3.v7.js?v=$VERSION'></script>";
+
     $questionnaires = $database->getQuestionnaires();
 
     $questionnairesOptions = '';

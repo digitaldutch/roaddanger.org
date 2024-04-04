@@ -238,8 +238,8 @@ function getStatsMediaHumanization(Database $database): array {
 
   try {
     $filter = [
-      "questionnaireId" => 6,
-      "healthDead" =>  0,
+      "questionnaireId" => 7,
+      "healthDead" => 0,
       "child" => 0,
       "noUnilateral" =>  1,
       "year" => "",

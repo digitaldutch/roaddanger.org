@@ -178,6 +178,7 @@ function initExport(){
 
 function showMediaHumanizationGraph(stats) {
 
+  const questionCount = stats.questionnaire.questions.length;
   let data = [];
   for (const serverItem of stats.bechdelResults) {
 
@@ -192,7 +193,8 @@ function showMediaHumanizationGraph(stats) {
       const dataRow = {
         date: itemDate,
         yearmonth: serverItem.yearmonth,
-        category: passed.toString() + ' of ' + totalQuestions,
+        category: passed.toString() + '/' + totalQuestions,
+        passed: passed,
         amount: value,
       };
 
@@ -201,13 +203,18 @@ function showMediaHumanizationGraph(stats) {
     }
   }
 
-  const scaleColor = d3.scaleLinear([0, 3], ["red", "blue"]);
+  // const colorOrdinal = d3.scaleOrdinal(["0/3", "1/3", "2/3", "3/3"], d3.schemeReds[4].reverse());
+  let passedOptions = [...Array(questionCount + 1)].map((x, i) => i);
+  let colors = d3.schemeReds[4].reverse();
+  const colorOrdinal = d3.scaleOrdinal(passedOptions, colors);
 
   const plot = Plot.plot({
     color: {
       legend: true,
+      domain: ["0/3", "1/3", "2/3", "3/3"],
+      range: colors,
       type: 'categorical',
-      scheme: 'reds'
+      // scheme: 'reds',
     },
     y: {
       percent: true,
@@ -220,13 +227,13 @@ function showMediaHumanizationGraph(stats) {
         Plot.stackY(
           {
             offset: "normalize",
-            reverse: false
+            reverse: false,
           },
           {
             x: "date",
             y: "amount",
-            fill: "category"
-
+            // fill: "category",
+            fill: d => colorOrdinal(d.passed),
           }
         )
       ),

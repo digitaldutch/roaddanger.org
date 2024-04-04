@@ -79,9 +79,9 @@ a:hover, .link:hover {
   font-size: 110px;
   font-weight: 500;
   letter-spacing: -0.08em;
-  background: linear-gradient(to right, #ffffff 0%, #f23825 70%);
-  background-clip: text;
-  color: transparent;
+  /*background: linear-gradient(to right, #ffffff 0%, #f23825 70%);*/
+  /*background-clip: text;*/
+  /*color: transparent;*/
 }
 
 .postText {
@@ -1268,21 +1268,20 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .tabBar > div {
-  display:       inline-flex;
-  font-size:     18px;
-  padding:       5px 10px;
-  border-bottom: 5px solid #ffffff00;
+  display: inline-flex;
+  font-size: 18px;
+  padding: 5px 10px;
 }
 
 .tabBar > div:hover {
-  color:            var(--color-hover);
+  color: var(--color-hover);
   background-color: var(--row-hover-bgcolor);
-  cursor:           pointer;
+  cursor: pointer;
 }
 
 .tabSelected {
-  border-color: var(--selected-bgcolor) !important;
   color: var(--selected-color) !important;
+  background-color: var(--selected-bgcolor);
 }
 
 .dataTable {

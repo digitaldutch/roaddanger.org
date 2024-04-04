@@ -144,8 +144,8 @@ function questionnaireFilterChange() {
   loadQuestionnaireResults();
 }
 
-function getBarSegment(widthPercentage, color, text='') {
-  return `<div style="width: ${widthPercentage}%; background-color: ${color};"><span>${text}</span></div>`;
+function getBarSegment(widthPercentage, backgroundColor, color, text='') {
+  return `<div style="width: ${widthPercentage}%; background-color: ${backgroundColor}; color: ${color}"><span>${text}</span></div>`;
 }
 
 function getBechdelBarHtml(bechdelResults, questions, group='') {
@@ -178,31 +178,28 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
   }
 
   let htmlStatistics = '';
-  let htmlBar        = '';
+  let htmlBar = '';
+  const itemColors = d3.schemeReds[bechdelItems.length];
+
+  let i = 0;
   bechdelItems.forEach(item => {
     item.amountPercentage = item.amount / total * 100;
     item.text = item.passed + '/' + questions.length;
-    const score = item.passed / questions.length;
 
-    let colorBarSegment;
-    switch (true) {
-      case score === 1: colorBarSegment = '#f9d1cb'; break;
-      case score >= 0.75: colorBarSegment = '#f6ada2'; break;
-      case score >= 0.50: colorBarSegment = '#f58679'; break;
-      case score >= 0.25: colorBarSegment = '#f56051'; break;
-      default: colorBarSegment = '#f23826';
-    }
-
+    const colorBarSegment = itemColors[i];
+    const color = i > itemColors.length / 2? '#fee5d9' : '#000';
     let htmlPassed = item.amount;
 
     if ((item.amount) && (total > 0)) {
-      htmlBar += getBarSegment(item.amountPercentage, colorBarSegment, item.text + ': ' + Math.round(item.amountPercentage) + '%');
+      htmlBar += getBarSegment(item.amountPercentage, colorBarSegment, color,
+        item.text + ': ' + Math.round(item.amountPercentage) + '%');
 
       htmlPassed += ' (' + item.amountPercentage.toFixed(2) + ')%';
     }
 
     htmlStatistics = `<tr data-questions-passed="${item.passed}" data-group="${groupName}"><td>Questions answered with Yes: <span style="border-bottom: 3px solid ${colorBarSegment}; padding: 3px;">${item.text}</span></td>` +
       `<td style="text-align: center;"><span style="border-bottom: 3px solid ${colorBarSegment}; padding: 3px;">${htmlPassed}</span></td></tr>` + htmlStatistics;
+    i++;
   });
 
   if (stats.total > 0) {
@@ -351,7 +348,7 @@ async function loadQuestionnaireResults() {
           }
 
         } else {
-          [htmlBar, htmlStats] = getBechdelBarHtml(response.bechdelResults, response.questionnaire.questions);
+          [htmlBar, htmlStats] = getBechdelBarHtml(response.bechdelResults[0], response.questionnaire.questions);
           htmlBars += '<div>All articles</div>' + htmlBar;
           htmlBody += htmlStats;
         }
