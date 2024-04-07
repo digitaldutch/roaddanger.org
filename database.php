@@ -64,14 +64,10 @@ class Database {
     $this->pdo->inTransaction();
   }
 
-  public function fetchAll($sql, $params=null){
-    try {
-      $statement = $this->pdo->prepare($sql);
-      $statement->execute($params);
-      return $statement->fetchAll(PDO::FETCH_ASSOC);
-    } catch (\Exception $e) {
-      return false;
-    }
+  public function fetchAll($sql, $params=null): bool|array {
+    $statement = $this->pdo->prepare($sql);
+    $statement->execute($params);
+    return $statement->fetchAll(PDO::FETCH_ASSOC);
   }
 
   public function fetchAllValues($sql, $params=null){
@@ -179,8 +175,10 @@ class Database {
     return $this->countries;
   }
 
-  public function getQuestionnaires() {
-    return $this->fetchAll("SELECT id, type, title, country_id FROM questionnaires ORDER BY id;");
+  public function getQuestionnaires($publicOnly=false): bool|array {
+    $where = $publicOnly? ' WHERE public=1 ' : '';
+    $sql = "SELECT id, type, title, country_id, public, active FROM questionnaires $where ORDER BY title;";
+    return $this->fetchAll($sql);
   }
 
   public function getQuestionnaireCountries() {

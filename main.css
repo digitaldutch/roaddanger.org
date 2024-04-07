@@ -687,7 +687,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .buttonSelected {
-  opacity:          1;
+  opacity: 1;
   background-color: #bbbbbb;
 }
 
@@ -697,24 +697,20 @@ h2, .pageSubTitleFont, .sectionTitle {
   color: var(--selected-color) !important;
 }
 
-.bgAdd         {background-image: url(/images/add.svg);}
-.bgAddWhite    {background-image: url(/images/add_white.svg);}
-.bgRemove      {background-image: url(/images/remove.svg);}
-.bgPerson      {background-image: url(/images/person.svg);}
+.bgAdd {background-image: url(/images/add.svg);}
+.bgAddWhite {background-image: url(/images/add_white.svg);}
+.bgRemove {background-image: url(/images/remove.svg);}
+.bgPerson {background-image: url(/images/person.svg);}
 .bgPersonWhite {background-image: url(/images/person_white.svg);}
-.bgLanguage    {background-image: url(/images/language.svg);}
+.bgLanguage {background-image: url(/images/language.svg);}
 .bgLanguageWhite {background-image: url(/images/language_white.svg);}
-.bgSearch      {background-image: url(/images/search.svg);}
+.bgSearch {background-image: url(/images/search.svg);}
 .bgSearchWhite {background-image: url(/images/search_white.svg);}
-.bgMenu        {background-image: url(/images/menu.svg);}
-.bgMenuWhite   {background-image: url(/images/menu_white.svg);}
-.bgArticle     {background-image: url(/images/article.svg);}
-.bgGeo         {background-image: url(/images/geo.svg);}
-.bgTripleDots  {background-image: url(/images/tripledots.svg);}
-
-.bgPersonLoggedIn {
-  background-image: url(/images/person_loggedin.svg);
-}
+.bgMenu {background-image: url(/images/menu.svg);}
+.bgMenuWhite {background-image: url(/images/menu_white.svg);}
+.bgArticle {background-image: url(/images/article.svg);}
+.bgGeo {background-image: url(/images/geo.svg);}
+.bgTripleDots {background-image: url(/images/tripledots.svg);}
 
 .bgDead { background-image: url(/images/persondead.svg);}
 .bgDeadBlack { background-image: url(/images/persondead_black.svg);}

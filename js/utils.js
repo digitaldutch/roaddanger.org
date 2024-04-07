@@ -324,7 +324,6 @@ function updateLoginGUI(userNew){
     document.getElementById('menuProfile').innerHTML = user.firstname + ' ' + user.lastname + '<div class="smallFont">' + permissionToText(user.permission) + '</div>';
 
     buttonProfile.classList.remove('buttonProfile');
-    buttonProfile.classList.add('bgPersonLoggedIn');
   } else {
     document.getElementById('loginName').style.display = 'none';
     document.getElementById('loginText').style.display = 'inline-block';
@@ -332,7 +331,6 @@ function updateLoginGUI(userNew){
     document.getElementById('menuProfile').innerText = '';
 
     buttonProfile.classList.add('buttonProfile');
-    buttonProfile.classList.remove('bgPersonLoggedIn');
   }
 
   document.getElementById('iconCountry').style.backgroundImage = `url(/images/flags/${user.countryid.toLowerCase()}.svg)`;

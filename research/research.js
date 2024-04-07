@@ -4,21 +4,18 @@ async function initResearch(){
 
   await loadUserData();
 
-  // Only moderators allowed
-  if (! user.moderator) return;
-
   initPage();
 
   initSearchBar();
 
   const url = new URL(location.href);
-  const searchHealthDead   = url.searchParams.get('hd');
-  const searchChild        = url.searchParams.get('child');
-  const searchTimeSpan     = url.searchParams.get('timeSpan');
-  const searchCountry      = url.searchParams.get('country');
-  const searchGroup        = url.searchParams.get('group');
-  const searchMinArticles  = url.searchParams.get('minArticles');
-  const searchPersons      = url.searchParams.get('persons');
+  const searchHealthDead = url.searchParams.get('hd');
+  const searchChild = url.searchParams.get('child');
+  const searchTimeSpan = url.searchParams.get('timeSpan');
+  const searchCountry = url.searchParams.get('country');
+  const searchGroup = url.searchParams.get('group');
+  const searchMinArticles = url.searchParams.get('minArticles');
+  const searchPersons = url.searchParams.get('persons');
   const searchNoUnilateral = url.searchParams.get('noUnilateral');
 
   if (searchHealthDead)  document.getElementById('filterResearchDead').classList.add('buttonSelectedBlue');
@@ -36,8 +33,12 @@ async function initResearch(){
   }
 
   if (url.pathname.startsWith('/research/questionnaires/options')) {
+    if (! user.admin) {showError('Not an administrator'); return;}
+
     await loadQuestionnaires();
   } else if (url.pathname.startsWith('/research/questionnaires/fill_in')) {
+    if (! user.moderator) {showError('Permission error: Not a moderator'); return;}
+
     await loadArticlesUnanswered();
   } else if (url.pathname.startsWith('/research/questionnaires')) {
     const idQuestionnaire = url.searchParams.get('id');
@@ -582,7 +583,7 @@ async function saveQuestionnaire() {
   if (serverData.type === null) {showError('No type selected'); return;}
   if (! serverData.countryId)   {showError('No country selected'); return;}
 
-  const url = '/research/ajax.php?function=savequestionnaire';
+  const url = '/research/ajax.php?function=saveQuestionnaire';
   const response = await fetchFromServer(url, serverData);
 
   if (response.error) showError(response.error);

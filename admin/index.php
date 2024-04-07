@@ -57,12 +57,7 @@ $htmlEnd = '';
 $head = "<script src='/admin/admin.js?v=$VERSION'></script>";
 
 if ((! $user->loggedIn) || (! $user->isModerator())) {
-  $mainHTML = <<<HTML
-<div id="main" class="pageInner">
-  <div style="text-align: center;">You are not a moderator or administrator. Log in as moderator or administrator.</div>
-  <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
-</div>
-HTML;
+  $mainHTML = HtmlBuilder::pageNotModerator();
 } else {
 
   if ($pageType === PageType::humans) {

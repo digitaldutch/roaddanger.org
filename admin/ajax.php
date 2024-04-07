@@ -9,7 +9,11 @@ global $user;
 
 // Only admins allowed
 if (! $user->admin) {
-  $result = ['ok' => false, 'error' => 'Not an admin', 'user' => $user->info()];
+  $result = [
+    'ok' => false,
+    'error' => 'No permission. You need to be an administrator.',
+    'user' => $user->info(),
+  ];
   die(json_encode($result));
 }
 

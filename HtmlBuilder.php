@@ -255,7 +255,7 @@ HTML;
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Research']}</div>
       <a href="/research/questionnaires/options" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['settings']}</a>
-      <a href="/research/questionnaires/" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['results']}</a>
+      <a href="/research/questionnaires/" class="navItem">{$texts['Questionnaires']} | {$texts['results']}</a>
       <a href="/research/questionnaires/fill_in" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['fill_in']}</a>
       <a href="/reporting_experiences/" class="navItem">{$texts['Reporting_experiences']}</a>
     </div>
@@ -889,6 +889,15 @@ HTML;
 <select id="$elementId" class="searchInput" $onInputFunction data-tippy-content="{$texts['Country']}">
   $countryOptions
 </select>
+HTML;
+  }
+
+  public static function pageNotModerator(): string {
+    return <<<HTML
+<div id="main" class="pageInner">
+  <div style="text-align: center;">You are not a moderator. Log in as moderator or administrator.</div>
+  <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
+</div>
 HTML;
   }
 }

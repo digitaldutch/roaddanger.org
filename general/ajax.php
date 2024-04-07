@@ -234,31 +234,28 @@ SQL;
   return ['crashVictims' => $crashVictims2Out];
 }
 
+/**
+ * @throws Exception
+ */
 function getStatsMediaHumanization(Database $database): array {
 
-  try {
-    $filter = [
-      "questionnaireId" => 7,
-      "healthDead" => 0,
-      "child" => 0,
-      "noUnilateral" =>  1,
-      "year" => "",
-      "timeSpan" => "2year",
-      "country" => "NL",
-      "persons" => [],
-      "minArticles" => 3,
-    ];
+  $filter = [
+    "questionnaireId" => 7,
+    "healthDead" => 0,
+    "child" => 0,
+    "noUnilateral" =>  1,
+    "year" => "",
+    "timeSpan" => "2year",
+    "country" => "NL",
+    "persons" => [],
+    "minArticles" => 3,
+    "public" => 1,
+  ];
 
-    $group = 'month';
+  $group = 'month';
 
-    require_once '../research/Research.php';
-    $result = Research::loadQuestionnaireResults($filter, $group, [], true);
-
-  } catch (\Exception $e){
-    $result = ['ok' => false, 'error' => $e->getMessage()];
-  }
-
-  return $result;
+  require_once '../research/Research.php';
+  return Research::loadQuestionnaireResults($filter, $group, []);
 }
 
 

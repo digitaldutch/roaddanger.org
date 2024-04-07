@@ -41,7 +41,10 @@ class Research {
     return true;
   }
 
-  static function loadQuestionnaireResults(array $filter, string $group, array $articleFilter, $publicOnly=true): array {
+  /**
+   * @throws Exception
+   */
+  static function loadQuestionnaireResults(array $filter, string $group, array $articleFilter): array {
     global $database;
 
     $bechdelResults = null;
@@ -54,7 +57,8 @@ SELECT
   q.title,
   q.country_id,
   c.name AS country,
-  q.type
+  q.type,
+  q.public
 FROM questionnaires q
 LEFT JOIN countries c ON q.country_id = c.id
 WHERE q.id=:questionnaire_id;
@@ -62,6 +66,10 @@ SQL;
 
     $params = [':questionnaire_id' => $filter['questionnaireId']];
     $questionnaire = $database->fetch($sql, $params);
+
+    if (($filter['public'] === 1) && ($questionnaire['public'] !== 1)) {
+      throw new Exception("Questionnaire " . $filter['public'] . " is not public");
+    }
 
     $result['questionnaire'] = $questionnaire;
 
