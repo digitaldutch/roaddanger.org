@@ -188,8 +188,11 @@ class User {
   }
 
   private function getLongText($textId, $languageId) {
-    $sql    = "SELECT content FROM longtexts WHERE id=:id AND language_id = :language_id;";
-    $params = [':id' => $textId, ':language_id' => $languageId];
+    $sql = "SELECT content FROM longtexts WHERE id=:id AND language_id = :language_id;";
+    $params = [
+      ':id' => $textId,
+      ':language_id' => $languageId
+    ];
 
     return $this->database->fetchSingleValue($sql, $params);
   }

@@ -105,6 +105,7 @@ HTML;
 } else if ($pageType === PageType::statisticsHumanizationTest) {
 
   $texts = translateArray(['Media_humanization_test']);
+  $infoText = $user->translateLongText('media_humanization_info');
 
   $mainHTML = <<<HTML
 <div id="pageMain">
@@ -122,6 +123,11 @@ HTML;
 
   <div id="statistics">
   
+    <div id="graphMediaHumanizationIntro" style="margin-top: 10px; display: none;">
+      <div>$infoText</div>
+      <div id="graphMediaHumanizationQuestions"></div>
+    </div>
+    
     <div id="graphMediaHumanization" style="position: relative;"></div>
    
   </div>

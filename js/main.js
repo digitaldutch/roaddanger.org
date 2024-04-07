@@ -203,9 +203,8 @@ function showMediaHumanizationGraph(stats) {
     }
   }
 
-  // const colorOrdinal = d3.scaleOrdinal(["0/3", "1/3", "2/3", "3/3"], d3.schemeReds[4].reverse());
-  let passedOptions = [...Array(questionCount + 1)].map((x, i) => i);
-  let colors = d3.schemeReds[4].reverse();
+  const passedOptions = [...Array(questionCount + 1)].map((x, i) => i);
+  const colors = d3.schemeReds[4].reverse();
   const colorOrdinal = d3.scaleOrdinal(passedOptions, colors);
 
   const plot = Plot.plot({
@@ -241,6 +240,16 @@ function showMediaHumanizationGraph(stats) {
   });
 
   document.getElementById('graphMediaHumanization').append(plot);
+
+  let htmlInfo = '';
+  let i=1;
+  for (const question of stats.questionnaire.questions) {
+    htmlInfo += `<div>${i}) ${question.text}</div>`;
+    i += 1;
+  }
+
+  document.getElementById('graphMediaHumanizationQuestions').innerHTML = htmlInfo;
+  document.getElementById('graphMediaHumanizationIntro').style.display = 'block';
 }
 function showCrashVictimsGraph(crashVictims){
 
@@ -458,9 +467,9 @@ async function loadStatistics() {
 
     switch (pageType) {
       case PageType.statisticsTransportationModes: {serverData.type = 'transportationModes'; break;}
-      case PageType.statisticsMediaHumanization:   {serverData.type = 'media_humanization'; break;}
-      case PageType.statisticsGeneral:             {serverData.type = 'general'; break;}
-      case PageType.statisticsCrashPartners:       {serverData.type = 'crashPartners'; break;}
+      case PageType.statisticsMediaHumanization: {serverData.type = 'media_humanization'; break;}
+      case PageType.statisticsGeneral: {serverData.type = 'general'; break;}
+      case PageType.statisticsCrashPartners: {serverData.type = 'crashPartners'; break;}
     }
 
     const injuredButton = document.getElementById('filterStatsInjured');
