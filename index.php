@@ -181,7 +181,7 @@ HTML;
 } else {
   $addSearchBar = true;
   $showButtonAdd = true;
-  $messageHTML = translateLongText('website_info');
+  $websiteInfo = translateLongText('website_info');
 
   $title = '';
   switch ($pageType){
@@ -194,8 +194,10 @@ HTML;
   $pageTitle = WEBSITE_NAME;
   $introText = "<div id='pageSubTitle' class='pageSubTitle'>$title</div>";
 
-  if (isset($messageHTML) && in_array($pageType, [PageType::recent, PageType::lastChanged, PageType::deCorrespondent, PageType::crash])) {
-    $introText .= "<div class='sectionIntro'>$messageHTML</div>";
+  if (isset($websiteInfo) && in_array($pageType, [PageType::recent, PageType::lastChanged, PageType::deCorrespondent, PageType::crash])) {
+    $readMore = translate('Read_more');
+    $introText .= "<div id='sectionIntro' class='sectionIntro sectionCollapsed'>$websiteInfo</div>" .
+      "<div id='introReadMore' class='readMore' onclick='showFullIntro();'>$readMore</div>";
   }
 
   $mainHTML = <<<HTML

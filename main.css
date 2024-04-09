@@ -97,12 +97,29 @@ h1, .pageSubTitle {
 }
 
 h2, .pageSubTitleFont, .sectionTitle {
-  font-size:   20px;
+  font-size: 20px;
   font-weight: normal;
 }
 
-.sectionIntro{
+.sectionIntro {
   margin-bottom: 15px;
+}
+
+.readMore {
+  display: none;
+  cursor: pointer;
+  color: #fdae91;
+}
+
+.readMore:hover {
+  text-decoration: underline;
+}
+
+.sectionCollapsed {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
 }
 
 .pageInner {
@@ -1616,6 +1633,8 @@ table.tableDragging td div {
 }
 
 #featuredGraph {
+  display: none;
+  margin-top: 10px;
   cursor: pointer;
   border: 1px solid rgba(255,255,255,0);
 }

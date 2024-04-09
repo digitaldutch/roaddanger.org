@@ -114,6 +114,7 @@ async function initMain() {
   } else if (pageIsCrashList() || (pageType === PageType.crash)) {
     initObserver(loadCrashes);
     if (pageType === PageType.mosaic) document.getElementById('cards').classList.add('mosaic');
+    showReadMoreLink();
     loadCrashes();
     loadFeaturedGraph();
   }
@@ -693,6 +694,17 @@ async function loadCrashes(crashId=null, articleId=null){
   if (articleId) setTimeout(()=> {selectArticle(articleId);}, 1);
 }
 
+function showReadMoreLink() {
+  const intro = document.getElementById('sectionIntro');
+  const readMore = document.getElementById('introReadMore');
+  readMore.style.display = isOverflown(intro)? 'block' : 'none';
+}
+
+function showFullIntro() {
+  document.getElementById('sectionIntro').classList.remove('sectionCollapsed');
+  document.getElementById('introReadMore').style.display = 'none';
+}
+
 async function loadFeaturedGraph() {
   const url = '/general/ajax.php?function=getMediaHumanizationData';
   const response = await fetchFromServer(url, []);
@@ -700,9 +712,9 @@ async function loadFeaturedGraph() {
   const title = translate('Media_humanization_test');
   showMediaHumanizationGraph(response.statistics, 'featuredGraph', title);
 
-  document.getElementById('featuredGraph').addEventListener('click',
-      e => window.location = '/statistics/media_humanization');
-
+  const element = document.getElementById('featuredGraph');
+  element.addEventListener('click',e => window.location = '/statistics/media_humanization');
+  element.style.display = 'block';
 }
 
 function getSearchFilter(){

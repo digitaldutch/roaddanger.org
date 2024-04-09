@@ -1238,3 +1238,8 @@ function searchPersonOptionClick(event, buttonType, transportationMode) {
   searchPersonSelect(transportationMode);
   updateTransportationModeFilterInput();
 }
+
+function isOverflown(element) {
+  // https://stackoverflow.com/a/9541579/63849
+  return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
+}
