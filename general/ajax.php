@@ -1300,6 +1300,20 @@ else if ($function === 'getStatistics') {
   }
   echo json_encode($result);
 } //==========
+else if ($function === 'getMediaHumanizationData') {
+  try {
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    $stats = getStatsMediaHumanization($database);
+
+    $result = ['ok' => true,
+      'statistics' => $stats,
+    ];
+  } catch (\Exception $e) {
+    $result = ['ok' => false, 'error' => $e->getMessage()];
+  }
+  echo json_encode($result);
+} //==========
 else if ($function === 'loadCountryOptions') {
   try {
     $sql         = 'SELECT options from countries WHERE id=:id;';

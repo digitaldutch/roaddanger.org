@@ -175,19 +175,19 @@ class User {
     ksort($this->translations);
   }
 
-  public function translateLongText($textId) {
+  public function translateLongText($textId): string {
     $text = $this->getLongText($textId, $this->languageId);
 
     // Fall back to English if original does not exist.
     if (($text === false) && ($this->languageId !== 'en')){
-      $text = '⃰' . $this->getLongText($textId, 'en');
+      $text = $this->getLongText($textId, 'en');
     }
 
     global $parsedown;
     return $parsedown->text($text);
   }
 
-  private function getLongText($textId, $languageId) {
+  private function getLongText($textId, $languageId): string | false {
     $sql = "SELECT content FROM longtexts WHERE id=:id AND language_id = :language_id;";
     $params = [
       ':id' => $textId,

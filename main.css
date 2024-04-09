@@ -79,17 +79,14 @@ a:hover, .link:hover {
   font-size: 110px;
   font-weight: 500;
   letter-spacing: -0.08em;
+  color: #fff;
   /*background: linear-gradient(to right, #ffffff 0%, #f23825 70%);*/
   /*background-clip: text;*/
   /*color: transparent;*/
 }
 
-.postText {
-  /*font-family: 'Merriweather', serif;*/
-}
-
-.cardTitle *, .postText * {
-  font-family: inherit;
+#largeTitle:hover {
+  text-decoration: none;
 }
 
 h1, .pageSubTitle {
@@ -181,7 +178,6 @@ h2, .pageSubTitleFont, .sectionTitle {
 .cardTitle {
   font-size:     18px;
   font-weight:   700;
-  /*font-family:   'Merriweather', serif;*/
   margin-bottom: 0.2em;
 }
 
@@ -387,6 +383,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 
 .searchBar {
   display: none;
+  position: relative;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
@@ -458,30 +455,30 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .searchResultsPopup {
-  display:          none;
-  position:         absolute;
-  width:            100%;
-  max-height:       500px;
-  overflow-x:       hidden;
-  overflow-y:       auto;
-  top:              27px;
-  left:             0;
-  margin-top:       1px;
-  z-index:          1001;
-  font-size:        12px;
-  color:            #000000;
-  border:           #dddddd 1px solid;
+  display: none;
+  position: absolute;
+  width: 100%;
+  max-height: 500px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  top: 27px;
+  left: 0;
+  margin-top: 1px;
+  z-index: 1001;
+  font-size: 12px;
+  color: #000000;
+  border: #dddddd 1px solid;
   background-color: #ffffff;
-  white-space:      nowrap;
-  text-align:       left;
-  user-select:      none;
+  white-space: nowrap;
+  text-align: left;
+  user-select: none;
 }
 
 .optionCheckImage {
-  display:         flex;
-  align-items:     center;
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  padding:         0 0 0 16px;
+  padding: 0 0 0 16px;
 }
 
  .toolbarItem {
@@ -489,30 +486,30 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .headerMain{
-  display:         flex;
-  height:          40px;
-  justify-content: space-around;
-  align-items:     center;
-  flex-grow:       1;
+  display: flex;
+  height: 40px;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
 }
 
 .headerMain a{
   text-decoration: none;
-  color:           #fff;
+  color: #fff;
 }
 
 .menuButton {
-  position:            relative;
-  display:             inline-block;
-  outline:             none;
-  height:              30px;
-  width:               30px;
-  padding:             1px;
-  cursor:              pointer;
-  background-size:     25px;
-  background-repeat:   no-repeat;
+  position: relative;
+  display: inline-block;
+  outline: none;
+  height: 30px;
+  width: 30px;
+  padding: 1px;
+  cursor: pointer;
+  background-size: 25px;
+  background-repeat: no-repeat;
   background-position: center;
-  border-radius:       3px;
+  border-radius: 3px;
 }
 
 .menuButton:hover {
@@ -1192,7 +1189,6 @@ h2, .pageSubTitleFont, .sectionTitle {
   padding: 5px 5px 5px 10px;
   background-color: var(--link-color);
   color: #fff;
-  border-bottom: 1px solid #dddddd;
 }
 
 .navFooter {
@@ -1617,6 +1613,15 @@ table.tableDragging td div {
 
 .ready {
   background-color: var(--color-ready) !important;
+}
+
+#featuredGraph {
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0);
+}
+
+#featuredGraph:hover {
+  border: 1px solid var(--link-color);
 }
 
 /* Small screens */

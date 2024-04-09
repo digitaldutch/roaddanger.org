@@ -28,7 +28,7 @@ $head = "<script src='/js/main.js?v=$VERSION'></script>";
 if ($pageType === PageType::statisticsCrashPartners) {
   $head .= "<script src='/scripts/d3.v7.js?v=$VERSION'></script>
 <script src='/js/d3CirclePlot.js?v=$VERSION'></script>";
-} elseif ($pageType === PageType::statisticsHumanizationTest) {
+} elseif (in_array($pageType, [PageType::recent, PageType::statisticsHumanizationTest])) {
   $head .= "<script src='/scripts/d3.v7.js?v=$VERSION'></script>
 <script src='/scripts/plot.js?v=$VERSION'></script>";
 }
@@ -203,6 +203,7 @@ HTML;
   <div class="pageInner">
     <div id="largeTitle">$pageTitle</div>
     $introText
+    <div id="featuredGraph"></div>
     <div id="cards"></div>
     <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
   </div>

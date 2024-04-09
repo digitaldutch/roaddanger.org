@@ -115,6 +115,7 @@ async function initMain() {
     initObserver(loadCrashes);
     if (pageType === PageType.mosaic) document.getElementById('cards').classList.add('mosaic');
     loadCrashes();
+    loadFeaturedGraph();
   }
 
 }
@@ -176,7 +177,7 @@ function initExport(){
   document.getElementById('tbodyHealth').innerHTML = html;
 }
 
-function showMediaHumanizationGraph(stats) {
+function showMediaHumanizationGraph(stats, elementId, title) {
 
   const questionCount = stats.questionnaire.questions.length;
   let data = [];
@@ -213,7 +214,6 @@ function showMediaHumanizationGraph(stats) {
       domain: ["0/3", "1/3", "2/3", "3/3"],
       range: colors,
       type: 'categorical',
-      // scheme: 'reds',
     },
     y: {
       percent: true,
@@ -231,7 +231,6 @@ function showMediaHumanizationGraph(stats) {
           {
             x: "date",
             y: "amount",
-            // fill: "category",
             fill: d => colorOrdinal(d.passed),
           }
         )
@@ -239,11 +238,19 @@ function showMediaHumanizationGraph(stats) {
     ]
   });
 
-  document.getElementById('graphMediaHumanization').append(plot);
+  const element = document.getElementById(elementId);
+  element.append(plot);
 
+  if (title) {
+    const elementTitle = `<div class="pageSubTitle">${title}</div>`;
+    element.insertAdjacentHTML('afterbegin', elementTitle);
+  }
+}
+
+function showMediaHumanizationText(questions) {
   let htmlInfo = '';
   let i=1;
-  for (const question of stats.questionnaire.questions) {
+  for (const question of questions) {
     htmlInfo += `<div>${i}) ${question.text}</div>`;
     i += 1;
   }
@@ -251,6 +258,7 @@ function showMediaHumanizationGraph(stats) {
   document.getElementById('graphMediaHumanizationQuestions').innerHTML = htmlInfo;
   document.getElementById('graphMediaHumanizationIntro').style.display = 'block';
 }
+
 function showCrashVictimsGraph(crashVictims){
 
   function getCrashPartnerVictims(victimMode, partnerMode){
@@ -493,7 +501,6 @@ async function loadStatistics() {
     if (response.user) updateLoginGUI(response.user);
     if (response.error) showError(response.error);
     else {
-
       let url = window.location.origin + '/statistics';
       switch (pageType) {
         case PageType.statisticsGeneral: {url += '/general'; break;}
@@ -520,7 +527,11 @@ async function loadStatistics() {
         case PageType.statisticsGeneral: {showStatisticsGeneral(response.statistics); break;}
         case PageType.statisticsCrashPartners: {showCrashVictimsGraph(response.statistics.crashVictims); break;}
         case PageType.statisticsTransportationModes: {showStatisticsTransportation(response.statistics); break;}
-        case PageType.statisticsMediaHumanization: {showMediaHumanizationGraph(response.statistics); break;}
+        case PageType.statisticsMediaHumanization: {
+          showMediaHumanizationText(response.statistics.questionnaire.questions);
+          showMediaHumanizationGraph(response.statistics, 'graphMediaHumanization');
+          break;
+        }
       }
     }
   } catch (error) {
@@ -680,6 +691,18 @@ async function loadCrashes(crashId=null, articleId=null){
   if (observerSpinner && (newCrashes.length >= maxLoadCount)) observerSpinner.observe(spinnerLoad);
 
   if (articleId) setTimeout(()=> {selectArticle(articleId);}, 1);
+}
+
+async function loadFeaturedGraph() {
+  const url = '/general/ajax.php?function=getMediaHumanizationData';
+  const response = await fetchFromServer(url, []);
+
+  const title = translate('Media_humanization_test');
+  showMediaHumanizationGraph(response.statistics, 'featuredGraph', title);
+
+  document.getElementById('featuredGraph').addEventListener('click',
+      e => window.location = '/statistics/media_humanization');
+
 }
 
 function getSearchFilter(){
@@ -2071,7 +2094,6 @@ async function saveArticleCrash(){
     }
 
   } else {
-    // New crash
     if (pageType === PageType.recent) {
       crashEdited.id = response.crashId;
       crashEdited.userid = user.id;
