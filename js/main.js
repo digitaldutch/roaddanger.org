@@ -2538,7 +2538,7 @@ function downloadData() {
   async function doDownload(){
     spinnerLoad.style.display = 'block';
     try {
-      const url      = '/admin/exportdata.php?function=downloadData&period=all&format=zjson';
+      const url = '/admin/exportdata.php?function=downloadData&period=all&format=zjson';
       const response = await fetchFromServer(url);
 
       const urlFile = '/admin/' + response.filename;

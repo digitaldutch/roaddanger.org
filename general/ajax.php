@@ -254,8 +254,19 @@ function getStatsMediaHumanization(Database $database): array {
 
   $group = 'month';
 
-  require_once '../research/Research.php';
-  return Research::loadQuestionnaireResults($filter, $group, []);
+  require_once '../general/Cache.php';
+  $cacheResponse = Cache::get('getStatsMediaHumanization', 30);
+
+  if ($cacheResponse === null) {
+    require_once '../research/Research.php';
+    $response = Research::loadQuestionnaireResults($filter, $group, []);
+
+    Cache::set('getStatsMediaHumanization', json_encode($response));
+  } else {
+    $response = json_decode($cacheResponse, true);
+  }
+
+  return $response;
 }
 
 
@@ -398,8 +409,8 @@ if ($function == 'login') {
 
   if (is_null($_REQUEST['email']) || is_null($_REQUEST['password'])) dieWithJSONErrorMessage('Invalid AJAX login call.');
 
-  $email        = $_REQUEST['email'];
-  $password     = $_REQUEST['password'];
+  $email = $_REQUEST['email'];
+  $password = $_REQUEST['password'];
   $stayLoggedIn = (int)getRequest('stayLoggedIn', 0) === 1;
 
   global $user;
