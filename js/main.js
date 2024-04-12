@@ -116,7 +116,8 @@ async function initMain() {
     if (pageType === PageType.mosaic) document.getElementById('cards').classList.add('mosaic');
     showReadMoreLink();
     loadCrashes();
-    loadFeaturedGraph();
+
+    if (pageType === PageType.recent) loadFeaturedGraph();
   }
 
 }
@@ -696,8 +697,10 @@ async function loadCrashes(crashId=null, articleId=null){
 
 function showReadMoreLink() {
   const intro = document.getElementById('sectionIntro');
-  const readMore = document.getElementById('introReadMore');
-  readMore.style.display = isOverflown(intro)? 'block' : 'none';
+  if (intro) {
+    const readMore = document.getElementById('introReadMore');
+    if (readMore) readMore.style.display = isOverflown(intro)? 'block' : 'none';
+  }
 }
 
 function showFullIntro() {
@@ -706,13 +709,15 @@ function showFullIntro() {
 }
 
 async function loadFeaturedGraph() {
+  const element = document.getElementById('featuredGraph');
+  if (! element || ! d3) return;
+
   const url = '/general/ajax.php?function=getMediaHumanizationData';
   const response = await fetchFromServer(url, []);
 
   const title = translate('Media_humanization_test');
   showMediaHumanizationGraph(response.statistics, 'featuredGraph', title);
 
-  const element = document.getElementById('featuredGraph');
   element.addEventListener('click',e => window.location = '/statistics/media_humanization');
   element.style.display = 'block';
 }
@@ -2467,7 +2472,10 @@ function closeCrashDetails(popHistory=true) {
 }
 
 function searchVisible(){
-  return document.getElementById('searchBar').style.display === 'flex';
+  const element = document.getElementById('searchBar');
+  const style = window.getComputedStyle(element);
+
+  return style.display === 'flex';
 }
 
 function toggleSearchBar() {

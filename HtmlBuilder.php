@@ -705,6 +705,52 @@ HTML;
 HTML;
   }
 
+  public static function pageMosaic(): string {
+    return <<<HTML
+<div id="pageMain">
+  <div id="cards"></div>
+  <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+</div>
+HTML;
+
+  }
+  public static function pageHumanizationTest(): string {
+    global $user;
+
+    $texts = translateArray(['Media_humanization_test']);
+    $infoText = $user->translateLongText('media_humanization_info');
+
+    return <<<HTML
+<div id="pageMain">
+
+  <div style="width: 100%; max-width: 700px;">
+
+  <div style="display: flex; flex-direction: column; align-items: center">
+    <div style="text-align: left;">
+      <div class="pageSubTitleFont">{$texts['Media_humanization_test']}</div>
+    </div>
+  </div>
+  
+  <div id="pageInfo" style="display: none; margin: 10px 0;">
+</div>
+
+  <div id="statistics">
+  
+    <div id="graphMediaHumanizationIntro" style="margin-top: 10px; display: none;">
+      <div>$infoText</div>
+      <div id="graphMediaHumanizationQuestions"></div>
+    </div>
+    
+    <div id="graphMediaHumanization" style="position: relative;"></div>
+   
+  </div>
+  
+  <div id="spinnerLoad"><img src="/images/spinner.svg" alt="Spinner"></div>
+  </div>
+</div>
+HTML;
+  }
+
   public static function pageStatsCrashPartners(): string {
     $texts = translateArray(['Counterparty_in_crashes', 'Always', 'days', 'the_correspondent_week', 'Custom_period',
       'Help_improve_data_accuracy', 'Child', 'Injury', 'Injured', 'Dead_(adjective)', 'Search_text_hint',
@@ -889,6 +935,46 @@ HTML;
 <select id="$elementId" class="searchInput" $onInputFunction data-tippy-content="{$texts['Country']}">
   $countryOptions
 </select>
+HTML;
+  }
+
+  public static function pageExport(): string {
+    return <<<HTML
+<div id="main" class="pageInner">
+  <div class="pageSubTitle">Export</div>
+  <div id="export">
+
+    <div class="sectionTitle">Download</div>
+
+    <div>All crash data can be exported in gzip JSON format. The download is refreshed every 24 hours.
+    </div> 
+    
+    <div class="buttonBar" style="justify-content: center; margin-bottom: 30px;">
+      <button class="button" style="margin-left: 0; height: auto;" onclick="downloadData();">Download data<br>in gzip JSON formaat</button>
+    </div>  
+    <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+    
+    <div class="sectionTitle">Data specification</div>
+    
+    <div class="tableHeader">Persons > transportationmode</div>
+    
+    <table class="dataTable" style="width: auto; margin: 0 0 20px 0;">
+      <thead>
+      <tr><th>id</th><th>name</th></tr>
+      </thead>
+      <tbody id="tbodyTransportationMode"></tbody>
+    </table>        
+
+    <div class="tableHeader">Persons > health</div>
+    <table class="dataTable" style="width: auto; margin: 0 0 20px 0;">
+      <thead>
+      <tr><th>id</th><th>name</th></tr>
+      </thead>
+      <tbody id="tbodyHealth"></tbody>
+    </table>
+            
+  </div>
+</div>
 HTML;
   }
 
