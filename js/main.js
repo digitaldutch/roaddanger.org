@@ -47,8 +47,8 @@ async function initMain() {
   const searchDateTo = url.searchParams.get('date_to');
   const searchSiteName = url.searchParams.get('sitename');
   const searchPersons = url.searchParams.get('persons');
-  const searchHealthDead = parseInt(url.searchParams.get('hd')?? 1);
-  const searchHealthInjured = parseInt(url.searchParams.get('hi')?? 1);
+  const searchHealthDead = parseInt(url.searchParams.get('hd')?? 0);
+  const searchHealthInjured = parseInt(url.searchParams.get('hi')?? 0);
   const searchChild = url.searchParams.get('child');
   const pathName = decodeURIComponent(url.pathname);
 
@@ -80,10 +80,10 @@ async function initMain() {
 
     document.getElementById('searchSiteName').value = searchSiteName;
 
-    if (searchHealthDead)    document.getElementById('searchPersonHealthDead').classList.add('buttonSelectedBlue');
-    if (searchHealthInjured) document.getElementById('searchPersonHealthInjured').classList.add('buttonSelectedBlue');
-    if (searchChild)         document.getElementById('searchPersonChild').classList.add('buttonSelectedBlue');
-    if (searchPersons)       setPersonsFilter(searchPersons);
+    if (searchHealthDead) document.getElementById('searchPersonHealthDead').classList.add('buttonSelectedBlue');
+    if (searchHealthInjured) document.getElementById('searchPersonHealthInjured').classList.add( 'buttonSelectedBlue');
+    if (searchChild) document.getElementById('searchPersonChild').classList.add('buttonSelectedBlue');
+    if (searchPersons) setPersonsFilter(searchPersons);
   }
 
   addEditPersonButtons();
@@ -773,7 +773,7 @@ async function loadMapDataFromServer(){
         let   personInjured = false;
         if (! personDied) personInjured = crash.persons.find(p => p.health === Health.injured);
 
-        const imgSrc = personDied? 'persondead.svg' : personInjured? 'person_injured.svg' : 'crash_icon.svg';
+        const imgSrc = personDied? 'persondead_red.svg' : personInjured? 'person_injured_red.svg' : 'crash_icon.svg';
 
         markerElement.innerHTML = `<img class="crashIcon" src="/images/${imgSrc}">`;
         markerElement.onclick = () => {showCrashDetails(crash.id)};
@@ -1262,9 +1262,9 @@ function getCrashButtonsHTML(crash, showAllHealth=true, allowClick=false) {
     if (button.persons.length < 1) return '';
     const person1 = button.persons[0];
     const bgTransportation = transportationModeImage(person1.transportationmode);
-    let tooltip            = transportationModeText(person1.transportationmode);
-    let iconsGroup         = `<div class="iconMedium ${bgTransportation}" data-tippy-content="${tooltip}"></div>`;
-    let htmlPersons        = '';
+    let tooltip = transportationModeText(person1.transportationmode);
+    let iconsGroup = `<div class="iconMedium ${bgTransportation}" data-tippy-content="${tooltip}"></div>`;
+    let htmlPersons = '';
 
     for (const person of button.persons){
       let tooltip = translate('Human') + ' ' + person.id +
@@ -2490,16 +2490,16 @@ function startSearch() {
 }
 
 function updateBrowserUrl(pushState=false){
-  const searchText          = document.getElementById('searchText').value.trim().toLowerCase();
-  const searchCountry       = document.getElementById('searchCountry').value;
-  const searchPeriod        = document.getElementById('searchPeriod').value;
-  const searchDateFrom      = document.getElementById('searchDateFrom').value;
-  const searchDateTo        = document.getElementById('searchDateTo').value;
-  const searchSiteName      = document.getElementById('searchSiteName').value.trim().toLowerCase();
-  const searchHealthDead    = document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue');
+  const searchText = document.getElementById('searchText').value.trim().toLowerCase();
+  const searchCountry = document.getElementById('searchCountry').value;
+  const searchPeriod = document.getElementById('searchPeriod').value;
+  const searchDateFrom = document.getElementById('searchDateFrom').value;
+  const searchDateTo = document.getElementById('searchDateTo').value;
+  const searchSiteName = document.getElementById('searchSiteName').value.trim().toLowerCase();
+  const searchHealthDead = document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue');
   const searchHealthInjured = document.getElementById('searchPersonHealthInjured').classList.contains('buttonSelectedBlue');
-  const searchChild         = document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue');
-  const searchPersons       = getPersonsFromFilter();
+  const searchChild = document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue');
+  const searchPersons = getPersonsFromFilter();
 
   const url = new URL(location.origin);
 

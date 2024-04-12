@@ -207,7 +207,7 @@ class User {
     $this->clearData();
   }
 
-  public function resetPasswordRequest($email) {
+  public function resetPasswordRequest($email): bool|string {
     try{
       $sql = "SELECT 1 FROM users WHERE email=:email;";
       $user = $this->database->fetch($sql, [':email' => $email]);
@@ -215,17 +215,22 @@ class User {
       if ($user === false) throw new Exception('Email adres onbekend') ;
 
       $passwordRecoveryID = getRandomString(16);
-      $sql    = "UPDATE users SET passwordrecoveryid=:passwordrecoveryid, passwordrecoverytime=current_timestamp WHERE email=:email;";
-      $params = [':passwordrecoveryid' => $passwordRecoveryID, ':email' => $email];
+
+      $sql = "UPDATE users SET passwordrecoveryid=:passwordrecoveryid, passwordrecoverytime=current_timestamp WHERE email=:email;";
+      $params = [
+        ':passwordrecoveryid' => $passwordRecoveryID,
+        ':email' => $email,
+      ];
       $this->database->execute($sql, $params);
+
       return $passwordRecoveryID;
     } catch (\Exception $e){
       return false;
     }
   }
 
-  private function setStayLoggedInToken(){
-    $token     = bin2hex(random_bytes(64));
+  private function setStayLoggedInToken(): void {
+    $token = bin2hex(random_bytes(64));
     $tokenHash = password_hash($token, PASSWORD_DEFAULT);
     $sql = <<<SQL
 INSERT INTO logins 
@@ -244,13 +249,9 @@ SQL;
     // httponly: Cookie can only be read in PHP. Not in JavaScript.
     setcookie('user_id', $this->id, ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'httponly' => true, 'domain' => COOKIE_DOMAIN]);
     setcookie('login_id', $id, ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'httponly' => true, 'domain' => COOKIE_DOMAIN]);
-
-//    setcookie('user_id',     $this->id, ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
-//    setcookie('login_id',    $id,       ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
-//    setcookie('login_token', $token,    ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
   }
 
-  public function login($email, $password, $stayLoggedIn=false){
+  public function login(string $email, string $password, bool $stayLoggedIn=false): void {
     $this->logout();
     $this->loadUserFromDB($email, $password);
     $this->loadTranslations();
@@ -259,37 +260,31 @@ SQL;
   }
 
   /**
-   * @param $firstName
-   * @param $lastName
-   * @param $email
-   * @param $password
-   * @return string
    * @throws Exception
    */
-  public function register($firstName, $lastName, $email, $password){
-    if (empty($password))                            throw new Exception('Geen paswoord') ;
-    if (empty($firstName))                           throw new Exception('Geen voornaam') ;
-    if (empty($lastName))                            throw new Exception('Geen achternaam') ;
-    if (empty($email))                               throw new Exception('Geen email') ;
-    if (empty($password) or (strlen($password) < 6)) throw new Exception('Wachtwoord is te kort: Minder dan 6 karakters.') ;
+  public function register(string $firstName, string $lastName, string $email, string $password): void {
+    if (empty($password)) throw new Exception('Geen paswoord') ;
+    if (empty($firstName)) throw new Exception('Geen voornaam') ;
+    if (empty($lastName)) throw new Exception('Geen achternaam') ;
+    if (empty($email)) throw new Exception('Geen email') ;
+    if (strlen($password) < 6) throw new Exception('Wachtwoord is te kort: Minder dan 6 karakters.') ;
 
     $sql = "SELECT COUNT(*) AS count FROM users WHERE email=:email;";
     $params = [':email' => $email];
     $rows = $this->database->fetchAll($sql, $params);
 
     if ((count($rows) > 0) && ($rows[0]['count'] > 0)) {
-      throw new Exception('Email adres wordt al gebruikt door iemand anders.');
+      throw new Exception('Email adres is al in gebruik. Gebruik de wachtwoord vergeten functie.');
     }
 
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
     $sql = 'INSERT INTO users (firstname, lastname, email, passwordhash) VALUES(:firstname, :lastname, :email, :password)';
     $params = [':firstname' => $firstName, ':lastname' => $lastName, ':email' => $email, ':password' => $passwordHash];
     $this->database->execute($sql, $params);
+
     $userId = $this->database->lastInsertID();
 
     $this->database->log($userId, LogLevel::info, "New registration");
-
-    return $userId;
   }
 
   /**

@@ -22,8 +22,8 @@ else if (str_starts_with($uri, '/statistics'))                      $pageType = 
 else if (str_starts_with($uri, '/export'))                          $pageType = PageType::export;
 else $pageType = PageType::recent;
 
-$addSearchBar   = false;
-$showButtonAdd  = false;
+$addSearchBar = false;
+$showButtonAdd = false;
 $head = "<script src='/js/main.js?v=$VERSION'></script>";
 if ($pageType === PageType::statisticsCrashPartners) {
   $head .= "<script src='/scripts/d3.v7.js?v=$VERSION'></script>
@@ -95,7 +95,7 @@ HTML;
 
 } else if ($pageType === PageType::mosaic) {
   $showButtonAdd = true;
-  $addSearchBar  = true;
+  $addSearchBar = true;
   $mainHTML = <<<HTML
 <div id="pageMain">
   <div id="cards"></div>

@@ -399,7 +399,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .searchBar {
-  display: none;
+  display: flex;
   position: relative;
   flex-wrap: wrap;
   align-items: center;
@@ -621,17 +621,17 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 .searchIcon {
-  display:             flex;
-  align-items:         center;
-  justify-content:     center;
-  color:               #000000;
-  opacity:             0.15;
-  height:              20px;
-  width:               20px;
-  border:              1px solid #fff;
-  margin:              0 2px;
-  background-size:     16px;
-  background-repeat:   no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000000;
+  opacity: 0.2;
+  height: 20px;
+  width: 20px;
+  border: 1px solid #fff;
+  margin: 0 2px;
+  background-size: 16px;
+  background-repeat: no-repeat;
   background-position: center;
 }
 
@@ -726,12 +726,12 @@ h2, .pageSubTitleFont, .sectionTitle {
 .bgGeo {background-image: url(/images/geo.svg);}
 .bgTripleDots {background-image: url(/images/tripledots.svg);}
 
-.bgDead { background-image: url(/images/persondead.svg);}
 .bgDeadBlack { background-image: url(/images/persondead_black.svg);}
 .bgDeadWhite { background-image: url(/images/persondead_white.svg);}
-.bgInjured { background-image: url(/images/person_injured.svg);}
+.bgDeadRed { background-image: url(/images/persondead_red.svg);}
 .bgInjuredBlack { background-image: url(/images/person_injured_black.svg);}
 .bgInjuredWhite { background-image: url(/images/person_injured_white.svg);}
+.bgInjuredRed { background-image: url(/images/person_injured_red.svg);}
 .bgUnharmed { background-image: url(/images/unharmed.svg);}
 .bgRestricted { background-image: url(/images/restricted.svg);}
 

@@ -819,11 +819,11 @@ function healthText(healthStatus) {
 
 function healthImage(healthStatus) {
   switch (healthStatus) {
-    case Health.unknown:  return 'bgUnknown';
+    case Health.unknown: return 'bgUnknown';
     case Health.unharmed: return 'bgUnharmed';
-    case Health.injured:  return 'bgInjured';
-    case Health.dead:     return 'bgDead';
-    default:               return 'bgUnknown';
+    case Health.injured: return 'bgInjuredRed';
+    case Health.dead: return 'bgDeadRed';
+    default: return 'bgUnknown';
   }
 }
 
@@ -1061,16 +1061,17 @@ function initSearchBar(){
 
   let html = '';
   for (const key of Object.keys(TransportationMode)){
-    const transportationMode     =  TransportationMode[key];
-    const id                     = 'tm' + transportationMode;
-    const text                   = transportationModeText(transportationMode);
+    const transportationMode =  TransportationMode[key];
+    const id = 'tm' + transportationMode;
+    const text = transportationModeText(transportationMode);
     const iconTransportationMode = transportationModeImage(transportationMode);
+
     html +=
       `<div id="${id}" class="optionCheckImage" onclick="searchPersonClick(${transportationMode});">
   <span class="checkbox"></span>
   <div class="iconMedium ${iconTransportationMode}" data-tippy-content="${text}"></div>
-  <span id="searchDeadTm${transportationMode}" class="searchIcon bgDead" data-tippy-content="${translate('Dead_(adjective)')}" onclick="searchPersonOptionClick(event, 'Dead', ${transportationMode});"></span>      
-  <span id="searchInjuredTm${transportationMode}" class="searchIcon bgInjured" data-tippy-content="${translate('Injured')}" onclick="searchPersonOptionClick(event, 'Injured', ${transportationMode});"></span>      
+  <span id="searchDeadTm${transportationMode}" class="searchIcon bgDeadBlack" data-tippy-content="${translate('Dead_(adjective)')}" onclick="searchPersonOptionClick(event, 'Dead', ${transportationMode});"></span>      
+  <span id="searchInjuredTm${transportationMode}" class="searchIcon bgInjuredBlack" data-tippy-content="${translate('Injured')}" onclick="searchPersonOptionClick(event, 'Injured', ${transportationMode});"></span>      
   <span id="searchRestrictedTm${transportationMode}" data-personRestricted class="searchIcon ${iconTransportationMode} mirrorHorizontally" data-tippy-content="${translate('Counterparty_same_mode')}" onclick="searchPersonOptionClick(event, 'Restricted', ${transportationMode});"></span>      
   <span id="searchUnilateralTm${transportationMode}" data-personUnilateral class="searchIcon bgUnilateral" data-tippy-content="${translate('One-sided_crash')}" onclick="searchPersonOptionClick(event, 'Unilateral', ${transportationMode});"></span>      
 </div>`;
