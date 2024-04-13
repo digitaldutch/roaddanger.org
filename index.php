@@ -22,6 +22,7 @@ else if (str_starts_with($uri, '/statistics'))                      $pageType = 
 else if (str_starts_with($uri, '/export'))                          $pageType = PageType::export;
 else $pageType = PageType::recent;
 
+$showFullHeaderTitle = true;
 $addSearchBar = false;
 $showButtonAdd = false;
 $head = "<script src='/js/main.js?v=$VERSION'></script>";
@@ -57,7 +58,7 @@ HTML;
 }
 
 if (pageWithEditMap($pageType)) {
-  $mapbox_geocoder_js  = MAPBOX_GEOCODER_JS;
+  $mapbox_geocoder_js = MAPBOX_GEOCODER_JS;
   $mapbox_geocoder_css = MAPBOX_GEOCODER_CSS;
   $head .= <<<HTML
 <script src="$mapbox_geocoder_js"></script>
@@ -113,6 +114,7 @@ HTML;
 } else {
   $addSearchBar = true;
   $showButtonAdd = true;
+  $showFullHeaderTitle = false;
   $websiteInfo = translateLongText('website_info');
 
   $title = '';
@@ -135,7 +137,7 @@ HTML;
   $mainHTML = <<<HTML
 <div id="pageMain">
   <div class="pageInner">
-    <div id="largeTitle">$pageTitle</div>
+    <a id="largeTitle" href="/">$pageTitle</a>
     $introText
     <div id="featuredGraph"></div>
     <div id="cards"></div>
@@ -148,7 +150,8 @@ HTML;
 }
 
 $html =
-  HtmlBuilder::getHTMLBeginMain('', $head, 'initMain', $addSearchBar, $showButtonAdd) .
+  HtmlBuilder::getHTMLBeginMain('', $head, 'initMain', $addSearchBar,
+    $showButtonAdd, $showFullHeaderTitle) .
   $mainHTML .
   HtmlBuilder::getHTMLEnd();
 

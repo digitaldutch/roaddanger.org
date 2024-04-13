@@ -2,7 +2,8 @@
 
 class HtmlBuilder {
 
-  public static function getHTMLBeginMain($pageTitle = '', $head = '', $initFunction = '', $addSearchBar = false, $showButtonAdd = false) {
+  public static function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $addSearchBar=false,
+                                          $showButtonAdd=false, $showFullHeaderTitle=true) {
     global $VERSION;
 
     $texts = translateArray(['Cookie_warning', 'More_info', 'Accept', 'Add']);
@@ -38,6 +39,12 @@ HTML;
 HTML;
     }
 
+    $headerTitle = '';
+    if ($showFullHeaderTitle) {
+      $websiteName = WEBSITE_NAME;
+      $headerTitle = "<a href='/'>$websiteName</a>";
+    }
+
     global $database;
     global $user;
 
@@ -56,7 +63,6 @@ HTML;
     }
 
     $texts = translateArray(['Log_out', 'Log_in', 'Account', 'Country', 'Language']);
-    $websiteName = WEBSITE_NAME;
 
     $htmlSearchBar = $addSearchBar ? self::getHtmlSearchBar() : '';
 
@@ -90,9 +96,7 @@ $navigation
     </div>
   
     <div class="headerMain pageTitle">
-      <span>
-        <a href="/">$websiteName</a>        
-      </span>
+      $headerTitle        
     </div>
    
     <div style="display: flex; position: relative; justify-self: flex-end;">
