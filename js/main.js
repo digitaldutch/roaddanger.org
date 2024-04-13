@@ -748,7 +748,7 @@ function delayedLoadMapData(){
 async function loadMapDataFromServer(){
 
   try {
-    document.getElementById('spinnerTitle').style.display = 'inline-flex';
+    document.getElementById('spinnerHeader').style.display = 'inline-flex';
 
     const bounds = mapMain.getBounds();
     const serverData  = {
@@ -803,7 +803,7 @@ async function loadMapDataFromServer(){
   } catch (error) {
     showError(error.message);
   } finally {
-    document.getElementById('spinnerTitle').style.display = 'none';
+    document.getElementById('spinnerHeader').style.display = 'none';
   }
 
 }

@@ -84,16 +84,18 @@ $navigation
 <div class="flexToFullPage">
 
   <div id="topBar">
-    <span class="menuButtonBlack bgMenuWhite" onclick="toggleNavigation(event);"></span>
+    <div style="display: inline-flex; align-items: center;">
+      <span class="menuButtonBlack bgMenuWhite" onclick="toggleNavigation(event);"></span>
+      <img id="spinnerHeader" src="/images/spinner.svg" style="display: none; height: 17px; margin-left: 5px;" alt="Spinner">
+    </div>
   
     <div class="headerMain pageTitle">
       <span>
         <a href="/">$websiteName</a>        
-        <img id="spinnerTitle" src="/images/spinner.svg" style="display: none; height: 17px; margin-left: 5px;" alt="Spinner">
       </span>
     </div>
    
-    <div style="display: flex; position: relative;">
+    <div style="display: flex; position: relative; justify-self: flex-end;">
       $buttons
       
       <span style="position: relative;">

@@ -19,7 +19,7 @@
   font-family: 'Usual';
   font-style: normal;
   font-weight: 400;
-  src: local('Usual Regular'), local('Usual-Regular'), url('./fonts/Usual_Medium.woff2') format('woff2');
+  src: local('Usual Regular'), local('Usual-Regular'), url('./fonts/Usual.woff2') format('woff2');
 }
 
 @font-face {
@@ -68,8 +68,8 @@ a:hover, .link:hover {
 
 .pageTitle, .pageTitle * {
   font-size: 30px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-weight: 500;
+  letter-spacing: -0.08em;
   white-space: nowrap;
 }
 
@@ -384,17 +384,18 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 #pageFooter {
-  padding:       5px 0;
-  text-align:    center;
-  color:         #666666;
-  font-size:     12px;
+  padding: 5px 0;
+  text-align: center;
+  color: #666666;
+  font-size: 12px;
 }
 
 #topBar {
-  display:          flex;
-  flex:             0 1 auto;
-  align-items:      center;
-  padding:          3px;
+  display: grid;
+  grid-auto-flow: row;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  padding: 3px;
   background-color: #000;
 }
 
@@ -1649,10 +1650,6 @@ table.tableDragging td div {
     display: none !important;
   }
 
-  .pageTitle, .pageTitle * {
-    font-size: 24px;
-  }
-
   #largeTitle {
     font-size: 80px;
   }
@@ -1673,7 +1670,7 @@ table.tableDragging td div {
 /* Really small screens*/
 @media (max-width: 450px) {
   .pageTitle, .pageTitle * {
-    font-size: 18px;
+    font-size: 20px;
   }
 
   #largeTitle {
