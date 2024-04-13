@@ -397,6 +397,7 @@ h2, .pageSubTitleFont, .sectionTitle {
   align-items: center;
   padding: 3px;
   background-color: #000;
+  white-space: nowrap;
 }
 
 .searchBar {
