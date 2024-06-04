@@ -742,26 +742,33 @@ function transportationModeText(transportationMode) {
   }
 }
 
-function transportationImageFileName(transportationModeValue){
+function transportationImageFileName(transportationModeValue, white=false){
+  let fileName;
   switch (transportationModeValue) {
-    case 0:  return 'unknown.svg';
-    case 1:  return 'pedestrian.svg';
-    case 2:  return 'bicycle.svg';
-    case 3:  return 'motor_scooter.svg';
-    case 4:  return 'motorcycle.svg';
-    case 5:  return 'car.svg';
-    case 6:  return 'taxi.svg';
-    case 7:  return 'emergencyvehicle.svg';
-    case 8:  return 'deliveryvan.svg';
-    case 9:  return 'tractor.svg';
-    case 10: return 'bus.svg';
-    case 11: return 'tram.svg';
-    case 12: return 'truck.svg';
-    case 13: return 'train.svg';
-    case 14: return 'wheelchair.svg';
-    case 15: return 'mopedcar.svg';
-    case 16: return 'scooter.svg';
+    case 0:  fileName = 'unknown'; break;
+    case 1:  fileName = 'pedestrian'; break;
+    case 2:  fileName = 'bicycle'; break;
+    case 3:  fileName = 'motor_scooter'; break;
+    case 4:  fileName = 'motorcycle'; break;
+    case 5:  fileName = 'car'; break;
+    case 6:  fileName = 'taxi'; break;
+    case 7:  fileName = 'emergencyvehicle'; break;
+    case 8:  fileName = 'deliveryvan'; break;
+    case 9:  fileName = 'tractor'; break;
+    case 10: fileName = 'bus'; break;
+    case 11: fileName = 'tram'; break;
+    case 12: fileName = 'truck'; break;
+    case 13: fileName = 'train'; break;
+    case 14: fileName = 'wheelchair'; break;
+    case 15: fileName = 'mopedcar'; break;
+    case 16: fileName = 'scooter'; break;
   }
+
+  if (white) fileName += '_white';
+
+  fileName += '.svg';
+
+  return fileName;
 }
 
 function transportationModeImage(transportationMode, white=false) {

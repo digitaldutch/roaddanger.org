@@ -70,9 +70,8 @@ HTML;
 <!DOCTYPE html>
 <html lang="$user->languageId">
 <head>
-<link href="https://fonts.googleapis.com/css?family=Lora|Montserrat" rel="stylesheet">
 <link href="/main.css?v=$VERSION" rel="stylesheet" type="text/css">
-<link rel="shortcut icon" type="image/png" href="/images/roaddanger_icon.png">
+<link rel="shortcut icon" type="image/png" href="/images/favicon.svg">
 <script src="/scripts/popper.min.js"></script><script src="/scripts/tippy-bundle.umd.min.js"></script>
 <script src='/js/utils.js?v=$VERSION'></script>
 $head
@@ -807,7 +806,7 @@ HTML;
 
     </div>
 
-    <div id="graphWrapper" style="display: none; background-color: #fff; margin-top: 10px; padding: 5px;">
+    <div id="graphWrapper" style="display: none; margin-top: 10px; padding: 5px;">
       <div id="graphPartners" style="position: relative;"></div>  
     </div>
    

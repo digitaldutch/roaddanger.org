@@ -285,7 +285,7 @@ SQL;
             default: throw new Exception('Internal error: Unknown Bechdel result');
           }
 
-          if ($articleFilter['getArticles']) {
+          if (! empty($articleFilter['getArticles'])) {
             $article['bechdelResult'] = $articleBechdel;
 
             if (self::passesArticleFilter($article, $articleFilter)) {
@@ -344,7 +344,7 @@ SQL;
       $result['bechdelResults'] = $filtered;
     }
 
-    if ($articleFilter['getArticles']) {
+    if (! empty($articleFilter['getArticles'])) {
       $result = [
         'ok' => true,
         'crashes' => $crashes,
