@@ -45,6 +45,73 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     }
   });
 
+  // create the tooltip element
+  const tooltip = d3.select('#' + divID)
+    .append('div')
+    .attr('id', 'tooltip' + divID)
+    .style('display', 'none')
+    .style('position', 'absolute')
+    .style('color', 'black')
+    .style('background-color', 'white')
+    .style('font-size', fontSize)
+    .style('border', 'solid 1px #000')
+    .style('border-radius', '5px')
+    .style('padding', '2px 5px');
+
+  const mouseoverX = (event, data) => {
+    let victims = partnerTotals[data];
+
+    let html = data === -1 ? translate('One-sided_crash') : translate('Counterparty') + ':&nbsp;' + transportationModeText(data);
+    html += `<br>${translate('Total')}:&nbsp;${d3.format('.3~s')(victims)}&nbsp`;
+    html += victims === 1? translate('dead_(single)') : translate('dead_(multiple)');
+    if (filter.healthInjured) html += '/' + translate('injured');
+
+    tooltip.html(html).style('display', 'flex');
+  };
+
+  const mousemoveX = (event, data) => {
+    const [pointer_x, pointer_y] = d3.pointer(event);
+    const svgWidth = d3.select('#' + divID).node().getBoundingClientRect().width;
+    const scaleFactor = svgWidth / widthContainer;
+
+    let xMouse = xScale(data) + pointer_x;
+    let yMouse = margin.top + pointer_y;
+
+    xMouse = xMouse * scaleFactor + 30;
+    yMouse = yMouse * scaleFactor - 10;
+
+    tooltip
+      .style('left', xMouse + 'px')
+      .style('top', yMouse + 'px');
+  };
+
+  const mouseoverY = (event, data) => {
+    let victims = victimTotals[data];
+
+    let html = data === -1 ? translate('One-sided_crash') : translate('Transportation_mode') + ':&nbsp;' + transportationModeText(data);
+    html += `<br>${translate('Total')}:&nbsp;${d3.format('.3~s')(victims)}&nbsp`;
+    html += victims === 1? translate('dead_(single)') : translate('dead_(multiple)');
+    if (filter.healthInjured) html += '/' + translate('injured');
+
+    tooltip.html(html).style('display', 'flex');
+  };
+
+  const mousemoveY = (event, data) => {
+    const [pointer_x, pointer_y] = d3.pointer(event);
+    const svgWidth = d3.select('#' + divID).node().getBoundingClientRect().width;
+    const scaleFactor = svgWidth / widthContainer;
+
+    let xMouse = margin.left + pointer_x;
+    let yMouse = yScale(data) + pointer_y;
+
+    xMouse = xMouse * scaleFactor - 2;
+    yMouse = yMouse * scaleFactor - 20;
+
+    tooltip
+      .style('left', xMouse + 'px')
+      .style('top', yMouse + 'px');
+  };
+
   const xScale = d3.scaleBand()
     .domain(partnerModes)
     .range([margin.left, widthContainer - margin.right]);
@@ -90,7 +157,10 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .attr('y', (-iconWidth + 5) + 'px')
     .attr('width', iconWidth)
     .attr('height', iconWidth)
-    .style('opacity', 0.6);
+    .style('opacity', 0.6)
+    .on('mouseover', mouseoverX)
+    .on('mousemove', mousemoveX)
+    .on('mouseleave', () => tooltip.style('display', 'none'));
 
   // x-axis total texts
   x_tick
@@ -99,7 +169,11 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .attr('dy', '15px')
     .style('font-size', fontSize)
     .style('fill', '#ffffff')
-    .text(d => d3.format('.3~s')(partnerTotals[parseInt(d)]));
+    .style('opacity', 0.6)
+    .text(d => d3.format('.3~s')(partnerTotals[parseInt(d)]))
+    .on('mouseover', mouseoverX)
+    .on('mousemove', mousemoveX)
+    .on('mouseleave', () => tooltip.style('display', 'none'));
 
   // y-axis
   // Remove integer mode texts. We replace these with icons
@@ -115,16 +189,23 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .attr('y', (-iconWidth / 2) + 'px')
     .attr('width', iconWidth)
     .attr('height',iconWidth)
-    .style('opacity', 0.6);
+    .style('opacity', 0.6)
+    .on('mouseover', mouseoverY)
+    .on('mousemove', mousemoveY)
+    .on('mouseleave', () => tooltip.style('display', 'none'));
 
   // y-axis total texts
   y_tick
     .append("text")
-    .attr('dx', '8px')
-    .attr('dy', '3px')
+    .attr('dx', '15px')
+    .attr('dy', '5px')
     .style('font-size', fontSize)
     .style('fill', '#ffffff')
-    .text(d => d3.format('.3~s')(victimTotals[parseInt(d)]));
+    .style('opacity', 0.6)
+    .text(d => d3.format('.3~s')(victimTotals[parseInt(d)]))
+    .on('mouseover', mouseoverY)
+    .on('mousemove', mousemoveY)
+    .on('mouseleave', () => tooltip.style('display', 'none'));
 
   if (xLabel) {
     svg.append('text')
@@ -146,28 +227,15 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
       .text(yLabel);
   }
 
-  // create the tooltip element
-  const tooltip = d3.select('#' + divID)
-    .append('div')
-    .attr('id', 'tooltip' + divID)
-    .style('display', 'none')
-    .style('position', 'absolute')
-    .style('color', 'black')
-    .style('background-color', 'white')
-    .style('font-size', fontSize)
-    .style('border', 'solid 1px #000')
-    .style('border-radius', '5px')
-    .style('padding', '2px 5px');
-
   function getTransportationModeIcon(transportationModeValue){
     return transportationModeValue === -1? '/images/unilateral_white.svg' : '/images/transportation_modes/' + transportationImageFileName(transportationModeValue, true);
   }
 
-  const mouseoverItem = (event, data) => {
+  const mouseoverDataPoint = (event, data) => {
     const modeText = data.partnerMode === -1? translate('One-sided_crash') : translate('Counterparty') + ':&nbsp;' + transportationModeText(data.partnerMode);
 
     let html = '';
-    html += `${transportationModeText(data.victimMode)}<br>`;
+    html += `${translate('Transportation_mode')}: ${transportationModeText(data.victimMode)}<br>`;
     html += `${d3.format('.3~s')(data.value)}&nbsp`;
     html += data.value === 1? translate('dead_(single)') : translate('dead_(multiple)');
     if (filter.healthInjured) html += '/' + translate('injured');
@@ -192,7 +260,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
       .style('font-size', '20px');
   };
 
-  const mousemoveItem = (event, data) => {
+  const mousemoveDataPoint = (event, data) => {
     const [pointer_x, pointer_y] = d3.pointer(event);
     const svgWidth = d3.select('#' + divID).node().getBoundingClientRect().width;
     const scaleFactor = svgWidth / widthContainer;
@@ -208,7 +276,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
       .style('top', yMouse + 'px');
   };
 
-  const mouseleaveItem = (event, data) => {
+  const mouseleaveDataPoint = (event, data) => {
     tooltip.style('display', 'none');
 
     d3.select(event.currentTarget)
@@ -229,13 +297,13 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
   };
 
   // Add data background
-  svg.append('rect')
-    .attr('width', widthContainer - margin.left - margin.right)
-    .attr('height', heightContainer - margin.top - margin.bottom)
-    .attr('x', margin.left)
-    .attr('y', margin.top)
-    .attr('fill', '#000')
-    .attr('fill-opacity', 0.1);
+  // svg.append('rect')
+  //   .attr('width', widthContainer - margin.left - margin.right)
+  //   .attr('height', heightContainer - margin.top - margin.bottom)
+  //   .attr('x', margin.left)
+  //   .attr('y', margin.top)
+  //   .attr('fill', '#000')
+  //   .attr('fill-opacity', 0.1);
 
   // Data item
   const dataElement = svg.selectAll()
@@ -263,11 +331,11 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .style('text-decoration', 'none')
     .append("g")
     .attr("transform", d => `translate(${xScale(d.partnerMode) + xScale.bandwidth()/2}, ${yScale(d.victimMode) + yScale.bandwidth()/2})`)
-    .on('mouseover', mouseoverItem)
-    .on('mousemove', mousemoveItem)
-    .on('mouseleave', mouseleaveItem);
+    .on('mouseover', mouseoverDataPoint)
+    .on('mousemove', mousemoveDataPoint)
+    .on('mouseleave', mouseleaveDataPoint);
 
-  // Add empty background to equalize a link sizes
+  // Add non-visible background for mouseover events
   dataElement.append('circle')
    .attr('r', yScale.bandwidth()/2)
    .attr('fill-opacity', 0);
