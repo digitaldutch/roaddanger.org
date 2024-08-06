@@ -4,18 +4,17 @@ class TMetaParser {
 
   private string $url;
 
-  function __construct($url) {
+  function __construct(string $url) {
     $this->url = $url;
   }
-  function downloadWebpage() {
-
+  function downloadWebpage(string $url): bool|string {
     $headers = [
       "Accept-Encoding:gzip,deflate",
       'User-Agent:' . $_SERVER['HTTP_USER_AGENT']
     ];
 
     $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, $this->url);
+    curl_setopt($curl, CURLOPT_URL, $url);
     curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($curl, CURLOPT_ENCODING,"gzip");
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -30,12 +29,12 @@ class TMetaParser {
 
   function getPageMediaMetaData(string $html, string $url): array{
     $meta = [
-      'json-ld'  => [],
-      'og'       => [],
-      'twitter'  => [],
-      'article'  => [],
+      'json-ld' => [],
+      'og' => [],
+      'twitter' => [],
+      'article' => [],
       'itemprop' => [],
-      'other'    => []
+      'other' => []
     ];
 
     // Handle UTF 8 properly
@@ -47,8 +46,8 @@ class TMetaParser {
     // See Google structured data guidelines https://developers.google.com/search/docs/guides/intro-structured-data#structured-data-guidelines
     // json-ld tags. Used by Google.
 
+    // Find JSON-LD meta data
     $matches = null;
-    // Check for both property and name attributes. nu.nl uses incorrectly name
     preg_match_all('~<\s*script\s+[^<>]*ld\+json[^<>]*>(.*)<\/script>~iUs', $html, $matches);
     for ($i=0; $i<count($matches[1]); $i++) {
       $ldJson = trim($matches[1][$i]);
@@ -56,8 +55,8 @@ class TMetaParser {
     }
 
     // Open Graph tags
-    $matches = null;
     // Check for both property and name attributes. nu.nl uses incorrectly name
+    $matches = null;
     preg_match_all('~<\s*meta\s+[^<>]*[property|name]=[\'"](og:[^"]+)[\'"]\s+[^<>]*content="([^"]*)~i', $html,$matches);
     for ($i=0; $i<count($matches[1]); $i++) $meta['og'][$matches[1][$i]] = $matches[2][$i];
 
@@ -159,20 +158,20 @@ class TMetaParser {
   }
 
   function mediaTagsFromMetaData(array $metaData): array {
-    $ldJsonTags   = $metaData['json-ld'];
-    $ogTags       = $metaData['og'];
-    $twitterTags  = $metaData['twitter'];
-    $articleTags  = $metaData['article'];
+    $ldJsonTags = $metaData['json-ld'];
+    $ogTags = $metaData['og'];
+    $twitterTags = $metaData['twitter'];
+    $articleTags = $metaData['article'];
     $itemPropTags = $metaData['itemprop'];
 
     // Get best tag (we assume it is the longest one) and decode HTML entities to normal text
     $media = [
-      'url'            => $this->getLongestAvailableTag([$ogTags['og:url'], $this->url]),
-      'urlimage'       => $this->getLongestAvailableTag([$ldJsonTags['image'], $ogTags['og:image']]),
-      'title'          => html_entity_decode(htmlspecialchars_decode(strip_tags($this->getLongestAvailableTag([$ldJsonTags['headline'], $ogTags['og:title'], $twitterTags['twitter:title']]))),ENT_QUOTES),
-      'description'    => html_entity_decode(strip_tags(htmlspecialchars_decode($this->getLongestAvailableTag([$ldJsonTags['description'], $ogTags['og:description'], $twitterTags['twitter:description']]))),ENT_QUOTES),
-      'article_body'   => html_entity_decode(strip_tags(htmlspecialchars_decode($this->getLongestAvailableTag([$ldJsonTags['articleBody']]))),ENT_QUOTES),
-      'sitename'       => html_entity_decode(htmlspecialchars_decode($this->getLongestAvailableTag([$ldJsonTags['publisher'], $ogTags['og:site_name'], $metaData['other']['domain']])),ENT_QUOTES),
+      'url' => $this->getLongestAvailableTag([$ogTags['og:url'], $this->url]),
+      'urlimage' => $this->getLongestAvailableTag([$ldJsonTags['image'], $ogTags['og:image']]),
+      'title' => html_entity_decode(htmlspecialchars_decode(strip_tags($this->getLongestAvailableTag([$ldJsonTags['headline'], $ogTags['og:title'], $twitterTags['twitter:title']]))),ENT_QUOTES),
+      'description' => html_entity_decode(strip_tags(htmlspecialchars_decode($this->getLongestAvailableTag([$ldJsonTags['description'], $ogTags['og:description'], $twitterTags['twitter:description']]))),ENT_QUOTES),
+      'article_body' => html_entity_decode(strip_tags(htmlspecialchars_decode($this->getLongestAvailableTag([$ldJsonTags['articleBody']]))),ENT_QUOTES),
+      'sitename' => html_entity_decode(htmlspecialchars_decode($this->getLongestAvailableTag([$ldJsonTags['publisher'], $ogTags['og:site_name'], $metaData['other']['domain']])),ENT_QUOTES),
       'published_time' => $this->getLongestAvailableTag([$ldJsonTags['datePublished'], $ogTags['og:article:published_time'], $articleTags['article:published_time'], $itemPropTags['datePublished'], $articleTags['article:modified_time']]),
     ];
 
@@ -207,7 +206,10 @@ class TMetaParser {
 function parseMetaDataFromUrl(string $url): array {
   $parser = new TMetaParser($url);
 
-  $pageHtml = $parser->downloadWebpage();
+  $urlDownload = 'https://webcache.googleusercontent.com/search?q=cache:' . urlencode($url);
+  $urlDownload = $url;
+  $pageHtml = $parser->downloadWebpage($urlDownload);
+
   if ($pageHtml === false) throw new Exception(translate('Unable_to_load_url') . '<br>' . $url);
 
   $metaData = $parser->getPageMediaMetaData($pageHtml, $url);
