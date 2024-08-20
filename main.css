@@ -1318,7 +1318,11 @@ h2, .pageSubTitleFont, .sectionTitle {
   text-align: center;
 }
 
- .dataTable input[type='checkbox']{
+.tableWhiteHeader th {
+  background-color: #ffffff;
+}
+
+.dataTable input[type='checkbox']{
   margin: 0 2px;
 }
 

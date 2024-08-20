@@ -7,14 +7,15 @@ class TMetaParser {
   function __construct(string $url) {
     $this->url = $url;
   }
-  function downloadWebpage(string $url): bool|string {
+  function downloadWebpage(string $urlDownload): bool|string {
+    // download url can be different from website url if an archive is used to retrieve the page content
     $headers = [
       "Accept-Encoding:gzip,deflate",
       'User-Agent:' . $_SERVER['HTTP_USER_AGENT']
     ];
 
     $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_URL, $urlDownload);
     curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($curl, CURLOPT_ENCODING,"gzip");
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -206,7 +207,6 @@ class TMetaParser {
 function parseMetaDataFromUrl(string $url): array {
   $parser = new TMetaParser($url);
 
-  $urlDownload = 'https://webcache.googleusercontent.com/search?q=cache:' . urlencode($url);
   $urlDownload = $url;
   $pageHtml = $parser->downloadWebpage($urlDownload);
 

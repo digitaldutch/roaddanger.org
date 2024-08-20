@@ -71,7 +71,7 @@ if ((! $user->loggedIn) || (! $user->isModerator())) {
   <div class="pageSubTitle">{$texts['Admin']} - {$texts['Humans']}</div>
   
   <div class="panelTableOverflow">
-    <table id="tableData" class="dataTable">
+    <table id="tableData" class="dataTable tableWhiteHeader">
       <thead>
         <tr>
           <th>{$texts['Id']}</th>
@@ -118,7 +118,7 @@ HTML;
   </div>
 
   <div class="panelTableOverflow">
-    <table id="tableData" class="dataTable" style="user-select: text;">
+    <table id="tableData" class="dataTable tableWhiteHeader" style="user-select: text;">
       <thead>
         <tr><th>{$texts['Id']}</th><th>{$texts['English']}</th><th>{$texts['Translation']} <span id="translationLanguage"></span></th></tr>
       </thead>
