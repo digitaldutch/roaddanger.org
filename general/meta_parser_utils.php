@@ -28,6 +28,12 @@ class TMetaParser {
     return $data;
   }
 
+  function downloadUsingHeadlessBrowser($urlDownload): bool|string {
+    $command = HEADLESS_BROWSER_COMMAND . $urlDownload;
+
+    return shell_exec($command);
+  }
+
   function getPageMediaMetaData(string $html, string $url): array{
     $meta = [
       'json-ld' => [],
@@ -210,17 +216,20 @@ function parseMetaDataFromUrl(string $url): array {
   $urlDownload = $url;
   $pageHtml = $parser->downloadWebpage($urlDownload);
 
-  if ($pageHtml === false) throw new Exception(translate('Unable_to_load_url') . '<br>' . $url);
+  // Use headless browser if CURL fails. This happens if CURL is blocked.
+  if ($pageHtml === false) {
+    $pageHtml = $parser->downloadUsingHeadlessBrowser($urlDownload);
+  }
 
   $metaData = $parser->getPageMediaMetaData($pageHtml, $url);
 
-  $tagCount     = [
-    'json_ld'  => count($metaData['json-ld']),
-    'og'       => count($metaData['og']),
-    'twitter'  => count($metaData['twitter']),
-    'article'  => count($metaData['article']),
+  $tagCount = [
+    'json_ld' => count($metaData['json-ld']),
+    'og' => count($metaData['og']),
+    'twitter' => count($metaData['twitter']),
+    'article' => count($metaData['article']),
     'itemprop' => count($metaData['itemprop']),
-    'other'    => count($metaData['other']),
+    'other' => count($metaData['other']),
   ];
 
   $media = $parser->mediaTagsFromMetaData($metaData);

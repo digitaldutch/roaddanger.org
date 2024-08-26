@@ -805,7 +805,7 @@ else if ($function === 'loadUserData') {
 
   echo json_encode($result);
 } //==========
-else if ($function === 'getPageMetaData'){
+else if ($function === 'getPageMetaData') {
   try{
     $data = json_decode(file_get_contents('php://input'), true);
     $url = $data['url'];

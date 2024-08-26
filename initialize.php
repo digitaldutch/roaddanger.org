@@ -14,7 +14,7 @@ ini_set('session.use_only_cookies', 1);
 // Uses a secure connection (HTTPS) if possible
 ini_set('session.cookie_secure', 1);
 
-// Same site cookie: PHP 7.3+
+// Same site cookie
 ini_set('session.cookie_samesite', 'Lax');
 
 // Make sure cookie works also on subdomains (e.g. www.roaddanger.org & nl.roaddanger.org)

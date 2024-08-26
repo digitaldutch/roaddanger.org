@@ -50,9 +50,9 @@ Array.prototype.remove = function(from, to) {
 
 async function fetchFromServer(url, data={}, parseJSON=true){
   const optionsFetch = {
-    method:      'POST',
-    body:        JSON.stringify(data),
-    headers:     {'Content-Type': 'application/json', 'Cache': 'no-cache'},
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: {'Content-Type': 'application/json', 'Cache': 'no-cache'},
     credentials: 'same-origin',
   };
 

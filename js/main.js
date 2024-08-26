@@ -1917,9 +1917,9 @@ function copyCrashDateFromArticle(){
 
 async function getArticleMetaData() {
   function showMetaData(meta){
-    document.getElementById('editArticleUrl').value      = meta.url;
-    document.getElementById('editArticleTitle').value    = meta.title;
-    document.getElementById('editArticleText').value     = meta.description;
+    document.getElementById('editArticleUrl').value = meta.url;
+    document.getElementById('editArticleTitle').value = meta.title;
+    document.getElementById('editArticleText').value = meta.description;
     document.getElementById('editArticleUrlImage').value = meta.urlimage;
     document.getElementById('editArticleSiteName').value = meta.sitename;
 
