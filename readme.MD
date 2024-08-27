@@ -7,6 +7,7 @@ Website: [roaddanger.org](https://www.roaddanger.org)
 ### Requirements ###
 * Webserver with PHP support
 * MySQL/MariaDB with full text search support
+* A headless browser if you want to enable meta data download from more websites
 
 ### Installation ###
 * Put all files on a webserver with PHP support. 

@@ -1930,10 +1930,9 @@ async function getArticleMetaData() {
         const datetime = new Date(meta.published_time);
         document.getElementById('editArticleDate').value = dateToISO(datetime);
       } catch (e) {
-        // Do nothing
+        // Silent exception. Do nothing as dates can be invalid
       }
     }
-    if (meta.title === '') showMessage(translate('no_data_found_on_web_page'), 30);
   }
 
   const urlArticle = document.getElementById('editArticleUrl').value.trim();
@@ -1964,8 +1963,11 @@ async function getArticleMetaData() {
 
     if (response.error) showError(response.error);
     else {
-      if (response.urlExists) showMessage(translate('article_has_already_been_added') + `<br><a href='/${response.urlExists.crashId}' style='text-decoration: underline;'>${translate('Article')}</a>`, 30);
-      else showMetaData(response.media);
+      if (response.urlExists) {
+        showMessage(translate('article_has_already_been_added') + `<br><a href='/${response.urlExists.crashId}' style='text-decoration: underline;'>${translate('Article')}</a>`, 30);
+      } else if (response.tagcount.total === 0) {
+        showMessage(translate('no_data_found_on_web_page'), 30);
+      } else showMetaData(response.media);
 
       document.getElementById('tarantulaResults').innerHTML = `
 <div class="tableHeader">${translate('Tags_found')}</div>

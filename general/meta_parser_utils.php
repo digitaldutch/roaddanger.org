@@ -28,10 +28,15 @@ class TMetaParser {
     return $data;
   }
 
-  function downloadUsingHeadlessBrowser($urlDownload): bool|string {
+  function downloadUsingHeadlessBrowser($urlDownload): null|string {
     $command = HEADLESS_BROWSER_COMMAND . $urlDownload;
 
-    return shell_exec($command);
+    exec($command, $output, $statusCode);
+    if ($statusCode === 0) {
+      return implode("\n", $output);
+    } else {
+      throw new RuntimeException("Unable to download webpage from headless browser. Set correct command in config.php.");
+    }
   }
 
   function getPageMediaMetaData(string $html, string $url): array{
@@ -110,6 +115,21 @@ class TMetaParser {
     $meta['other']['domain'] = $this->parse_url_all($url)['domain'];
 
     return $meta;
+  }
+
+  function getTagStats(array $tags): array{
+    $stats = [
+      'json_ld' => count($tags['json-ld']),
+      'og' => count($tags['og']),
+      'twitter' => count($tags['twitter']),
+      'article' => count($tags['article']),
+      'itemprop' => count($tags['itemprop']),
+      'other' => count($tags['other']),
+    ];
+
+    $stats['total'] = $stats['json_ld'] + $stats['og'] + $stats['twitter'] + $stats['article'] + $stats['itemprop'];
+
+    return $stats;
   }
 
   function parse_url_all($url){
@@ -215,22 +235,22 @@ function parseMetaDataFromUrl(string $url): array {
 
   $urlDownload = $url;
   $pageHtml = $parser->downloadWebpage($urlDownload);
-
-  // Use headless browser if CURL fails. This happens if CURL is blocked.
   if ($pageHtml === false) {
+    // Use headless browser if CURL fails. This happens if CURL is blocked
     $pageHtml = $parser->downloadUsingHeadlessBrowser($urlDownload);
+    $metaData = $parser->getPageMediaMetaData($pageHtml, $url);
+    $tagCount = $parser->getTagStats($metaData);
+  } else {
+    $metaData = $parser->getPageMediaMetaData($pageHtml, $url);
+    $tagCount = $parser->getTagStats($metaData);
+
+    // if no tags found, try headless browser
+    if ($tagCount['total'] <= 0) {
+      $pageHtml = $parser->downloadUsingHeadlessBrowser($urlDownload);
+      $metaData = $parser->getPageMediaMetaData($pageHtml, $url);
+      $tagCount = $parser->getTagStats($metaData);
+    }
   }
-
-  $metaData = $parser->getPageMediaMetaData($pageHtml, $url);
-
-  $tagCount = [
-    'json_ld' => count($metaData['json-ld']),
-    'og' => count($metaData['og']),
-    'twitter' => count($metaData['twitter']),
-    'article' => count($metaData['article']),
-    'itemprop' => count($metaData['itemprop']),
-    'other' => count($metaData['other']),
-  ];
 
   $media = $parser->mediaTagsFromMetaData($metaData);
 
