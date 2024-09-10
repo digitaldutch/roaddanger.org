@@ -64,20 +64,22 @@ if ((! $user->loggedIn) || (! $user->isModerator())) {
     if (! $user->admin) $mainHTML = htmlNoAdmin();
     else {
 
-      $texts = translateArray(['Admin', 'Humans', 'Id', 'Name', 'Last_active', 'Permission']);
+      $texts = translateArray(['Admin', 'Humans', 'Id', 'Name', 'Last_active', 'Permission', 'Articles', 'Registered']);
 
       $mainHTML = <<<HTML
-<div id="main" class="pageInner scrollPage">
+<div id="main" class="scrollPage">
   <div class="pageSubTitle">{$texts['Admin']} - {$texts['Humans']}</div>
   
   <div class="panelTableOverflow">
-    <table id="tableData" class="dataTable tableWhiteHeader">
+    <table id="tableData" class="dataTable tableWhiteHeader noWrap">
       <thead>
         <tr>
           <th>{$texts['Id']}</th>
           <th>{$texts['Name']}</th>
           <th>{$texts['Last_active']}</th>
           <th>{$texts['Permission']}</th>
+          <th>{$texts['Articles']}</th>
+          <th>{$texts['Registered']}</th>
           <th></th>
         </tr>
       </thead>  

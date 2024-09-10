@@ -32,7 +32,9 @@ SELECT
   lastname,
   lastactive,
   email,
-  permission
+  permission,
+  registrationtime,
+  (select count(*) from articles where articles.userid = users.id) AS article_count
 FROM users
 ORDER BY lastactive DESC
 LIMIT $offset, $count
@@ -41,9 +43,10 @@ SQL;
     $users = [];
     $users = $database->fetchAll($sql);
     foreach ($users as &$dbUser) {
-      $dbUser['id']         = (int)$dbUser['id'];
+      $dbUser['id'] = (int)$dbUser['id'];
       $dbUser['permission'] = (int)$dbUser['permission'];
       $dbUser['lastactive'] = datetimeDBToISO8601($dbUser['lastactive']);
+      $dbUser['registrationtime'] = datetimeDBToISO8601($dbUser['registrationtime']);
     }
 
     $result = ['ok' => true, 'users' => $users];

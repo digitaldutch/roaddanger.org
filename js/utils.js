@@ -3,13 +3,13 @@ let observerSpinner;
 let tableData = [];
 let selectedTableData = [];
 
-let xTouchDown      = null;
-let yTouchDown      = null;
-let TouchDown       = Object.freeze({none:0, openNavigation:1, closeNavigation:2});
+let xTouchDown = null;
+let yTouchDown = null;
+let TouchDown = Object.freeze({none:0, openNavigation:1, closeNavigation:2});
 let touchDownAction = TouchDown.none;
 
-const mapboxKey     = 'pk.eyJ1IjoiamFuZGVyayIsImEiOiJjazI4dTVzNW8zOWw4M2NtdnRhMGs4dDc1In0.Cxw10toXdLoC1eqVaTn1RQ';
-const websiteTitle  = 'Roaddanger.org';
+const mapboxKey = 'pk.eyJ1IjoiamFuZGVyayIsImEiOiJjazI4dTVzNW8zOWw4M2NtdnRhMGs4dDc1In0.Cxw10toXdLoC1eqVaTn1RQ';
+const websiteTitle = 'Roaddanger.org';
 
 // Enumerated types
 const UserPermission = Object.freeze({newUser: 0, admin: 1, moderator: 2});
@@ -99,11 +99,11 @@ function timeToISO(date, addSeconds=false, addMilliSeconds=false) {
 function datetimeToAge(datetime) {
   if (! datetime) return '';
   // let ApproxDaysPerYear     = 365.25;
-  let ApproxDaysPerMonth    = 30.4375;
-  let minutesPerDay         = 60 * 24;
-  let secondsPerDay         = 60 * minutesPerDay;
+  let ApproxDaysPerMonth = 30.4375;
+  let minutesPerDay = 60 * 24;
+  let secondsPerDay = 60 * minutesPerDay;
   let ApproxSecondsPerMonth = ApproxDaysPerMonth * secondsPerDay;
-  let ApproxSecondsPerYear  = ApproxSecondsPerMonth * 12;
+  let ApproxSecondsPerYear = ApproxSecondsPerMonth * 12;
 
   let text;
   let age = (Date.now() - datetime.getTime()) / 1000;
@@ -216,10 +216,10 @@ function escapeHtml(text) {
 }
 
 function inputDateTimeToISO8601(dateISO, timeISO){
-  let year    = dateISO.substr(0, 4);
-  let month   = dateISO.substr(5, 2) - 1; // Month is zero based
-  let day     = dateISO.substr(8, 2);
-  let hours   = timeISO.substr(0, 2);
+  let year = dateISO.substr(0, 4);
+  let month = dateISO.substr(5, 2) - 1; // Month is zero based
+  let day = dateISO.substr(8, 2);
+  let hours = timeISO.substr(0, 2);
   let minutes = timeISO.substr(3, 2);
 
   let date = new Date(year, month, day, hours, minutes);

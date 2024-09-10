@@ -53,6 +53,8 @@ async function loadUsers(){
 <td>${user.name}<br><a href="mailto:${user.email}">${user.email}</a></td>
 <td>${datetimeToAge(user.lastactive)}</td>
 <td>${permissionToText(user.permission)}</td>
+<td style="text-align: right;">${user.article_count}</td>
+<td style="text-align: right;">${user.registrationtime.toLocaleDateString()}</td>
 <td class="trButton"><span class="editDetails" data-editUser>⋮</span></td>
 </tr>`;
     }
@@ -72,6 +74,7 @@ async function loadUsers(){
     else {
       response.users.forEach(user => {
         user.lastactive = new Date(user.lastactive);
+        user.registrationtime = new Date(user.registrationtime);
       });
 
       tableData[0] = tableData[0].concat(response.users);
