@@ -1268,7 +1268,7 @@ h2, .pageSubTitleFont, .sectionTitle {
   background-color: var(--row-hover-bgcolor);
 }
 
-.itemSelected, .trSelected td {
+.itemSelected, .trSelected td, .trSelected a {
   background-color: var(--selected-bgcolor);
   color: var(--selected-color);
 }
