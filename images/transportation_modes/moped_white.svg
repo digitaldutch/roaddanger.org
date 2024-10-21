@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="witte_lijnicoontjes" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #fff;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2px;
+      }
+    </style>
+  </defs>
+  <circle class="cls-1" cx="32.21" cy="34.18" r="4.41"/>
+  <circle class="cls-1" cx="12.75" cy="34.18" r="4.41"/>
+  <line class="cls-1" x1="27.42" y1="33.99" x2="17.07" y2="33.99"/>
+  <path class="cls-1" d="M8.17,33.99h-2.57V15.01c0-2.33,1.89-4.22,4.22-4.22h18.17c2.33,0,4.22,1.89,4.22,4.22v2.2c0,1.72,1.05,3.28,2.65,3.92l.8.32c1.6.64,2.65,2.19,2.65,3.92v8.62h-1.73"/>
+  <polyline class="cls-1" points="18.78 11.29 18.78 24.11 38.31 24.11"/>
+</svg>

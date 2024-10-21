@@ -157,7 +157,6 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .attr('y', (-iconWidth + 5) + 'px')
     .attr('width', iconWidth)
     .attr('height', iconWidth)
-    .style('opacity', 0.6)
     .on('mouseover', mouseoverX)
     .on('mousemove', mousemoveX)
     .on('mouseleave', () => tooltip.style('display', 'none'));
@@ -169,7 +168,6 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .attr('dy', '15px')
     .style('font-size', fontSize)
     .style('fill', '#ffffff')
-    .style('opacity', 0.6)
     .text(d => d3.format('.3~s')(partnerTotals[parseInt(d)]))
     .on('mouseover', mouseoverX)
     .on('mousemove', mousemoveX)
@@ -189,7 +187,6 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .attr('y', (-iconWidth / 2) + 'px')
     .attr('width', iconWidth)
     .attr('height',iconWidth)
-    .style('opacity', 0.6)
     .on('mouseover', mouseoverY)
     .on('mousemove', mousemoveY)
     .on('mouseleave', () => tooltip.style('display', 'none'));
@@ -201,7 +198,6 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
     .attr('dy', '5px')
     .style('font-size', fontSize)
     .style('fill', '#ffffff')
-    .style('opacity', 0.6)
     .text(d => d3.format('.3~s')(victimTotals[parseInt(d)]))
     .on('mouseover', mouseoverY)
     .on('mousemove', mousemoveY)

@@ -102,9 +102,9 @@ class TMetaParser {
     // Time tag
     preg_match_all('~<\s*time\s+[^<>]*[datetime]=[\'"]([^"\']*)[\'"]~i', $html,$matches);
     if (count($matches[1]) > 0) {
-      $dateText     = $matches[1][0];
+      $dateText = $matches[1][0];
       try {
-        $date         = new DateTime($dateText);
+        $date = new DateTime($dateText);
         $current_date = new DateTime();
         if ($date < $current_date) $meta['other']['time'] = $date->format('Y-m-d');
       } catch (\Exception $e) {
