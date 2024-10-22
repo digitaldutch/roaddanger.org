@@ -1,24 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+<svg id="ELEMENTEN" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
   <defs>
     <style>
       .cls-1 {
+        fill: #000;
+      }
+
+      .cls-2 {
+        stroke-width: 4px;
+      }
+
+      .cls-2, .cls-3 {
         fill: none;
         stroke: #000;
         stroke-linecap: round;
         stroke-linejoin: round;
-        stroke-width: 2px;
+      }
+
+      .cls-3 {
+        stroke-width: 3px;
       }
     </style>
   </defs>
-  <g id="ELEMENTEN">
-    <g>
-      <path class="cls-1" d="M26.76,27.87l.3.3c3.04,3.06,4.75,7.19,4.75,11.5v3.57h2.7"/>
-      <path class="cls-1" d="M23.89,13.72l-3.73,3.02c-1.87,1.61-3.08,3.85-3.42,6.29l-.18,1.31"/>
-      <path class="cls-1" d="M34.75,24.09h0c-1.81-1.86-3.27-4.04-4.28-6.43l-1.1-2.54c-.38-.88-1.26-1.46-2.22-1.46h-3.17l-2.33,15.37c-.39,2.6-.99,5.16-1.79,7.66l-1.88,6.54h3.29"/>
-    </g>
-  </g>
-  <g id="witte_lijnicoontjes">
-    <circle class="cls-1" cx="26.34" cy="6.75" r="2.66"/>
-  </g>
+  <circle class="cls-1" cx="25.49" cy="6.75" r="3.64"/>
+  <polyline class="cls-2" points="23.66 14.67 20.77 32.93 17.69 42.58"/>
+  <polyline class="cls-2" points="26.66 14.67 24.69 27.87 29.73 32.93 29.73 43.24"/>
+  <path class="cls-3" d="M34.45,24.09l-2.75-2.81-3.33-6.76-.07-.06c-1.76-1.5-4.23-1.82-6.32-.82h0s-5.03,5.6-5.03,5.6l-.7,5.1"/>
 </svg>
