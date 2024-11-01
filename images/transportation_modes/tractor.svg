@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="witte_lijnicoontjes" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #000;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2px;
+      }
+    </style>
+  </defs>
+  <circle class="cls-1" cx="37.38" cy="34.07" r="4.52"/>
+  <path class="cls-1" d="M9.1,20.8v-12.69h10.64c1.54,0,2.34,1.25,2.8,2.8l2.27,7.45,6.9.57c3.06.25,5.74,2.13,7.02,4.92l1.43,3.11"/>
+  <circle class="cls-1" cx="10.33" cy="29.8" r="8.82"/>
+  <circle class="cls-1" cx="10.33" cy="29.8" r="3.97"/>
+  <path class="cls-1" d="M24.34,18.33h-4.92c-2.06,0-3.72-1.67-3.72-3.72v-6.19"/>
+  <line class="cls-1" x1="18.88" y1="32.79" x2="28.59" y2="32.79"/>
+  <line class="cls-1" x1="29.14" y1="23.7" x2="29.14" y2="27.94"/>
+  <line class="cls-1" x1="25.39" y1="23.7" x2="25.39" y2="27.94"/>
+</svg>

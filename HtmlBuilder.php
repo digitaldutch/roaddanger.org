@@ -543,7 +543,7 @@ HTML;
     </div>
             
     <div id="mergeCrashSection" class="flexColumn">
-      <div class="formSubHeader">Merge with</div>
+      <div class="formSubHeader">{$texts['Merge']}</div>
      
       <input id="mergeToCrashIDHidden" type="hidden">
       <div id="mergeCrashTo" class="crashRow"></div>  

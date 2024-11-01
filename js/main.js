@@ -2382,14 +2382,14 @@ function mergeSearchResultClick(crashID) {
 
 function mergeCrash() {
   const fromID = parseInt(document.getElementById('mergeFromCrashIDHidden').value);
-  const toID   = parseInt(document.getElementById('mergeToCrashIDHidden').value);
+  const toID = parseInt(document.getElementById('mergeToCrashIDHidden').value);
   if (! toID) showError(translate('No_merge_crash_selected'));
 
   const crashFrom = getCrashFromId(parseInt(fromID));
-  const crashTo   = crashesFound.find(crash => crash.id === toID);
+  const crashTo = crashesFound.find(crash => crash.id === toID);
 
   async function mergeCrashesOnServer(fromID, toID){
-    const url      = `/ajax.php?function=mergeCrashes&idFrom=${fromID}&idTo=${toID}`;
+    const url= `/general/ajax.php?function=mergeCrashes&idFrom=${fromID}&idTo=${toID}`;
     const response = await fetchFromServer(url);
 
     if (response.error) showError(response.error);
