@@ -746,6 +746,7 @@ async function onClickStatisticsTable() {
     html += `
       <tr id="article${article.id}" onclick="showQuestionsForm(${article.crashid}, ${article.id})">
         <td>${article.crashid}</td>
+        <td>${article.id}</td>
         <td>${article.bechdelResult.total_questions_passed}/${article.bechdelResult.total_questions}: ${result}</td>
         <td>${publishedtime.pretty()}</td>
         <td>${article.countryid}</td>
@@ -753,7 +754,7 @@ async function onClickStatisticsTable() {
       </tr>`;
   }
 
-  if (html) html = `<table class="dataTable"><tr><th>Article Id</th><th>Bechdel result</th><th>Published</th><th>Country</th><th>Source</th></tr>${html}</table>`;
+  if (html) html = `<table class="dataTable"><tr><th>Crash Id</th><th>Article Id</th><th>Bechdel result</th><th>Published</th><th>Country</th><th>Source</th></tr>${html}</table>`;
 
   divResult.innerHTML = html;
 }
