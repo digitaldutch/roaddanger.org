@@ -145,10 +145,10 @@ async function saveUser(){
     permission: parseInt(document.getElementById('userPermission').value),
   };
 
-  if (! user.email)                {showError(translate('Email_not_filled_in')); return;}
+  if (! user.email) {showError(translate('Email_not_filled_in')); return;}
   if (! validateEmail(user.email)) {showError(translate('Email_not_valid')); return;}
-  if (! user.firstname)            {showError(translate('First_name_not_filled_in')); return;}
-  if (! user.lastname)             {showError(translate('Last_name_not_filled_in')); return;}
+  if (! user.firstname) {showError(translate('First_name_not_filled_in')); return;}
+  if (! user.lastname) {showError(translate('Last_name_not_filled_in')); return;}
 
   const url      = '/admin/ajax.php?function=saveUser';
   const response = await fetchFromServer(url, user);

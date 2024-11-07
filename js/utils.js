@@ -273,8 +273,13 @@ function showLoginForm(){
   document.getElementById('formLogin').style.display    = 'flex';
 }
 
+function clearLoginError(text) {
+  document.getElementById('loginError').innerHTML = '';
+  document.getElementById('loginError').style.display = 'none';
+}
+
 function showLoginError(text) {
-  document.getElementById('loginError').innerHTML     = text;
+  document.getElementById('loginError').innerHTML = text;
   document.getElementById('loginError').style.display = 'flex';
 }
 
@@ -381,13 +386,21 @@ async function setLanguage(languageId){
 }
 
 async function checkLogin() {
+
+  clearLoginError();
+
+  if (registrationFiedsAreVisble()) {
+    showHideRegistrationFields(false);
+    return;
+  }
+
   showHideRegistrationFields(false);
 
-  const email        = document.getElementById('loginEmail').value;
-  const password     = document.getElementById('loginPassword').value;
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
   const stayLoggedIn = document.getElementById('stayLoggedIn').checked? 1 : 0;
 
-  if (! validateEmail(email))     showLoginError(translate('Email_not_valid'));
+  if (! validateEmail(email)) showLoginError(translate('Email_not_valid'));
   else if (password.length === 0) showLoginError(translate('Password_not_filled_in'));
   else {
     document.getElementById('spinnerLogin').style.display = 'block';
@@ -409,27 +422,40 @@ async function checkLogin() {
   }
 }
 
+function registrationFiedsAreVisble() {
+  return document.getElementById('divFirstName').style.display === 'flex';
+}
+
 function showHideRegistrationFields(show) {
-  document.getElementById('divFirstName').style.display       = show? 'flex' : 'none';
-  document.getElementById('divLastName').style.display        = show? 'flex' : 'none';
+  document.getElementById('divFirstName').style.display = show? 'flex' : 'none';
+  document.getElementById('divLastName').style.display = show? 'flex' : 'none';
   document.getElementById('divPasswordConfirm').style.display = show? 'flex' : 'none';
 }
 
 async function checkRegistration(){
+
+  clearLoginError();
+
+  if (! registrationFiedsAreVisble()) {
+    showHideRegistrationFields(true);
+    return;
+  }
+
   showHideRegistrationFields(true);
 
   const userNew = {
-    email:           document.getElementById('loginEmail').value.trim(),
-    firstname:       document.getElementById('loginFirstName').value.trim(),
-    lastname:        document.getElementById('loginLastName').value.trim(),
-    password:        document.getElementById('loginPassword').value.trim(),
+    email: document.getElementById('loginEmail').value.trim(),
+    firstname: document.getElementById('loginFirstName').value.trim(),
+    lastname: document.getElementById('loginLastName').value.trim(),
+    password: document.getElementById('loginPassword').value.trim(),
     passwordconfirm: document.getElementById('loginPasswordConfirm').value.trim(),
   };
 
-  if (! validateEmail(userNew.email))            showLoginError(translate('Email_not_valid'));
-  else if (userNew.firstname.length < 1)         showLoginError(translate('First_name_not_filled_in'));
-  else if (userNew.lastname.length < 1)          showLoginError(translate('Last_name_not_filled_in'));
-  else if (userNew.password.length < 6)          showLoginError(translate('Password_less_than_6_characters'));
+  if (! userNew.email) showLoginError(translate('Email_not_filled_in'));
+  else if (! validateEmail(userNew.email)) showLoginError(translate('Email_not_valid'));
+  else if (userNew.firstname.length < 1) showLoginError(translate('First_name_not_filled_in'));
+  else if (userNew.lastname.length < 1) showLoginError(translate('Last_name_not_filled_in'));
+  else if (userNew.password.length < 6) showLoginError(translate('Password_less_than_6_characters'));
   else if (userNew.password !== userNew.passwordconfirm) showLoginError(translate('Passwords_not_same'));
   else {
 
