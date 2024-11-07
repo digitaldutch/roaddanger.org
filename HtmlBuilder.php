@@ -949,19 +949,19 @@ HTML;
   <div class="pageSubTitle">Export</div>
   <div id="export">
 
-    <div class="sectionTitle">Download</div>
+    <h2>Download crash and article data</h2>
 
-    <div>All crash data can be exported in gzip JSON format. The download is refreshed every 24 hours.
+    <div>All crash data is available in gzip JSON format. The download is refreshed every 24 hours.
     </div> 
     
     <div class="buttonBar" style="justify-content: center; margin-bottom: 30px;">
-      <button class="button" style="margin-left: 0; height: auto;" onclick="downloadData();">Download data<br>in gzip JSON formaat</button>
+      <button class="button" style="margin-left: 0; height: auto;" onclick="downloadCrashesData();">Download crashes and articles</button>
     </div>  
     <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
     
-    <div class="sectionTitle">Data specification</div>
+    <h3>Data specification</h3>
     
-    <div class="tableHeader">Persons > transportationmode</div>
+    <div>Persons > transportation mode</div>
     
     <table class="dataTable" style="width: auto; margin: 0 0 20px 0;">
       <thead>
@@ -970,13 +970,26 @@ HTML;
       <tbody id="tbodyTransportationMode"></tbody>
     </table>        
 
-    <div class="tableHeader">Persons > health</div>
+    <div>Persons > health</div>
     <table class="dataTable" style="width: auto; margin: 0 0 20px 0;">
       <thead>
       <tr><th>id</th><th>name</th></tr>
       </thead>
       <tbody id="tbodyHealth"></tbody>
     </table>
+
+    <h2>Research questions and answers</h2>
+
+    <div>The research questions and answers are available in gzip JSON format. 
+    The JSON contains two arrays: questions and answers, which are the tables from the database.
+    Answers objects contain a field questionid which points to the question id field in the questions table. 
+    The download is refreshed every 24 hours.
+    </div> 
+
+    <div class="buttonBar" style="justify-content: center; margin-bottom: 30px;">
+      <button class="button" style="margin-left: 0; height: auto;" onclick="downloadResearchData();">Download research data</button>
+    </div>  
+    <div id="spinnerResearch" class="spinnerLine"><img src="/images/spinner.svg"></div>
             
   </div>
 </div>

@@ -96,8 +96,12 @@ h1, .pageSubTitle {
   margin:      5px 0 10px 0;
 }
 
-h2, .pageSubTitleFont, .sectionTitle {
+h2, .pageSubTitleFont {
   font-size: 20px;
+  font-weight: normal;
+}
+
+h3, .pageSubTitleFont {
   font-weight: normal;
 }
 
@@ -1074,7 +1078,7 @@ h2, .pageSubTitleFont, .sectionTitle {
 }
 
 #spinnerLoad, #spinnerLoad, .spinnerLine {
-  display:    none;
+  display: none;
   margin-top: 5px;
   text-align: center;
 }
@@ -1398,10 +1402,6 @@ h2, .pageSubTitleFont, .sectionTitle {
 .filterElement {
   display:      inline-block;
   margin-right: 5px;
-}
-
-.tableHeader {
-  font-weight: bold;
 }
 
 .crashRow {

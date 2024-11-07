@@ -1970,7 +1970,7 @@ async function getArticleMetaData() {
       } else showMetaData(response.media);
 
       document.getElementById('tarantulaResults').innerHTML = `
-<div class="tableHeader">${translate('Tags_found')}</div>
+<div>${translate('Tags_found')}</div>
 <table class="dataTable">
 <td><td>JSON-LD:</td><td> ${response.tagcount.json_ld}</td></tr>
 <td><td>Open Graph Facebook tags:</td><td> ${response.tagcount.og}</td></tr>
@@ -2544,11 +2544,11 @@ function updateBrowserUrl(pushState=false){
 
 }
 
-function downloadData() {
+function downloadCrashesData() {
   async function doDownload(){
     spinnerLoad.style.display = 'block';
     try {
-      const url = '/admin/exportdata.php?function=downloadData&period=all&format=zjson';
+      const url = '/admin/exportdata.php?function=downloadCrashesData';
       const response = await fetchFromServer(url);
 
       const urlFile = '/admin/' + response.filename;
@@ -2558,7 +2558,27 @@ function downloadData() {
     }
   }
 
-  confirmMessage('Export all data? It is quite a large zipped JSON file.', doDownload, 'Download');
+  confirmMessage('Export all crashes and articles? It is quite a large gzip JSON file.', doDownload, 'Download');
+}
+
+function downloadResearchData() {
+  async function doDownload(){
+    const spinner = document.getElementById('spinnerResearch');
+    spinner.style.display = 'block';
+    try {
+      const url = '/admin/exportdata.php?function=downloadResearchData';
+      const response = await fetchFromServer(url);
+
+      const urlFile = '/admin/' + response.filename;
+      download(urlFile, response.filename);
+    } catch (error) {
+      showError(error.message)
+    } finally {
+      spinner.style.display = 'none';
+    }
+  }
+
+  confirmMessage('Export research data?', doDownload, 'Download');
 }
 
 async function showMapEdit(latitude, longitude) {
