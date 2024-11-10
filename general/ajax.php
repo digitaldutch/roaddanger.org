@@ -237,7 +237,7 @@ SQL;
 /**
  * @throws Exception
  */
-function getStatsMediaHumanization(Database $database): array {
+function getStatsMediaHumanization(): array {
 
   $filter = [
     "questionnaireId" => 7,
@@ -245,17 +245,18 @@ function getStatsMediaHumanization(Database $database): array {
     "child" => 0,
     "noUnilateral" =>  1,
     "year" => "",
-    "timeSpan" => "2year",
+    "timeSpan" => "from2022",
     "country" => "NL",
     "persons" => [],
-    "minArticles" => 3,
+    "minArticles" => 5,
     "public" => 1,
   ];
 
   $group = 'month';
 
   require_once '../general/Cache.php';
-  $cacheResponse = Cache::get('getStatsMediaHumanization', 30);
+//  $cacheResponse = Cache::get('getStatsMediaHumanization', 30);
+  $cacheResponse = null;
 
   if ($cacheResponse === null) {
     require_once '../research/Research.php';
@@ -1298,7 +1299,7 @@ else if ($function === 'getStatistics') {
 
     if ($type === 'general') $stats = getStatsDatabase($database);
     else if ($type === 'crashPartners') $stats = getStatsCrashPartners($database, $filter);
-    else if ($type === 'media_humanization') $stats = getStatsMediaHumanization($database);
+    else if ($type === 'media_humanization') $stats = getStatsMediaHumanization();
     else $stats = getStatsTransportation($database, $filter);
 
     $user->getTranslations();
@@ -1315,7 +1316,7 @@ else if ($function === 'getMediaHumanizationData') {
   try {
     $data = json_decode(file_get_contents('php://input'), true);
 
-    $stats = getStatsMediaHumanization($database);
+    $stats = getStatsMediaHumanization();
 
     $result = ['ok' => true,
       'statistics' => $stats,
