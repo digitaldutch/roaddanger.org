@@ -68,7 +68,7 @@ SQL;
     $questionnaire = $database->fetch($sql, $params);
 
     if (($filter['public'] === 1) && ($questionnaire['public'] !== 1)) {
-      throw new Exception("Questionnaire " . $filter['public'] . " is not public");
+      throw new Exception("Questionnaire " . $filter['questionnaireId'] . " is not public");
     }
 
     $result['questionnaire'] = $questionnaire;
@@ -86,15 +86,27 @@ SQL;
     }
 
     if (! empty($filter['timeSpan'])) {
-      $timeSpan = match ($filter['timeSpan']) {
-        '1year' => '1 year',
-        '2year' => '2 year',
-        '3year' => '3 year',
-        '5year' => '5 year',
-        '10year' => '10 year',
-        default => ''
-      };
-      if (! empty($timeSpan)) addSQLWhere($SQLWhereAnd, "c.date > (curdate() - interval $timeSpan)");
+
+      $timeSpan = $filter['timeSpan'];
+      if ($timeSpan === 'from2022') {
+        addSQLWhere($SQLWhereAnd, "EXTRACT(YEAR FROM c.date) >= 2022");
+      } else {
+        $yearOffset = match ($timeSpan) {
+          '1year' => 1,
+          '2year' => 2,
+          '3year' => 3,
+          '5year' => 5,
+          '10year' => 10,
+          default => null
+        };
+
+        if ($yearOffset !== null) {
+          $startYear = date("Y") - $yearOffset + 1;
+          addSQLWhere($SQLWhereAnd, "EXTRACT(YEAR FROM c.date) >= $startYear");
+        }
+
+      }
+
     }
 
     if (isset($filter['child']) && ($filter['child'] === 1)){

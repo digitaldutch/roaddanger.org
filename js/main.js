@@ -206,14 +206,21 @@ function showMediaHumanizationGraph(stats, elementId, title) {
     }
   }
 
+  let domain = [];
+  for (let i=0; i<=questionCount; i++) {
+    if (i === 0) domain.push('All failed 😞');
+    else if (i === questionCount) domain.push(`All ${i} criteria passed 😊`);
+    else domain.push(i + '/' + questionCount);
+  }
+
   const passedOptions = [...Array(questionCount + 1)].map((x, i) => i);
-  const colors = d3.schemeReds[4].reverse();
+  const colors = d3.schemeReds[questionCount + 1].reverse();
   const colorOrdinal = d3.scaleOrdinal(passedOptions, colors);
 
   const plot = Plot.plot({
     color: {
       legend: true,
-      domain: ["0/3", "1/3", "2/3", "3/3"],
+      domain: domain,
       range: colors,
       type: 'categorical',
     },
@@ -243,18 +250,26 @@ function showMediaHumanizationGraph(stats, elementId, title) {
   const element = document.getElementById(elementId);
   element.append(plot);
 
+  let elementTitle = '';
   if (title) {
-    const elementTitle = `<div class="pageSubTitle">${title}</div>`;
-    element.insertAdjacentHTML('afterbegin', elementTitle);
+    elementTitle = `<div class="pageSubTitle">${title}</div>`;
   }
+
+  const textLearnMore = translate('click_to_learn_more');
+  elementTitle += `<div class="smallFont" style="text-align: center;">(${textLearnMore})</div>`;
+  element.insertAdjacentHTML('afterbegin', elementTitle);
 }
 
 function showMediaHumanizationText(questions) {
   let htmlInfo = '';
   let i=1;
   for (const question of questions) {
-    htmlInfo += `<div>${i}) ${question.text}</div>`;
+    htmlInfo += `<div>${i}) ${question.text} (yes/no)</div>`;
     i += 1;
+  }
+
+  if (questions.length > 0) {
+    htmlInfo = '<h2>Criteria</h2>' + htmlInfo;
   }
 
   document.getElementById('graphMediaHumanizationQuestions').innerHTML = htmlInfo;

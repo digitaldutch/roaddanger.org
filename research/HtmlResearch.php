@@ -32,7 +32,7 @@ class HtmlResearch {
   
     <table id="table_questionnaires" class="dataTable" style="min-width: 500px;">
       <thead>
-        <tr><th>Id</th><th>Title</th><th>Type</th><th>Country ID</th><th>Active</th><th>Public results</th></tr>
+        <tr><th>Id</th><th>Title</th><th>Type</th><th>Country ID</th><th>Questions active</th><th>Results public</th></tr>
       </thead>
       <tbody id="tableBodyQuestionnaires" onclick="tableDataClick(event, 1);" ondblclick="editQuestionnaire();">    
      </tbody>
@@ -259,6 +259,7 @@ HTML;
     <div class="toolbarItem">
       <select id="filterResearchTimeSpan" class="searchInput">
         <option value="">[{$texts['Always']}]</option>
+        <option value="from2022">From 2022</option>
         <option value="1year">1 year</option>
         <option value="2year">2 years</option>
         <option value="3year">3 years</option>
