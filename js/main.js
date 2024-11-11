@@ -179,7 +179,7 @@ function initExport(){
   document.getElementById('tbodyHealth').innerHTML = html;
 }
 
-function showMediaHumanizationGraph(stats, elementId, title) {
+function showMediaHumanizationGraph(stats, elementId, title='', addClickText=false) {
 
   const questionCount = stats.questionnaire.questions.length;
   let data = [];
@@ -255,9 +255,12 @@ function showMediaHumanizationGraph(stats, elementId, title) {
     elementTitle = `<div class="pageSubTitle">${title}</div>`;
   }
 
-  const textLearnMore = translate('click_to_learn_more');
-  elementTitle += `<div class="smallFont" style="text-align: center;">(${textLearnMore})</div>`;
-  element.insertAdjacentHTML('afterbegin', elementTitle);
+  if (addClickText) {
+    const textLearnMore = translate('click_to_learn_more');
+    elementTitle += `<div class="smallFont" style="text-align: center;">(${textLearnMore})</div>`;
+  }
+
+  if (elementTitle) element.insertAdjacentHTML('afterbegin', elementTitle);
 }
 
 function showMediaHumanizationText(questions) {
@@ -731,7 +734,7 @@ async function loadFeaturedGraph() {
   const response = await fetchFromServer(url, []);
 
   const title = translate('Media_humanization_test');
-  showMediaHumanizationGraph(response.statistics, 'featuredGraph', title);
+  showMediaHumanizationGraph(response.statistics, 'featuredGraph', title, true);
 
   element.addEventListener('click',e => window.location = '/statistics/media_humanization');
   element.style.display = 'block';
