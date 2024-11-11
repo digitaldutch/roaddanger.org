@@ -945,7 +945,8 @@ HTML;
 
   public static function pageExport(): string {
     return <<<HTML
-<div id="main" class="pageInner">
+<div id="pageMain">
+<div class="pageInner">
   <div class="pageSubTitle">Export</div>
   <div id="export">
 
@@ -955,7 +956,7 @@ HTML;
     </div> 
     
     <div class="buttonBar" style="justify-content: center; margin-bottom: 30px;">
-      <button class="button" style="margin-left: 0; height: auto;" onclick="downloadCrashesData();">Download crashes and articles</button>
+      <button class="button buttonImportant" onclick="downloadCrashesData();">Download crashes and articles</button>
     </div>  
     <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
     
@@ -987,20 +988,23 @@ HTML;
     </div> 
 
     <div class="buttonBar" style="justify-content: center; margin-bottom: 30px;">
-      <button class="button" style="margin-left: 0; height: auto;" onclick="downloadResearchData();">Download research data</button>
+      <button class="button buttonImportant" onclick="downloadResearchData();">Download research data</button>
     </div>  
     <div id="spinnerResearch" class="spinnerLine"><img src="/images/spinner.svg"></div>
             
   </div>
+</div>
 </div>
 HTML;
   }
 
   public static function pageNotModerator(): string {
     return <<<HTML
-<div id="main" class="pageInner">
+<div id="pageMain">
+<div class="pageInner">
   <div style="text-align: center;">You are not a moderator. Log in as moderator or administrator.</div>
   <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
+</div>
 </div>
 HTML;
   }

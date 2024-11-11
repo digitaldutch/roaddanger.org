@@ -1,19 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg id="witte_lijnicoontjes" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
-  <defs>
-    <style>
-      .cls-1 {
+<svg id="witte_lijnicoontjes" version="1.1" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <style>.cls-1 {
         fill: none;
         stroke: #fff;
         stroke-linecap: round;
         stroke-linejoin: round;
         stroke-width: 2px;
-      }
-    </style>
-  </defs>
-  <line class="cls-1" x1="23.77" y1="27.69" x2="23.77" y2="12.47"/>
-  <line class="cls-1" x1="18.34" y1="30.15" x2="11.17" y2="23.44"/>
-  <line class="cls-1" x1="16.16" y1="35.75" x2="9" y2="35.75"/>
-  <line class="cls-1" x1="29.24" y1="30.15" x2="36.4" y2="23.44"/>
-  <line class="cls-1" x1="31.42" y1="35.75" x2="38.58" y2="35.75"/>
+      }</style>
+ </defs>
+ <path class="cls-1" d="m23.77 23.937v-11.467" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2px"/>
+ <line class="cls-1" x1="18.34" x2="11.17" y1="30.15" y2="23.44"/>
+ <line class="cls-1" x1="16.16" x2="9" y1="35.75" y2="35.75"/>
+ <line class="cls-1" x1="29.24" x2="36.4" y1="30.15" y2="23.44"/>
+ <line class="cls-1" x1="31.42" x2="38.58" y1="35.75" y2="35.75"/>
+ <text x="22.599339" y="32.284767" fill="#ffffff" font-family="Arial" font-size="13.333px" stroke="#1a1a1a" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="line-height:0" xml:space="preserve"><tspan x="22.599339" y="32.284767"/></text>
+ <path d="m24.478 35.927h-0.91667v-4.7552q0-0.63542 0.04167-1.8802-0.20313 0.22396-0.63021 0.58854l-0.76563 0.63021-0.50521-0.64063 1.9948-1.5573h0.78125z" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-label="1"/>
 </svg>

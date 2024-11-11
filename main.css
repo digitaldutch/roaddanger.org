@@ -150,6 +150,11 @@ h3, .pageSubTitleFont {
   background-image: radial-gradient(farthest-corner at 0 0, #f23825 0%, black 60%);
 }
 
+.gradientBackground {
+  color: #fff;
+  background-image: radial-gradient(farthest-corner at 0 0, #f23825 0%, black 60%);
+}
+
 .blackOnWhite {
   background-color: #ffffff;
   color: #000;
@@ -776,7 +781,7 @@ h3, .pageSubTitleFont {
 .bgUnknown { background-image: url(/images/transportation_modes/unknown.svg);}
 .bgUnknownWhite { background-image: url(/images/transportation_modes/unknown_white.svg);}
 
-.bgUnilateral { background-image: url(/images/unilateral.svg);}
+.bgUnilateral { background-image: url(/images/unilateral_large.svg);}
 .bgUnilateralWhite { background-image: url(/images/unilateral_white.svg);}
 .bgChild { background-image: url(/images/child.svg);}
 .bgChildWhite { background-image: url(/images/child_white.svg);}

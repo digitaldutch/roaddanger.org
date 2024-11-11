@@ -208,7 +208,8 @@ HTML;
 
     $questionnairesOptions = '';
     foreach ($questionnaires as $questionnaire) {
-      $questionnairesOptions .= "<option value='{$questionnaire['id']}'>{$questionnaire['title']}</option>";
+      $publicText = (! $publicOnly) && $questionnaire['public'] === 0? ' (admin only)' : ' (public)';
+      $questionnairesOptions .= "<option value='{$questionnaire['id']}'>{$questionnaire['title']}{$publicText}</option>";
     }
 
     $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml();

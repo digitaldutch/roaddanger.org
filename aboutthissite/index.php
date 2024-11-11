@@ -8,11 +8,13 @@ $aboutUsText = $user->translateLongText('about_us');
 $texts = translateArray(['About_this_site']);
 
 $mainHTML = <<<HTML
-<div id="main" class="pageInner bgWhite">
-  
-<div class="pageSubTitle">{$texts['About_this_site']}</div>
-  
-$aboutUsText
+<div id="pageMain">
+  <div class="pageInner">
+    
+  <div class="pageSubTitle">{$texts['About_this_site']}</div>
+    
+  $aboutUsText
+  </div>
 </div>
 HTML;
 

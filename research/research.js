@@ -261,9 +261,8 @@ async function loadQuestionnaireResults() {
 
     if (response.error) showError(response.error);
     else if (response.ok) {
-
       document.getElementById('questionnaireInfo').innerHTML = 'Questionnaire type: ' + questionnaireTypeToText(response.questionnaire.type) +
-        ` | Country: ` + response.questionnaire.country;
+        ` | Questions country: ` + response.questionnaire.country;
 
       let htmlQuestions = '';
       let htmlHead = '';

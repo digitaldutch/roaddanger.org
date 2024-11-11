@@ -1,0 +1,20 @@
+<svg id="witte_lijnicoontjes" width="31.58" height="31.58" version="1.1" viewBox="0 0 31.58 31.58" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <style>.cls-1 {
+        fill: none;
+        stroke: #fff;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2px;
+      }</style>
+ </defs>
+ <g fill="#fff" stroke="#fff">
+  <path class="cls-1" d="M 15.77,12.467 V 1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2px"/>
+  <line class="cls-1" x1="10.34" x2="3.17" y1="18.68" y2="11.97"/>
+  <line class="cls-1" x1="8.16" x2="1" y1="24.28" y2="24.28"/>
+  <line class="cls-1" x1="21.24" x2="28.4" y1="18.68" y2="11.97"/>
+  <line class="cls-1" x1="23.42" x2="30.58" y1="24.28" y2="24.28"/>
+ </g>
+ <text x="14.599339" y="20.814768" fill="#ffffff" font-family="Arial" font-size="13.333px" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="line-height:0" xml:space="preserve"><tspan x="14.599339" y="20.814768"/></text>
+ <path d="m16.478 24.457h-0.91667v-4.7552q0-0.63542 0.04167-1.8802-0.20313 0.22396-0.63021 0.58854l-0.76563 0.63021-0.50521-0.64063 1.9948-1.5573h0.78125z" fill="#fff" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-label="1"/>
+</svg>
