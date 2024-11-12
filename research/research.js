@@ -18,8 +18,8 @@ async function initResearch(){
   const searchPersons = url.searchParams.get('persons');
   const searchNoUnilateral = url.searchParams.get('noUnilateral');
 
-  if (searchHealthDead)  document.getElementById('filterResearchDead').classList.add('buttonSelectedBlue');
-  if (searchChild)       document.getElementById('filterResearchChild').classList.add('buttonSelectedBlue');
+  if (searchHealthDead)  document.getElementById('filterResearchDead').classList.add('menuButtonSelected');
+  if (searchChild)       document.getElementById('filterResearchChild').classList.add('menuButtonSelected');
   if (searchTimeSpan)    document.getElementById('filterResearchTimeSpan').value = searchTimeSpan;
   if (searchCountry)     document.getElementById('filterResearchCountry').value = searchCountry;
   if (searchGroup)       document.getElementById('filterResearchGroup').value = searchGroup;
@@ -28,8 +28,8 @@ async function initResearch(){
 
   const filterNoUnilateral = document.getElementById('filterResearchNoUnilateral');
   if (filterNoUnilateral) {
-    if (searchNoUnilateral && (searchNoUnilateral === "0")) filterNoUnilateral.classList.add('buttonSelectedBlue');
-    else filterNoUnilateral.classList.add('buttonSelectedBlue');
+    if (searchNoUnilateral && (searchNoUnilateral === "0")) filterNoUnilateral.classList.add('menuButtonSelected');
+    else filterNoUnilateral.classList.add('menuButtonSelected');
   }
 
   if (url.pathname.startsWith('/research/questionnaires/options')) {
@@ -87,9 +87,9 @@ async function loadArticlesUnanswered() {
 
     const data = {
       filter: {
-        healthDead:   document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue')? 1 : 0,
-        child:        document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
-        noUnilateral: document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue')? 1 : 0,
+        healthDead:   document.getElementById('filterResearchDead').classList.contains('menuButtonSelected')? 1 : 0,
+        child:        document.getElementById('filterResearchChild').classList.contains('menuButtonSelected')? 1 : 0,
+        noUnilateral: document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected')? 1 : 0,
         persons:      getPersonsFromFilter(),
       },
     }
@@ -234,9 +234,9 @@ async function downloadQuestionnaireResults(articleFilter={}) {
   const data = {
     filter: {
       questionnaireId: parseInt(document.getElementById('filterQuestionnaire').value),
-      healthDead:      document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue')? 1 : 0,
-      child:           document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue')? 1 : 0,
-      noUnilateral:    document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue')? 1 : 0,
+      healthDead:      document.getElementById('filterResearchDead').classList.contains('menuButtonSelected')? 1 : 0,
+      child:           document.getElementById('filterResearchChild').classList.contains('menuButtonSelected')? 1 : 0,
+      noUnilateral:    document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected')? 1 : 0,
       timeSpan:        document.getElementById('filterResearchTimeSpan').value,
       country:         document.getElementById('filterResearchCountry').value,
       minArticles:     parseInt(document.getElementById('filterMinArticles').value),
@@ -666,13 +666,13 @@ function onDragRowQuestion(event) {
 }
 
 function clickQuestionnaireOption() {
-  if (event.target.classList.contains('menuButton')) event.target.classList.toggle('buttonSelectedBlue');
+  if (event.target.classList.contains('menuButton')) event.target.classList.toggle('menuButtonSelected');
 }
 
 function selectFilterQuestionnaireResults() {
-  const dead         = document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue');
-  const child        = document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue');
-  const noUnilateral = document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue');
+  const dead         = document.getElementById('filterResearchDead').classList.contains('menuButtonSelected');
+  const child        = document.getElementById('filterResearchChild').classList.contains('menuButtonSelected');
+  const noUnilateral = document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected');
   const timeSpan             = document.getElementById('filterResearchTimeSpan').value;
   const country              = document.getElementById('filterResearchCountry').value;
   const group                = document.getElementById('filterResearchGroup').value;
@@ -696,9 +696,9 @@ function selectFilterQuestionnaireResults() {
 }
 
 function selectFilterQuestionnaireFillIn() {
-  const dead          = document.getElementById('filterResearchDead').classList.contains('buttonSelectedBlue');
-  const child         = document.getElementById('filterResearchChild').classList.contains('buttonSelectedBlue');
-  const noUnilateral  = document.getElementById('filterResearchNoUnilateral').classList.contains('buttonSelectedBlue');
+  const dead          = document.getElementById('filterResearchDead').classList.contains('menuButtonSelected');
+  const child         = document.getElementById('filterResearchChild').classList.contains('menuButtonSelected');
+  const noUnilateral  = document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected');
 
   const searchPersons = getPersonsFromFilter();
 

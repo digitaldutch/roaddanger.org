@@ -80,9 +80,9 @@ async function initMain() {
 
     document.getElementById('searchSiteName').value = searchSiteName;
 
-    if (searchHealthDead) document.getElementById('searchPersonHealthDead').classList.add('buttonSelectedBlue');
-    if (searchHealthInjured) document.getElementById('searchPersonHealthInjured').classList.add( 'buttonSelectedBlue');
-    if (searchChild) document.getElementById('searchPersonChild').classList.add('buttonSelectedBlue');
+    if (searchHealthDead) document.getElementById('searchPersonHealthDead').classList.add('menuButtonSelected');
+    if (searchHealthInjured) document.getElementById('searchPersonHealthInjured').classList.add( 'menuButtonSelected');
+    if (searchChild) document.getElementById('searchPersonChild').classList.add('menuButtonSelected');
     if (searchPersons) setPersonsFilter(searchPersons);
   }
 
@@ -99,8 +99,8 @@ async function initMain() {
   } else if (pageType === PageType.childVictims) {
     initObserver(loadChildVictims);
 
-    if (searchHealthDead) document.getElementById('filterChildDead').classList.add('buttonSelectedBlue');
-    if (searchHealthInjured) document.getElementById('filterChildInjured').classList.add('buttonSelectedBlue');
+    if (searchHealthDead) document.getElementById('filterChildDead').classList.add('menuButtonSelected');
+    if (searchHealthInjured) document.getElementById('filterChildInjured').classList.add('menuButtonSelected');
 
     loadChildVictims();
   } else if (pageType === PageType.export){
@@ -134,10 +134,10 @@ function initStatistics(){
     const search           = url.searchParams.get('search');
 
     const buttonDead = document.getElementById('filterStatsDead')
-    if (buttonDead) buttonDead.classList.add('buttonSelectedBlue');
+    if (buttonDead) buttonDead.classList.add('menuButtonSelected');
 
-    if (searchChild)    document.getElementById('filterStatsChild').classList.add('buttonSelectedBlue');
-    if (searchInjured)  document.getElementById('filterStatsInjured').classList.add('buttonSelectedBlue');
+    if (searchChild)    document.getElementById('filterStatsChild').classList.add('menuButtonSelected');
+    if (searchInjured)  document.getElementById('filterStatsInjured').classList.add('menuButtonSelected');
     if (country)        document.getElementById('searchCountry').value  = country;
     if (period)         document.getElementById('searchPeriod').value   = period;
     if (search)         document.getElementById('searchText').value     = search;
@@ -294,9 +294,9 @@ function showCrashVictimsGraph(crashVictims){
     text:          document.getElementById('searchText').value,
     dateFrom:      document.getElementById('searchDateFrom').value,
     dateTo:        document.getElementById('searchDateTo').value,
-    child:         document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue'),
-    healthDead:    document.getElementById('filterStatsDead').classList.contains('buttonSelectedBlue'),
-    healthInjured: document.getElementById('filterStatsInjured').classList.contains('buttonSelectedBlue'),
+    child:         document.getElementById('filterStatsChild').classList.contains('menuButtonSelected'),
+    healthDead:    document.getElementById('filterStatsDead').classList.contains('menuButtonSelected'),
+    healthInjured: document.getElementById('filterStatsInjured').classList.contains('menuButtonSelected'),
   }
 
   // Put data in heatmap points layout
@@ -334,16 +334,16 @@ function showCrashVictimsGraph(crashVictims){
 }
 
 function selectFilterStats() {
-  event.target.classList.toggle('buttonSelectedBlue');
+  event.target.classList.toggle('menuButtonSelected');
   loadStatistics();
 }
 
 function selectFilterChildVictims() {
-  event.target.classList.toggle('buttonSelectedBlue');
+  event.target.classList.toggle('menuButtonSelected');
   clearTable();
 
-  const dead = document.getElementById('filterChildDead').classList.contains('buttonSelectedBlue');
-  const injured = document.getElementById('filterChildInjured').classList.contains('buttonSelectedBlue');
+  const dead = document.getElementById('filterChildDead').classList.contains('menuButtonSelected');
+  const injured = document.getElementById('filterChildInjured').classList.contains('menuButtonSelected');
 
   const url = new URL(window.location);
   if (dead) url.searchParams.set('hd', 1); else url.searchParams.set('hd', 0);
@@ -509,9 +509,9 @@ async function loadStatistics() {
         countryId:     document.getElementById('searchCountry').value,
         dateFrom:      document.getElementById('searchDateFrom').value,
         dateTo:        document.getElementById('searchDateTo').value,
-        child:         document.getElementById('filterStatsChild').classList.contains('buttonSelectedBlue')? 1 : 0,
-        healthDead:    deadButton && deadButton.classList.contains('buttonSelectedBlue')? 1: 0,
-        healthInjured: injuredButton && injuredButton.classList.contains('buttonSelectedBlue')? 1: 0,
+        child:         document.getElementById('filterStatsChild').classList.contains('menuButtonSelected')? 1 : 0,
+        healthDead:    deadButton && deadButton.classList.contains('menuButtonSelected')? 1: 0,
+        healthInjured: injuredButton && injuredButton.classList.contains('menuButtonSelected')? 1: 0,
       };
     }
 
@@ -579,8 +579,8 @@ async function loadChildVictims(){
     sort: 'crashDate',
     filter: {
       child: 1,
-      healthDead: document.getElementById('filterChildDead').classList.contains('buttonSelectedBlue')? 1 : 0,
-      healthInjured: document.getElementById('filterChildInjured').classList.contains('buttonSelectedBlue')? 1 : 0,
+      healthDead: document.getElementById('filterChildDead').classList.contains('menuButtonSelected')? 1 : 0,
+      healthInjured: document.getElementById('filterChildInjured').classList.contains('menuButtonSelected')? 1 : 0,
     },
   }
 
@@ -750,9 +750,9 @@ function getSearchFilter(){
       dateTo:        document.getElementById('searchDateTo').value,
       persons:       getPersonsFromFilter(),
       siteName:      document.getElementById('searchSiteName').value.trim().toLowerCase(),
-      healthDead:    document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue')? 1 : 0,
-      healthInjured: document.getElementById('searchPersonHealthInjured').classList.contains('buttonSelectedBlue')? 1 : 0,
-      child:         document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue')? 1 : 0,
+      healthDead:    document.getElementById('searchPersonHealthDead').classList.contains('menuButtonSelected')? 1 : 0,
+      healthInjured: document.getElementById('searchPersonHealthInjured').classList.contains('menuButtonSelected')? 1 : 0,
+      child:         document.getElementById('searchPersonChild').classList.contains('menuButtonSelected')? 1 : 0,
     };
   }  else return {};
 }
@@ -1491,15 +1491,15 @@ function selectPersonHealth(health, toggle=false) {
 }
 
 function selectSearchPersonDead() {
-  document.getElementById('searchPersonHealthDead').classList.toggle('buttonSelectedBlue');
+  document.getElementById('searchPersonHealthDead').classList.toggle('menuButtonSelected');
 }
 
 function selectSearchPersonInjured() {
-  document.getElementById('searchPersonHealthInjured').classList.toggle('buttonSelectedBlue');
+  document.getElementById('searchPersonHealthInjured').classList.toggle('menuButtonSelected');
 }
 
 function selectSearchPersonChild() {
-  document.getElementById('searchPersonChild').classList.toggle('buttonSelectedBlue');
+  document.getElementById('searchPersonChild').classList.toggle('menuButtonSelected');
 }
 
 
@@ -2524,9 +2524,9 @@ function updateBrowserUrl(pushState=false){
   const searchDateFrom = document.getElementById('searchDateFrom').value;
   const searchDateTo = document.getElementById('searchDateTo').value;
   const searchSiteName = document.getElementById('searchSiteName').value.trim().toLowerCase();
-  const searchHealthDead = document.getElementById('searchPersonHealthDead').classList.contains('buttonSelectedBlue');
-  const searchHealthInjured = document.getElementById('searchPersonHealthInjured').classList.contains('buttonSelectedBlue');
-  const searchChild = document.getElementById('searchPersonChild').classList.contains('buttonSelectedBlue');
+  const searchHealthDead = document.getElementById('searchPersonHealthDead').classList.contains('menuButtonSelected');
+  const searchHealthInjured = document.getElementById('searchPersonHealthInjured').classList.contains('menuButtonSelected');
+  const searchChild = document.getElementById('searchPersonChild').classList.contains('menuButtonSelected');
   const searchPersons = getPersonsFromFilter();
 
   const url = new URL(location.origin);

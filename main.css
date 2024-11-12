@@ -1,9 +1,14 @@
 :root {
   --bg-level2: #3c3c3c;
-  --row-hover-bgcolor: #f58579;
-  --color-hover: #000000;
-  --selected-bgcolor: #f23825;
-  --selected-color: #ffffff;
+
+  --color-hover: #ffffff;
+  --hover-bgcolor: #f23825;
+
+  --selected-color: #000000;
+  --selected-bgcolor: #f58579;
+
+  --button-selected-bgcolor: #f58579;
+
   --menu-header-bgcolor: #626262;
   --menu-header-color: #ffffff;
   --link-color: #f23825;
@@ -561,7 +566,7 @@ h3, .pageSubTitleFont {
 }
 
 .menuButtonBlack:hover {
-  border-color: var(--link-color);
+  border-color: var(--button-selected-bgcolor);
 }
 
 .buttonHeader {
@@ -581,7 +586,7 @@ h3, .pageSubTitleFont {
 }
 
 .buttonHeader:hover {
-  border-color: var(--link-color);
+  border-color: var(--button-selected-bgcolor);
 }
 
 .menuSelected {
@@ -716,9 +721,9 @@ h3, .pageSubTitleFont {
   background-color: #bbbbbb;
 }
 
-.buttonSelectedBlue {
+.menuButtonSelected {
   opacity: 1;
-  background-color: var(--selected-bgcolor) !important;
+  background-color: var(--button-selected-bgcolor) !important;
   color: var(--selected-color) !important;
 }
 
@@ -1056,6 +1061,10 @@ h3, .pageSubTitleFont {
   color: var(--important-color) !important;
 }
 
+.buttonImportant:hover {
+  color: var(--link-color) !important;
+}
+
 .buttonGray {
   background-color: #999 !important;
 }
@@ -1273,8 +1282,8 @@ h3, .pageSubTitleFont {
 .navItem:hover,
 .dataTable tbody tr:hover,
 .optionCheckImage:hover {
-  color:            var(--color-hover);
-  background-color: var(--row-hover-bgcolor);
+  color: var(--color-hover);
+  background-color: var(--hover-bgcolor);
 }
 
 .itemSelected, .trSelected td, .trSelected a {
@@ -1295,7 +1304,7 @@ h3, .pageSubTitleFont {
 
 .tabBar > div:hover {
   color: var(--color-hover);
-  background-color: var(--row-hover-bgcolor);
+  background-color: var(--hover-bgcolor);
   cursor: pointer;
 }
 
@@ -1432,7 +1441,7 @@ h3, .pageSubTitleFont {
 
 .searchRow:hover {
   color:            var(--color-hover);
-  background-color: var(--row-hover-bgcolor);
+  background-color: var(--hover-bgcolor);
 }
 
 .textArea{
