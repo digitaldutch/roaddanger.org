@@ -86,7 +86,7 @@ async function initMain() {
     if (searchPersons) setPersonsFilter(searchPersons);
   }
 
-  addEditPersonButtons();
+  addPersonPropertiesHtml();
 
   initWatchPopStart();
 
@@ -359,9 +359,11 @@ async function loadStatistics() {
   function showStatisticsTransportation(dbStats) {
     let html = '';
     for (const stat of dbStats.total) {
-      const icon = transportationModeIcon(stat.transportationmode, false, false, true);
+      const imageClassName = transportationModeImageClassName(stat.transportationmode, true);
+
       html += `<tr>
-<td><div class="flexRow">${icon}<span class="hideOnMobile" style="margin-left: 5px;">${transportationModeText(stat.transportationmode)}</span></div></td>
+<td><div class="flexRow">
+<div class="iconMedium ${imageClassName}"></div><span class="hideOnMobile" style="margin-left: 5px;">${transportationModeText(stat.transportationmode)}</span></div></td>
 <td style="text-align: right;">${stat.dead}</td>
 <td style="text-align: right;">${stat.injured}</td>
 <td style="text-align: right;">${stat.unharmed}</td>
@@ -889,33 +891,6 @@ function prepareCrashServerData(crash) {
   data.articles.forEach(article => prepareArticleServerData(article));
 }
 
-function getCrashGUIButtons(crash){
-  let buttons = [];
-
-  if ((! crash) || (! crash.persons)) return buttons;
-
-  crash.persons.forEach(person => {
-    // In the GUI buttons are used to visualise each person or group of persons.
-    // We group persons who are in the same transportation item (eg 4 persons in a car).
-    let button;
-    if (person.groupid) {
-      // All persons in same group are added to 1 button/icon in the GUI
-      button = buttons.find(button => button.groupid === person.groupid);
-      // Create new button if it does not yet exist
-      if (! button) {
-        button = {groupid: person.groupid, persons: []};
-        buttons.push(button);
-      }
-    } else {
-      // Persons without group always get their own GUI button/icon
-      button = {groupid: null, persons: []};
-      buttons.push(button);
-    }
-    button.persons.push(person);
-  });
-  return buttons;
-}
-
 function crashHasActiveQuestionnaires(crash) {
   return questionnaireCountries.includes('UN') || questionnaireCountries.includes(crash.countryid);
 }
@@ -1007,7 +982,7 @@ ${translate('Approval_required')}
   if (titleModified) titleSmall += titleModified;
   else titleSmall += ' ' + crash.createtime.pretty();
 
-  const htmlPersons = getCrashButtonsHTML(crash, false, true);
+  const htmlPersons = getCrashHumansIcons(crash, false);
 
   let htmlQuestionnaireHelp = '';
   if (user.moderator && (crashArticles.length > 0) && (! crash.unilateral) && crashHasActiveQuestionnaires(crash)) {
@@ -1083,7 +1058,7 @@ function getMosaicHTML(newCrashes){
   function getIconsHTML(crash){
     let html = '';
     crash.persons.forEach(person => {
-      if (healthVisible(person.health)) html += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
+      if (healthBad(person.health)) html += `<div class="iconMedium ${healthImageClassName(person.health)}"></div>`;
     });
     return html;
   }
@@ -1188,7 +1163,7 @@ ${translate('Approval_required')}
   if (titleModified) titleSmall += titleModified;
   else titleSmall += ' ' + crash.createtime.pretty();
 
-  const htmlPersons = getCrashButtonsHTML(crash, false);
+  const htmlPersons = getCrashHumansIcons(crash, false);
 
   const crashDivId = 'details' + crash.id;
   let htmlModeration = '';
@@ -1276,46 +1251,18 @@ function getCrashTopIcons(crash, allowClick=false){
   return html;
 }
 
-function healthVisible(health){
+function healthBad(health){
   return [Health.dead, Health.injured].includes(health);
 }
 
-function getCrashButtonsHTML(crash, showAllHealth=true, allowClick=false) {
-  function getGroupButtonHTML(button) {
-    if (button.persons.length < 1) return '';
-    const person1 = button.persons[0];
-    const bgTransportation = transportationModeImage(person1.transportationmode);
-    let tooltip = transportationModeText(person1.transportationmode);
-    let iconsGroup = `<div class="iconMedium ${bgTransportation}" data-tippy-content="${tooltip}"></div>`;
-    let htmlPersons = '';
-
-    for (const person of button.persons){
-      let tooltip = translate('Human') + ' ' + person.id +
-        '<br />' + translate('Injury') + ': ' + healthText(person.health);
-      if (person.child)          tooltip += '<br>' + translate('Child');
-      if (person.underinfluence) tooltip += '<br>' + translate('Intoxicated');
-      if (person.hitrun)         tooltip += '<br>' + translate('Drive_on_or_fleeing');
-
-      const showHealth = showAllHealth || healthVisible(person.health);
-      let htmlPerson = '';
-      if (showHealth)            htmlPerson += `<div class="iconMedium ${healthImage(person.health)}"></div>`;
-      if (person.child)          htmlPerson += '<div class="iconMedium bgChild"></div>';
-      if (person.underinfluence) htmlPerson += '<div class="iconMedium bgAlcohol"></div>';
-      if (person.hitrun)         htmlPerson += '<div class="iconMedium bgHitRun"></div>';
-
-      if (htmlPerson) htmlPersons += `<div class="crashButtonSub" data-tippy-content="${tooltip}">${htmlPerson}</div>`;
-    }
-
-    const clickClass = allowClick? '' : 'defaultCursor';
-    return `<div class="crashButton ${ clickClass}">
-  ${iconsGroup}
-  ${htmlPersons}
-</div>`;
+function getCrashHumansIcons(crash, showAllHealth=true) {
+  let html = '';
+  let iHuman = 0;
+  for (const person of crash.persons) {
+    iHuman++;
+    html += humanIconHtml(person, iHuman, showAllHealth);
   }
 
-  const buttons = getCrashGUIButtons(crash);
-  let html = '';
-  for (const button of buttons) html += getGroupButtonHTML(button);
   return html;
 }
 
@@ -1397,7 +1344,7 @@ function showEditCrashForm(isNewCrash=false) {
   document.getElementById('editCrashTree').classList.remove('buttonSelected');
 
   editCrashPersons = [];
-  refreshCrashPersonsIcons(editCrashPersons);
+  refreshEditCrashHumans(editCrashPersons);
 
   document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'inline-flex';});
 
@@ -1412,45 +1359,42 @@ function showEditCrashForm(isNewCrash=false) {
   document.querySelectorAll('[data-crash-edit-only]').forEach(d => {d.style.display = isNewCrash? 'none' : 'flex';});
 }
 
-function addEditPersonButtons(){
+function addPersonPropertiesHtml(){
   let htmlButtons = '';
   for (const key of Object.keys(TransportationMode)){
     const transportationMode =  TransportationMode[key];
-    const bgClass            = transportationModeImage(transportationMode);
-    const text               = transportationModeText(transportationMode);
+    const bgClass = transportationModeImageClassName(transportationMode);
+    const text = transportationModeText(transportationMode);
     htmlButtons += `<span id="editPersonTransportationMode${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonTransportationMode(${transportationMode}, true);"></span>`;
   }
   document.getElementById('personTransportationButtons').innerHTML = htmlButtons;
 
   htmlButtons = '';
   for (const key of Object.keys(Health)){
-    const health =  Health[key];
-    const bgClass = healthImage(health);
-    const text    = healthText(health);
+    const health = Health[key];
+    const bgClass = healthImageClassName(health);
+    const text = healthText(health);
     htmlButtons += `<span id="editPersonHealth${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonHealth(${health}, true);"></span>`;
   }
   document.getElementById('personHealthButtons').innerHTML = htmlButtons;
 }
 
-function showEditPersonForm(personID=null) {
+function showSelectHumansForm() {
   closeAllPopups();
-  const person = getPersonFromID(personID);
 
-  document.getElementById('editPersonHeader').innerText       = person? translate('Edit_humans') : translate('Add_humans');
-  document.getElementById('personIDHidden').value             = person? person.id : '';
-  document.getElementById('buttonDeletePerson').style.display = person? 'inline-flex' : 'none';
+  selectPersonTransportationMode( null);
+  selectPersonHealth(null);
 
-  selectPersonTransportationMode(person? person.transportationmode : null);
-  selectPersonHealth(person? person.health : null);
+  setMenuButton('editPersonChild',false);
+  setMenuButton('editPersonUnderInfluence',false);
+  setMenuButton('editPersonHitRun',false);
 
-  setMenuButton('editPersonChild',person? person.child : false);
-  setMenuButton('editPersonUnderInfluence',person? person.underinfluence : false);
-  setMenuButton('editPersonHitRun',person? person.hitrun : false);
+  refreshSelectHumansIcons(editCrashPersons);
 
   document.getElementById('formEditPerson').style.display = 'flex';
 }
 
-function selectPersonTransportationMode(transportationMode, toggle=false){
+function selectPersonTransportationMode(transportationMode=null, toggle=false){
   selectPersonHealth(null);
   setMenuButton('editPersonChild', false);
   setMenuButton('editPersonUnderInfluence', false);
@@ -1516,66 +1460,69 @@ function closeEditPersonForm(){
   document.getElementById('formEditPerson').style.display = 'none';
 }
 
-function savePerson(stayOpen=false) {
+function addHuman() {
   const selectedTransportationMode = getSelectedPersonTransportationMode();
-  const selectedHealth             = getSelectedPersonHealth();
+  const selectedHealth = getSelectedPersonHealth();
   if (selectedTransportationMode === null) {showError(translate('No_transportation_mode_selected'), 3); return;}
-  if (selectedHealth             === null) {showError(translate('No_injury_selected'), 3); return;}
+  if (selectedHealth === null) {showError(translate('No_injury_selected'), 3); return;}
 
-  const personID = parseInt(document.getElementById('personIDHidden').value);
   let person;
 
   function loadPersonFromGUI(person){
     person.transportationmode = selectedTransportationMode;
-    person.health             = selectedHealth;
-    person.child              = menuButtonSelected('editPersonChild');
-    person.underinfluence     = menuButtonSelected('editPersonUnderInfluence');
-    person.hitrun             = menuButtonSelected('editPersonHitRun');
+    person.health = selectedHealth;
+    person.child = menuButtonSelected('editPersonChild');
+    person.underinfluence = menuButtonSelected('editPersonUnderInfluence');
+    person.hitrun = menuButtonSelected('editPersonHitRun');
   }
 
-  if (personID){
-    person = getPersonFromID(personID);
-    loadPersonFromGUI(person);
-  } else {
-    person = {id: editCrashPersons.length + 1};
-    loadPersonFromGUI(person);
+  const maxId = editCrashPersons.reduce((max, person) => person.id > max? person.id : max, 0);
+  person = {id: maxId + 1};
+  loadPersonFromGUI(person);
 
-    editCrashPersons.push(person);
-  }
+  editCrashPersons.push(person);
 
-  refreshCrashPersonsIcons(editCrashPersons);
-
-  if (stayOpen !== true) closeEditPersonForm();
-  else showMessage(translate('Saved'), 0.5);
+  refreshSelectHumansIcons(editCrashPersons);
+  refreshEditCrashHumans(editCrashPersons);
 }
 
-function deletePerson() {
-  confirmMessage('Mens verwijderen?',
-    function () {
-      const personID      = parseInt(document.getElementById('personIDHidden').value);
-      editCrashPersons = editCrashPersons.filter(person => person.id !== personID);
-      refreshCrashPersonsIcons(editCrashPersons);
-      closeEditPersonForm();
-    });
+function deleteHuman(personId) {
+  editCrashPersons = editCrashPersons.filter(person => person.id !== personId);
+
+  refreshSelectHumansIcons(editCrashPersons);
+  refreshEditCrashHumans(editCrashPersons);
 }
 
-function refreshCrashPersonsIcons(persons=[]) {
+function refreshEditCrashHumans(humans) {
   let html = '';
 
-  for (const person of persons){
-    const iconTransportation = transportationModeIcon(person.transportationmode);
-    const iconHealth = healthIcon(person.health);
-    let iconsOptions = '';
-    if (person.child) iconsOptions += `<div class="iconSmall bgChild" data-tippy-content="${translate('Child')}"></div>`;
-    if (person.underinfluence) iconsOptions += `<div class="iconSmall bgAlcohol" data-tippy-content="${translate('Intoxicated')}"></div>`;
-    if (person.hitrun) iconsOptions += `<div class="iconSmall bgHitRun" data-tippy-content="${translate('Drive_on_or_fleeing')}"></div>`;
+  let iHuman = 0;
+  for (const human of humans) {
+    iHuman++;
+    const iconHuman = humanIconHtml(human, iHuman);
 
-    html += `<div class="editCrashPerson" onclick="showEditPersonForm(${person.id});">
-${iconHealth} ${iconTransportation} ${iconsOptions}
-</div>`;
+    html += iconHuman;
   }
 
   document.getElementById('editCrashPersons').innerHTML = html;
+  tippy('[data-tippy-content]', {allowHTML: true});
+}
+function refreshSelectHumansIcons(humans) {
+  let html = '';
+
+  let iHuman = 0;
+  for (const human of humans) {
+    iHuman++;
+    const iconHuman = humanIconHtml(human, iHuman);
+
+    html += `<div style="display: flex; flex-direction: column; align-items: center;">
+  ${iconHuman}
+  <div class="button buttonTiny buttonGray" onclick="deleteHuman(${human.id})">Delete</div>
+</div>`;
+  }
+
+  if (!html) html = translate('No_humans_selected');
+  document.getElementById('crashPersons').innerHTML = html;
   tippy('[data-tippy-content]', {allowHTML: true});
 }
 
@@ -1585,21 +1532,21 @@ function setArticleCrashFields(crashID){
 
   editCrashPersons = structuredClone(crash.persons);
 
-  document.getElementById('crashIDHidden').value      = crash.id;
+  document.getElementById('crashIDHidden').value = crash.id;
 
-  document.getElementById('editCrashTitle').value     = crash.title;
-  document.getElementById('editCrashText').value      = crash.text;
-  document.getElementById('editCrashDate').value      = dateToISO(crashDatetime);
-  document.getElementById('editCrashLatitude').value  = crash.latitude;
+  document.getElementById('editCrashTitle').value = crash.title;
+  document.getElementById('editCrashText').value = crash.text;
+  document.getElementById('editCrashDate').value = dateToISO(crashDatetime);
+  document.getElementById('editCrashLatitude').value = crash.latitude;
   document.getElementById('editCrashLongitude').value = crash.longitude;
-  document.getElementById('editCrashCountry').value   = crash.countryid;
+  document.getElementById('editCrashCountry').value = crash.countryid;
 
-  selectButton('editCrashUnilateral',  crash.unilateral);
-  selectButton('editCrashPet',         crash.pet);
-  selectButton('editCrashTrafficJam',  crash.trafficjam);
-  selectButton('editCrashTree',        crash.tree);
+  selectButton('editCrashUnilateral', crash.unilateral);
+  selectButton('editCrashPet', crash.pet);
+  selectButton('editCrashTrafficJam', crash.trafficjam);
+  selectButton('editCrashTree', crash.tree);
 
-  refreshCrashPersonsIcons(crash.persons);
+  refreshEditCrashHumans(crash.persons);
 
   showMapEdit(crash.latitude, crash.longitude);
 }
@@ -1700,7 +1647,7 @@ async function showQuestionsForm(crashId, articleId) {
   document.getElementById('questionsArticleId').value        = article.id;
   document.getElementById('questionsArticleTitle').innerText = article.title;
   document.getElementById('questionsArticle').innerHTML      = `<a href="${article.url}" target="article">${article.sitename}</a>`;
-  document.getElementById('questionsCrashButtons').innerHTML = getCrashButtonsHTML(crash) + htmlUnilateral;
+  document.getElementById('questionsCrashButtons').innerHTML = getCrashHumansIcons(crash) + htmlUnilateral;
   document.getElementById('questionsArticleText').innerText  = '⌛';
 
   document.getElementById('articleQuestions').innerHTML  = '⌛';
@@ -2047,18 +1994,18 @@ async function saveArticleCrash(){
   if (! latitude)  longitude = null;
   if (! longitude) latitude  = null;
   crashEdited = {
-    id:         document.getElementById('crashIDHidden').value,
-    title:      document.getElementById('editCrashTitle').value,
-    text:       document.getElementById('editCrashText').value,
-    date:       document.getElementById('editCrashDate').value,
-    countryid:  document.getElementById('editCrashCountry').value,
-    latitude:   latitude,
-    longitude:  longitude,
-    persons:    editCrashPersons,
+    id: document.getElementById('crashIDHidden').value,
+    title: document.getElementById('editCrashTitle').value,
+    text: document.getElementById('editCrashText').value,
+    date: document.getElementById('editCrashDate').value,
+    countryid: document.getElementById('editCrashCountry').value,
+    latitude: latitude,
+    longitude: longitude,
+    persons: editCrashPersons,
     unilateral: document.getElementById('editCrashUnilateral').classList.contains('buttonSelected'),
-    pet:        document.getElementById('editCrashPet').classList.contains('buttonSelected'),
+    pet: document.getElementById('editCrashPet').classList.contains('buttonSelected'),
     trafficjam: document.getElementById('editCrashTrafficJam').classList.contains('buttonSelected'),
-    tree:       document.getElementById('editCrashTree').classList.contains('buttonSelected'),
+    tree: document.getElementById('editCrashTree').classList.contains('buttonSelected'),
   };
 
   if (crashEdited.id) crashEdited.id = parseInt(crashEdited.id);
@@ -2070,18 +2017,18 @@ async function saveArticleCrash(){
       crashEdited.title = articleEdited.title;
     }
 
-    if (!crashEdited.title)               {showError(translate('Crash_title_not_filled_in')); return;}
-    if (!crashEdited.date)                {showError(translate('Crash_date_not_filled_in')); return;}
-    if (crashEdited.persons.length === 0) {showError(translate('No_involved_humans_added')); return;}
-    if (!crashEdited.countryid)           {showError(translate('Crash_country_not_filled_in')); return;}
+    if (!crashEdited.title) {showError(translate('Crash_title_not_filled_in')); return;}
+    if (!crashEdited.date) {showError(translate('Crash_date_not_filled_in')); return;}
+    if (crashEdited.persons.length === 0) {showError(translate('No_humans_selected')); return;}
+    if (!crashEdited.countryid) {showError(translate('Crash_country_not_filled_in')); return;}
   }
 
   const url = '/general/ajax.php?function=saveArticleCrash';
   const serverData = {
-    article:      articleEdited,
-    crash:        crashEdited,
-    saveArticle:  saveArticle,
-    saveCrash:    saveCrash,
+    article: articleEdited,
+    crash: crashEdited,
+    saveArticle: saveArticle,
+    saveCrash: saveCrash,
   }
   const response = await fetchFromServer(url, serverData);
 
@@ -2287,7 +2234,7 @@ function deleteCrash(id) {
 function crashRowHTML(crash, isSearch=false){
 
   function innerHTML(crash, allArticles) {
-    const htmlPersons = getCrashButtonsHTML(crash, false);
+    const htmlPersons = getCrashHumansIcons(crash, false);
 
     const crashArticles = getCrashArticles(crash.id, allArticles);
     const img = (crashArticles.length > 0)? `<img class="thumbnail" src="${crashArticles[0].urlimage}">` : '';

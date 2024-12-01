@@ -11,7 +11,13 @@
 
   --menu-header-bgcolor: #626262;
   --menu-header-color: #ffffff;
+  --menu-header-border-color: #626262;
+
   --link-color: #f23825;
+
+  --error-bgcolor: #f23825;
+  --error-color: #ffffff;
+
   --important-bgcolor: #ffbe0d;
   --important-color: #000000;
   --tooltip-bgcolor: #ffbe0d;
@@ -238,13 +244,13 @@ h3, .pageSubTitleFont {
 }
 
 .crashButton {
-  display:          inline-flex;
-  flex-direction:   row;
-  align-items:      center;
-  margin-right:     3px;
-  border:           1px solid #aaaaaa;
-  border-radius:    3px;
-  padding:          1px;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  margin-right: 3px;
+  border: 1px solid #aaaaaa;
+  border-radius: 3px;
+  padding: 1px;
 }
 
 .defaultCursor {
@@ -252,36 +258,29 @@ h3, .pageSubTitleFont {
 }
 
 .crashButtonSub {
-  display:          inline-flex;
-  flex-direction:   row;
-  margin:           0 3px;
-  border-radius:    5px;
-  padding:          2px;
+  display: inline-flex;
+  flex-direction: row;
+  margin: 0 3px;
+  border-radius: 5px;
+  padding: 2px;
 }
 
-.editCrashPerson {
+.crashPersonIcon {
   display: inline-flex;
   flex-direction: row;
   border: 1px solid #aaaaaa;
   border-radius: 5px;
   margin: 5px 3px 0 0;
   padding: 2px;
-  cursor: pointer;
-  opacity: 0.7;
-}
-
-.editCrashPerson:hover {
-  opacity:          1;
-  background-color: #ddd;
 }
 
 .cardArticle {
-  position:         relative;
-  min-height:       80px;
-  color:            #000;
-  margin:           10px 20px;
-  border:           1px solid #eee;
-  border-radius:    10px;
+  position: relative;
+  min-height: 80px;
+  color: #000;
+  margin: 10px 20px;
+  border: 1px solid #eee;
+  border-radius: 10px;
 }
 
 .cardArticle:hover {
@@ -1043,11 +1042,12 @@ h3, .pageSubTitleFont {
 }
 
 .formError {
-  display:          none;
-  margin-top:       5px;
-  background-color: #ffbcbc;
-  padding:          0.2em 0.3em;
-  border-radius:    3px;
+  display: none;
+  margin-top: 5px;
+  color: var(--error-color);
+  background-color: var(--error-bgcolor);
+  padding: 0.2em 0.3em;
+  border-radius: 3px;
 }
 
 .button:hover {
@@ -1076,6 +1076,17 @@ h3, .pageSubTitleFont {
 .buttonLine {
   height: auto !important;
   font-weight: normal !important;
+}
+
+.buttonTiny {
+  display: inline-flex;
+  padding: 2px 8px;
+  margin: 5px 2px;
+  min-width: auto;
+  width: fit-content;
+  font-size: 11px;
+  height: auto;
+  border-radius: 10px;
 }
 
 .spinner {

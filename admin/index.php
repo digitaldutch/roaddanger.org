@@ -41,8 +41,6 @@ function getFormNewTranslation() {
     <label>{$texts['English_text']}
     <input id="newTranslationEnglishText" class="inputForm" type="text"></label>
        
-    <div id="newTranslationError" class="formError"></div>
-
     <div class="popupFooter">
       <input type="submit" class="button" style="margin-left: 0;" value="{$texts['Save']}">
       <input type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">

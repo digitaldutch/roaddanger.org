@@ -110,7 +110,7 @@ async function loadArticlesUnanswered() {
       let html = '';
       for (const article of response.articles) {
         const crash = getCrashFromId(article.crashid);
-        let htmlIcons = getCrashButtonsHTML(crash);
+        let htmlIcons = getCrashHumansIcons(crash);
         if (crash.unilateral) htmlIcons += getIconUnilateral();
 
         htmlIcons = '<div style="display: flex; flex-direction: row;">' + htmlIcons + '</div>'

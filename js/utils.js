@@ -797,7 +797,7 @@ function transportationImageFileName(transportationModeValue, white=false){
   return fileName;
 }
 
-function transportationModeImage(transportationMode, white=false) {
+function transportationModeImageClassName(transportationMode, white=false) {
   let className;
   switch (transportationMode) {
     case TransportationMode.unknown: className = 'bgUnknown'; break;
@@ -825,19 +825,42 @@ function transportationModeImage(transportationMode, white=false) {
   return className;
 }
 
-function transportationModeIcon(transportationMode, addTooltip=true, small=false, white=false) {
-  const image = transportationModeImage(transportationMode, white);
-  const text = translate('Transportation_mode')  + ': ' + transportationModeText(transportationMode);
-  const tooltip = addTooltip? 'data-tippy-content="' + text + '"' : '';
-  const className = small? 'iconSmall' : 'iconMedium';
-  return `<div class="${className} ${image}" ${tooltip}></div>`;
+function humanIconHtml(human, humanIndex, showAllHealth=true) {
+  let tooltip = translate('Human') + ' ' + humanIndex;
+
+  const imageClassName = transportationModeImageClassName(human.transportationmode);
+  const iconTransportation = `<div class="iconMedium ${imageClassName}"></div>`;
+  tooltip += ' | ' + transportationModeText(human.transportationmode);
+
+  let iconHealth = '';
+  tooltip += ' | ' + healthText(human.health);
+  if (showAllHealth || healthBad(human.health)) {
+    const healthClassName = healthImageClassName(human.health);
+    iconHealth = `<div class="iconMedium ${healthClassName}"></div>`;
+  }
+
+  let iconsOptions = '';
+  if (human.child) {
+    iconsOptions += `<div class="iconSmall bgChild"></div>`;
+    tooltip += ' | ' + translate('Child');
+  }
+  if (human.underinfluence) {
+    iconsOptions += `<div class="iconSmall bgAlcohol"></div>`;
+    tooltip += ' | ' + translate('Intoxicated');
+  }
+  if (human.hitrun) {
+    iconsOptions += `<div class="iconSmall bgHitRun"></div>`;
+    tooltip += ' | ' + translate('Drive_on_or_fleeing');
+  }
+
+  return `<div class="crashPersonIcon" data-tippy-content="${tooltip}">${iconTransportation} ${iconHealth} ${iconsOptions}</div>`;
 }
 
-function healthIcon(healthStatus, addTooltip=true) {
-  const bg      = healthImage(healthStatus);
-  const text    = translate('Injury') + ': ' + healthText(healthStatus);
+function healthIconHtml(healthStatus, addTooltip=true) {
+  const imageClassName = healthImageClassName(healthStatus);
+  const text = translate('Injury') + ': ' + healthText(healthStatus);
   const tooltip = addTooltip? 'data-tippy-content="' + text + '"' : '';
-  return `<div class="iconMedium ${bg}" ${tooltip}></div>`;
+  return `<div class="iconMedium ${imageClassName}" ${tooltip}></div>`;
 }
 
 function healthText(healthStatus) {
@@ -850,7 +873,7 @@ function healthText(healthStatus) {
   }
 }
 
-function healthImage(healthStatus) {
+function healthImageClassName(healthStatus) {
   switch (healthStatus) {
     case Health.unknown: return 'bgUnknown';
     case Health.unharmed: return 'bgUnharmed';
@@ -1097,7 +1120,7 @@ function initSearchBar(){
     const transportationMode =  TransportationMode[key];
     const id = 'tm' + transportationMode;
     const text = transportationModeText(transportationMode);
-    const iconTransportationMode = transportationModeImage(transportationMode);
+    const iconTransportationMode = transportationModeImageClassName(transportationMode);
 
     html +=
       `<div id="${id}" class="optionCheckImage" onclick="searchPersonClick(${transportationMode});">
@@ -1153,18 +1176,18 @@ function updateTransportationModeFilterInput(){
     const elementId          = 'tm' + transportationMode;
     const element            = document.getElementById(elementId);
     if (element.classList.contains('itemSelected')) {
-      let icon = transportationModeImage(transportationMode);
+      let icon = transportationModeImageClassName(transportationMode);
       html += `<span class="inputIconGroup"><span class="searchDisplayIcon ${icon}" data-tippy-content="${transportationText}"></span>`;
 
       const deadSelected = document.getElementById('searchDeadTm' + transportationMode).classList.contains('inputSelectButtonSelected');
       if (deadSelected){
-        let icon = healthImage(Health.dead);
+        let icon = healthImageClassName(Health.dead);
         html += `<span class="searchDisplayIcon ${icon}" data-tippy-content="${translate('Dead_(adjective)')}"></span>`;
       }
 
       const injuredSelected = document.getElementById('searchInjuredTm' + transportationMode).classList.contains('inputSelectButtonSelected');
       if (injuredSelected){
-        let icon = healthImage(Health.injured);
+        let icon = healthImageClassName(Health.injured);
         html += `<span class="searchDisplayIcon ${icon}" data-tippy-content="${translate('Injured')}"></span>`;
       }
 

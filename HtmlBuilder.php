@@ -299,7 +299,7 @@ HTML;
 
     return <<<HTML
 <div id="formLogin" class="popupOuter">
-  <form class="formFullPage" onclick="event.stopPropagation();" onsubmit="checkLogin(); return false;">
+  <form id="formLoginInner" class="formFullPage" onclick="event.stopPropagation();" onsubmit="checkLogin(); return false;">
 
     <div class="popupHeader">{$texts['Log_in_or_register']}</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
@@ -347,7 +347,7 @@ HTML;
   public static function getFormEditCrash() {
     $texts = translateArray(['Article', 'Crash', 'Fetch_article', 'Link_url', 'Title', 'Media_source', 'Summary',
       'Full_text',
-      'Photo_link_url', 'Same_as_article', 'Add_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
+      'Photo_link_url', 'Same_as_article', 'Select_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
       'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
       'Location', 'Characteristics', 'Save', 'Cancel',
       'Spider_is_working', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Accident_text_info', 'Edit_location_instructions']);
@@ -430,12 +430,13 @@ HTML;
       </div>
       <div style="display: flex;">
         <input id="editCrashDate" class="popupInput" type="date" autocomplete="off">
-        <span data-hideedit class="button buttonGray buttonLine" onclick="copyCrashDateFromArticle();" ">{$texts['Same_as_article']}</span>
+        <span data-hideedit class="button buttonGray buttonLine" onclick="copyCrashDateFromArticle();">{$texts['Same_as_article']}</span>
       </div>
           
       <div style="margin-top: 5px;">
-        <div>{$texts['Involved_humans']} <div class="button buttonGray buttonLine" role="button" onclick="showEditPersonForm();">{$texts['Add_humans']}</div></div>   
+        <div>{$texts['Involved_humans']}</div>   
         <div id="editCrashPersons"></div>
+        <div class="button buttonGray" role="button" style="margin: 5px 0;" onclick="showSelectHumansForm();">{$texts['Select_humans']}</div>
       </div>
 
       <div style="margin-top: 5px;">
@@ -583,43 +584,50 @@ HTML;
   }
 
   public static function getFormEditPerson() {
-    $texts = translateArray(['Transportation_mode', 'Characteristics', 'Child', 'Intoxicated', 'Drive_on_or_fleeing', 'Injury',
-      'Close', 'Delete', 'Save_and_stay_open', 'Save_and_close']);
+    $texts = translateArray(['Select_humans', 'Involved_humans', 'Add_human', 'Transportation_mode', 'Characteristics',
+      'Child', 'Intoxicated', 'Drive_on_or_fleeing', 'Injury',
+      'Close', 'Delete', 'Add']);
 
     return <<<HTML
 <div id="formEditPerson" class="popupOuter" style="z-index: 501;" onclick="closeEditPersonForm();">
 
   <div class="formFullPage" onclick="event.stopPropagation();">
     
-    <div id="editPersonHeader" class="popupHeader"></div>
+    <div class="popupHeader">{$texts['Select_humans']}</div>
     <div class="popupCloseCross" onclick="closeEditPersonForm();"></div>
 
-    <input id="personIDHidden" type="hidden">
+    <div class="formSubHeader">{$texts['Add_human']}</div>
 
-    <div style="margin-top: 5px;">
-      <div>${texts['Transportation_mode']}</div> 
-      <div id="personTransportationButtons"></div>
-    </div>
-            
-    <div style="margin-top: 5px;">
-      <div>{$texts['Injury']}</div> 
-      <div id="personHealthButtons"></div>
-    </div>
-
-    <div style="margin-top: 5px;">
-      <div>{$texts['Characteristics']}</div> 
+    <div style="border: solid 1px #000; border-radius: 5px; padding: 5px 5px 8px 5px;">
       <div>
-        <span id="editPersonChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="toggleSelectionButton(this)"></span>            
-        <span id="editPersonUnderInfluence" class="menuButton bgAlcohol" data-tippy-content="{$texts['Intoxicated']}" onclick="toggleSelectionButton(this)"></span>            
-        <span id="editPersonHitRun" class="menuButton bgHitRun" data-tippy-content="{$texts['Drive_on_or_fleeing']}" onclick="toggleSelectionButton(this)"></span>            
+        <div>{$texts['Transportation_mode']}</div> 
+        <div id="personTransportationButtons"></div>
+      </div>
+              
+      <div style="margin-top: 5px;">
+        <div>{$texts['Injury']}</div> 
+        <div id="personHealthButtons"></div>
+      </div>
+  
+      <div style="margin-top: 5px;">
+        <div>{$texts['Characteristics']}</div> 
+        <div>
+          <span id="editPersonChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="toggleSelectionButton(this)"></span>            
+          <span id="editPersonUnderInfluence" class="menuButton bgAlcohol" data-tippy-content="{$texts['Intoxicated']}" onclick="toggleSelectionButton(this)"></span>            
+          <span id="editPersonHitRun" class="menuButton bgHitRun" data-tippy-content="{$texts['Drive_on_or_fleeing']}" onclick="toggleSelectionButton(this)"></span>            
+        </div>
+      </div>
+  
+      <div style="margin-top: 5px;">
+        <input type="button" class="button" value="{$texts['Add']}" onclick="addHuman();">
       </div>
     </div>
-            
+    
+    <div class="formSubHeader">{$texts['Involved_humans']}</div>
+    <div id="crashPersons" style="display: flex; justify-content: center;"></div>
+                
     <div class="popupFooter">
-      <input type="button" class="button" value="{$texts['Save_and_stay_open']}" onclick="savePerson(true);">
-      <input type="button" class="button" value="{$texts['Save_and_close']}" onclick="savePerson();">
       <input id="buttonCloseEditPerson" type="button" class="button buttonGray" value="{$texts['Close']}" onclick="closeEditPersonForm();">
-      <input id="buttonDeletePerson" type="button" class="button buttonRed" value="{$texts['Delete']}" onclick="deletePerson();">
     </div>    
   </div>
   
@@ -658,8 +666,6 @@ HTML;
       <option value="1">{$texts['Administrator']}</option>
     </select>
     
-    <div id="editUserError" class="formError"></div>
-   
     <div class="popupFooter">
       <input type="button" class="button" value="{$texts['Save']}" onclick="saveUser();">
       <input type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">

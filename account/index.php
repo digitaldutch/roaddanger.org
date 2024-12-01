@@ -9,13 +9,13 @@ global $user;
 
 $uri = urldecode($_SERVER['REQUEST_URI']);
 
-if      (str_starts_with($uri, '/account/resetpassword')) $pageType = 'resetPassword';
-else if (str_starts_with($uri, '/account'))               $pageType = 'account';
+if (str_starts_with($uri, '/account/resetpassword')) $pageType = 'resetPassword';
+else if (str_starts_with($uri, '/account')) $pageType = 'account';
 else $pageType = 'none';
 
 if ($pageType === 'account') {
 
-  $languages       = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
+  $languages = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
   $languageOptions = '';
   foreach ($languages as $language) {
     $selected = $language['id'] === $user->languageId? 'selected' : '';
@@ -57,7 +57,7 @@ if ($pageType === 'account') {
     </label>
     
     <div class="buttonBar">
-      <input type="submit" class="button" style="margin-left: 0;" value="{$texts['Save']}">
+      <input type="submit" class="button buttonImportant" style="margin-left: 0;" value="{$texts['Save']}">
     </div>
 
   </form>  
@@ -92,8 +92,10 @@ HTML;
 } else $htmlMain = 'Error: No page type found.';
 
 $htmlMain = <<<HTML
-<div id="main" class="pageInner" style="max-width: 500px;">
-  $htmlMain
+<div id="pageMain">
+  <div id="main" class="pageInner" style="max-width: 500px;">
+    $htmlMain
+  </div>
 </div>
 HTML;
 
