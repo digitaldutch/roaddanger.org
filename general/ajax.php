@@ -664,7 +664,11 @@ SQL;
         addPersonsWhereSql($SQLWhere, $SQLJoin, $filter['persons']);
       }
 
-      $orderField = ($sort === 'crashDate')? 'c.date DESC, c.streamdatetime DESC' : 'c.streamdatetime DESC';
+      $orderField = match ($sort) {
+        'crashDate'   => 'c.date DESC, c.streamdatetime DESC',
+        'lastChanged' => 'c.streamdatetime DESC',
+        default       => 'c.date DESC, c.streamdatetime DESC',
+      };
 
       $SQLWhere = <<<SQL
    $SQLJoin      

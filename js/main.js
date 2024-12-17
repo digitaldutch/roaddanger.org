@@ -26,6 +26,7 @@ const PageType = Object.freeze({
   export: 9,
   map: 10,
   childVictims: 11,
+  lastChanged: 13,
 });
 
 class Filter {
@@ -63,9 +64,27 @@ class Filter {
 
     return this.filters;
   }
-  setToUrl(url) {
-    return this.filters;
+  addSearchParams(url) {
+    this.getFromGUI();
+
+    if (this.filters.healthDead)         url.searchParams.set('hd', 1);
+    if (this.filters.healthInjured)      url.searchParams.set('hi', 1);
+    if (this.filters.child)              url.searchParams.set('child', 1);
+
+    if (this.filters.text)     url.searchParams.set('search', this.filters.text);
+    if (this.filters.country)  url.searchParams.set('country', this.filters.country);
+    if (this.filters.siteName) url.searchParams.set('siteName', this.filters.siteName);
+
+    if (this.filters.period) {
+      url.searchParams.set('period', this.filters.period);
+
+      if (this.filters.dateFrom) url.searchParams.set('date_from', this.filters.dateFrom);
+      if (this.filters.dateTo) url.searchParams.set('date_to', this.filters.dateTo);
+    }
+
+    if (this.filters.persons.length > 0) url.searchParams.set('persons', this.filters.persons.join());
   }
+
   setToGUI() {
     if (! document.getElementById('searchBar')) return;
     function setSearchButton(id, on) {
@@ -748,8 +767,17 @@ async function loadCrashes(crashId=null, articleId=null){
     serverData.filter = filter.getFromGUI();
 
     if (crashId) serverData.id = crashId;
-    if (pageType  === PageType.moderations) serverData.moderations=1;
-    else if ((pageType === PageType.recent) || (pageType === PageType.mosaic)) serverData.sort = 'crashDate';
+
+    if (pageType  === PageType.moderations) {
+      serverData.moderations=1;
+      serverData.sort = 'lastChanged';
+    }
+    else if ((pageType === PageType.recent) || (pageType === PageType.mosaic)) {
+      serverData.sort = 'crashDate';
+    }
+    else if (pageType === PageType.lastChanged) {
+      serverData.sort = 'lastChanged';
+    }
     else if (pageType  === PageType.deCorrespondent) {
       serverData.sort = 'crashDate';
       serverData.filter.period = 'decorrespondent';
@@ -2512,23 +2540,12 @@ function startSearch() {
 }
 
 function updateBrowserUrl(pushState=false){
-  const searchText = document.getElementById('searchText').value.trim().toLowerCase();
-  const searchCountry = document.getElementById('searchCountry').value;
-  const searchPeriod = document.getElementById('searchPeriod').value;
-  const searchDateFrom = document.getElementById('searchDateFrom').value;
-  const searchDateTo = document.getElementById('searchDateTo').value;
-  const searchSiteName = document.getElementById('searchSiteName').value.trim().toLowerCase();
-  const searchHealthDead = document.getElementById('searchPersonHealthDead').classList.contains('menuButtonSelected');
-  const searchHealthInjured = document.getElementById('searchPersonHealthInjured').classList.contains('menuButtonSelected');
-  const searchChild = document.getElementById('searchPersonChild').classList.contains('menuButtonSelected');
-  const searchPersons = getPersonsFromFilter();
-
   const url = new URL(location.origin);
 
-  if      (pageType === PageType.deCorrespondent) url.pathname = '/decorrespondent';
-  else if (pageType === PageType.lastChanged)     url.pathname = '/last_changed';
-  else if (pageType === PageType.mosaic)          url.pathname = '/mosaic';
-  else if (pageType === PageType.map)             url.pathname = '/map';
+  if (pageType === PageType.deCorrespondent) url.pathname = '/decorrespondent';
+  else if (pageType === PageType.lastChanged) url.pathname = '/last_changed';
+  else if (pageType === PageType.mosaic) url.pathname = '/mosaic';
+  else if (pageType === PageType.map) url.pathname = '/map';
 
   if (pageType === PageType.map) {
     const center = mapMain.getCenter();
@@ -2537,22 +2554,11 @@ function updateBrowserUrl(pushState=false){
     url.searchParams.set('zoom', mapMain.getZoom());
   }
 
-  if (searchText)     url.searchParams.set('search', searchText);
-  if (searchSiteName) url.searchParams.set('siteName', searchSiteName);
-  if (searchCountry)  url.searchParams.set('country', searchCountry);
-  if (searchPeriod){
-    url.searchParams.set('period', searchPeriod);
-
-    if (searchDateFrom) url.searchParams.set('date_from', searchDateFrom);
-    if (searchDateTo)   url.searchParams.set('date_to', searchDateTo);
-  }
-  if (searchHealthDead)         url.searchParams.set('hd', 1);
-  if (searchHealthInjured)      url.searchParams.set('hi', 1);
-  if (searchChild)              url.searchParams.set('child', 1);
-  if (searchPersons.length > 0) url.searchParams.set('persons', searchPersons.join());
+  const filter = new Filter();
+  filter.addSearchParams(url);
 
   if (pushState) window.history.pushState(null, null, url.toString());
-  else           window.history.replaceState(null, null, url);
+  else window.history.replaceState(null, null, url);
 
 }
 
