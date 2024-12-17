@@ -87,9 +87,9 @@ function getStatsTransportation($database, $filter){
     addSQLWhere($SQLWhere, " cp.child=1 ");
   }
 
-  if ($filter['countryId'] !== 'UN'){
-    addSQLWhere($SQLWhere, "c.countryid=:countryId");
-    $params[':countryId'] = $filter['countryId'];
+  if ($filter['country'] !== 'UN'){
+    addSQLWhere($SQLWhere, "c.countryid=:country");
+    $params[':country'] = $filter['country'];
   }
 
   if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
@@ -148,9 +148,9 @@ function getStatsCrashPartners(Database $database, array $filter): array{
 
   if ($filter['child'] === 1) addSQLWhere($SQLWhere, " cp.child=1 ");
 
-  if ($filter['countryId'] !== 'UN'){
-    addSQLWhere($SQLWhere, "c.countryid=:countryId");
-    $params[':countryId'] = $filter['countryId'];
+  if ($filter['country'] !== 'UN'){
+    addSQLWhere($SQLWhere, "c.countryid=:country");
+    $params[':country'] = $filter['country'];
   }
 
   if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
@@ -1303,7 +1303,8 @@ else if ($function === 'getStatistics') {
     else $stats = getStatsTransportation($database, $filter);
 
     $user->getTranslations();
-    $result = ['ok' => true,
+    $result = [
+      'ok' => true,
       'statistics' => $stats,
       'user' => $user->info(),
     ];

@@ -695,7 +695,7 @@ HTML;
     $intro
   </div>
 
-  <div class="searchBarTransparent" style="display: flex; padding-bottom: 0;">
+  <div id="searchBar" class="searchBarTransparent" style="display: flex; padding-bottom: 0;">
 
     <div class="toolbarItem">
       <span id="filterChildDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterChildVictims();"></span>      
@@ -791,12 +791,12 @@ HTML;
 
   <div id="statistics">
   
-    <div class="searchBarTransparent" style="display: flex;">
+    <div id="searchBar" class="searchBarTransparent" style="display: flex;">
 
       <div class="toolbarItem">
-        <span id="filterStatsDead" class="menuButton bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterStats();"></span>      
-        <span id="filterStatsInjured" class="menuButton bgInjuredWhite" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterStats();"></span>      
-        <span id="filterStatsChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
+        <span id="searchPersonHealthDead" class="menuButton bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterStats();"></span>      
+        <span id="searchPersonHealthInjured" class="menuButton bgInjuredWhite" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterStats();"></span>      
+        <span id="searchPersonChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
       </div>
       
       <div class="toolbarItem">$htmlSearchCountry</div>
@@ -838,9 +838,9 @@ HTML;
   
   <div id="statistics">
   
-    <div class="searchBarTransparent" style="display: flex;">
+    <div id="searchBar" class="searchBarTransparent" style="display: flex;">
       <div class="toolbarItem">
-        <span id="filterStatsChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
+        <span id="searchPersonChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
       </div>
 
       <div class="toolbarItem">$htmlSearchCountry</div>
@@ -912,7 +912,7 @@ HTML;
     $texts = translateArray(['Humans']);
 
     return <<<HTML
-    <div class="toolbarItem">
+    <div id="searchPersons" class="toolbarItem">
       <div class="dropInputWrapper">
         <div class="searchInput dropInput" tabindex="0" onclick="toggleSearchPersons(event);">
           <div id="inputSearchPersons" style="display: flex">{$texts['Humans']}</div>

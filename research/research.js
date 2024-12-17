@@ -24,7 +24,11 @@ async function initResearch(){
   if (searchCountry)     document.getElementById('filterResearchCountry').value = searchCountry;
   if (searchGroup)       document.getElementById('filterResearchGroup').value = searchGroup;
   if (searchMinArticles) document.getElementById('filterMinArticles').value = searchMinArticles;
-  if (searchPersons)     setPersonsFilter(searchPersons);
+
+  if (searchPersons) {
+    const personsCodes = searchPersons.split(',');
+    setPersonsFilter(personsCodes);
+  }
 
   const filterNoUnilateral = document.getElementById('filterResearchNoUnilateral');
   if (filterNoUnilateral) {

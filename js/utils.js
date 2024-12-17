@@ -1114,6 +1114,7 @@ function toggleCheckOptions(event, id) {
 
 function initSearchBar(){
   if (! document.getElementById('searchBar')) return;
+  if (! document.getElementById('searchPersons')) return;
 
   let html = '';
   for (const key of Object.keys(TransportationMode)){
@@ -1173,8 +1174,9 @@ function updateTransportationModeFilterInput(){
   for (const key of Object.keys(TransportationMode)){
     const transportationMode =  TransportationMode[key];
     const transportationText =  transportationModeText(transportationMode);
-    const elementId          = 'tm' + transportationMode;
-    const element            = document.getElementById(elementId);
+    const elementId = 'tm' + transportationMode;
+    const element = document.getElementById(elementId);
+
     if (element.classList.contains('itemSelected')) {
       let icon = transportationModeImageClassName(transportationMode);
       html += `<span class="inputIconGroup"><span class="searchDisplayIcon ${icon}" data-tippy-content="${transportationText}"></span>`;
@@ -1214,58 +1216,68 @@ function updateTransportationModeFilterInput(){
 function getPersonsFromFilter(){
   let persons = [];
 
-  for (const key of Object.keys(TransportationMode)){
-    const transportationMode =  TransportationMode[key];
-    const buttonProfile       = document.getElementById('tm' + transportationMode);
-    if (buttonProfile.classList.contains('itemSelected')) {
-      let person = transportationMode;
+  if (document.getElementById('searchPersons')) {
+    for (const key of Object.keys(TransportationMode)){
+      const transportationMode =  TransportationMode[key];
+      const buttonProfile = document.getElementById('tm' + transportationMode);
+      if (buttonProfile.classList.contains('itemSelected')) {
+        let person = transportationMode;
 
-      const deadSelected = document.getElementById('searchDeadTm' + transportationMode).classList.contains('inputSelectButtonSelected');
-      if (deadSelected) person += 'd';
+        const deadSelected = document.getElementById('searchDeadTm' + transportationMode).classList.contains('inputSelectButtonSelected');
+        if (deadSelected) person += 'd';
 
-      const injuredSelected = document.getElementById('searchInjuredTm' + transportationMode).classList.contains('inputSelectButtonSelected');
-      if (injuredSelected) person += 'i';
+        const injuredSelected = document.getElementById('searchInjuredTm' + transportationMode).classList.contains('inputSelectButtonSelected');
+        if (injuredSelected) person += 'i';
 
-      const restrictedSelected = document.getElementById('searchRestrictedTm' + transportationMode).classList.contains('inputSelectButtonSelected');
-      if (restrictedSelected) person += 'r';
+        const restrictedSelected = document.getElementById('searchRestrictedTm' + transportationMode).classList.contains('inputSelectButtonSelected');
+        if (restrictedSelected) person += 'r';
 
-      const unilateralSelected = document.getElementById('searchUnilateralTm' + transportationMode).classList.contains('inputSelectButtonSelected');
-      if (unilateralSelected) person += 'u';
+        const unilateralSelected = document.getElementById('searchUnilateralTm' + transportationMode).classList.contains('inputSelectButtonSelected');
+        if (unilateralSelected) person += 'u';
 
-      persons.push(person);
+        persons.push(person);
+      }
     }
   }
 
   return persons;
 }
 
-function setPersonsFilter(personsCommaString){
-  let persons = personsCommaString.split(',').map(p => {
+function setPersonsFilter(personsCodes){
+
+  if (! document.getElementById('inputSearchPersons')) return;
+
+  let persons = personsCodes.map(p => {
     return {
       transportationMode: parseInt(p),
-      dead:               p.includes('d'),
-      injured:            p.includes('i'),
-      restricted:         p.includes('r'),
-      unilateral:         p.includes('u'),
+      dead: p.includes('d'),
+      injured: p.includes('i'),
+      restricted: p.includes('r'),
+      unilateral: p.includes('u'),
     };
   });
 
   for (const key of Object.keys(TransportationMode)){
-    const transportationMode =  TransportationMode[key];
-    const element            = document.getElementById('tm'                 + transportationMode);
-    const buttonDead         = document.getElementById('searchDeadTm'       + transportationMode);
-    const buttonInjured      = document.getElementById('searchInjuredTm'    + transportationMode);
-    const buttonRestricted   = document.getElementById('searchRestrictedTm' + transportationMode);
-    const buttonUnilateral   = document.getElementById('searchUnilateralTm' + transportationMode);
+    const transportationModeId = TransportationMode[key];
 
-    const person = persons.find(p => p.transportationMode === transportationMode);
-    if (person){
-      element.classList.add('itemSelected');
-      if (person.dead)       buttonDead.classList.add('inputSelectButtonSelected');
-      if (person.injured)    buttonInjured.classList.add('inputSelectButtonSelected');
-      if (person.restricted) buttonRestricted.classList.add('inputSelectButtonSelected');
-      if (person.unilateral) buttonUnilateral.classList.add('inputSelectButtonSelected');
-    } else element.classList.remove('itemSelected');
+    const elementPerson = document.getElementById('tm' + transportationModeId);
+
+    const optionDead = document.getElementById('searchDeadTm' + transportationModeId);
+    const optionInjured = document.getElementById('searchInjuredTm' + transportationModeId);
+    const optionRestricted = document.getElementById('searchRestrictedTm' + transportationModeId);
+    const optionUnilateral = document.getElementById('searchUnilateralTm' + transportationModeId);
+
+    const person = persons.find(p => p.transportationMode === transportationModeId);
+    if (person) {
+      elementPerson.classList.add('itemSelected');
+
+      if (person.dead) optionDead.classList.add('inputSelectButtonSelected');
+      if (person.injured) optionInjured.classList.add('inputSelectButtonSelected');
+      if (person.restricted) optionRestricted.classList.add('inputSelectButtonSelected');
+      if (person.unilateral) optionUnilateral.classList.add('inputSelectButtonSelected');
+    } else {
+      elementPerson.classList.remove('itemSelected');
+    }
   }
   updateTransportationModeFilterInput();
 }

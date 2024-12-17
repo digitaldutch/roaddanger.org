@@ -1661,6 +1661,7 @@ table.tableDragging td div {
 
 .ready {
   background-color: var(--color-ready) !important;
+  color: #000000 !important;
 }
 
 #featuredGraph {

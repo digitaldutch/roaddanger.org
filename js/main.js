@@ -28,6 +28,98 @@ const PageType = Object.freeze({
   childVictims: 11,
 });
 
+class Filter {
+
+  filters = {
+    healthDead:    0,
+    healthInjured: 0,
+    child:         0,
+
+    text:          '',
+    country:       '',
+    period:        null,
+    dateFrom:      null,
+    dateTo:        null,
+    persons:       [],
+    siteName:      '',
+  }
+
+  loadFromUrl() {
+    const url = new URL(location.href);
+
+    this.filters.healthDead    = url.searchParams.get('hd')? parseInt(url.searchParams.get('hd')) : 0;
+    this.filters.healthInjured = url.searchParams.get('hi')? parseInt(url.searchParams.get('hi')) : 0;
+    this.filters.child         = url.searchParams.get('child')? parseInt(url.searchParams.get('child')) : 0;
+
+    this.filters.text          = url.searchParams.get('search') ?? '';
+    this.filters.country       = url.searchParams.get('country') ?? 'UN';
+    this.filters.period        = url.searchParams.get('period') ?? null;
+    this.filters.dateFrom      = url.searchParams.get('date_from') ?? null;
+    this.filters.dateTo        = url.searchParams.get('date_to') ?? null;
+    this.filters.siteName      = url.searchParams.get('siteName') ?? [];
+
+    const personsParam = url.searchParams.get('persons');
+    this.filters.persons = personsParam ? personsParam.split(',') : [];
+
+    return this.filters;
+  }
+  setToUrl(url) {
+    return this.filters;
+  }
+  setToGUI() {
+    if (! document.getElementById('searchBar')) return;
+    function setSearchButton(id, on) {
+      const button = document.getElementById(id);
+      if (button) {
+        if (on) button.classList.add('menuButtonSelected')
+        else button.classList.remove('menuButtonSelected');
+      }
+    }
+
+    setSearchButton('searchPersonHealthDead', this.filters.healthDead);
+    setSearchButton('searchPersonHealthInjured', this.filters.healthInjured);
+    setSearchButton('searchPersonChild', this.filters.child);
+
+    function setSearchValue(id, value) {
+      const element = document.getElementById(id);
+      if (element) element.value = value;
+    }
+
+    setSearchValue('searchText', this.filters.text);
+    setSearchValue('searchCountry', this.filters.country);
+    setSearchValue('searchPeriod', this.filters.period);
+    setSearchValue('searchDateFrom', this.filters.dateFrom);
+    setSearchValue('searchDateTo', this.filters.dateTo);
+    setSearchValue('searchSiteName', this.filters.siteName);
+
+    setPersonsFilter(this.filters.persons);
+  }
+
+  getFromGUI() {
+    if (searchVisible()) {
+      const buttonDead = document.getElementById('searchPersonHealthDead');
+      const buttonInjured = document.getElementById('searchPersonHealthInjured');
+      const searchSiteName = document.getElementById('searchSiteName');
+
+      this.filters = {
+        healthDead:    buttonDead && buttonDead.classList.contains('menuButtonSelected')? 1 : 0,
+        healthInjured: buttonInjured && buttonInjured.classList.contains('menuButtonSelected')? 1 : 0,
+        child:         document.getElementById('searchPersonChild').classList.contains('menuButtonSelected')? 1 : 0,
+
+        text:          document.getElementById('searchText').value.trim().toLowerCase(),
+        country:       document.getElementById('searchCountry').value,
+        period:        document.getElementById('searchPeriod').value,
+        dateFrom:      document.getElementById('searchDateFrom').value,
+        dateTo:        document.getElementById('searchDateTo').value,
+        persons:       getPersonsFromFilter(),
+        siteName:      (searchSiteName && searchSiteName.value.trim().toLowerCase()) ?? '',
+      }
+    } else this.filters = {};
+
+    return this.filters;
+  }
+}
+
 async function initMain() {
   initPage();
 
@@ -37,19 +129,14 @@ async function initMain() {
 
   spinnerLoad = document.getElementById('spinnerLoad');
 
+  const filter = new Filter;
+  filter.loadFromUrl();
+  filter.setToGUI();
+
   const url = new URL(location.href);
   const crashID = getCrashNumberFromPath(url.pathname);
   const articleID = url.searchParams.get('articleid');
-  const searchText = url.searchParams.get('search');
-  const searchCountry = url.searchParams.get('country');
-  const searchPeriod = url.searchParams.get('period');
-  const searchDateFrom = url.searchParams.get('date_from');
-  const searchDateTo = url.searchParams.get('date_to');
-  const searchSiteName = url.searchParams.get('sitename');
-  const searchPersons = url.searchParams.get('persons');
-  const searchHealthDead = parseInt(url.searchParams.get('hd')?? 0);
-  const searchHealthInjured = parseInt(url.searchParams.get('hi')?? 0);
-  const searchChild = url.searchParams.get('child');
+
   const pathName = decodeURIComponent(url.pathname);
 
   if      (pathName.startsWith('/moderations'))                     pageType = PageType.moderations;
@@ -67,25 +154,6 @@ async function initMain() {
   else if (crashID)                                                 pageType = PageType.crash;
   else                                                              pageType = PageType.recent;
 
-  const searchButtonExists = document.getElementById('buttonSearch');
-  if (searchButtonExists && (searchText || searchCountry || searchPeriod || searchSiteName || searchHealthDead || searchChild || searchPersons)) {
-    document.getElementById('searchBar').style.display = 'flex';
-
-    document.getElementById('searchText').value = searchText;
-
-    if (searchCountry)  document.getElementById('searchCountry').value  = searchCountry;
-    if (searchPeriod)   document.getElementById('searchPeriod').value   = searchPeriod;
-    if (searchDateFrom) document.getElementById('searchDateFrom').value = searchDateFrom;
-    if (searchDateTo)   document.getElementById('searchDateTo').value   = searchDateTo;
-
-    document.getElementById('searchSiteName').value = searchSiteName;
-
-    if (searchHealthDead) document.getElementById('searchPersonHealthDead').classList.add('menuButtonSelected');
-    if (searchHealthInjured) document.getElementById('searchPersonHealthInjured').classList.add( 'menuButtonSelected');
-    if (searchChild) document.getElementById('searchPersonChild').classList.add('menuButtonSelected');
-    if (searchPersons) setPersonsFilter(searchPersons);
-  }
-
   addPersonPropertiesHtml();
 
   initWatchPopStart();
@@ -98,6 +166,9 @@ async function initMain() {
     loadGraphMediaHumanzation();
   } else if (pageType === PageType.childVictims) {
     initObserver(loadChildVictims);
+
+    const searchHealthDead = parseInt(url.searchParams.get('hd')?? 0);
+    const searchHealthInjured = parseInt(url.searchParams.get('hi')?? 0);
 
     if (searchHealthDead) document.getElementById('filterChildDead').classList.add('menuButtonSelected');
     if (searchHealthInjured) document.getElementById('filterChildInjured').classList.add('menuButtonSelected');
@@ -133,11 +204,11 @@ function initStatistics(){
     const searchInjured    = url.searchParams.get('hi');
     const search           = url.searchParams.get('search');
 
-    const buttonDead = document.getElementById('filterStatsDead')
+    const buttonDead = document.getElementById('searchPersonHealthDead')
     if (buttonDead) buttonDead.classList.add('menuButtonSelected');
 
-    if (searchChild)    document.getElementById('filterStatsChild').classList.add('menuButtonSelected');
-    if (searchInjured)  document.getElementById('filterStatsInjured').classList.add('menuButtonSelected');
+    if (searchChild)    document.getElementById('searchPersonChild').classList.add('menuButtonSelected');
+    if (searchInjured)  document.getElementById('searchPersonHealthInjured').classList.add('menuButtonSelected');
     if (country)        document.getElementById('searchCountry').value  = country;
     if (period)         document.getElementById('searchPeriod').value   = period;
     if (search)         document.getElementById('searchText').value     = search;
@@ -288,17 +359,6 @@ function showCrashVictimsGraph(crashVictims){
     return partner? partner.victimCount : 0;
   }
 
-  const filter = {
-    country:       document.getElementById('searchCountry').value,
-    period:        document.getElementById('searchPeriod').value,
-    text:          document.getElementById('searchText').value,
-    dateFrom:      document.getElementById('searchDateFrom').value,
-    dateTo:        document.getElementById('searchDateTo').value,
-    child:         document.getElementById('filterStatsChild').classList.contains('menuButtonSelected'),
-    healthDead:    document.getElementById('filterStatsDead').classList.contains('menuButtonSelected'),
-    healthInjured: document.getElementById('filterStatsInjured').classList.contains('menuButtonSelected'),
-  }
-
   // Put data in heatmap points layout
   let victimModes  = [];
   let partnerModes = [];
@@ -323,13 +383,21 @@ function showCrashVictimsGraph(crashVictims){
 
   const options = {
     xLabel: translate('Counterparty'),
-    yLabel: translate('Dead_(adjective)'),
+    yLabel: '',
   };
 
-  if (filter.healthInjured) options.yLabel += ' / ' + translate('Injured');
-  if (filter.child) options.yLabel += ' (' + translate('Children') + ')';
+  const filter = new Filter;
+  const filters = filter.getFromGUI();
 
-  graph = new CrashPartnerGraph('graphPartners', points, options, filter);
+  if (filters.healthDead || (! filters.healthInjured)) options.yLabel = translate('Dead_(adjective)');
+
+  if (filters.healthInjured) {
+    if (options.yLabel) options.yLabel += ' / ';
+    options.yLabel += translate('Injured');
+  }
+  if (filters.child) options.yLabel += ' (' + translate('Children') + ')';
+
+  graph = new CrashPartnerGraph('graphPartners', points, options, filters);
   document.getElementById('graphWrapper').style.display = 'block';
 }
 
@@ -502,19 +570,9 @@ async function loadStatistics() {
       case PageType.statisticsCrashPartners: {serverData.type = 'crashPartners'; break;}
     }
 
-    const injuredButton = document.getElementById('filterStatsInjured');
-    const deadButton = document.getElementById('filterStatsDead');
     if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
-      serverData.filter = {
-        period:        document.getElementById('searchPeriod').value,
-        text:          document.getElementById('searchText').value,
-        countryId:     document.getElementById('searchCountry').value,
-        dateFrom:      document.getElementById('searchDateFrom').value,
-        dateTo:        document.getElementById('searchDateTo').value,
-        child:         document.getElementById('filterStatsChild').classList.contains('menuButtonSelected')? 1 : 0,
-        healthDead:    deadButton && deadButton.classList.contains('menuButtonSelected')? 1: 0,
-        healthInjured: injuredButton && injuredButton.classList.contains('menuButtonSelected')? 1: 0,
-      };
+      const filter = new Filter;
+      serverData.filter = filter.getFromGUI();
     }
 
     const url = '/general/ajax.php?function=getStatistics';
@@ -686,7 +744,8 @@ async function loadCrashes(crashId=null, articleId=null){
       offset: crashes.length,
     };
 
-    serverData.filter = getSearchFilter();
+    const filter = new Filter;
+    serverData.filter = filter.getFromGUI();
 
     if (crashId) serverData.id = crashId;
     if (pageType  === PageType.moderations) serverData.moderations=1;
@@ -742,23 +801,6 @@ async function loadFeaturedGraph() {
   element.style.display = 'block';
 }
 
-function getSearchFilter(){
-  if (searchVisible()) {
-    return {
-      text:          document.getElementById('searchText').value.trim().toLowerCase(),
-      country:       document.getElementById('searchCountry').value,
-      period:        document.getElementById('searchPeriod').value,
-      dateFrom:      document.getElementById('searchDateFrom').value,
-      dateTo:        document.getElementById('searchDateTo').value,
-      persons:       getPersonsFromFilter(),
-      siteName:      document.getElementById('searchSiteName').value.trim().toLowerCase(),
-      healthDead:    document.getElementById('searchPersonHealthDead').classList.contains('menuButtonSelected')? 1 : 0,
-      healthInjured: document.getElementById('searchPersonHealthInjured').classList.contains('menuButtonSelected')? 1 : 0,
-      child:         document.getElementById('searchPersonChild').classList.contains('menuButtonSelected')? 1 : 0,
-    };
-  }  else return {};
-}
-
 function delayedLoadMapData(){
   if (delayedLoadMapData.timeout) clearTimeout(delayedLoadMapData.timeout);
 
@@ -776,7 +818,9 @@ async function loadMapDataFromServer(){
       sort:    'crashDate',
     };
 
-    serverData.filter = getSearchFilter();
+    const filter = new Filter;
+    serverData.filter = filter.getFromGUI();
+
     serverData.filter.area = {
       latMin: bounds._sw.lat,
       lonMin: bounds._sw.lng,
@@ -1258,9 +1302,12 @@ function healthBad(health){
 function getCrashHumansIcons(crash, showAllHealth=true) {
   let html = '';
   let iHuman = 0;
-  for (const person of crash.persons) {
-    iHuman++;
-    html += humanIconHtml(person, iHuman, showAllHealth);
+
+  if (crash.persons) {
+    for (const person of crash.persons) {
+      iHuman++;
+      html += humanIconHtml(person, iHuman, showAllHealth);
+    }
   }
 
   return html;
