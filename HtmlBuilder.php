@@ -827,7 +827,7 @@ HTML;
   public static function pageStatsTransportationModes(): string {
     $texts = translateArray(['Statistics', 'Transportation_modes', 'Transportation_mode', 'Child', 'Country',
       'Intoxicated', 'Drive_on_or_fleeing', 'Dead_(adjective)', 'Injured', 'Unharmed', 'Unknown', 'Search_text_hint',
-      'Search', 'Filter']);
+      'Search']);
 
     $htmlSearchCountry = HtmlBuilder::getSearchCountryHtml();
     $htmlSearchPeriod  = HtmlBuilder::getSearchPeriodHtml();
@@ -851,7 +851,7 @@ HTML;
       </div>
 
       <div class="toolbarItem">
-        <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="loadStatistics(event)">{$texts['Filter']}</div>
+        <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="loadStatistics(event)">{$texts['Search']}</div>
       </div>
       
     </div>

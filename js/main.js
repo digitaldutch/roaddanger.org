@@ -67,9 +67,9 @@ class Filter {
   addSearchParams(url) {
     this.getFromGUI();
 
-    if (this.filters.healthDead)         url.searchParams.set('hd', 1);
-    if (this.filters.healthInjured)      url.searchParams.set('hi', 1);
-    if (this.filters.child)              url.searchParams.set('child', 1);
+    if (this.filters.healthDead)    url.searchParams.set('hd', 1);
+    if (this.filters.healthInjured) url.searchParams.set('hi', 1);
+    if (this.filters.child)         url.searchParams.set('child', 1);
 
     if (this.filters.text)     url.searchParams.set('search', this.filters.text);
     if (this.filters.country)  url.searchParams.set('country', this.filters.country);
@@ -213,26 +213,10 @@ async function initMain() {
 }
 
 function initStatistics(){
-  const url = new URL(location.href);
   if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)){
-    const period           = url.searchParams.get('period');
-    const country          = url.searchParams.get('country');
-    const searchDateFrom   = url.searchParams.get('date_from');
-    const searchDateTo     = url.searchParams.get('date_to');
-    const searchChild      = url.searchParams.get('child');
-    const searchInjured    = url.searchParams.get('hi');
-    const search           = url.searchParams.get('search');
-
-    const buttonDead = document.getElementById('searchPersonHealthDead')
-    if (buttonDead) buttonDead.classList.add('menuButtonSelected');
-
-    if (searchChild)    document.getElementById('searchPersonChild').classList.add('menuButtonSelected');
-    if (searchInjured)  document.getElementById('searchPersonHealthInjured').classList.add('menuButtonSelected');
-    if (country)        document.getElementById('searchCountry').value  = country;
-    if (period)         document.getElementById('searchPeriod').value   = period;
-    if (search)         document.getElementById('searchText').value     = search;
-    if (searchDateFrom) document.getElementById('searchDateFrom').value = searchDateFrom;
-    if (searchDateTo)   document.getElementById('searchDateTo').value   = searchDateTo;
+    const filter = new Filter;
+    filter.loadFromUrl();
+    filter.setToGUI();
   }
 
   setCustomRangeVisibility();
@@ -600,27 +584,21 @@ async function loadStatistics() {
     if (response.user) updateLoginGUI(response.user);
     if (response.error) showError(response.error);
     else {
-      let url = window.location.origin + '/statistics';
+      const url = new URL(location.origin);
+
       switch (pageType) {
-        case PageType.statisticsGeneral: {url += '/general'; break;}
-        case PageType.statisticsCrashPartners: {url += '/counterparty'; break;}
-        case PageType.statisticsTransportationModes: {url += '/transportation_modes'; break;}
-        case PageType.statisticsMediaHumanization: {url += '/media_humanization'; break;}
+        case PageType.statisticsGeneral: {url.pathname = '/statistics/general'; break;}
+        case PageType.statisticsCrashPartners: {url.pathname = '/statistics/counterparty'; break;}
+        case PageType.statisticsTransportationModes: {url.pathname = '/statistics/transportation_modes'; break;}
+        case PageType.statisticsMediaHumanization: {url.pathname = '/statistics/media_humanization'; break;}
       }
 
       if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
-        url += '?period=' + serverData.filter.period;
-        if (serverData.filter.countryId) url += '&country=' + serverData.filter.countryId;
-        if (serverData.filter.text) url += '&search=' + encodeURIComponent(serverData.filter.text);
-        if (serverData.filter.child) url += '&child=1';
-        if (serverData.filter.healthInjured) url += '&hi=1';
-        if (serverData.filter.period === 'custom') {
-          if (serverData.filter.dateFrom) url += '&date_from=' + serverData.filter.dateFrom;
-          if (serverData.filter.dateTo) url += '&date_to=' + serverData.filter.dateTo;
-        }
+        const filter = new Filter();
+        filter.addSearchParams(url);
       }
 
-      window.history.replaceState(null, null, url);
+      window.history.pushState(null, null, url.toString());
 
       switch (pageType) {
         case PageType.statisticsGeneral: {showStatisticsGeneral(response.statistics); break;}
@@ -2558,7 +2536,7 @@ function updateBrowserUrl(pushState=false){
   filter.addSearchParams(url);
 
   if (pushState) window.history.pushState(null, null, url.toString());
-  else window.history.replaceState(null, null, url);
+  else window.history.replaceState(null, null, url.toString());
 
 }
 
