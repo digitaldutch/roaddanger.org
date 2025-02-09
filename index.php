@@ -23,7 +23,7 @@ else if (str_starts_with($uri, '/export'))                          $pageType = 
 else $pageType = PageType::recent;
 
 $showFullHeaderTitle = true;
-$addSearchBar = false;
+$searchFunction = '';
 $showButtonAdd = false;
 $head = "<script src='/js/main.js?v=$VERSION'></script>";
 
@@ -90,13 +90,13 @@ HTML;
 
 } else if ($pageType === PageType::map) {
   $showButtonAdd = true;
-  $addSearchBar = true;
+  $searchFunction = 'searchCrashes';
 
   $mainHTML = '<div id="mapMain"></div>';
 
 } else if ($pageType === PageType::mosaic) {
   $showButtonAdd = true;
-  $addSearchBar = true;
+  $searchFunction = 'searchCrashes';
   $mainHTML = HtmlBuilder::pageMosaic();
 
 } else if ($pageType === PageType::statisticsHumanizationTest) {
@@ -112,7 +112,7 @@ HTML;
   $mainHTML = HtmlBuilder::pageExport();
 
 } else {
-  $addSearchBar = true;
+  $searchFunction = 'searchCrashes';
   $showButtonAdd = true;
   $showFullHeaderTitle = false;
   $websiteInfo = translateLongText('website_info');
@@ -150,7 +150,7 @@ HTML;
 }
 
 $html =
-  HtmlBuilder::getHTMLBeginMain('', $head, 'initMain', $addSearchBar,
+  HtmlBuilder::getHTMLBeginMain('', $head, 'initMain', $searchFunction,
     $showButtonAdd, $showFullHeaderTitle) .
   $mainHTML .
   HtmlBuilder::getHTMLEnd();

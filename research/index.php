@@ -27,7 +27,7 @@ if ($pageType === PageType::questionnaireOptions) {
 }
 
 $html =
-  HtmlBuilder::getHTMLBeginMain('Research', $head, 'initResearch', false, false) .
+  HtmlBuilder::getHTMLBeginMain('Research', $head, 'initResearch') .
   $mainHTML .
   HtmlBuilder::getHTMLEnd($htmlEnd);
 

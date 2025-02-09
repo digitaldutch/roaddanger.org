@@ -323,6 +323,9 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
         if (filter.dateFrom) url += '&date_from=' + filter.dateFrom;
         if (filter.dateTo) url += '&date_to=' + filter.dateTo;
       }
+
+      if (filter.siteName) url += '&siteName=' + filter.siteName;
+
       return url;})
     .style('text-decoration', 'none')
     .append("g")

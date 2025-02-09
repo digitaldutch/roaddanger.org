@@ -2,11 +2,12 @@
 
 class HtmlBuilder {
 
-  public static function getHTMLBeginMain($pageTitle='', $head='', $initFunction='', $addSearchBar=false,
-                                          $showButtonAdd=false, $showFullHeaderTitle=true) {
+  public static function getHTMLBeginMain(string $pageTitle='', string $head='', string $initFunction='',
+      string $searchFunction='', bool $showButtonAdd=false, bool $showFullHeaderTitle=true): string {
     global $VERSION;
 
     $texts = translateArray(['Cookie_warning', 'More_info', 'Accept', 'Add']);
+    $addSearchBar = $searchFunction !== '';
 
     if ($pageTitle !== '') $title = $pageTitle . ' | ' . WEBSITE_NAME;
     else $title = WEBSITE_NAME;
@@ -64,7 +65,13 @@ HTML;
 
     $texts = translateArray(['Log_out', 'Log_in', 'Account', 'Country', 'Language']);
 
-    $htmlSearchBar = $addSearchBar ? self::getHtmlSearchBar() : '';
+    if ($searchFunction === 'searchCrashes') {
+      $keySearchFunction = 'keySearchCrashes';
+    } else {
+      $keySearchFunction = '';
+    }
+
+    $htmlSearchBar = $addSearchBar ? self::getHtmlSearchBar($searchFunction, $keySearchFunction) : '';
 
     return <<<HTML
 <!DOCTYPE html>
@@ -139,25 +146,38 @@ $navigation
 HTML;
   }
 
-  public static function getHtmlSearchBar() {
+  public static function getHtmlSearchBar(string $searchFunction, string $keySearchFunction='', bool $inline=false,
+                                          bool $addPersons=true, bool $addHealth=true): string {
     $texts = translateArray(['Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source', 'Search_text_hint']);
 
     $htmlSearchCountry = self::getSearchCountryHtml();
     $htmlSearchPeriod = self::getSearchPeriodHtml();
-    $htmlSearchPersons = self::getSearchPersonsHtml();
+    $htmlSearchPersons = $addPersons? self::getSearchPersonsHtml() : '';
+
+    $searchBarClass = $inline ?'searchBarTransparent' : 'searchBar';
+    $htmlCloseSearchBar = $inline ? '' : '<div class="popupCloseCross closeCrossWhite" onclick="toggleSearchBar();"></div>';
+    $htmlKeyUp = $keySearchFunction === ''? '' : "onkeyup='{$keySearchFunction}()'";
+
+    $htmlHealth = '';
+    if ($addHealth) {
+      $htmlHealth = <<<HTML
+      <span id="searchPersonHealthDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Dead_(adjective)']}" onclick="selectSearchPersonDead();"></span>      
+      <span id="searchPersonHealthInjured" class="menuButtonBlack bgInjuredWhite" data-tippy-content="{$texts['Injured']}" onclick="selectSearchPersonInjured();"></span>
+HTML;
+
+    }
 
     return <<<HTML
-  <div id="searchBar" class="searchBar">
-    <div class="popupCloseCross closeCrossWhite" onclick="toggleSearchBar();"></div>
+  <div id="searchBar" class="$searchBarClass">
+    $htmlCloseSearchBar
 
     <div class="toolbarItem">
-      <span id="searchPersonHealthDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Dead_(adjective)']}" onclick="selectSearchPersonDead();"></span>      
-      <span id="searchPersonHealthInjured" class="menuButtonBlack bgInjuredWhite" data-tippy-content="{$texts['Injured']}" onclick="selectSearchPersonInjured();"></span>      
+      $htmlHealth
       <span id="searchPersonChild" class="menuButtonBlack bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectSearchPersonChild();"></span>      
     </div>
 
     <div class="toolbarItem">
-       <input id="searchText" class="searchInput textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startSearchKey(event);" autocomplete="off">  
+       <input id="searchText" class="searchInput textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" $htmlKeyUp autocomplete="off">  
     </div>
     
     <div class="toolbarItem">$htmlSearchCountry</div>
@@ -167,11 +187,11 @@ HTML;
     $htmlSearchPersons    
            
     <div class="toolbarItem">
-      <input id="searchSiteName" class="searchInput textInputWidth" type="search" placeholder="{$texts['Source']}" onkeyup="startSearchKey(event);" autocomplete="off">
+      <input id="searchSiteName" class="searchInput textInputWidth" type="search" placeholder="{$texts['Source']}" $htmlKeyUp autocomplete="off">
     </div>
 
     <div class="toolbarItem">
-      <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="startSearch(event)">{$texts['Search']}</div>
+      <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="$searchFunction()">{$texts['Search']}</div>
     </div>
   </div>      
 HTML;
@@ -765,13 +785,17 @@ HTML;
   public static function pageStatsCrashPartners(): string {
     $texts = translateArray(['Counterparty_in_crashes', 'Always', 'days', 'the_correspondent_week', 'Custom_period',
       'Help_improve_data_accuracy', 'Child', 'Injury', 'Injured', 'Dead_(adjective)', 'Search_text_hint',
-      'Search', 'Filter']);
+      'Search']);
 
     global $user;
-    $intoText = $user->translateLongText('counter_party_info');
+    $infoText = $user->translateLongText('counter_party_info');
 
-    $htmlSearchCountry = HtmlBuilder::getSearchCountryHtml('selectFilterStats');
-    $htmlSearchPeriod  = HtmlBuilder::getSearchPeriodHtml('selectFilterStats');
+    $htmlSearchBar = self::getHtmlSearchBar(
+      searchFunction: 'loadStatistics',
+      keySearchFunction: 'startStatsSearchKey',
+      inline: true,
+      addPersons: false
+    );
 
     return <<<HTML
 <div id="pageMain">
@@ -786,31 +810,12 @@ HTML;
   </div>
   
   <div id="pageInfo" style="display: none; margin: 10px 0;">
-    $intoText
+    $infoText
   </div>
 
   <div id="statistics">
   
-    <div id="searchBar" class="searchBarTransparent" style="display: flex;">
-
-      <div class="toolbarItem">
-        <span id="searchPersonHealthDead" class="menuButton bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterStats();"></span>      
-        <span id="searchPersonHealthInjured" class="menuButton bgInjuredWhite" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterStats();"></span>      
-        <span id="searchPersonChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
-      </div>
-      
-      <div class="toolbarItem">$htmlSearchCountry</div>
-      $htmlSearchPeriod
-      
-      <div class="toolbarItem">
-        <input id="searchText" class="searchInput textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startStatsSearchKey(event);" autocomplete="off">  
-      </div>
-
-      <div class="toolbarItem">
-        <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="loadStatistics(event)">{$texts['Search']}</div>
-      </div>
-
-    </div>
+    $htmlSearchBar
 
     <div id="graphWrapper" style="display: none; margin-top: 10px; padding: 5px;">
       <div id="graphPartners" style="position: relative;"></div>  
@@ -829,8 +834,11 @@ HTML;
       'Intoxicated', 'Drive_on_or_fleeing', 'Dead_(adjective)', 'Injured', 'Unharmed', 'Unknown', 'Search_text_hint',
       'Search']);
 
-    $htmlSearchCountry = HtmlBuilder::getSearchCountryHtml();
-    $htmlSearchPeriod  = HtmlBuilder::getSearchPeriodHtml();
+    $htmlSearchBar = self::getHtmlSearchBar(
+      searchFunction: 'loadStatistics',
+      inline: true,
+      addPersons: false,
+      addHealth: false);
 
     return <<<HTML
 <div id="pageMain">
@@ -838,23 +846,7 @@ HTML;
   
   <div id="statistics">
   
-    <div id="searchBar" class="searchBarTransparent" style="display: flex;">
-      <div class="toolbarItem">
-        <span id="searchPersonChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectFilterStats();"></span>      
-      </div>
-
-      <div class="toolbarItem">$htmlSearchCountry</div>
-      $htmlSearchPeriod
-
-      <div class="toolbarItem">
-        <input id="searchText" class="searchInput textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" onkeyup="startStatsSearchKey(event);" autocomplete="off">  
-      </div>
-
-      <div class="toolbarItem">
-        <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="loadStatistics(event)">{$texts['Search']}</div>
-      </div>
-      
-    </div>
+    $htmlSearchBar   
 
     <table class="dataTable" style="margin-top: 10px;">
       <thead>

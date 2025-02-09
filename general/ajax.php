@@ -153,6 +153,12 @@ function getStatsCrashPartners(Database $database, array $filter): array{
     $params[':country'] = $filter['country'];
   }
 
+  if (! empty($filter['siteName'])){
+    $joinArticlesTable = true;
+    addSQLWhere($SQLWhere, " LOWER(ar.sitename) LIKE :sitename ");
+    $params[':sitename'] = "%{$filter['siteName']}%";
+  }
+
   if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
 
   $sqlCrashesWithDeath = <<<SQL
@@ -654,15 +660,15 @@ SQL;
       }
 
       if (isset($filter['persons']) && (count($filter['persons'])) > 0) $joinPersonsTable = true;
+      if (isset($filter['persons'])) {
+        addPersonsWhereSql($SQLWhere, $SQLJoin, $filter['persons']);
+      }
 
       if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);
 
       if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
       if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
 
-      if (isset($filter['persons'])) {
-        addPersonsWhereSql($SQLWhere, $SQLJoin, $filter['persons']);
-      }
 
       $orderField = match ($sort) {
         'crashDate'   => 'c.date DESC, c.streamdatetime DESC',

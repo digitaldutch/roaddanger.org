@@ -107,7 +107,7 @@ HTML;
 <div id="main" class="pageInner scrollPage" style="max-width: fit-content;">
   <div class="pageSubTitle">{$texts['Admin']} - {$texts['Translations']}</div>
 
-  <div class="smallFont" style="margin-bottom: 10px; text-align: center;">Please help making this website more accessible by translating these texts into your own language.</div>
+  <div class="smallFont" style="margin-bottom: 10px; text-align: center;">Help making this website more accessible by translating these texts into your own language.</div>
 
   <div style="margin-bottom: 5px;">
     <select id="selectLanguage" class="searchInput" oninput="changeUserLanguage();">$languageOptions</select>
@@ -156,7 +156,7 @@ HTML;
     $mainHTML = <<<HTML
 <div id="pageMain">
   <div class="pageSubTitle">{$texts['Admin']} - {$texts['Long_texts']}</div>
-  <div class="smallFont" style="margin-bottom: 10px;">Please help making this website more accessible by translating these texts into your own language.</div>
+  <div class="smallFont" style="margin-bottom: 10px;">Help making this website more accessible by translating these texts into your own language.</div>
 
   <div style="margin-bottom: 5px;">
     <select id="selectLongText" class="searchInput" oninput="loadLongText();">$longTextOptions</select>
@@ -204,7 +204,7 @@ HTML;
 }
 
 $html =
-  HtmlBuilder::getHTMLBeginMain('Admin', $head, 'initAdmin', false, false) .
+  HtmlBuilder::getHTMLBeginMain('Admin', $head, 'initAdmin') .
   $mainHTML .
   HtmlBuilder::getHTMLEnd($htmlEnd);
 

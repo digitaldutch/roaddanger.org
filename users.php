@@ -156,15 +156,15 @@ class User {
 
     // Get user language
     if ($this->languageId !== 'en') {
-      $sql                  = 'SELECT translations FROM languages WHERE id=:id';
-      $params               = [':id' => $this->languageId];
-      $translations_json    = $this->database->fetchSingleValue($sql, $params);
+      $sql = 'SELECT translations FROM languages WHERE id=:id';
+      $params = [':id' => $this->languageId];
+      $translations_json = $this->database->fetchSingleValue($sql, $params);
       $translationsLanguage = json_decode($translations_json, true);
 
       foreach ($this->translations as $key => $english) {
-        $textLanguage = trim($translationsLanguage[$key]);
+        $textLanguage = trim($translationsLanguage[$key]?? '');
 
-        // Translations that doe not exist yet are replaced with the English text and
+        // Translations that do not exist yet are replaced with the English text and
         // marked with an * to indicate that a translation is needed.
         if (! empty($textLanguage)) $this->translations[$key] = $textLanguage;
         else $this->translations[$key] .= '*';

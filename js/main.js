@@ -101,7 +101,7 @@ class Filter {
 
     function setSearchValue(id, value) {
       const element = document.getElementById(id);
-      if (element) element.value = value;
+      if (element && value) element.value = value;
     }
 
     setSearchValue('searchText', this.filters.text);
@@ -539,23 +539,23 @@ async function loadStatistics() {
 
       <tr>
         <td>${translate('Crashes')}</td>
-        <td style="text-align: right;">${dbStats.total.crashes}</td>
+        <td style="text-align: right;">${dbStats.total.crashes.toLocaleString()}</td>
       </tr>
       <tr>
         <td>${translate('Articles')}</td>
-        <td style="text-align: right;">${dbStats.total.articles}</td>
+        <td style="text-align: right;">${dbStats.total.articles.toLocaleString()}</td>
       </tr>
       <tr>
         <td>${translate('Dead_(multiple)')}</td>
-        <td style="text-align: right;">${dbStats.total.dead}</td>
+        <td style="text-align: right;">${dbStats.total.dead.toLocaleString()}</td>
       </tr>
       <tr>
         <td>${translate('Injured')}</td>
-        <td style="text-align: right;">${dbStats.total.injured}</td>
+        <td style="text-align: right;">${dbStats.total.injured.toLocaleString()}</td>
       </tr>                
       <tr>
         <td>${translate('Humans_helping_site')}</td>
-        <td style="text-align: right;">${dbStats.total.users}</td>
+        <td style="text-align: right;">${dbStats.total.users.toLocaleString()}</td>
       </tr>`;
 
     document.getElementById('tableStatistics').innerHTML = html;
@@ -2504,15 +2504,15 @@ function toggleSearchBar() {
   if (searchVisible()) document.getElementById('searchText').focus();
 }
 
-function startSearchKey(event) {
-  if (event.key === 'Enter') startSearch();
+function keySearchCrashes() {
+  if (event.key === 'Enter') searchCrashes();
 }
 
-function startStatsSearchKey(event) {
+function startStatsSearchKey() {
   if (event.key === 'Enter') loadStatistics();
 }
 
-function startSearch() {
+function searchCrashes() {
   updateBrowserUrl(true);
   reloadCrashes();
 }
