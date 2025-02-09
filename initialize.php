@@ -1,9 +1,9 @@
 <?php
 
 // Uncomment for debug mode
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-//error_reporting(0);
+//ini_set('display_errors', 1);
+//error_reporting(E_ALL);
+error_reporting(0);
 
 // Prevents javascript XSS attacks aimed to steal the session ID
 ini_set('session.cookie_httponly', 1);
