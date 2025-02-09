@@ -659,8 +659,8 @@ SQL;
         $params[':lonMax'] = $filter['area']['lonMax'];
       }
 
-      if (isset($filter['persons']) && (count($filter['persons'])) > 0) $joinPersonsTable = true;
-      if (isset($filter['persons'])) {
+      if (isset($filter['persons']) && (count($filter['persons'])) > 0) {
+        $joinPersonsTable = true;
         addPersonsWhereSql($SQLWhere, $SQLJoin, $filter['persons']);
       }
 
