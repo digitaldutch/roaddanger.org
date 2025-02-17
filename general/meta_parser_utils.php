@@ -196,7 +196,7 @@ class TMetaParser {
     // Get best tag (we assume it is the longest one) and decode HTML entities to normal text
     $media = [
       'url' => $this->getLongestAvailableTag([$ogTags['og:url']?? null, $this->url]),
-      'urlimage' => $this->getLongestAvailableTag([$ldJsonTags['image']?? null, $ogTags['og:image']]?? null),
+      'urlimage' => $this->getLongestAvailableTag([$ldJsonTags['image']?? null, $ogTags['og:image']?? null]),
       'title' => html_entity_decode(htmlspecialchars_decode(strip_tags($this->getLongestAvailableTag([$ldJsonTags['headline']?? null, $ogTags['og:title']?? null, $twitterTags['twitter:title']?? null]))),ENT_QUOTES),
       'description' => html_entity_decode(strip_tags(htmlspecialchars_decode($this->getLongestAvailableTag([$ldJsonTags['description']?? null, $ogTags['og:description']?? null, $twitterTags['twitter:description']?? null]))),ENT_QUOTES),
       'article_body' => html_entity_decode(strip_tags(htmlspecialchars_decode($this->getLongestAvailableTag([$ldJsonTags['articleBody']?? null]))),ENT_QUOTES),
