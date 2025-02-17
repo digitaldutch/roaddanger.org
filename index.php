@@ -49,7 +49,7 @@ if ($pageType === PageType::statisticsCrashPartners) {
 //<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.js'></script>
 
 if (pageWithMap($pageType)) {
-  $mapbox_js  = MAPBOX_GL_JS;
+  $mapbox_js = MAPBOX_GL_JS;
   $mapbox_css = MAPBOX_GL_CSS;
   $head .= <<<HTML
 <script src="$mapbox_js"></script>
@@ -60,10 +60,11 @@ HTML;
 if (pageWithEditMap($pageType)) {
   $mapbox_geocoder_js = MAPBOX_GEOCODER_JS;
   $mapbox_geocoder_css = MAPBOX_GEOCODER_CSS;
-  $head .= <<<HTML
+    $head .= <<<HTML
 <script src="$mapbox_geocoder_js"></script>
 <link href="$mapbox_geocoder_css" type="text/css" rel="stylesheet">
 HTML;
+
 }
 
 if ($pageType === PageType::statisticsGeneral) {

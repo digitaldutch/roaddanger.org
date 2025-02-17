@@ -49,6 +49,7 @@ Array.prototype.remove = function(from, to) {
 };
 
 async function fetchFromServer(url, data={}, parseJSON=true){
+
   const optionsFetch = {
     method: 'POST',
     body: JSON.stringify(data),
@@ -60,7 +61,15 @@ async function fetchFromServer(url, data={}, parseJSON=true){
   const responseText = await response.text();
   if (! responseText) throw new Error('Internal error: No response from server');
 
-  return parseJSON? JSON.parse(responseText) : responseText;
+  if (parseJSON) {
+    try {
+      return JSON.parse(responseText);
+    } catch (e) {
+      throw new Error('Response from server is not valid JSON. Response:<br><br>' + responseText.substring(0, 500));
+    }
+  } else {
+    return responseText;
+  }
 }
 
 function isInt(value) {

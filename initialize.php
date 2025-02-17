@@ -33,6 +33,11 @@ require_once 'database.php';
 require_once 'users.php';
 require_once 'general/utils.php';
 
+// Send all unhandled Exceptions and Errors to the main developer
+set_error_handler('globalErrorHandler');
+set_exception_handler('globalExceptionHandler');
+register_shutdown_function('globalShutdownHandler');
+
 try {
   $database = new Database();
 

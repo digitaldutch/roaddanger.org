@@ -5,9 +5,9 @@ A website and database for news reports about traffic crashes around the world.
 Website: [roaddanger.org](https://www.roaddanger.org)
 
 ### Requirements ###
-* Webserver with PHP support
+* Webserver with PHP support. Required PHP modules: curl
 * MySQL/MariaDB with full text search support
-* A headless browser if you want to enable meta data download from more websites
+* A headless browser if you want to enable metadata download from more websites
 
 ### Installation ###
 * Put all files on a webserver with PHP support. 

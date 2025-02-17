@@ -171,3 +171,84 @@ function addPersonsWhereSql(&$sqlWhere, &$sqlJoin, $filterPersons) {
   }
 }
 
+/**
+ * @throws Exception
+ */
+function sendErrorEmail($subject, $message): void {
+  sendEmail(EMAIL_FOR_ERRORS, WEBSITE_NAME . ' ' . $subject, $message);
+}
+
+
+/**
+ * @throws Exception
+ */
+function globalErrorHandler($severity, $message, $file, $line): void {
+  $backtrace = debug_backtrace();
+  $formattedBacktrace = "Call Stack:\n";
+  foreach ($backtrace as $key => $trace) {
+    $file = $trace['file'] ?? '[internal]';
+    $line = $trace['line'] ?? 'N/A';
+    $function = $trace['function'] ?? 'Unknown';
+    $formattedBacktrace .= "#{$key} {$file}:{$line} - {$function}()\n";
+  }
+
+  $errorDetails = "Error Occurred:\n";
+  $errorDetails .= "Message: {$message}\n";
+  $errorDetails .= "File: {$file}\n";
+  $errorDetails .= "Line: {$line}\n";
+  $errorDetails .= "Severity: {$severity}\n\n{$formattedBacktrace}";
+
+  sendErrorEmail("PHP Error", $errorDetails);
+}
+
+/**
+ * @throws Exception
+ */
+function globalExceptionHandler(Throwable $e): void {
+  $trace = $e->getTrace();
+  $formattedTrace = "Call Stack:\n";
+  foreach ($trace as $key => $traceItem) {
+    $file = $traceItem['file'] ?? '[internal]';
+    $line = $traceItem['line'] ?? 'N/A';
+    $function = $traceItem['function'] ?? 'Unknown';
+    $formattedTrace .= "#{$key} {$file}:{$line} - {$function}()\n";
+  }
+
+  $exceptionDetails = "Uncaught Exception:\n";
+  $exceptionDetails .= "Message: {$e->getMessage()}\n";
+  $exceptionDetails .= "File: {$e->getFile()}\n";
+  $exceptionDetails .= "Line: {$e->getLine()}\n\n{$formattedTrace}";
+
+  try {
+    sendErrorEmail("PHP Uncaught Exception", $exceptionDetails);
+  } catch (Exception $e) {
+
+  }
+}
+
+/**
+ * @throws Exception
+ */
+function globalShutdownHandler (): void {
+  $error = error_get_last();
+  if ($error && in_array($error['type'], [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE])) {
+    $errorDetails = "Fatal Error:\n";
+    $errorDetails .= "Message: {$error['message']}\n";
+    $errorDetails .= "File: {$error['file']}\n";
+    $errorDetails .= "Line: {$error['line']}\n";
+
+    if (function_exists('debug_backtrace')) {
+      $backtrace = debug_backtrace();
+      $formattedBacktrace = "\nCall Stack:\n";
+      foreach ($backtrace as $key => $trace) {
+        $file = $trace['file'] ?? '[internal]';
+        $line = $trace['line'] ?? 'N/A';
+        $function = $trace['function'] ?? 'Unknown';
+        $formattedBacktrace .= "#{$key} {$file}:{$line} - {$function}()\n";
+      }
+      $errorDetails .= $formattedBacktrace;
+    }
+
+    sendErrorEmail("PHP Fatal Error", $errorDetails);
+  }
+}

@@ -897,14 +897,14 @@ async function loadMap() {
   const latitude  = url.searchParams.get('lat')  || options.map.latitude;
   const zoom      = url.searchParams.get('zoom') || options.map.zoom;
 
-  if (! mapMain){
-    mapboxgl.accessToken = mapboxKey;
+  if (! mapMain) {
 
+    mapboxgl.accessToken = mapboxKey;
     mapMain = new mapboxgl.Map({
       container: 'mapMain',
-      style:     'mapbox://styles/mapbox/streets-v11',
-      center:    [longitude, latitude],
-      zoom:      zoom,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [longitude, latitude],
+      zoom: zoom,
     })
     .addControl(
       new MapboxGeocoder({
@@ -915,8 +915,8 @@ async function loadMap() {
     )
     .on('load', loadMapDataFromServer)
     .on('moveend', () => {
-      updateBrowserUrl(false);
-      delayedLoadMapData();
+       updateBrowserUrl(false);
+       delayedLoadMapData();
     });
   }
 }

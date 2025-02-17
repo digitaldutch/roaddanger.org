@@ -173,7 +173,9 @@ class TMetaParser {
     if (isset($data->publisher) && isset($data->publisher->name)) $result['publisher'] = $data->publisher->name;
   }
 
-  private function getLongestAvailableTag($tags): string {
+  private function getLongestAvailableTag(?array $tags): string {
+    if (! isset($tags)) return '';
+
     $result = '';
     foreach ($tags as $tag) {
       if (isset($tag)) {
@@ -193,13 +195,13 @@ class TMetaParser {
 
     // Get best tag (we assume it is the longest one) and decode HTML entities to normal text
     $media = [
-      'url' => $this->getLongestAvailableTag([$ogTags['og:url'], $this->url]),
-      'urlimage' => $this->getLongestAvailableTag([$ldJsonTags['image'], $ogTags['og:image']]),
-      'title' => html_entity_decode(htmlspecialchars_decode(strip_tags($this->getLongestAvailableTag([$ldJsonTags['headline'], $ogTags['og:title'], $twitterTags['twitter:title']]))),ENT_QUOTES),
-      'description' => html_entity_decode(strip_tags(htmlspecialchars_decode($this->getLongestAvailableTag([$ldJsonTags['description'], $ogTags['og:description'], $twitterTags['twitter:description']]))),ENT_QUOTES),
-      'article_body' => html_entity_decode(strip_tags(htmlspecialchars_decode($this->getLongestAvailableTag([$ldJsonTags['articleBody']]))),ENT_QUOTES),
-      'sitename' => html_entity_decode(htmlspecialchars_decode($this->getLongestAvailableTag([$ldJsonTags['publisher'], $ogTags['og:site_name'], $metaData['other']['domain']])),ENT_QUOTES),
-      'published_time' => $this->getLongestAvailableTag([$ldJsonTags['datePublished'], $ogTags['og:article:published_time'], $articleTags['article:published_time'], $itemPropTags['datePublished'], $articleTags['article:modified_time']]),
+      'url' => $this->getLongestAvailableTag([$ogTags['og:url']?? null, $this->url]),
+      'urlimage' => $this->getLongestAvailableTag([$ldJsonTags['image']?? null, $ogTags['og:image']]?? null),
+      'title' => html_entity_decode(htmlspecialchars_decode(strip_tags($this->getLongestAvailableTag([$ldJsonTags['headline']?? null, $ogTags['og:title']?? null, $twitterTags['twitter:title']?? null]))),ENT_QUOTES),
+      'description' => html_entity_decode(strip_tags(htmlspecialchars_decode($this->getLongestAvailableTag([$ldJsonTags['description']?? null, $ogTags['og:description']?? null, $twitterTags['twitter:description']?? null]))),ENT_QUOTES),
+      'article_body' => html_entity_decode(strip_tags(htmlspecialchars_decode($this->getLongestAvailableTag([$ldJsonTags['articleBody']?? null]))),ENT_QUOTES),
+      'sitename' => html_entity_decode(htmlspecialchars_decode($this->getLongestAvailableTag([$ldJsonTags['publisher']?? null, $ogTags['og:site_name']?? null, $metaData['other']['domain']?? null])),ENT_QUOTES),
+      'published_time' => $this->getLongestAvailableTag([$ldJsonTags['datePublished']?? null, $ogTags['og:article:published_time']?? null, $articleTags['article:published_time']?? null, $itemPropTags['datePublished']?? null, $articleTags['article:modified_time']?? null]),
     ];
 
     // Replace http with https on image tags. Some sites still send unsecure links

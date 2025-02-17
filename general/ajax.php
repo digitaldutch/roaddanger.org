@@ -947,7 +947,7 @@ SQL;
       foreach ($crash['persons'] AS $person){
         $params = [
           ':crashid'            => $crash['id'],
-          ':groupid'            => $person['groupid'],
+          ':groupid'            => $person['groupid']?? null,
           ':transportationmode' => $person['transportationmode'],
           ':health'             => $person['health'],
           ':child'              => intval($person['child']),
