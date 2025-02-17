@@ -60,7 +60,7 @@ class TMetaParser {
 
     // Find JSON-LD meta data
     $matches = null;
-    preg_match_all('~<\s*script\s+[^<>]*ld\+json[^<>]*>(.*)<\/script>~iUs', $html, $matches);
+    preg_match_all('~<\s*script\s+[^<>]*ld\+json[^<>]*>(.*)</script>~iUs', $html, $matches);
     for ($i=0; $i<count($matches[1]); $i++) {
       $ldJson = trim($matches[1][$i]);
       $this->parse_ld_json($ldJson, $meta['json-ld']);
@@ -69,18 +69,18 @@ class TMetaParser {
     // Open Graph tags
     // Check for both property and name attributes. nu.nl uses incorrectly name
     $matches = null;
-    preg_match_all('~<\s*meta\s+[^<>]*[property|name]=[\'"](og:[^"]+)[\'"]\s+[^<>]*content="([^"]*)~i', $html,$matches);
+    preg_match_all('~<\s*meta\s+[^<>]*(?:property|name)=[\'"](og:[^"]+)[\'"]\s+[^<>]*content="([^"]*)~i', $html,$matches);
     for ($i=0; $i<count($matches[1]); $i++) $meta['og'][$matches[1][$i]] = $matches[2][$i];
 
     // Twitter tags
     $matches = null;
     // Check for both property and name attributes. nu.nl uses incorrectly name
-    preg_match_all('~<\s*meta\s+[^<>]*[property|name]="(twitter:[^"]+)"\s+[^<>]*content="([^"]*)~i', $html,$matches);
+    preg_match_all('~<\s*meta\s+[^<>]*(?:property|name)="(twitter:[^"]+)"\s+[^<>]*content="([^"]*)~i', $html,$matches);
     for ($i=0; $i<count($matches[1]); $i++) $meta['twitter'][$matches[1][$i]] = $matches[2][$i];
 
     // Article tags
     $matches = null;
-    preg_match_all('~<\s*meta\s+[^<>]*[property|name]="(article:[^"]+)"\s+[^<>]*content="([^"]*)~i', $html,$matches);
+    preg_match_all('~<\s*meta\s+[^<>]*(?:property|name)="(article:[^"]+)"\s+[^<>]*content="([^"]*)~i', $html,$matches);
     for ($i=0; $i<count($matches[1]); $i++) $meta['article'][$matches[1][$i]] = $matches[2][$i];
 
     // Itemprop content general tags
@@ -91,28 +91,28 @@ class TMetaParser {
 
     // h1 tag
     $matches = null;
-    preg_match_all('~<h1.*>(.*)<\/h1>~i', $html,$matches);
+    preg_match_all('~<h1\b[^>]*>(.*?)</h1>~is', $html,$matches);
     if (count($matches[1]) > 0) $meta['other']['h1'] = $matches[1][0];
 
     // Description meta tag
     $matches = null;
-    preg_match_all('~<\s*meta\s+[^<>]*[property|name]=[\'"](description)[\'"]\s+[^<>]*content=[\'"]([^"\']*)~i', $html,$matches);
+    preg_match_all('~<\s*meta\s+[^<>]*(?:property|name)=[\'"](description)[\'"]\s+[^<>]*content=[\'"]([^"\']*)~i', $html,$matches);
     if (count($matches[1]) > 0) $meta['other']['description'] = $matches[2][0];
 
     // Time tag
-    preg_match_all('~<\s*time\s+[^<>]*[datetime]=[\'"]([^"\']*)[\'"]~i', $html,$matches);
+    preg_match_all('~<\s*time\s+[^<>]*?datetime\s*=\s*[\'"]([^"\']*?)[\'"][^<>]*?>~i', $html,$matches);
     if (count($matches[1]) > 0) {
       $dateText = $matches[1][0];
       try {
         $date = new DateTime($dateText);
         $current_date = new DateTime();
         if ($date < $current_date) $meta['other']['time'] = $date->format('Y-m-d');
-      } catch (\Exception $e) {
+      } catch (Exception) {
         // Silent exception
       }
     }
 
-    $meta['other']['domain'] = $this->parse_url_all($url)['domain'];
+    $meta['other']['domain'] = $this->extractDomain($url);
 
     return $meta;
   }
@@ -132,24 +132,26 @@ class TMetaParser {
     return $stats;
   }
 
-  function parse_url_all($url){
-    $url = substr($url,0,4)=='http'? $url: 'http://'.$url;
-    $d = parse_url($url);
-    $tmp = explode('.',$d['host']);
-    $n = count($tmp);
-    if ($n>=2){
-      if ($n==4 || ($n==3 && strlen($tmp[($n-2)])<=3)){
-        $d['domain'] = $tmp[($n-3)].".".$tmp[($n-2)].".".$tmp[($n-1)];
-        $d['domainX'] = $tmp[($n-3)];
-      } else {
-        $d['domain'] = $tmp[($n-2)].".".$tmp[($n-1)];
-        $d['domainX'] = $tmp[($n-2)];
-      }
+  function extractDomain(string $url): string {
+    // Ensure the URL includes a protocol
+    $url = parse_url($url, PHP_URL_SCHEME) ? $url : 'https://' . $url;
+
+    // Parse the host
+    $host = parse_url($url, PHP_URL_HOST);
+
+    // Split the host into parts
+    $hostParts = explode('.', $host);
+
+    // Return just the domain (second to last and last parts)
+    if (count($hostParts) >= 2) {
+      return $hostParts[count($hostParts) - 2] . '.' . $hostParts[count($hostParts) - 1];
     }
-    return $d;
+
+    // If the host is invalid or does not have at least two parts
+    return $host;
   }
 
-  function parse_ld_json($json, &$result) {
+  function parse_ld_json($json, &$result): void {
     $ldJson = trim($json);
     if (! isset($ldJson)) return;
 
@@ -221,7 +223,7 @@ class TMetaParser {
       try {
         $dateTime = new DateTime($media['published_time']);
         $media['published_time'] = $dateTime->format(DateTime::ISO8601);
-      } catch (\Exception $e) {
+      } catch (Exception $e) {
         if (strlen($media['published_time']) > 10) {
           $media['published_time'] = substr($media['published_time'], 0, 10);
         }
