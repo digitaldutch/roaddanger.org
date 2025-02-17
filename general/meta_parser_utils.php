@@ -40,7 +40,7 @@ class TMetaParser {
   }
 
   function getPageMediaMetaData(string $html, string $url): array{
-    $meta = [
+    $metaOut = [
       'json-ld' => [],
       'og' => [],
       'twitter' => [],
@@ -49,72 +49,101 @@ class TMetaParser {
       'other' => []
     ];
 
-    // Handle UTF 8 properly
+    // Convert to UTF-8 as some websites do not use it. We need it for parsing.
     $html = mb_convert_encoding($html, 'UTF-8',  mb_detect_encoding($html, 'UTF-8, ISO-8859-1', true));
 
-    // Some website html encode their tag names
+    // Some website html encode their tag names. This is bad for parsing too.
     $html = html_entity_decode($html);
+
+    libxml_use_internal_errors(true); // Suppress libxml warnings internally
+    $dom = new DOMDocument();
+    $dom->loadHTML($html);
+    libxml_clear_errors(); // Clear any errors collected
 
     // See Google structured data guidelines https://developers.google.com/search/docs/guides/intro-structured-data#structured-data-guidelines
     // json-ld tags. Used by Google.
 
     // Find JSON-LD meta data
-    $matches = null;
-    preg_match_all('~<\s*script\s+[^<>]*ld\+json[^<>]*>(.*)</script>~iUs', $html, $matches);
-    for ($i=0; $i<count($matches[1]); $i++) {
-      $ldJson = trim($matches[1][$i]);
-      $this->parse_ld_json($ldJson, $meta['json-ld']);
-    }
-
-    // Open Graph tags
-    // Check for both property and name attributes. nu.nl uses incorrectly name
-    $matches = null;
-    preg_match_all('~<\s*meta\s+[^<>]*(?:property|name)=[\'"](og:[^"]+)[\'"]\s+[^<>]*content="([^"]*)~i', $html,$matches);
-    for ($i=0; $i<count($matches[1]); $i++) $meta['og'][$matches[1][$i]] = $matches[2][$i];
-
-    // Twitter tags
-    $matches = null;
-    // Check for both property and name attributes. nu.nl uses incorrectly name
-    preg_match_all('~<\s*meta\s+[^<>]*(?:property|name)="(twitter:[^"]+)"\s+[^<>]*content="([^"]*)~i', $html,$matches);
-    for ($i=0; $i<count($matches[1]); $i++) $meta['twitter'][$matches[1][$i]] = $matches[2][$i];
-
-    // Article tags
-    $matches = null;
-    preg_match_all('~<\s*meta\s+[^<>]*(?:property|name)="(article:[^"]+)"\s+[^<>]*content="([^"]*)~i', $html,$matches);
-    for ($i=0; $i<count($matches[1]); $i++) $meta['article'][$matches[1][$i]] = $matches[2][$i];
-
-    // Itemprop content general tags
-    $matches = null;
-    // content must not be empty. Thus + instead of *
-    preg_match_all('~<\s*[^<>]*itemprop="(datePublished)"\s+[^<>]*content="([^"]+)~i', $html,$matches);
-    for ($i=0; $i<count($matches[1]); $i++) $meta['itemprop'][$matches[1][$i]] = $matches[2][$i];
-
-    // h1 tag
-    $matches = null;
-    preg_match_all('~<h1\b[^>]*>(.*?)</h1>~is', $html,$matches);
-    if (count($matches[1]) > 0) $meta['other']['h1'] = $matches[1][0];
-
-    // Description meta tag
-    $matches = null;
-    preg_match_all('~<\s*meta\s+[^<>]*(?:property|name)=[\'"](description)[\'"]\s+[^<>]*content=[\'"]([^"\']*)~i', $html,$matches);
-    if (count($matches[1]) > 0) $meta['other']['description'] = $matches[2][0];
-
-    // Time tag
-    preg_match_all('~<\s*time\s+[^<>]*?datetime\s*=\s*[\'"]([^"\']*?)[\'"][^<>]*?>~i', $html,$matches);
-    if (count($matches[1]) > 0) {
-      $dateText = $matches[1][0];
-      try {
-        $date = new DateTime($dateText);
-        $current_date = new DateTime();
-        if ($date < $current_date) $meta['other']['time'] = $date->format('Y-m-d');
-      } catch (Exception) {
-        // Silent exception
+    $scripts = $dom->getElementsByTagName('script');
+    foreach ($scripts as $script) {
+      if ($script->getAttribute('type') === 'application/ld+json') {
+        $ldJson = trim($script->nodeValue);
+        $this->parseLdJson($ldJson, $metaOut['json-ld']);
       }
     }
 
-    $meta['other']['domain'] = $this->extractDomain($url);
+    $metaTags = $dom->getElementsByTagName('meta');
+    foreach ($metaTags as $tag) {
+      $property = $tag->getAttribute('property');
+      $name = $tag->getAttribute('name');
+      $content = $tag->getAttribute('content');
+      $itemprop = $tag->getAttribute('itemprop');
 
-    return $meta;
+      // Open Graph tags (og:* in property or name attributes)
+      if (str_starts_with($property, 'og:') || str_starts_with($name, 'og:')) {
+        $key = $property ?: $name;
+        $metaOut['og'][$key] = $content;
+      }
+
+      // Twitter tags (twitter:* in property or name attributes)
+      if (str_starts_with($property, 'twitter:') || str_starts_with($name, 'twitter:')) {
+        $key = $property ?: $name;
+        $metaOut['twitter'][$key] = $content;
+      }
+
+      // Article tags (article:* in property or name attributes)
+      if (str_starts_with($property, 'article:') || str_starts_with($name, 'article:')) {
+        $key = $property ?: $name;
+        $metaOut['article'][$key] = $content;
+      }
+
+      // Itemprop tags (e.g., datePublished) in itemprop attribute
+      if ($itemprop) {
+        $metaOut['itemprop'][$itemprop] = $content;
+      }
+
+      // Description meta tag (description in property or name attributes)
+      if (($property === 'description' || $name === 'description') && !empty($content)) {
+        $metaOut['other']['description'] = $content;
+      }
+    }
+
+
+    // h1 tag
+    $h1Tags = $dom->getElementsByTagName('h1');
+
+    // Check if at least one <h1> tag exists
+    if ($h1Tags->length > 0) {
+      // Get the text content of the first <h1> tag
+      $metaOut['other']['h1'] = trim($h1Tags->item(0)->textContent);
+    }
+
+    // Time tag
+    $timeTags = $dom->getElementsByTagName('time');
+
+    // Check if at least one <time> tag exists
+    if ($timeTags->length > 0) {
+      // Get the datetime attribute of the first <time> tag
+      $dateText = $timeTags->item(0)->getAttribute('datetime');
+
+      if (!empty($dateText)) {
+        try {
+          $date = new DateTime($dateText);
+          $current_date = new DateTime();
+
+          // Check if the date is in the past
+          if ($date < $current_date) {
+            $metaOut['other']['time'] = $date->format('Y-m-d');
+          }
+        } catch (Exception $e) {
+          // Do nothing for ill formed time tags
+        }
+      }
+    }
+
+    $metaOut['other']['domain'] = $this->extractDomain($url);
+
+    return $metaOut;
   }
 
   function getTagStats(array $tags): array{
@@ -151,28 +180,96 @@ class TMetaParser {
     return $host;
   }
 
-  function parse_ld_json($json, &$result): void {
-    $ldJson = trim($json);
-    if (! isset($ldJson)) return;
+  private const JSON_LD_TYPE = 'application/ld+json';
 
-    if (! isset($result)) $result = [];
-    $ld = json_decode($ldJson);
-    if (! isset($ld)) return;
+  function parseLdJson(string $json, array &$result): void {
+    $trimmedJson = trim($json);
+    if (empty($trimmedJson)) return;
 
-    if (is_array($ld)) foreach ($ld as $entry) $this->parseLdObject($result, $entry);
-    else $this->parseLdObject($result, $ld);
+    $result ??= []; // Initialize $result if not already set
+    $decodedJson = json_decode($trimmedJson);
+    if (empty($decodedJson)) return;
+
+    $this->processJsonData($decodedJson, $result);
   }
 
-  function parseLdObject(&$result, $data) {
-    if (isset($data->headline))      $result['headline']      = $data->headline;
-    if (isset($data->articleBody))   $result['articleBody']   = $data->articleBody;
-    if (isset($data->description))   $result['description']   = $data->description;
-    if (isset($data->datePublished)) $result['datePublished'] = $data->datePublished;
-    if (isset($data->image)) {
-      if (is_string($data->image)) $result['image'] = $data->image;
-      else if (is_object($data->image) && isset($data->image->url)) $result['image'] = $data->image->url;
+  private function processJsonData(mixed $data, array &$result): void {
+    if (is_array($data)) {
+      foreach ($data as $entry) {
+        $this->parseLdObject($result, $entry);
+      }
+    } else {
+      $this->parseLdObject($result, $data);
     }
-    if (isset($data->publisher) && isset($data->publisher->name)) $result['publisher'] = $data->publisher->name;
+  }
+
+  function parseLdObject(array &$result, object $data): void {
+    // Handle `@graph` property, which contains multiple objects
+    if (!empty($data->{'@graph'})) {
+      $this->processGraph($result, $data->{'@graph'});
+      return;
+    }
+
+    // Handle standard fields
+    if (!empty($data->headline)) {
+      $result['headline'] = $data->headline;
+    }
+    if (!empty($data->articleBody)) {
+      $result['articleBody'] = $data->articleBody;
+    }
+    if (!empty($data->description)) {
+      $result['description'] = $data->description;
+    }
+    if (!empty($data->datePublished)) {
+      $result['datePublished'] = $data->datePublished;
+    }
+    if (!empty($data->image)) {
+      $result['image'] = is_string($data->image)
+        ? $data->image
+        : ($data->image->url ?? null);
+    }
+    if (!empty($data->publisher->name)) {
+      $result['publisher'] = $data->publisher->name;
+    }
+
+  }
+
+  private function processGraph(array &$result, array $graph): void {
+    $articleFound = false;
+
+    foreach ($graph as $item) {
+      if (is_object($item) && !empty($item->{'@type'})) {
+        // Check for NewsArticle as the primary type
+        if ($this->isOfType($item->{'@type'}, 'NewsArticle')) {
+          $this->parseLdObject($result, $item);
+          $articleFound = true; // Mark as article found
+          break; // Stop on the first valid NewsArticle
+        }
+      }
+    }
+
+    // Fallback to WebPage if no NewsArticle was found
+    if (!$articleFound) {
+      foreach ($graph as $item) {
+        if (is_object($item) && !empty($item->{'@type'}) && $this->isOfType($item->{'@type'}, 'WebPage')) {
+          $this->parseLdObject($result, $item);
+          break; // Stop on the first valid WebPage
+        }
+      }
+    }
+  }
+
+  private function isOfType(mixed $typeField, string $expectedType): bool {
+    // Check if @type matches a specific value
+    if (is_string($typeField)) {
+      return $typeField === $expectedType;
+    }
+
+    if (is_array($typeField)) {
+      return in_array($expectedType, $typeField, true);
+    }
+
+    return false;
   }
 
   private function getLongestAvailableTag(?array $tags): string {
