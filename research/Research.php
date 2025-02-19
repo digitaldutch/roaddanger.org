@@ -342,7 +342,9 @@ SQL;
           $resultsArray[] = $bechdelResult;
         }
         $result['bechdelResults'] = $resultsArray;
-      } else $result['bechdelResults'][] = $bechdelResults;
+      } else {
+        $result['bechdelResults'][] = $bechdelResults;
+      }
     }
 
     if (! empty($filter['minArticles'])) {

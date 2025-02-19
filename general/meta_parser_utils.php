@@ -52,12 +52,13 @@ class TMetaParser {
     // Convert to UTF-8 as some websites do not use it. We need it for parsing.
     $html = mb_convert_encoding($html, 'UTF-8',  mb_detect_encoding($html, 'UTF-8, ISO-8859-1', true));
 
-    // Some website html encode their tag names. This is bad for parsing too.
-    $html = html_entity_decode($html);
-
     libxml_use_internal_errors(true); // Suppress libxml warnings internally
+
     $dom = new DOMDocument();
-    $dom->loadHTML($html);
+
+    // Dirty way to tell DOM it really is UTF-8
+    $dom->loadHTML('<?xml encoding="UTF-8">' . $html);
+
     libxml_clear_errors(); // Clear any errors collected
 
     // See Google structured data guidelines https://developers.google.com/search/docs/guides/intro-structured-data#structured-data-guidelines

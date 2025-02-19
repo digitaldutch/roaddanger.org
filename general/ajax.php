@@ -9,7 +9,7 @@ global $user;
 
 $function = $_REQUEST['function'];
 
-function addPeriodWhereSql(&$sqlWhere, &$params, $filter){
+function addPeriodWhereSql(&$sqlWhere, &$params, $filter): void {
   if ((! isset($filter['period'])) || ($filter['period'] === '')) return;
 
   switch ($filter['period']) {

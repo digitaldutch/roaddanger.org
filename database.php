@@ -157,9 +157,9 @@ class Database {
     return $this->execute($sql, $params);
   }
 
-  public function loadCountries() {
+  public function loadCountries(): array {
     if (empty($this->countries)) {
-      $dbCountries = $this->fetchAll("SELECT id, name, defaultlanguageid, domain FROM countries ORDER BY id;");
+      $dbCountries = $this->fetchAll("SELECT id, name, defaultlanguageid, domain FROM countries ORDER BY name;");
       $this->countries = [];
       foreach ($dbCountries as $country) {
         $flagId = strtolower($country['id']);
