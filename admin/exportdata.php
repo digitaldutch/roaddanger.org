@@ -105,7 +105,7 @@ SQL;
         $DBArticles = $database->fetchAllPrepared($DBStatementArticles, ['crashid' => $crash['id']]);
         foreach ($DBArticles as $article) {
           $article['id']          = (int)$article['id'];
-          $crash['publishedtime'] = datetimeDBToISO8601($crash['publishedtime']);
+          $crash['publishedtime'] = datetimeDBToISO8601($crash['publishedtime'] ?? '');
 
           $crash['articles'][] = $article;
         }

@@ -59,7 +59,12 @@ function getCallerIP(){
   return (isset($_SERVER["REMOTE_ADDR"]))? $_SERVER["REMOTE_ADDR"] : '';
 }
 
-function datetimeDBToISO8601($datetimeDB){
+/**
+ * @throws DateMalformedStringException
+ */
+function datetimeDBToISO8601($datetimeDB): string {
+  if (empty($datetimeDB)) return '';
+
   $datetime = new DateTime($datetimeDB);
   return $datetime->format('c'); // ISO 8601
 }
