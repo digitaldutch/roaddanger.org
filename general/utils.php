@@ -21,9 +21,10 @@ enum PageType {
   case translations;
   case longTexts;
   case humans;
-  case questionnaireOptions;
+  case questionnaireSettings;
   case questionnaireResults;
   case questionnaireFillIn;
+  case ai_test;
 }
 
 enum QuestionnaireType: int {
@@ -255,5 +256,19 @@ function globalShutdownHandler (): void {
     }
 
     sendErrorEmail("PHP Fatal Error", $errorDetails);
+  }
+}
+
+function writeSessionAndClose(string $id, $value): void {
+  if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+  $_SESSION[$id] = $value;
+  session_write_close();
+}
+
+function deleteSessionIdAndClose(string $id): void {
+  if (isset($_SESSION[$id])) {
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+    unset($_SESSION[$id]);
+    session_write_close();
   }
 }

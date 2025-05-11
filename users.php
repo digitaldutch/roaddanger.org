@@ -20,16 +20,16 @@ class User {
   public string $languageId = 'en';
   public string $countryId;
   public array $country;
-  public $translations;
+  public array $translations;
   public bool $admin = false;
   public UserPermission $permission;
 
-  public function __construct($database){
+  public function __construct($database) {
     $this->database = $database;
     $this->clearData();
 
     // Load user data
-    // Plan A: Check if user is logged in (user_id set).
+    // Plan A: Check if the user is logged in (user_id set).
     if (isset($_SESSION['user_id'])) {
       $this->loadUserFromDBByID($_SESSION['user_id']);
     }
@@ -48,26 +48,26 @@ class User {
     }
   }
 
-  function isModerator(){
+  function isModerator(): bool {
     return in_array($this->permission, [UserPermission::admin, UserPermission::moderator]);
   }
 
-  private function clearData(){
-    $this->id           = -1;
-    $this->loggedIn     = false;
-    $this->firstName    = '';
-    $this->lastName     = '';
-    $this->email        = '';
-    $this->countryId    = $this->database->countryId;
-    $this->country      = $this->database->getCountry($this->database->countryId);
-    $this->languageId   = $this->country['defaultlanguageid'];
-    $this->translations = '';
-    $this->emailExists  = false;
-    $this->admin        = false;
-    $this->permission   = UserPermission::newuser;
+  private function clearData(): void {
+    $this->id = -1;
+    $this->loggedIn = false;
+    $this->firstName = '';
+    $this->lastName = '';
+    $this->email = '';
+    $this->countryId = $this->database->countryId;
+    $this->country = $this->database->getCountry($this->database->countryId);
+    $this->languageId = $this->country['defaultlanguageid'];
+    $this->translations = [];
+    $this->emailExists = false;
+    $this->admin = false;
+    $this->permission = UserPermission::newuser;
   }
 
-  private function loadUserFromDBIntern($id='', $email='', $password='') {
+  private function loadUserFromDBIntern($id='', $email='', $password=''): void {
     $this->clearData();
 
     if ($id !== ''){
@@ -98,7 +98,7 @@ class User {
       $params = [':id' => $this->id];
       $this->database->execute($sql, $params);
 
-      $_SESSION['user_id'] = $this->id;
+      writeSessionAndClose('user_id', $this->id);
     }
   }
 
@@ -149,7 +149,7 @@ class User {
   }
 
   private function loadTranslations() {
-    // First get English translations
+    // First, get English translations
     $sql = "SELECT translations FROM languages WHERE id='en';";
     $translations_json = $this->database->fetchSingleValue($sql);
     $this->translations = json_decode($translations_json, true);
@@ -201,8 +201,8 @@ class User {
     if (empty($this->translations)) $this->loadTranslations();
   }
 
-  public function logout(){
-    if (isset($_SESSION['user_id'])) unset($_SESSION['user_id']);
+  public function logout(): void {
+    deleteSessionIdAndClose('user_id');
     $this->deleteLoginTokenAndCookies();
     $this->clearData();
   }

@@ -83,7 +83,6 @@ HTML;
 <script src='/js/utils.js?v=$VERSION'></script>
 $head
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="block-all-mixed-content">
 <meta charset="utf-8">
 <title>$title</title>
 
@@ -247,7 +246,7 @@ HTML;
     $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
       'Child_victims', 'Mosaic', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
       'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
-      'Version', 'Questionnaires', 'fill_in', 'settings', 'results', 'Reporting_experiences', 'Research',
+      'Version', 'Questionnaires', 'fill_in', 'settings', 'results', 'AI_test', 'Research',
       'Graphs_and_statistics', 'Media_humanization_test']);
 
     $websiteTitle = WEBSITE_NAME;
@@ -279,10 +278,10 @@ HTML;
 
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Research']}</div>
-      <a href="/research/questionnaires/options" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['settings']}</a>
+      <a href="/research/questionnaires/settings" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['settings']}</a>
       <a href="/research/questionnaires/" class="navItem">{$texts['Questionnaires']} | {$texts['results']}</a>
       <a href="/research/questionnaires/fill_in" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['fill_in']}</a>
-      <a href="/reporting_experiences/" class="navItem">{$texts['Reporting_experiences']}</a>
+      <a href="/research/ai_test/" class="navItem" data-moderator>{$texts['AI_test']}</a>
     </div>
 
     <div class="navigationSection">
@@ -453,13 +452,13 @@ HTML;
         <span data-hideedit class="button buttonGray buttonLine" onclick="copyCrashDateFromArticle();">{$texts['Same_as_article']}</span>
       </div>
           
-      <div style="margin-top: 5px;">
+      <div class="labelDiv">
         <div>{$texts['Involved_humans']}</div>   
         <div id="editCrashPersons"></div>
         <div class="button buttonGray" role="button" style="margin: 5px 0;" onclick="showSelectHumansForm();">{$texts['Select_humans']}</div>
       </div>
 
-      <div style="margin-top: 5px;">
+      <div class="labelDiv">
         <div>{$texts['Characteristics']}</div>
         <div>
           <span id="editCrashUnilateral" class="menuButton bgUnilateral" data-tippy-content="{$texts['One-sided_crash']}" onclick="toggleSelectionButton(this);"></span>      
@@ -469,7 +468,7 @@ HTML;
         </div>
       </div>
       
-      <div style="margin-top: 5px;">
+      <div class="labelDiv">
         <div>{$texts['Location']} $htmlSearchCountry
         <span class="iconTooltip" data-tippy-content="{$texts['Edit_location_instructions']}"></span></div>
             
@@ -624,12 +623,12 @@ HTML;
         <div id="personTransportationButtons"></div>
       </div>
               
-      <div style="margin-top: 5px;">
+      <div class="labelDiv">
         <div>{$texts['Injury']}</div> 
         <div id="personHealthButtons"></div>
       </div>
   
-      <div style="margin-top: 5px;">
+      <div class="labelDiv">
         <div>{$texts['Characteristics']}</div> 
         <div>
           <span id="editPersonChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="toggleSelectionButton(this)"></span>            
@@ -842,31 +841,33 @@ HTML;
 
     return <<<HTML
 <div id="pageMain">
-  <div class="pageSubTitle">{$texts['Statistics']} - {$texts['Transportation_modes']}</div>
+  <div class="pageInner">
+    <div class="pageSubTitle">{$texts['Statistics']} - {$texts['Transportation_modes']}</div>
+    
+    <div id="statistics">
+    
+      $htmlSearchBar   
   
-  <div id="statistics">
-  
-    $htmlSearchBar   
-
-    <table class="dataTable" style="margin-top: 10px;">
-      <thead>
-        <tr>
-          <th style="text-align: left;">{$texts['Transportation_mode']}</th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgDeadWhite" data-tippy-content="{$texts['Dead_(adjective)']}"></div> <div class="hideOnMobile">{$texts['Dead_(adjective)']}</div></div></th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgInjuredWhite" data-tippy-content="{$texts['Injured']}"></div> <div  class="hideOnMobile">{$texts['Injured']}</div></div></th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnharmed" data-tippy-content="{$texts['Unharmed']}"></div> <div  class="hideOnMobile">{$texts['Unharmed']}</div></div></th>
-          <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnknownWhite" data-tippy-content="{$texts['Unknown']}"></div> <div  class="hideOnMobile">{$texts['Unknown']}</div></div></th>
-          <th style="text-align: right;"><div class="iconSmall bgChildWhite" data-tippy-content="{$texts['Child']}"></div></th>
-          <th style="text-align: right;"><div class="iconSmall bgAlcoholWhite" data-tippy-content="{$texts['Intoxicated']}"></div></th>
-          <th style="text-align: right;"><div class="iconSmall bgHitRunWhite" data-tippy-content="{$texts['Drive_on_or_fleeing']}"></div></th>
-        </tr>
-      </thead>  
-      <tbody id="tableStatsBody">
-        
-      </tbody>
-    </table>      
+      <table class="dataTable" style="margin-top: 10px;">
+        <thead>
+          <tr>
+            <th style="text-align: left;">{$texts['Transportation_mode']}</th>
+            <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgDeadWhite" data-tippy-content="{$texts['Dead_(adjective)']}"></div> <div class="hideOnMobile">{$texts['Dead_(adjective)']}</div></div></th>
+            <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgInjuredWhite" data-tippy-content="{$texts['Injured']}"></div> <div  class="hideOnMobile">{$texts['Injured']}</div></div></th>
+            <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnharmed" data-tippy-content="{$texts['Unharmed']}"></div> <div  class="hideOnMobile">{$texts['Unharmed']}</div></div></th>
+            <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnknownWhite" data-tippy-content="{$texts['Unknown']}"></div> <div  class="hideOnMobile">{$texts['Unknown']}</div></div></th>
+            <th style="text-align: right;"><div class="iconSmall bgChildWhite" data-tippy-content="{$texts['Child']}"></div></th>
+            <th style="text-align: right;"><div class="iconSmall bgAlcoholWhite" data-tippy-content="{$texts['Intoxicated']}"></div></th>
+            <th style="text-align: right;"><div class="iconSmall bgHitRunWhite" data-tippy-content="{$texts['Drive_on_or_fleeing']}"></div></th>
+          </tr>
+        </thead>  
+        <tbody id="tableStatsBody">
+          
+        </tbody>
+      </table>      
+    </div>
+    <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
   </div>
-  <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
 </div>
 HTML;  }
 

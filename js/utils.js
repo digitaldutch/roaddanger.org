@@ -897,22 +897,49 @@ function acceptCookies() {
   document.getElementById('cookieWarning').style.display = 'none';
 }
 
-function createCookie(name, value, days) {
-  // https://www.quirksmode.org/js/cookies.html
-  let expires = "";
+function createCookie(name, value, days, options={}) {
 
+  let expires = "";
   if (days) {
     let date = new Date();
-    date.setTime(date.getTime()+(days*24*60*60*1000));
-    expires = "; expires="+date.toGMTString();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = "; expires=" + date.toGMTString();
   }
 
-  // Make cookies work for all subdomains bij adding a dot before the main domain name
-  let domainParts = location.host.split('.');
-  domainParts.shift();
-  const domain = '.'+domainParts.join('.');
+  // Default options
+  const defaultOptions = {
+    domain: '',           // Empty means current domain
+    path: '/',
+    sameSite: 'Lax',
+    secure: location.protocol === 'https:'
+  };
 
-  document.cookie = name + "=" + value + expires + "; path=/; SameSite=Lax; Secure; domain=" + domain;
+  // Merge options
+  const cookieOptions = {...defaultOptions, ...options};
+
+  // Build cookie string
+  let cookieString = name + "=" + encodeURIComponent(value) + expires;
+
+  // Add path
+  cookieString += "; path=" + cookieOptions.path;
+
+  // Add domain only if specified
+  if (cookieOptions.domain) {
+    cookieString += "; domain=" + cookieOptions.domain;
+  }
+
+  // Add SameSite
+  cookieString += "; SameSite=" + cookieOptions.sameSite;
+
+  // Add Secure flag if needed
+  if (cookieOptions.secure) {
+    cookieString += "; Secure";
+  }
+
+  // Set the cookie
+  document.cookie = cookieString;
+
+
 }
 
 function formatText(text) {
@@ -1320,4 +1347,16 @@ function searchPersonOptionClick(event, buttonType, transportationMode) {
 function isOverflown(element) {
   // https://stackoverflow.com/a/9541579/63849
   return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
+}
+
+function truncateText(text, maxLength) {
+  const ellipsis = '…';
+
+  if (typeof text !== 'string') return '';
+
+  if (text.length > maxLength) {
+    return text.slice(0, maxLength - 1) + ellipsis;
+  }
+
+  return text;
 }

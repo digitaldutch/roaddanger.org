@@ -1,6 +1,6 @@
 <?php
-$VERSION = 582;
-$VERSION_DATE = '25 February 2025';
+$VERSION = 586;
+$VERSION_DATE = '11 May 2025';
 
 require_once 'configsecret.php';
 
@@ -17,7 +17,8 @@ require_once 'configsecret.php';
 // const DB_USER = 'database_user';
 // const DB_PASSWORD = 'database_password';
 // const EMAIL_FOR_ERRORS = 'you@your_domain.com';
-//
+// CONST OPENROUTER_API_KEY = 'your_openrouter_api_key';
+
 // *** End settings that belong in configsecret.php ***
 
 const COOKIE_DOMAIN = '';

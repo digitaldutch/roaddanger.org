@@ -1,9 +1,9 @@
 <?php
 
 // Uncomment for debug mode
-//ini_set('display_errors', 1);
-//error_reporting(E_ALL);
-error_reporting(0);
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+//error_reporting(0);
 
 // Prevents javascript XSS attacks aimed to steal the session ID
 ini_set('session.cookie_httponly', 1);
@@ -18,7 +18,12 @@ ini_set('session.cookie_secure', 1);
 ini_set('session.cookie_samesite', 'Lax');
 
 // Make sure cookie works also on subdomains (e.g. www.roaddanger.org & nl.roaddanger.org)
-$domain = substr($_SERVER['SERVER_NAME'], strpos($_SERVER['SERVER_NAME'],"."),100);
+$serverName = $_SERVER['SERVER_NAME'];
+// Extract domain parts
+$parts = explode('.', $serverName);
+// If there are only 2 parts (like roaddanger.org), use the whole name with a leading dot
+// Otherwise, remove the first part (the subdomain)
+$domain = (count($parts) <= 2) ? '.' . $serverName : substr($serverName, strpos($serverName, '.'));
 ini_set('session.cookie_domain', $domain);
 
 session_start();

@@ -2,7 +2,7 @@
 
 class HtmlResearch {
 
-  public static function pageSettings() {
+  public static function questionnaireSettings(): string {
     global $database;
 
     $texts = translateArray(['Questionnaires', 'Admin', 'Id', 'New', 'Edit', 'Delete', 'Save', 'Cancel',
@@ -155,7 +155,7 @@ class HtmlResearch {
 HTML;
   }
 
-  public static function pageFillIn() {
+  public static function pageFillIn(): string {
     $texts = translateArray(['Questionnaires', 'fill_in', 'Injury', 'Dead_(adjective)', 'Child', 'Exclude_unilateral',
       'Filter']);
 
@@ -185,7 +185,7 @@ HTML;
     
   </div>
   
-  <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+  <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>
   
   <div id="tableWrapper" class="panelTableOverflow blackOnWhite" style="display: none;">
     <table class="dataTable">
@@ -209,7 +209,7 @@ HTML;
     $questionnairesOptions = '';
     foreach ($questionnaires as $questionnaire) {
       $publicText = (! $publicOnly) && $questionnaire['public'] === 0? ' (admin only)' : ' (public)';
-      $questionnairesOptions .= "<option value='{$questionnaire['id']}'>{$questionnaire['title']}{$publicText}</option>";
+      $questionnairesOptions .= "<option value='{$questionnaire['id']}'>{$questionnaire['title']}$publicText</option>";
     }
 
     $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml();
@@ -272,7 +272,7 @@ HTML;
     $htmlSearchPersons
     
     <div class="toolbarItem">
-      <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="selectFilterQuestionnaireResults(event)">{$texts['Filter']}</div>
+      <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="selectFilterQuestionnaireResults()">{$texts['Filter']}</div>
     </div>
 
   </div>
@@ -300,7 +300,7 @@ HTML;
 
 <div id="formResultArticles" class="popupOuter">
 
-  <div class="formFixed" onclick="event.stopPropagation();">
+  <div class="formFixed" onclick="event.stopPropagation();">how 
    
     <div id="headerResultArticles" class="popupHeader">Result articles</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
@@ -310,9 +310,140 @@ HTML;
   </div>
   
 </div>
-
 HTML;
   }
 
+  public static function pageAITest(): string {
+
+    return <<<HTML
+<div id="pageMain">
+  <div class="pageInner"> 
+    <div class="pageSubTitle">AI test page</div>
+    <div id="aiInfo" class="smallFont" style="text-align: right;">&nbsp;</div> 
+  
+    <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
+
+    <div id="aiForm" style="display: none;">
+      <div class="labelDiv">AI model</div>
+      <div class="smallFont">To help you choose, read the <a href="https://openrouter.ai/rankings" target="openrouter">list of most popular AI models</a>.</div>
+      <div style="display: flex;">
+        <select id="aiModel" class="inputForm" oninput="aiModelChange();"></select>
+        <button class="button buttonGray buttonLine" onclick="showAddAiModelForm();">Add</button>
+        <button class="button buttonGray buttonLine" onclick="removeAiModel();">Remove</button>
+        <button class="button buttonGray buttonLine" onclick="updateAiModelsInfo();">Update All</button>
+      </div>
+      <div id="aiModelInfo" class="smallFont"></div>
+      
+      <input type="hidden" id="aiQueryId" value="">
+      
+      <div class="labelDiv">System instructions</div>
+      <textarea id="aiSystemInstructions" class="inputForm" style="height: 40px; resize: vertical;"></textarea> 
+    
+      <div id="section_structured_outputs" style="display: none;">
+        <div class="labelDiv">Response format</div>
+        <div class="smallFont">For models supporting structured ouputs. Read instructions on the <a href="https://openrouter.ai/docs/features/structured-outputs" target="openrouter">openrouter.ai website</a>.</div>
+        <textarea id="aiResponseFormat" class="inputForm" style="height: 80px; resize: vertical;"></textarea> 
+      </div>
+      
+      <div class="labelDiv">Query <span class="smallFont" id="queryInfo"></span></div>
+      <textarea id="aiQuery" class="inputForm" style="height: 100px; resize: vertical;"></textarea>
+      
+      <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+      <div style="display: flex; justify-content: flex-end; margin: 10px 0;">
+        <button class="button buttonImportant" onclick="aiRunQuery();" style="margin-left: 0">Run query</button>     
+        <button class="button button buttonGray" onclick="showLoadAIQueryForm();">Load</button>     
+        <button class="button button buttonGray" onclick="aiNewQuery();">New</button>     
+        <button id="buttonSaveQuery" class="button button buttonGray" onclick="aiSaveQuery();">Save</button>     
+        <button id="buttonSaveCopyQuery" class="button button buttonGray" onclick="aiSaveCopyQuery();">Save copy</button>     
+      </div>    
+    </div>
+    
+    <div id="spinnerRunQuery" style="display: none; margin: 5px 0; justify-content: center;"><img alt="Spinner" src="/images/spinner.svg"></div>
+
+    <div id="groupAiResponse" style="display: none">
+      <div style="font-weight: bold;">Server response</div>
+      <div class="smallFont">
+        <button class="buttonTiny" style="border: none;" onclick="showGenerationSummary();">Refresh</button>
+        <span id="aiResponseMeta"></span></div>
+      <div id="aiResponse" style="margin-top: 10px;"></div>    
+    </div>
+  </div> 
+</div>
+
+<div id="formAddAiModel" class="popupOuter">
+  <div class="formFullPage" onclick="event.stopPropagation();" style="width: 100%;">
+
+    <div id="headerQuestion" class="popupHeader">Add openrouter.ai AI model to selection</div>
+    <div class="popupCloseCross" onclick="closePopupForm();"></div>
+    
+    <label>Search
+    <input id="filterAiModels" class="inputForm" type="search" oninput="doFilterAiModels();"></label>
+    <div class="smallFont">To help you choose, read the <a href="https://openrouter.ai/rankings" target="openrouter">list of most popular AI models</a>.</div>
+   
+    <div class="formScrolling">
+      <table class="dataTable tableWhiteHeader">
+        <thead>
+          <tr>
+            <th style="text-align: left;">Model</th>
+            <th style="text-align: left;">Selected</th>
+            <th style="text-align: left;">Cost/M</th>
+            <th style="text-align: left;">Structured outputs</th>
+            <th style="text-align: left;">Created</th>
+          </tr>
+        </thead>
+        <tbody id="addAiModelsBody" onclick="clickAiModelRow()"></tbody>
+      </table>      
+    </div>
+
+    <div id="spinnerLoadAddModels" style="margin: 5px 0;justify-content: center;"><img alt="Spinner" src="/images/spinner.svg"></div>
+          
+    <div class="popupFooter">
+      <div id="addAiModelInfo" class="infoBlock" style="display: none; margin: 5px 0 10px 0;"></div>
+    </div>
+    
+    <div class="popupFooter">
+      <button class="button" style="margin-left: 0;" onclick="addAiModel();">Add</button>
+      <button class="button buttonGray" onclick="closePopupForm();">Cancel</button>
+    </div>
+    
+  </div>
+</div>
+
+<div id="formLoadAiModel" class="popupOuter">
+  <div class="formFullPage" onclick="event.stopPropagation();" style="width: 100%;">
+
+    <div id="headerQuestion" class="popupHeader">Load query</div>
+    <div class="popupCloseCross" onclick="closePopupForm();"></div>
+    
+    <div class="formScrolling">
+      <table class="dataTable tableWhiteHeader">
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Model</th>
+            <th>Owner</th>
+            <th>Query</th>
+            <th>System instructions</th>
+            <th>Response format</th>
+          </tr>
+        </thead>
+        <tbody id="loadAiQueriesBody" onclick="clickAiQueryRow()" ondblclick="loadAiQuery();"></tbody>
+      </table>      
+    </div>
+
+    <div id="spinnerLoadQueries" style="margin: 5px 0;justify-content: center;"><img alt="Spinner" src="/images/spinner.svg"></div>
+          
+    <div class="popupFooter">
+      <button class="button" style="margin-left: 0;" onclick="loadAiQuery();">Load</button>
+      <button class="button buttonRed" onclick="deleteAiQuery();">Delete</button>
+      <button class="button buttonGray" onclick="closePopupForm();">Cancel</button>
+    </div>
+    
+  </div>
+</div>
+HTML;
 
   }
+
+
+}

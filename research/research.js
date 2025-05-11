@@ -1,4 +1,5 @@
-
+let aiModels;
+let lastGenerationId;
 async function initResearch(){
   spinnerLoad = document.getElementById('spinnerLoad');
 
@@ -9,34 +10,9 @@ async function initResearch(){
   initSearchBar();
 
   const url = new URL(location.href);
-  const searchHealthDead = url.searchParams.get('hd');
-  const searchChild = url.searchParams.get('child');
-  const searchTimeSpan = url.searchParams.get('timeSpan');
-  const searchCountry = url.searchParams.get('country');
-  const searchGroup = url.searchParams.get('group');
-  const searchMinArticles = url.searchParams.get('minArticles');
-  const searchPersons = url.searchParams.get('persons');
-  const searchNoUnilateral = url.searchParams.get('noUnilateral');
+  setupUrlFilters(url);
 
-  if (searchHealthDead)  document.getElementById('filterResearchDead').classList.add('menuButtonSelected');
-  if (searchChild)       document.getElementById('filterResearchChild').classList.add('menuButtonSelected');
-  if (searchTimeSpan)    document.getElementById('filterResearchTimeSpan').value = searchTimeSpan;
-  if (searchCountry)     document.getElementById('filterResearchCountry').value = searchCountry;
-  if (searchGroup)       document.getElementById('filterResearchGroup').value = searchGroup;
-  if (searchMinArticles) document.getElementById('filterMinArticles').value = searchMinArticles;
-
-  if (searchPersons) {
-    const personsCodes = searchPersons.split(',');
-    setPersonsFilter(personsCodes);
-  }
-
-  const filterNoUnilateral = document.getElementById('filterResearchNoUnilateral');
-  if (filterNoUnilateral) {
-    if (searchNoUnilateral && (searchNoUnilateral === "0")) filterNoUnilateral.classList.add('menuButtonSelected');
-    else filterNoUnilateral.classList.add('menuButtonSelected');
-  }
-
-  if (url.pathname.startsWith('/research/questionnaires/options')) {
+  if (url.pathname.startsWith('/research/questionnaires/settings')) {
     if (! user.admin) {showError('Not an administrator'); return;}
 
     await loadQuestionnaires();
@@ -48,8 +24,47 @@ async function initResearch(){
     const idQuestionnaire = url.searchParams.get('id');
     if (idQuestionnaire) document.getElementById('filterQuestionnaire').value = idQuestionnaire;
     await loadQuestionnaireResults();
+  } else if (url.pathname.startsWith('/research/ai_test')) {
+    await initAITest();
   }
 }
+
+function setupUrlFilters(url) {
+  const searchHealthDead = url.searchParams.get('hd');
+  const searchChild = url.searchParams.get('child');
+  const searchTimeSpan = url.searchParams.get('timeSpan');
+  const searchCountry = url.searchParams.get('country');
+  const searchGroup = url.searchParams.get('group');
+  const searchMinArticles = url.searchParams.get('minArticles');
+  const searchPersons = url.searchParams.get('persons');
+  const searchNoUnilateral = url.searchParams.get('noUnilateral');
+
+  const filterResearchDead = document.getElementById('filterResearchDead');
+  const filterResearchChild = document.getElementById('filterResearchChild');
+  const filterResearchTimeSpan = document.getElementById('filterResearchTimeSpan');
+  const filterResearchCountry = document.getElementById('filterResearchCountry');
+  const filterResearchGroup = document.getElementById('filterResearchGroup');
+  const filterMinArticles = document.getElementById('filterMinArticles');
+  const filterNoUnilateral = document.getElementById('filterResearchNoUnilateral');
+
+  if (searchHealthDead && filterResearchDead) filterResearchDead.classList.add('menuButtonSelected');
+  if (searchChild && filterResearchChild) filterResearchChild.classList.add('menuButtonSelected');
+  if (searchTimeSpan && filterResearchTimeSpan) filterResearchTimeSpan.value = searchTimeSpan;
+  if (searchCountry && filterResearchCountry) filterResearchCountry.value = searchCountry;
+  if (searchGroup && filterResearchGroup) filterResearchGroup.value = searchGroup;
+  if (searchMinArticles && filterMinArticles) filterMinArticles.value = searchMinArticles;
+
+  if (searchPersons) {
+    const personsCodes = searchPersons.split(',');
+    setPersonsFilter(personsCodes);
+  }
+
+  if (filterNoUnilateral) {
+    if (searchNoUnilateral && (searchNoUnilateral === "0")) filterNoUnilateral.classList.add('menuButtonSelected');
+    else filterNoUnilateral.classList.add('menuButtonSelected');
+  }
+}
+
 
 async function loadQuestionnaires() {
 
@@ -371,7 +386,287 @@ async function loadQuestionnaireResults() {
   } finally {
     spinnerLoad.style.display = 'none';
   }
+}
 
+function selectedAiModel() {
+  const modelId = document.getElementById('aiModel').value;
+  return aiModels.find(m => m.id === modelId);
+}
+
+function aiModelChange() {
+  const model = selectedAiModel();
+
+  const cost_input = (model.cost_input * 1e6).toFixed(2);
+  const cost_output = (model.cost_output * 1e6).toFixed(2);
+  const structured_outputs = model.structured_outputs? ' | structured outputs' : '';
+
+  document.getElementById('aiModelInfo').innerHTML =
+    `Created ${model.created.toLocaleDateString()}` +
+    ` | $${cost_input}/M input tokens | $${cost_output}/M ouput tokens` +
+    ` | ${model.context_length.toLocaleString()} context` +
+    structured_outputs +
+    `<br><br>` + model.description;
+
+  document.getElementById('section_structured_outputs').style.display = model.structured_outputs? 'block' : 'none';
+}
+
+async function showLoadAIQueryForm() {
+  const spinner = document.getElementById('spinnerLoadQueries');
+  const tableBodyQueries = document.getElementById('loadAiQueriesBody');
+
+  try {
+    tableBodyQueries.innerHTML = '';
+    document.getElementById('formLoadAiModel').style.display = 'flex';
+
+    spinner.style.display = 'flex';
+
+    const url = '/research/ajax.php?function=aiGetQueryList';
+    const response = await fetchFromServer(url);
+
+    tableData[1] = response.queries;
+    selectedTableData[1] = [];
+
+    tableBodyQueries.innerHTML = getHtmlTableBodyAiQueries();
+
+  } finally {
+    spinner.style.display = 'none';
+  }
+}
+async function showAddAiModelForm() {
+  const spinner = document.getElementById('spinnerLoadAddModels');
+  const tableBodyModels = document.getElementById('addAiModelsBody');
+
+  tableBodyModels.innerHTML = '';
+  document.getElementById('addAiModelInfo').style.display = 'none';
+  document.getElementById('formAddAiModel').style.display = 'flex';
+  document.getElementById('filterAiModels').value = '';
+
+  try {
+    spinner.style.display = 'flex';
+
+    const url = '/research/ajax.php?function=aiGetAvailableModels';
+    const response = await fetchFromServer(url);
+
+    tableData = [response.models];
+    selectedTableData = [];
+
+    tableBodyModels.innerHTML = getHtmlTableBodyAiModels();
+
+  } finally {
+    spinner.style.display = 'none';
+  }
+}
+
+async function updateAiModelsInfo() {
+  try {
+    spinnerLoad.style.display = 'block';
+
+    const url = '/research/ajax.php?function=updateModelsDatabase';
+    const response = await fetchFromServer(url);
+
+    if (response.error) {
+      showError(response.error);
+      return;
+    } else if (response.ok) {
+      showMessage('Info for all available models successfully updated')
+    }
+
+    // Refresh GUI
+    initAITest();
+
+  } finally {
+    spinnerLoad.style.display = 'none';
+  }
+}
+
+function getHtmlTableBodyAiModels() {
+  const filter = document.getElementById('filterAiModels').value.toLowerCase();
+  
+  let htmlModels = '';
+  for (const model of tableData[0]) {
+    if (! filter || model.name.toLowerCase().includes(filter)) {
+      const modelExisting = aiModels.find(m => m.id === model.id);
+      const selected = modelExisting? 'Yes' : '';
+      const structured_outputs = model.structured_outputs? 'Yes' : '';
+
+      const created = new Date(model.created);
+      const cost = '$' + (model.cost_input * 1e6).toFixed(2) + ' → $' + (model.cost_output * 1e6).toFixed(2);
+      htmlModels += `<tr id="tr0_${model.id}"><td>${model.name}</td><td>${selected}</td><td>${cost}</td><td>${structured_outputs}</td><td>${created.toLocaleDateString()}</td></tr>`;
+    }
+  }
+
+  return htmlModels;
+}
+
+function getHtmlTableBodyAiQueries() {
+  let htmlQueries = '';
+  for (const query of tableData[1]) {
+    htmlQueries += `<tr id="tr1_${query.id}"><td>${query.id}</td><td>${query.model_id}</td><td>${query.user}</td>` +
+      `<td>${truncateText(query.query, 30)}</td><td>${truncateText(query.system_instructions, 30)}</td>` +
+      `<td>${truncateText(query.response_format, 30)}</td></tr>`;
+  }
+
+  return htmlQueries;
+}
+
+function doFilterAiModels() {
+  document.getElementById('addAiModelsBody').innerHTML = getHtmlTableBodyAiModels();
+}
+
+function clickAiModelRow() {
+  tableDataClick(event);
+
+  const model = selectedTableData[0];
+
+  const div = document.getElementById('addAiModelInfo');
+  div.innerHTML = `<b>${model.name}</b><br>${model.description}`;
+  div.style.display = 'block';
+}
+
+function clickAiQueryRow() {
+  tableDataClick(event, 1);
+
+  const query = selectedTableData[1];
+}
+
+async function addAiModel() {
+  const model = selectedTableData[0];
+
+  if (! model) {
+    showError('No AI model selected');
+    return;
+  }
+
+  const modelExisting = aiModels.find(m => m.id === model.id);
+  if (modelExisting) {
+    showError('AI model is already added');
+    return;
+  }
+
+  const serverData = {
+    model_id: model.id,
+  };
+
+  const url = '/research/ajax.php?function=selectAiModel';
+  const response = await fetchFromServer(url, serverData);
+
+  if (response.error) showError(response.error);
+  else if (response.ok) {
+    location.reload();
+  }
+}
+
+async function loadAiQuery() {
+  const query = selectedTableData[1];
+
+  if (! query) {
+    showError('No AI query selected');
+    return;
+  }
+
+  document.getElementById('aiQueryId').value = query.id;
+  document.getElementById('aiModel').value = query.model_id;
+  document.getElementById('aiSystemInstructions').value = query.system_instructions;
+  document.getElementById('aiQuery').value = query.query;
+  document.getElementById('aiResponseFormat').value = query.response_format;
+
+  document.getElementById('queryInfo').innerText = `id: ${query.id} | user: ${query.user}`;
+
+  document.getElementById('formLoadAiModel').style.display = 'none';
+}
+
+async function deleteAiQuery() {
+  const query = selectedTableData[1];
+
+  if (! query) {
+    showError('No AI query selected');
+    return;
+  }
+
+  confirmWarning(`Delete query?<br>Id: ${query.id}<br>Query: ${truncateText(query.query, 100)}`,
+    async () => {
+      let response
+      const spinner = document.getElementById('spinnerLoadQueries');
+      try {
+        spinner.style.display = 'flex';
+
+        const url = '/research/ajax.php?function=aiDeleteQuery';
+        response = await fetchFromServer(url, {id: query.id});
+
+      } finally {
+        spinner.style.display = 'none';
+      }
+
+      if (response.error) {
+        showError(response.error);
+        return;
+      }
+
+      showLoadAIQueryForm();
+    }, 'Delete query'
+    )
+}
+
+function removeAiModel() {
+  const model = selectedAiModel();
+  if (! model) {
+    showError('No AI model selected');
+    return;
+  }
+
+  confirmWarning(`Are you sure you want to remove this AI model?<br>${model.name}?`,
+    async () => {
+
+      const serverData = {
+        model_id: model.id,
+      };
+
+      const url = '/research/ajax.php?function=removeAiModel';
+      const response = await fetchFromServer(url, serverData);
+
+      if (response.error) showError(response.error);
+      else if (response.ok) {
+        initAITest();
+      }
+
+    },
+    `Remove model`);
+}
+
+async function initAITest() {
+  try {
+    spinnerLoad.style.display = 'block';
+
+    const url = '/research/ajax.php?function=aiInit';
+    const response = await fetchFromServer(url);
+
+    if (response.error) {
+      showError(response.error);
+      return;
+    }
+
+    aiModels = response.models;
+
+    let htmlSelectModels;
+    aiModels.forEach(model => {
+      model.created = new Date(model.created);
+
+      const cost_input = (model.cost_input * 1e6).toFixed(2);
+      const cost_output = (model.cost_output * 1e6).toFixed(2);
+      const structured_outputs = model.structured_outputs? ' | SO' : '';
+      htmlSelectModels += `<option value="${model.id}">${model.name} | ${model.created.toLocaleDateString()} | $${cost_input}/$${cost_output} ${structured_outputs}</option>`;
+    });
+
+    updateCreditsLeft(response.credits);
+    document.getElementById('aiModel').innerHTML = htmlSelectModels;
+    document.getElementById('aiForm').style.display = 'block';
+
+    aiModelChange();
+
+    if (response.error) showError(response.error);
+  } finally {
+    spinnerLoad.style.display = 'none';
+  }
 }
 
 function getQuestionTableRow(question){
@@ -431,7 +726,7 @@ async function saveQuestion() {
 
   if (! serverData.text) {showError('Text field is empty'); return;}
 
-  const url      = '/research/ajax.php?function=saveQuestion';
+  const url = '/research/ajax.php?function=saveQuestion';
   const response = await fetchFromServer(url, serverData);
 
   if (response.error) showError(response.error);
@@ -760,4 +1055,177 @@ async function onClickStatisticsTable() {
   if (html) html = `<table class="dataTable"><tr><th>Crash Id</th><th>Article Id</th><th>Bechdel result</th><th>Published</th><th>Country</th><th>Source</th></tr>${html}</table>`;
 
   divResult.innerHTML = html;
+}
+
+async function aiRunQuery() {
+
+  const spinner = document.getElementById('spinnerRunQuery');
+  try {
+    spinner.style.display = 'flex';
+
+    const model = selectedAiModel();
+
+    const divResponse = document.getElementById('aiResponse');
+    const divMeta =document.getElementById('aiResponseMeta');
+    const groupResponse = document.getElementById('groupAiResponse');
+    divResponse.innerText = '';
+    divMeta.innerText = '';
+    groupResponse.style.display = 'none';
+
+    const data = {
+      model: document.getElementById('aiModel').value,
+      query: document.getElementById('aiQuery').value,
+      systemInstructions: document.getElementById('aiSystemInstructions').value,
+      responseFormat: model.structured_outputs? document.getElementById('aiResponseFormat').value : '',
+    }
+
+    if (data.query.length < 1) {showError('Query is empty'); return;}
+
+    divResponse.innerText = '...';
+
+    const url = '/research/ajax.php?function=aiRunQuery';
+    const response = await fetchFromServer(url, data);
+
+    if (response.error) {
+      divResponse.innerText = 'ERROR: ' + response.error;
+    } else {
+      divResponse.innerText = response.response;
+      lastGenerationId = response.id;
+
+      // Wait for a second, otherwise the meta info is not yet available
+      divMeta.innerText = 'Checking generation info...';
+      setTimeout(() => {showGenerationSummary();}, 2000);
+    }
+
+    groupResponse.style.display = 'block';
+
+  } finally {
+    spinner.style.display = 'none';
+  }
+}
+
+function aiNewQuery() {
+ document.getElementById('aiQueryId').value = null;
+ document.getElementById('aiModel').value = null;
+ document.getElementById('aiQuery').value = null;
+ document.getElementById('aiSystemInstructions').value = null;
+ document.getElementById('aiResponseFormat').value = null;
+
+ document.getElementById('queryInfo').innerText = ``;
+}
+async function aiSaveQuery() {
+  const spinner = document.getElementById('spinnerRunQuery');
+  try {
+    spinner.style.display = 'flex';
+
+    const model = selectedAiModel();
+
+    const data = {
+      id: document.getElementById('aiQueryId').value,
+      modelId: document.getElementById('aiModel').value,
+      query: document.getElementById('aiQuery').value,
+      systemInstructions: document.getElementById('aiSystemInstructions').value,
+      responseFormat: model.structured_outputs? document.getElementById('aiResponseFormat').value : '',
+    }
+
+    if (data.query.length < 1) {showError('Query is empty'); return;}
+
+    const url = '/research/ajax.php?function=aiSaveQuery';
+    const response = await fetchFromServer(url, data);
+
+    if (response.error) {
+      showError(response.error);
+      return;
+    }
+
+    if (! data.id) {
+      data.id = response.id;
+      data.user = user.firstname + ' ' + user.lastname;
+      document.getElementById('queryInfo').innerText = `id: ${data.id} | user: ${data.user}`;
+    }
+
+  } finally {
+    spinner.style.display = 'none';
+  }
+}
+
+function aiSaveCopyQuery() {
+  document.getElementById('aiQueryId').value = null;
+  aiSaveQuery();
+}
+
+function updateCreditsLeft(creditsLeft) {
+  document.getElementById('aiInfo').innerHTML = `Openrouter.ai credits left: €${creditsLeft.toFixed(6)}`;
+}
+
+async function showGenerationSummary() {
+  if (! lastGenerationId) {
+    showError('No generation id');
+    return;
+  }
+
+  const divMeta =document.getElementById('aiResponseMeta');
+  divMeta.innerText = 'Checking generation info...';
+
+  const url = '/research/ajax.php?function=aiGetGenerationInfo';
+  const response = await fetchFromServer(url, {id: lastGenerationId});
+
+  if (response.error) {
+    divMeta.innerHTML = 'Error: ' + response.error;
+    return;
+  }
+
+  const generation = response.generation;
+  divMeta.innerHTML = generation.model +
+    ` | tokens ${generation.native_tokens_prompt} → ${generation.native_tokens_completion}` +
+    ` | cost ${formatCost(generation.total_cost)} ${formatCost(generation.total_cost * 1000)}/k` +
+    ` | tps ${generation.tps.toFixed(1)}` +
+    ` | latency ${generation.latency}` +
+    ` | <span class="link" onclick="showFullGenerationInfo('${generation.id}');">all info</span>`;
+
+  updateCreditsLeft(response.credits);
+}
+
+function formatCost(cost) {
+  if (cost < 0.00001) {
+    return `$${cost.toFixed(8)}`; // e.g., $0.00000165
+  } else if (cost < 0.0001) {
+    return `$${cost.toFixed(7)}`;
+  } else if (cost < 0.001) {
+    return `$${cost.toFixed(6)}`;
+  } else if (cost < 0.01) {
+    return `$${cost.toFixed(5)}`;
+  } else {
+    return `$${cost.toFixed(4)}`; // Round bigger values
+  }
+}
+async function showFullGenerationInfo(generationId) {
+  const spinner = document.getElementById('spinnerLoad');
+  try {
+    spinner.style.display = 'block';
+
+    const url = '/research/ajax.php?function=aiGetGenerationInfo';
+    const response = await fetchFromServer(url, {id: generationId});
+    
+    if (response.error) {
+      showError(response.error);
+      return;
+    }
+
+    const generationsHtml = `
+      <table class="dataTable ">
+        <tr><th>Property</th><th>Value</th></tr>
+        ${Object.entries(response.generation).map(([key, value]) => `
+          <tr>
+            <td>${key}</td>
+            <td>${value}</td>
+          </tr>
+        `).join('')}
+      </table>`;
+    
+    showMessage(generationsHtml, 60);
+
+  } finally {
+    spinner.style.display = 'none';
+  }
 }

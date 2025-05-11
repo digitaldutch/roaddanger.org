@@ -138,7 +138,8 @@ h3, .pageSubTitleFont {
 }
 
 .pageInner {
-  max-width: 700px;
+  width: 700px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 5px 10px;
 }
@@ -154,8 +155,8 @@ h3, .pageSubTitleFont {
   padding: 5px;
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
   align-items: center;
+  flex-grow: 1;
   overflow: auto;
   color: #fff;
   background-image: radial-gradient(farthest-corner at 0 0, #f23825 0%, black 60%);
@@ -876,15 +877,26 @@ h3, .pageSubTitleFont {
   cursor:           pointer;
 }
 
-#floatingMessage,  #floatingMessage a, .notice {
+#floatingMessage,  #floatingMessage a {
   color: var(--important-color);
   background-color: var(--important-bgcolor);
 }
 
 .notice {
-  color:            #000000;
+  color: #000000;
   background-color: #fce981;
   padding: 5px;
+}
+
+.infoBlock {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: #f0f8ff;
+  padding: 5px;
+  border: 1px solid #ccc;
+  max-height: 100px;
+  overflow-y: auto;
 }
 
 #cookieWarning {
@@ -909,18 +921,23 @@ h3, .pageSubTitleFont {
 }
 
 .formFullPage {
-  display:          flex;
-  flex-direction:   column;
-  position:         absolute;
-  top:              30px;
-  width:            700px;
-  max-width:        Calc(100% - 10px);
-  min-height:       100px;
-  padding:          5px 15px 10px 15px;
-  border-radius:    3px;
-  box-shadow:       0 2px 4px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 10px;
+  width: 700px;
+  max-width: Calc(100% - 10px);
+  max-height: Calc(100% - 20px);
+  min-height: 100px;
+  padding: 5px 15px 10px 15px;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   background-color: #ffffff;
-  box-sizing:       border-box;
+  box-sizing: border-box;
+}
+
+.formScrolling {
+  overflow-y: auto;
 }
 
 .formFixed {
@@ -941,6 +958,7 @@ h3, .pageSubTitleFont {
 
 .formFullPage label, .labelDiv, .formPage label {
   margin-top: 5px;
+  margin-bottom: 1px;
 }
 
 .popupHeader {

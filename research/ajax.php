@@ -1,31 +1,85 @@
 <?php
-
 header('Content-Type: application/json; charset=utf-8');
 
 require_once '../initialize.php';
 require_once '../general/utils.php';
-require_once 'AjaxResearch.php';
+require_once 'OpenRouterAIClient.php';
 
 $function = $_REQUEST['function'];
 
 // Public functions
 if ($function === 'loadQuestionnaireResults') {
-  echo AjaxResearch::loadQuestionnaireResults();
+  echo ResearchHandler::loadQuestionnaireResults();
+  return;
+}
+
+global $user;
+
+// The stuff below is for moderators only
+if (!$user->isModerator()) {
+  dieWithJSONErrorMessage('Permission error: Only moderators allowed');
+}
+
+if ($function === 'aiRunQuery') {
+  echo ResearchHandler::aiRunQuery();
+  return;
+} else if ($function === 'aiInit') {
+  echo ResearchHandler::aiInit();
+  return;
+} else if ($function === 'aiGetAvailableModels') {
+  echo ResearchHandler::aiGetAvailableModels();
+  return;
+} else if ($function === 'aiGetGenerationInfo') {
+  echo ResearchHandler::aiGetGenerationInfo();
+  return;
+} else if ($function === 'selectAiModel') {
+  echo ResearchHandler::selectAiModel();
+  return;
+} else if ($function === 'removeAiModel') {
+  echo ResearchHandler::removeAiModel();
+  return;
+} else if ($function === 'updateModelsDatabase') {
+  echo ResearchHandler::updateModelsDatabase();
+  return;
+} else if ($function === 'aiSaveQuery') {
+  echo ResearchHandler::aiSaveQuery();
+  return;
+} else if ($function === 'aiGetQueryList') {
+  echo ResearchHandler::aiGetQueryList();
+  return;
+} else if ($function === 'aiDeleteQuery') {
+  echo ResearchHandler::aiDeleteQuery();
   return;
 }
 
 // The stuff below is only for administrators
-global $user;
-if (! $user->admin) {
+if (!$user->admin) {
   dieWithJSONErrorMessage('Permission error: Only administrators allowed');
 }
 
-if ($function === 'loadQuestionnaires') echo AjaxResearch::loadQuestionnaires();
-else if ($function === 'saveQuestion') echo AjaxResearch::saveQuestion();
-else if ($function === 'deleteQuestion') echo AjaxResearch::deleteQuestion();
-else if ($function === 'saveQuestionsOrder') echo AjaxResearch::saveQuestionsOrder();
-else if ($function === 'saveQuestionnaire')  echo AjaxResearch::saveQuestionnaire();
-else if ($function === 'deleteQuestionnaire') echo AjaxResearch::deleteQuestionnaire();
-else if ($function === 'loadArticlesUnanswered') echo AjaxResearch::loadArticlesUnanswered();
-else echo json_encode(['ok' => false, 'error' => 'Function not found']);
+if ($function === 'loadQuestionnaires') {
+  echo ResearchHandler::loadQuestionnaires();
+  return;
+} else if ($function === 'saveQuestion') {
+  echo ResearchHandler::saveQuestion();
+  return;
+} else if ($function === 'deleteQuestion') {
+  echo ResearchHandler::deleteQuestion();
+  return;
+} else if ($function === 'saveQuestionsOrder') {
+  echo ResearchHandler::saveQuestionsOrder();
+  return;
+} else if ($function === 'saveQuestionnaire') {
+  echo ResearchHandler::saveQuestionnaire();
+  return;
+} else if ($function === 'deleteQuestionnaire') {
+  echo ResearchHandler::deleteQuestionnaire();
+  return;
+} else if ($function === 'loadArticlesUnanswered') {
+  echo ResearchHandler::loadArticlesUnanswered();
+  return;
+} else {
+  echo json_encode(['ok' => false, 'error' => 'Function not found']);
+  return;
+}
 

@@ -261,8 +261,7 @@ function getStatsMediaHumanization(): array {
   $group = 'month';
 
   require_once '../general/Cache.php';
-  $cacheResponse = Cache::get('getStatsMediaHumanization', 30);
-  $cacheResponse = null;
+  $cacheResponse = Cache::get('getStatsMediaHumanization', 600);
 
   if ($cacheResponse === null) {
     require_once '../research/Research.php';
@@ -1365,7 +1364,7 @@ else if ($function === 'loadCountryDomain') {
     $result = ['ok' => true,
       'domain' => $domain,
     ];
-  } catch (\Exception $e) {
+  } catch (\Throwable $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);

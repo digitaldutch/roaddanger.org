@@ -1,6 +1,6 @@
 <?php
 
-class AjaxResearch {
+class ResearchHandler {
 
   static public function loadQuestionnaires():string {
     global $database;
@@ -325,6 +325,345 @@ SQL;
         'articles' => $articles,
       ];
     } catch (\Exception $e){
+      $result = ['ok' => false, 'error' => $e->getMessage()];
+    }
+
+    return json_encode($result);
+  }
+
+  public static function aiRunQuery(): false|string {
+    try {
+      $data = json_decode(file_get_contents('php://input'), true);
+      $model = $data['model'];
+      $query = $data['query'];
+      $systemInstructions = $data['systemInstructions'];
+      $responseFormat = $data['responseFormat'];
+
+      require_once '../general/ai.php';
+
+      $openrouter = new OpenRouterAIClient();
+      $result = $openrouter->chatWithMeta($query, $systemInstructions, $model, $responseFormat);
+
+      $result['ok'] = true;
+    } catch (\Throwable $e) {
+      $result = ['ok' => false, 'error' => $e->getMessage()];
+    }
+
+    return json_encode($result);
+  }
+
+  private static function mayEditQuery($queryId): bool {
+    global $user;
+    global $database;
+
+    // Only admin can edit other users' queries
+    if ($user->admin) return true;
+
+    $SQL = "SELECT 1 FROM ai_queries WHERE id=:id AND user_id=:user_id;";
+    $params = [
+      'id' => $queryId,
+      'user_id' => $user->id,
+    ];
+    $dbResult = $database->fetchSingleValue($SQL, $params);
+
+    return $dbResult !== false;
+  }
+
+  public static function aiSaveQuery(): false|string {
+    try {
+      $data = json_decode(file_get_contents('php://input'), true);
+
+      global $user;
+      global $database;
+
+      if (! empty ($data['id'])) {
+
+        if (! self::mayEditQuery($data['id'])) throw new Exception("You cannot save somebody else's query");
+
+        $SQL = <<<SQL
+UPDATE ai_queries SET 
+  model_id = :model_id,
+  query = :query,
+  system_instructions = :system_instructions,
+  response_format = :response_format
+WHERE id = :id;                                                                                              ;                                                                                              
+SQL;
+
+        $params = [
+          ':id' => $data['id'],
+          ':model_id' => $data['modelId'],
+          ':query' => $data['query'],
+          ':system_instructions' => $data['systemInstructions'],
+          ':response_format' => $data['responseFormat'],
+        ];
+
+        $dbResponse = $database->execute($SQL, $params);
+
+      } else {
+        if (! $user->isModerator()) throw new Exception("You have no permission to save a query");
+
+        $SQL = <<<SQL
+INSERT INTO ai_queries (user_id, model_id, query, system_instructions, response_format) 
+VALUES (:user_id, :model_id, :query, :system_instructions, :response_format);                                                                                              
+SQL;
+
+        $params = [
+          ':user_id' => $user->id,
+          ':model_id' => $data['modelId'],
+          ':query' => $data['query'],
+          ':system_instructions' => $data['systemInstructions'],
+          ':response_format' => $data['responseFormat'],
+        ];
+
+        $dbResponse = $database->execute($SQL, $params);
+        $result['id'] = $database->lastInsertID();
+      }
+      if ($dbResponse === false) throw new Exception('Internal error: Can not update query');
+
+
+      $result['ok'] = true;
+    } catch (\Throwable $e) {
+      $result = ['ok' => false, 'error' => $e->getMessage()];
+    }
+
+    return json_encode($result);
+  }
+
+  public static function aiDeleteQuery(): false|string {
+    try {
+      $data = json_decode(file_get_contents('php://input'), true);
+
+      if (! self::mayEditQuery($data['id'])) throw new Exception("You cannot delete somebody else's query");
+
+      $SQL = "DELETE FROM ai_queries WHERE id=:id;";
+
+      global $database;
+      $database->execute($SQL, ['id' => $data['id']]);;
+
+      $result = [
+        'ok' => true,
+      ];
+    } catch (\Throwable $e) {
+      $result = ['ok' => false, 'error' => $e->getMessage()];
+    }
+
+    return json_encode($result);
+  }
+
+  public static function aiGetQueryList(): false|string {
+    try {
+      $SQL = <<<SQL
+SELECT 
+  q.id, 
+  q.model_id, 
+  q.query, 
+  q.system_instructions, 
+  q.response_format,
+  CONCAT(u.firstname, ' ', u.lastname) AS user
+FROM ai_queries q
+LEFT JOIN users u ON u.id = q.user_id;
+SQL;
+
+      global $database;
+      $queries = $database->fetchAll($SQL);
+      $result = [
+        'ok' => true,
+        'queries' => $queries,
+      ];
+    } catch (\Throwable $e) {
+      $result = ['ok' => false, 'error' => $e->getMessage()];
+    }
+
+    return json_encode($result);
+  }
+
+  public static function aiGetGenerationInfo(): false|string {
+    try {
+      $data = json_decode(file_get_contents('php://input'), true);
+      $generationId = $data['id'];
+
+      require_once '../general/ai.php';
+
+      $openrouter = new OpenRouterAIClient();
+      $generation = $openrouter->getGenerationInfo($generationId);
+
+      $result = [
+        'ok' => true,
+        'generation' => $generation,
+        'credits' => $openrouter->getCredits(),
+      ];
+
+    } catch (\Throwable $e) {
+      $result = ['ok' => false, 'error' => $e->getMessage()];
+    }
+
+    return json_encode($result);
+  }
+
+  /**
+   * @throws Exception
+   */
+  private static function getOpenRouterModels(): array {
+    require_once '../general/ai.php';
+
+    $openrouter = new OpenRouterAIClient();
+
+    return $openrouter->getAllModels();
+  }
+
+  public static function selectAiModel(): false|string {
+    try {
+      $data = json_decode(file_get_contents('php://input'), true);
+      $modelId = $data['model_id'];
+
+      $modelsAvailable = self::getOpenRouterModels();
+
+      $models = array_filter($modelsAvailable, fn($m) => $m['id'] === $modelId);
+
+      if (count($models) === 0) throw new Exception('Model ID not found: ' . $modelId);
+
+      $model = reset($models);
+
+      $SQL = <<<SQL
+INSERT INTO ai_models (id, name, description, context_length, created, cost_input, cost_output, structured_outputs) 
+VALUES (:id, :name, :description, :context_length, :created, :cost_input, :cost_output, :structured_outputs);
+SQL;
+
+      $params = [
+        ':id' => $model['id'],
+        ':name' => $model['name'],
+        ':description' => $model['description'],
+        ':context_length' => $model['context_length'],
+        ':created' => $model['created'],
+        ':cost_input' => $model['cost_input'],
+        ':cost_output' => $model['cost_output'],
+        ':structured_outputs' => $model['structured_outputs'],
+      ];
+
+      global $database;
+      $database->execute($SQL, $params);
+
+      $result = [
+        'ok' => true,
+      ];
+
+    } catch (\Throwable $e) {
+      $result = ['ok' => false, 'error' => $e->getMessage()];
+    }
+
+    return json_encode($result);
+  }
+
+  public static function updateModelsDatabase(): string|false {
+
+    global $database;
+
+    try {
+      $models = self::getOpenRouterModels();
+
+      $SQL = <<<SQL
+UPDATE ai_models SET 
+  name = :name,
+  description = :description,
+  context_length = :context_length,
+  created = :created,
+  cost_input = :cost_input,
+  cost_output = :cost_output,
+  structured_outputs = :structured_outputs
+WHERE id = :id;
+SQL;
+      $query = $database->prepare($SQL);
+
+      foreach ($models as $model) {
+        $params = [
+          ':id' => $model['id'],
+          ':name' => $model['name'],
+          ':description' => $model['description'],
+          ':context_length' => $model['context_length'],
+          ':created' => $model['created'],
+          ':cost_input' => $model['cost_input'],
+          ':cost_output' => $model['cost_output'],
+          ':structured_outputs' => (int)$model['structured_outputs'],
+        ];
+
+        $database->executePrepared($query, $params);
+      }
+
+      $result = [
+        'ok' => true,
+      ];
+
+    } catch (\Throwable $e) {
+      $result = ['ok' => false, 'error' => $e->getMessage()];
+    }
+
+    return json_encode($result);
+  }
+
+  public static function removeAiModel(): false|string {
+    try {
+      $data = json_decode(file_get_contents('php://input'), true);
+      $modelId = $data['model_id'];
+
+      $SQL = "DELETE FROM ai_models WHERE id=:id;";
+
+      global $database;
+      $database->execute($SQL, ['id' => $modelId]);
+
+      $result = [
+        'ok' => true,
+      ];
+
+    } catch (\Throwable $e) {
+      $result = ['ok' => false, 'error' => $e->getMessage()];
+    }
+
+    return json_encode($result);
+  }
+
+  private static function getAIModels() {
+    $sql = "SELECT * FROM ai_models ORDER BY created DESC;";
+    $models = $GLOBALS['database']->fetchAll($sql);
+
+    foreach ($models as &$model) {
+      $model['cost_input'] = (float)$model['cost_input'];
+      $model['cost_output'] = (float)$model['cost_output'];
+    }
+
+    return $models;
+  }
+
+  public static function aiInit(): string {
+    try {
+      require_once '../general/ai.php';
+
+      $openrouter = new OpenRouterAIClient();
+      $models = self::getAIModels();
+      $credits = $openrouter->getCredits();
+
+      $result = [
+        'ok' => true,
+        'models' => $models,
+        'credits' => $credits,
+      ];
+    } catch (\Throwable $e) {
+      $result = ['ok' => false, 'error' => $e->getMessage()];
+    }
+
+    return json_encode($result);
+  }
+
+  public static function aiGetAvailableModels(): string {
+    try {
+      require_once '../general/ai.php';
+
+      $models = self::getOpenRouterModels();
+
+      $result = [
+        'ok' => true,
+        'models' => $models,
+      ];
+    } catch (\Throwable $e) {
       $result = ['ok' => false, 'error' => $e->getMessage()];
     }
 

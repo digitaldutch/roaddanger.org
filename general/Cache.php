@@ -5,12 +5,10 @@
  * A local cache folder is created in the root if it does not exist.
  * This folder is public. Never store private data in the cache.
  *
- * Load a string. Maximum 600 seconds old:
- *
+ * Load a string. Returns string if maximum 600 seconds old. Null if not existing or too old.
  * $content = Cache::get('key', 600);
  *
  * Save a string:
- *
  * Cache::set('key', $content);
  */
 class Cache {
