@@ -1099,11 +1099,11 @@ h3, .pageSubTitleFont {
 
 .buttonTiny {
   display: inline-flex;
-  padding: 2px 8px;
+  padding: 1px 6px;
   margin: 5px 2px;
   min-width: auto;
   width: fit-content;
-  font-size: 11px;
+  font-size: 10px;
   height: auto;
   border-radius: 10px;
 }

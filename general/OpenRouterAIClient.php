@@ -2,10 +2,8 @@
 
 require_once '../configsecret.php';
 
-class OpenRouterAIClient
-{
+class OpenRouterAIClient {
   private const string DEFAULT_MODEL = 'openrouter/auto';
-
 
   /**
    * @throws Exception

@@ -424,7 +424,7 @@ async function showLoadAIQueryForm() {
     const response = await fetchFromServer(url);
 
     tableData[1] = response.queries;
-    selectedTableData[1] = [];
+    selectedTableData[1] = null;
 
     tableBodyQueries.innerHTML = getHtmlTableBodyAiQueries();
 
@@ -1093,7 +1093,7 @@ async function aiRunQuery() {
       lastGenerationId = response.id;
 
       // Wait for a second, otherwise the meta info is not yet available
-      divMeta.innerText = 'Checking generation info...';
+      divMeta.innerText = 'Checking query meta info...';
       setTimeout(() => {showGenerationSummary();}, 2000);
     }
 
@@ -1165,7 +1165,7 @@ async function showGenerationSummary() {
   }
 
   const divMeta =document.getElementById('aiResponseMeta');
-  divMeta.innerText = 'Checking generation info...';
+  divMeta.innerText = 'Checking query meta info...';
 
   const url = '/research/ajax.php?function=aiGetGenerationInfo';
   const response = await fetchFromServer(url, {id: lastGenerationId});

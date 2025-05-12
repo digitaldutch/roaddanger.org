@@ -182,7 +182,7 @@ class Database {
   }
 
   public function getQuestionnaireCountries() {
-    return $this->fetchAllValues("SELECT DISTINCT country_id FROM questionnaires WHERE active=1 ORDER BY id;");
+    return $this->fetchAllValues("SELECT DISTINCT country_id FROM questionnaires WHERE active=1 ORDER BY country_id;");
   }
 
   public function getCountry(string $id) {

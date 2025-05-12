@@ -339,7 +339,7 @@ SQL;
       $systemInstructions = $data['systemInstructions'];
       $responseFormat = $data['responseFormat'];
 
-      require_once '../general/ai.php';
+      require_once '../general/OpenRouterAIClient.php';
 
       $openrouter = new OpenRouterAIClient();
       $result = $openrouter->chatWithMeta($query, $systemInstructions, $model, $responseFormat);
@@ -482,7 +482,7 @@ SQL;
       $data = json_decode(file_get_contents('php://input'), true);
       $generationId = $data['id'];
 
-      require_once '../general/ai.php';
+      require_once '../general/OpenRouterAIClient.php';
 
       $openrouter = new OpenRouterAIClient();
       $generation = $openrouter->getGenerationInfo($generationId);
@@ -504,7 +504,7 @@ SQL;
    * @throws Exception
    */
   private static function getOpenRouterModels(): array {
-    require_once '../general/ai.php';
+    require_once '../general/OpenRouterAIClient.php';
 
     $openrouter = new OpenRouterAIClient();
 
@@ -635,7 +635,7 @@ SQL;
 
   public static function aiInit(): string {
     try {
-      require_once '../general/ai.php';
+      require_once '../general/OpenRouterAIClient.php';
 
       $openrouter = new OpenRouterAIClient();
       $models = self::getAIModels();
@@ -655,7 +655,7 @@ SQL;
 
   public static function aiGetAvailableModels(): string {
     try {
-      require_once '../general/ai.php';
+      require_once '../general/OpenRouterAIClient.php';
 
       $models = self::getOpenRouterModels();
 

@@ -337,15 +337,16 @@ HTML;
       <input type="hidden" id="aiQueryId" value="">
       
       <div class="labelDiv">System instructions</div>
-      <textarea id="aiSystemInstructions" class="inputForm" style="height: 40px; resize: vertical;"></textarea> 
+      <textarea id="aiSystemInstructions" class="inputForm" style="height: 100px; resize: vertical;"></textarea> 
     
       <div id="section_structured_outputs" style="display: none;">
         <div class="labelDiv">Response format</div>
         <div class="smallFont">For models supporting structured ouputs. Read instructions on the <a href="https://openrouter.ai/docs/features/structured-outputs" target="openrouter">openrouter.ai website</a>.</div>
-        <textarea id="aiResponseFormat" class="inputForm" style="height: 80px; resize: vertical;"></textarea> 
+        <textarea id="aiResponseFormat" class="inputForm" style="height: 100px; resize: vertical;"></textarea> 
       </div>
       
       <div class="labelDiv">Query <span class="smallFont" id="queryInfo"></span></div>
+<!--      <div class="smallFont">Allowed tags: [title], [article]. These are replaced by media article title and full text.</div>-->
       <textarea id="aiQuery" class="inputForm" style="height: 100px; resize: vertical;"></textarea>
       
       <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
@@ -362,10 +363,11 @@ HTML;
 
     <div id="groupAiResponse" style="display: none">
       <div style="font-weight: bold;">Server response</div>
+      <div id="aiResponse" style="background-color: #aaa; color: #000; padding: 3px;"></div>    
       <div class="smallFont">
-        <button class="buttonTiny" style="border: none;" onclick="showGenerationSummary();">Refresh</button>
-        <span id="aiResponseMeta"></span></div>
-      <div id="aiResponse" style="margin-top: 10px;"></div>    
+        <button class="buttonTiny" style="border: none; margin-left: 0;" onclick="showGenerationSummary();">Refresh</button>
+        <span id="aiResponseMeta"></span>
+      </div>
     </div>
   </div> 
 </div>
