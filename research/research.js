@@ -503,7 +503,7 @@ function getHtmlTableBodyAiQueries() {
   for (const query of tableData[1]) {
     htmlQueries += `<tr id="tr1_${query.id}"><td>${query.id}</td><td>${query.model_id}</td><td>${query.user}</td>` +
       `<td>${truncateText(query.query, 30)}</td><td>${truncateText(query.system_instructions, 30)}</td>` +
-      `<td>${truncateText(query.response_format, 30)}</td></tr>`;
+      `<td>${truncateText(query.response_format, 30)}</td><td>${query.article_id??''}</td></tr>`;
   }
 
   return htmlQueries;
@@ -570,9 +570,45 @@ async function loadAiQuery() {
   document.getElementById('aiQuery').value = query.query;
   document.getElementById('aiResponseFormat').value = query.response_format;
 
+  document.getElementById('aiArticleId').value = query.article_id;
+  document.getElementById('aiArticle').innerText = '';
+
   document.getElementById('queryInfo').innerText = `id: ${query.id} | user: ${query.user}`;
 
+  
+  
   document.getElementById('formLoadAiModel').style.display = 'none';
+
+  loadArticle(query.article_id);
+
+  showArticleSectionIfNeeded();
+}
+
+function containsArticleTags(query) {
+  return query.includes('[article_title]') || query.includes('[article_text]');
+}
+
+function showArticleSectionIfNeeded() {
+  const query = document.getElementById('aiQuery').value;
+  const hasArticleTags = containsArticleTags(query);
+  document.getElementById('articleSection').style.display = hasArticleTags ? 'block' : 'none';
+}
+
+async function loadArticle(id) {
+  const divArticle = document.getElementById('aiArticle');
+  divArticle.innerText = '';
+
+  if (id) {
+    const url = '/research/ajax.php?function=loadArticle';
+    const response = await fetchFromServer(url, {id: id});
+
+    if (response.error) {
+      showError(response.error);
+      return;
+    }
+
+    divArticle.innerText = response.article.text;
+  }
 }
 
 async function deleteAiQuery() {
@@ -661,7 +697,11 @@ async function initAITest() {
     document.getElementById('aiModel').innerHTML = htmlSelectModels;
     document.getElementById('aiForm').style.display = 'block';
 
+    document.getElementById('aiArticleId').value = response.article.id;
+    document.getElementById('aiArticle').innerText = response.article.text;
+
     aiModelChange();
+    showArticleSectionIfNeeded();
 
     if (response.error) showError(response.error);
   } finally {
@@ -719,8 +759,8 @@ async function saveQuestion() {
   }
 
   const serverData = {
-    id:          document.getElementById('questionId').value,
-    text:        document.getElementById('questionText').value.trim(),
+    id: document.getElementById('questionId').value,
+    text: document.getElementById('questionText').value.trim(),
     explanation: document.getElementById('questionExplanation').value.trim(),
   };
 
@@ -1068,6 +1108,7 @@ async function aiRunQuery() {
     const divResponse = document.getElementById('aiResponse');
     const divMeta =document.getElementById('aiResponseMeta');
     const groupResponse = document.getElementById('groupAiResponse');
+
     divResponse.innerText = '';
     divMeta.innerText = '';
     groupResponse.style.display = 'none';
@@ -1077,6 +1118,7 @@ async function aiRunQuery() {
       query: document.getElementById('aiQuery').value,
       systemInstructions: document.getElementById('aiSystemInstructions').value,
       responseFormat: model.structured_outputs? document.getElementById('aiResponseFormat').value : '',
+      articleId: document.getElementById('aiArticleId').value,
     }
 
     if (data.query.length < 1) {showError('Query is empty'); return;}
@@ -1126,6 +1168,7 @@ async function aiSaveQuery() {
       query: document.getElementById('aiQuery').value,
       systemInstructions: document.getElementById('aiSystemInstructions').value,
       responseFormat: model.structured_outputs? document.getElementById('aiResponseFormat').value : '',
+      articleId: document.getElementById('aiArticleId').value,
     }
 
     if (data.query.length < 1) {showError('Query is empty'); return;}
@@ -1142,6 +1185,7 @@ async function aiSaveQuery() {
       data.id = response.id;
       data.user = user.firstname + ' ' + user.lastname;
       document.getElementById('queryInfo').innerText = `id: ${data.id} | user: ${data.user}`;
+      document.getElementById('aiQueryId').value = data.id;
     }
 
   } finally {
@@ -1152,6 +1196,20 @@ async function aiSaveQuery() {
 function aiSaveCopyQuery() {
   document.getElementById('aiQueryId').value = null;
   aiSaveQuery();
+}
+
+async function loadAiArticle() {
+  const articleId = document.getElementById('aiArticleId').value;
+
+  const url = '/research/ajax.php?function=loadArticle';
+  const response = await fetchFromServer(url, {id: articleId});
+
+  if (response.error) {
+    showError(response.error);
+    return;
+  }
+
+  document.getElementById('aiArticle').innerText = response.article.text;
 }
 
 function updateCreditsLeft(creditsLeft) {

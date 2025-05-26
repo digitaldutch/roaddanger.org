@@ -33,6 +33,9 @@ if ($function === 'aiRunQuery') {
 } else if ($function === 'aiGetGenerationInfo') {
   echo ResearchHandler::aiGetGenerationInfo();
   return;
+} else if ($function === 'loadArticle') {
+  echo ResearchHandler::loadArticle();
+  return;
 } else if ($function === 'selectAiModel') {
   echo ResearchHandler::selectAiModel();
   return;

@@ -346,9 +346,19 @@ HTML;
       </div>
       
       <div class="labelDiv">Query <span class="smallFont" id="queryInfo"></span></div>
-<!--      <div class="smallFont">Allowed tags: [title], [article]. These are replaced by media article title and full text.</div>-->
+      <div class="smallFont">Allowed tags: [article_title], [article_text]. These are replaced by media article title and full text.</div>
       <textarea id="aiQuery" class="inputForm" style="height: 100px; resize: vertical;"></textarea>
       
+      <div id="articleSection" style="display: none;">
+        <div>Article
+          <span class="smallFont"> 
+            ID <input class="inputSmall" type="text" id="aiArticleId" style="width: 50px;">
+            <button class="buttonTiny" onclick="loadAiArticle();">Load</button>
+          </span>
+        </div>
+        <div id="aiArticle" class="readOnlyInput" style="resize: vertical; overflow: auto; margin-top: 5px;"></div>    
+      </div>
+
       <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
       <div style="display: flex; justify-content: flex-end; margin: 10px 0;">
         <button class="button buttonImportant" onclick="aiRunQuery();" style="margin-left: 0">Run query</button>     
@@ -362,13 +372,14 @@ HTML;
     <div id="spinnerRunQuery" style="display: none; margin: 5px 0; justify-content: center;"><img alt="Spinner" src="/images/spinner.svg"></div>
 
     <div id="groupAiResponse" style="display: none">
-      <div style="font-weight: bold;">Server response</div>
-      <div id="aiResponse" style="background-color: #aaa; color: #000; padding: 3px;"></div>    
+      <div>Server response</div>
+      <div id="aiResponse" class="readOnlyInput" style=""></div>    
       <div class="smallFont">
         <button class="buttonTiny" style="border: none; margin-left: 0;" onclick="showGenerationSummary();">Refresh</button>
         <span id="aiResponseMeta"></span>
       </div>
     </div>
+    
   </div> 
 </div>
 
@@ -427,6 +438,7 @@ HTML;
             <th>Query</th>
             <th>System instructions</th>
             <th>Response format</th>
+            <th>Article Id</th>
           </tr>
         </thead>
         <tbody id="loadAiQueriesBody" onclick="clickAiQueryRow()" ondblclick="loadAiQuery();"></tbody>
@@ -444,7 +456,6 @@ HTML;
   </div>
 </div>
 HTML;
-
   }
 
 

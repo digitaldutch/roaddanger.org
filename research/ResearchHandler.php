@@ -331,6 +331,22 @@ SQL;
     return json_encode($result);
   }
 
+  private static function loadArticleFromDatabase($articleId): false|stdClass {
+    $sql = "SELECT id, title, alltext AS text FROM articles WHERE id=:id";
+    $params = [':id' => $articleId];
+    global $database;
+
+    return $database->fetchObject($sql, $params);
+  }
+
+  private static function getReplaceTags(string $text, int $articleId): string {
+    $article = self::loadArticleFromDatabase($articleId);
+
+    $text = str_replace('[article_text]', $article->text, $text);
+    $text = str_replace('[article_title]', $article->title, $text);
+
+    return $text;
+  }
   public static function aiRunQuery(): false|string {
     try {
       $data = json_decode(file_get_contents('php://input'), true);
@@ -338,6 +354,12 @@ SQL;
       $query = $data['query'];
       $systemInstructions = $data['systemInstructions'];
       $responseFormat = $data['responseFormat'];
+
+      if (is_numeric($data['articleId'])) {
+        $articleId = intval($data['articleId']);
+
+        $query = self::getReplaceTags($query, $articleId);
+      }
 
       require_once '../general/OpenRouterAIClient.php';
 
@@ -385,7 +407,8 @@ UPDATE ai_queries SET
   model_id = :model_id,
   query = :query,
   system_instructions = :system_instructions,
-  response_format = :response_format
+  response_format = :response_format,
+  article_id = :article_id
 WHERE id = :id;                                                                                              ;                                                                                              
 SQL;
 
@@ -395,6 +418,7 @@ SQL;
           ':query' => $data['query'],
           ':system_instructions' => $data['systemInstructions'],
           ':response_format' => $data['responseFormat'],
+          ':article_id' => $data['articleId'],
         ];
 
         $dbResponse = $database->execute($SQL, $params);
@@ -403,8 +427,8 @@ SQL;
         if (! $user->isModerator()) throw new Exception("You have no permission to save a query");
 
         $SQL = <<<SQL
-INSERT INTO ai_queries (user_id, model_id, query, system_instructions, response_format) 
-VALUES (:user_id, :model_id, :query, :system_instructions, :response_format);                                                                                              
+INSERT INTO ai_queries (user_id, model_id, query, system_instructions, response_format, article_id) 
+VALUES (:user_id, :model_id, :query, :system_instructions, :response_format, :article_id);                                                                                              ;                                                                                              
 SQL;
 
         $params = [
@@ -413,6 +437,7 @@ SQL;
           ':query' => $data['query'],
           ':system_instructions' => $data['systemInstructions'],
           ':response_format' => $data['responseFormat'],
+          ':article_id' => $data['articleId'],
         ];
 
         $dbResponse = $database->execute($SQL, $params);
@@ -458,6 +483,7 @@ SELECT
   q.model_id, 
   q.query, 
   q.system_instructions, 
+  q.article_id, 
   q.response_format,
   CONCAT(u.firstname, ' ', u.lastname) AS user
 FROM ai_queries q
@@ -470,6 +496,26 @@ SQL;
         'ok' => true,
         'queries' => $queries,
       ];
+    } catch (\Throwable $e) {
+      $result = ['ok' => false, 'error' => $e->getMessage()];
+    }
+
+    return json_encode($result);
+  }
+
+  public static function loadArticle(): false|string {
+    try {
+      $data = json_decode(file_get_contents('php://input'), true);
+      $articleId = $data['id'];
+
+      $article = self::loadArticleFromDatabase($articleId);
+      if ($article === null) throw new Exception('Article not found');
+
+      $result = [
+        'ok' => true,
+        'article' => $article,
+      ];
+
     } catch (\Throwable $e) {
       $result = ['ok' => false, 'error' => $e->getMessage()];
     }
@@ -531,13 +577,13 @@ SQL;
 
       $params = [
         ':id' => $model['id'],
-        ':name' => $model['name'],
-        ':description' => $model['description'],
+        ':name' => substr($model['name'], 0, 100),
+        ':description' => substr($model['description'], 0, 1000),
         ':context_length' => $model['context_length'],
         ':created' => $model['created'],
         ':cost_input' => $model['cost_input'],
         ':cost_output' => $model['cost_output'],
-        ':structured_outputs' => $model['structured_outputs'],
+        ':structured_outputs' => $model['structured_outputs'] === true? 1 : 0,
       ];
 
       global $database;
@@ -645,6 +691,7 @@ SQL;
         'ok' => true,
         'models' => $models,
         'credits' => $credits,
+        'article' => self::loadArticleFromDatabase(21261),
       ];
     } catch (\Throwable $e) {
       $result = ['ok' => false, 'error' => $e->getMessage()];
