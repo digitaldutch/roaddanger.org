@@ -1360,3 +1360,10 @@ function truncateText(text, maxLength) {
 
   return text;
 }
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).catch(error => {
+    console.error('Failed to copy text:', error);
+    showError('Failed to copy to clipboard');
+  });
+}

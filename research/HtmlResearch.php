@@ -335,6 +335,7 @@ HTML;
       <div id="aiModelInfo" class="smallFont"></div>
       
       <input type="hidden" id="aiQueryId" value="">
+      <input type="hidden" id="aiCrashId" value="">
       
       <div class="labelDiv">System instructions</div>
       <textarea id="aiSystemInstructions" class="inputForm" style="height: 100px; resize: vertical;"></textarea> 
@@ -346,17 +347,24 @@ HTML;
       </div>
       
       <div class="labelDiv">Query <span class="smallFont" id="queryInfo"></span></div>
-      <div class="smallFont">Allowed tags: [article_title], [article_text]. These are replaced by media article title and full text.</div>
+      <div class="smallFont">Available tags:
+      <button class="buttonTiny" onclick="insertAITag('article_title');">[article_title]</button>, 
+      <button class="buttonTiny" onclick="insertAITag('article_text');">[article_text]</button>. 
+      These are replaced by the media article title and full text.</div>
       <textarea id="aiQuery" class="inputForm" style="height: 100px; resize: vertical;"></textarea>
       
-      <div id="articleSection" style="display: none;">
+      <div id="articleSection">
         <div>Article
           <span class="smallFont"> 
             ID <input class="inputSmall" type="text" id="aiArticleId" style="width: 50px;">
-            <button class="buttonTiny" onclick="loadAiArticle();">Load</button>
+            <button class="buttonTiny" onclick="loadAiArticle();">Load from ID</button>
+            <button class="buttonTiny" onclick="loadAiArticle('latest');">Latest</button>
+            <button class="buttonTiny" onclick="loadAiArticle('back');">Back</button>
+            <button class="buttonTiny" onclick="loadAiArticle('next');">Next</button>
+            <button class="buttonTiny" onclick="viewAiCrash();">View Crash</button>
           </span>
         </div>
-        <div id="aiArticle" class="readOnlyInput" style="resize: vertical; overflow: auto; margin-top: 5px;"></div>    
+        <div id="aiArticle" class="readOnlyInput" style="min-height: 100px; max-height: 300px; margin-top: 5px; resize: vertical; overflow: auto;"></div>    
       </div>
 
       <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
@@ -372,7 +380,7 @@ HTML;
     <div id="spinnerRunQuery" style="display: none; margin: 5px 0; justify-content: center;"><img alt="Spinner" src="/images/spinner.svg"></div>
 
     <div id="groupAiResponse" style="display: none">
-      <div>Server response</div>
+      <div>Server response <button class="buttonTiny" onclick="copyServerResponse();">Copy</button></div>
       <div id="aiResponse" class="readOnlyInput" style=""></div>    
       <div class="smallFont">
         <button class="buttonTiny" style="border: none; margin-left: 0;" onclick="showGenerationSummary();">Refresh</button>

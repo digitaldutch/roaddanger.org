@@ -331,9 +331,22 @@ SQL;
     return json_encode($result);
   }
 
-  private static function loadArticleFromDatabase($articleId): false|stdClass {
-    $sql = "SELECT id, title, alltext AS text FROM articles WHERE id=:id";
-    $params = [':id' => $articleId];
+  private static function loadArticleFromDatabase($articleId, $command=''): false|stdClass {
+
+    $params = [];
+    if ($command === 'latest') {
+      $sql = "SELECT id, crashid, title, alltext AS text FROM articles WHERE alltext IS NOT NULL AND TRIM(alltext) != '' ORDER BY id DESC LIMIT 1";
+    } else if ($command === 'next') {
+      $sql = "SELECT id, crashid, title, alltext AS text FROM articles WHERE alltext IS NOT NULL AND TRIM(alltext) != '' AND id < :id ORDER BY id DESC LIMIT 1";
+      $params[':id'] = $articleId;
+    } else if ($command === 'back') {
+      $sql = "SELECT id, crashid, title, alltext AS text FROM articles WHERE alltext IS NOT NULL AND TRIM(alltext) != '' AND id > :id ORDER BY id LIMIT 1";
+      $params[':id'] = $articleId;
+    } else {
+      $sql = "SELECT id, crashid, title, alltext AS text FROM articles WHERE id=:id";
+      $params[':id'] = $articleId;
+    }
+
     global $database;
 
     return $database->fetchObject($sql, $params);
@@ -397,6 +410,8 @@ SQL;
 
       global $user;
       global $database;
+
+      if (empty($data['articleId'])) $data['articleId'] = null;
 
       if (! empty ($data['id'])) {
 
@@ -507,8 +522,9 @@ SQL;
     try {
       $data = json_decode(file_get_contents('php://input'), true);
       $articleId = $data['id'];
+      $command = $data['command']?? null;
 
-      $article = self::loadArticleFromDatabase($articleId);
+      $article = self::loadArticleFromDatabase($articleId, $command);
       if ($article === null) throw new Exception('Article not found');
 
       $result = [
@@ -691,7 +707,6 @@ SQL;
         'ok' => true,
         'models' => $models,
         'credits' => $credits,
-        'article' => self::loadArticleFromDatabase(21261),
       ];
     } catch (\Throwable $e) {
       $result = ['ok' => false, 'error' => $e->getMessage()];

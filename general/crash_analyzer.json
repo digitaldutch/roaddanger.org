@@ -1,0 +1,117 @@
+{
+  "type": "json_schema",
+  "json_schema": {
+    "name": "crash_data",
+    "strict": true,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "language": {
+          "type": "string",
+          "pattern": "^[a-z]{2}$",
+          "description": "Language code using ISO 639-1 alpha-2 format (two lowercase letters)"
+        },
+        "single_party_incident": {
+          "type": "boolean",
+          "description": "True if the incident involved only one party (vehicle, cyclist, pedestrian, train, etc.) without collision with or involvement of any other parties"
+        },
+        "animals_mentioned": {
+          "type": "boolean",
+          "description": "True if animals of any kind (pets, wildlife, livestock) were mentioned in relation to the crash, regardless of their role"
+        },
+        "traffic_congestion": {
+          "type": "boolean",
+          "description": "Indicates whether the incident caused traffic congestion, road closures, or significant delays"
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "Specific location of the incident, formatted as street address, intersection, or landmark with sufficient detail to pinpoint on a map. Add city and country."
+            },
+            "geocoder_prompt": {
+              "type": "string",
+              "description": "Create a prompt for geocoders: Specific location of the incident, formatted for geocoding. Add street, city and country. If the location is an intersection, provide the street names in the format 'street name 1 & street name 2'"
+            },
+            "coordinates": {
+              "type": "object",
+              "properties": {
+                "latitude": {
+                  "type": "number"
+                },
+                "longitude": {
+                  "type": "number"
+                }
+              },
+              "required": ["latitude", "longitude"],
+              "additionalProperties": false
+            },
+            "country_code": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$",
+              "description": "Country code using ISO 3166-1 alpha-2 format (two uppercase letters)"
+            }
+          },
+          "required": ["description", "geocoder_prompt", "coordinates", "country_code"],
+          "additionalProperties": false
+        },
+        "transportation_modes" : {
+          "type": "array",
+          "description": "List all transportation modes involved in the crash separately. For example, instead of grouping similar modes (e.g., '2 cars'), each instance should be listed individually (e.g., 'car 1', 'car 2', 'bike', etc.).",
+          "items": {
+            "type": "object",
+            "properties": {
+              "transportation_mode": {
+                "type": "string",
+                "enum": ["unknown", "pedestrian", "bicycle", "motorScooter", "motorcycle", "car", "taxi", "emergencyVehicle",
+                  "deliveryVan", "tractor", "bus", "tram", "truck", "train", "wheelchair", "mopedCar", "scooter"]
+              },
+              "description": {
+                "type": "string"
+              },
+              "humans" : {
+                "type": "array",
+                "description": "List all humans in a transportation mode separately. Instead of grouping humans (e.g. 2 persons) list them als human 1 and human 2. For transportation modes that require human operation (cars, bicycles, motorcycles, etc.) but don't explicitly mention humans, assume 1 human operator and add them to the list.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    },
+                    "health": {
+                      "type": "string",
+                      "enum": ["dead", "injured", "uninjured","unknown"]
+                    },
+                    "intoxicated": {
+                      "type": "boolean"
+                    },
+                    "child": {
+                      "type": "boolean"
+                    },
+                    "fled_scene": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": ["description", "health", "intoxicated", "child", "fled_scene"],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": ["transportation_mode", "description","humans"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "language",
+        "single_party_incident",
+        "animals_mentioned",
+        "traffic_congestion",
+        "location",
+        "transportation_modes"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

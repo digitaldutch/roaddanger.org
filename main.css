@@ -1117,6 +1117,10 @@ h3, .pageSubTitleFont {
   border-radius: 10px;
 }
 
+.buttonTiny:hover {
+  color: var(--link-color);
+}
+
 .spinner {
   display: none;
   position: absolute;

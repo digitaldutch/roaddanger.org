@@ -1,4 +1,19 @@
-create table roaddanger.countries
+create table ai_models
+(
+  id                 varchar(50)                       not null
+    primary key,
+  name               varchar(100)                      not null,
+  description        varchar(1000)                     null,
+  context_length     int                               not null,
+  created            date                              not null,
+  cost_input         decimal(10, 8) default 0.00000000 not null,
+  cost_output        decimal(10, 8) default 0.00000000 not null,
+  structured_outputs tinyint(1)                        null,
+  constraint name
+    unique (name)
+);
+
+create table countries
 (
   id                char(2)     not null
     primary key,
@@ -10,7 +25,7 @@ create table roaddanger.countries
     unique (id)
 );
 
-create table roaddanger.languages
+create table languages
 (
   id           char(2)     not null
     primary key,
@@ -20,7 +35,7 @@ create table roaddanger.languages
     unique (id)
 );
 
-create table roaddanger.logins
+create table logins
 (
   id        int auto_increment
     primary key,
@@ -29,7 +44,7 @@ create table roaddanger.logins
   lastlogin timestamp   null
 );
 
-create table roaddanger.logs
+create table logs
 (
   id        int auto_increment
     primary key,
@@ -42,7 +57,7 @@ create table roaddanger.logs
     unique (id)
 );
 
-create table roaddanger.longtexts
+create table longtexts
 (
   id          char(100)            not null,
   language_id char(2) default 'en' not null,
@@ -50,19 +65,19 @@ create table roaddanger.longtexts
   primary key (id, language_id)
 );
 
-create table roaddanger.questionnaires
+create table questionnaires
 (
   id         int auto_increment
     primary key,
-  active     smallint   default 0 null,
+  active     smallint   default 0 null comment 'Users are asked to answer questions',
   type       smallint   default 0 null comment '0: standard
 1: Bechdel test',
   country_id char(2)              null,
   title      varchar(100)         null,
-  public     tinyint(1) default 0 null
+  public     tinyint(1) default 0 null comment 'Results are publicly available'
 );
 
-create table roaddanger.questions
+create table questions
 (
   id             int auto_increment
     primary key,
@@ -72,21 +87,21 @@ create table roaddanger.questions
   explanation    varchar(200)         null
 );
 
-create table roaddanger.questionnaire_questions
+create table questionnaire_questions
 (
   questionnaire_id int      not null,
   question_id      int      not null,
   question_order   smallint null,
   primary key (questionnaire_id, question_id),
   constraint quest_questions_questionnaires_id_fk
-    foreign key (questionnaire_id) references roaddanger.questionnaires (id)
+    foreign key (questionnaire_id) references questionnaires (id)
       on update cascade on delete cascade,
   constraint quest_questions_questions_id_fk
-    foreign key (question_id) references roaddanger.questions (id)
+    foreign key (question_id) references questions (id)
       on update cascade
 );
 
-create table roaddanger.users
+create table users
 (
   id                   int auto_increment
     primary key,
@@ -99,22 +114,36 @@ create table roaddanger.users
   passwordhash         varchar(60)                           null,
   passwordrecoveryid   varchar(16)                           null,
   passwordrecoverytime timestamp                             null,
-  permission           tinyint   default 0                   null,
+  permission           tinyint   default 0                   null comment '0=helper; 1=admin; 2=moderator',
   lastactive           timestamp default current_timestamp() not null,
   constraint users_email_uindex
     unique (email),
   constraint users_id_uindex
     unique (id),
   constraint users_FK
-    foreign key (language) references roaddanger.languages (id)
+    foreign key (language) references languages (id)
       on update cascade on delete set null,
   constraint users_FK_country
-    foreign key (countryid) references roaddanger.countries (id)
+    foreign key (countryid) references countries (id)
       on update cascade on delete set null
-)
-  comment 'permission: 0=helper; 1=admin; 2=moderator';
+);
 
-create table roaddanger.crashes
+create table ai_queries
+(
+  id                  int auto_increment
+    primary key,
+  user_id             int           not null,
+  model_id            varchar(50)   null,
+  query               varchar(5000) null,
+  system_instructions varchar(5000) null,
+  response_format     varchar(5000) null,
+  article_id          int           null,
+  constraint ai_queries_users_id_fk
+    foreign key (user_id) references users (id)
+      on update cascade
+);
+
+create table crashes
 (
   id                 int auto_increment
     primary key,
@@ -124,7 +153,7 @@ create table roaddanger.crashes
   updatetime         timestamp  default current_timestamp() not null,
   date               date                                   null,
   streamtopuserid    int                                    null,
-  streamtoptype      smallint                               null,
+  streamtoptype      smallint                               null comment '1: edited, 2: article added, 3: placed on top',
   title              varchar(500)                           not null,
   text               varchar(500)                           null,
   countryid          char(2)                                null,
@@ -141,15 +170,14 @@ create table roaddanger.crashes
   constraint posts_id_uindex
     unique (id),
   constraint crashes_countries_id_fk
-    foreign key (countryid) references roaddanger.countries (id)
+    foreign key (countryid) references countries (id)
       on update cascade on delete set null,
   constraint posts___fk_user
-    foreign key (userid) references roaddanger.users (id)
+    foreign key (userid) references users (id)
       on update cascade on delete cascade
-)
-  comment 'streamtoptype: 1: edited, 2: article added, 3: placed on top';
+);
 
-create table roaddanger.articles
+create table articles
 (
   id                 int auto_increment
     primary key,
@@ -168,14 +196,14 @@ create table roaddanger.articles
   constraint articles_id_uindex
     unique (id),
   constraint articles___fk_crashes
-    foreign key (crashid) references roaddanger.crashes (id)
+    foreign key (crashid) references crashes (id)
       on update cascade on delete cascade,
   constraint articles___fk_user
-    foreign key (userid) references roaddanger.users (id)
+    foreign key (userid) references users (id)
       on update cascade on delete cascade
 );
 
-create table roaddanger.answers
+create table answers
 (
   questionid  int          not null,
   articleid   int          not null,
@@ -184,51 +212,50 @@ create table roaddanger.answers
   constraint answers_pk
     unique (questionid, articleid),
   constraint answers_articles_id_fk
-    foreign key (articleid) references roaddanger.articles (id)
+    foreign key (articleid) references articles (id)
       on update cascade on delete cascade,
   constraint answers_questions_id_fk
-    foreign key (questionid) references roaddanger.questions (id)
+    foreign key (questionid) references questions (id)
       on update cascade on delete cascade
 );
 
 create index articles__index_crashid
-  on roaddanger.articles (crashid);
+  on articles (crashid);
 
 create fulltext index title
-  on roaddanger.articles (title, text);
+  on articles (title, text);
 
 create index crashes__date_streamdate_index
-  on roaddanger.crashes (date, streamdatetime);
+  on crashes (date, streamdatetime);
 
 create index crashes__index_date
-  on roaddanger.crashes (date);
+  on crashes (date);
 
 create index crashes__index_streamdatetime
-  on roaddanger.crashes (streamdatetime);
+  on crashes (streamdatetime);
 
 create fulltext index title
-  on roaddanger.crashes (title, text);
+  on crashes (title, text);
 
-create table roaddanger.crashpersons
+create table crashpersons
 (
   id                 int auto_increment
     primary key,
   crashid            int                not null,
-  transportationmode smallint default 0 null,
-  health             smallint           null,
+  transportationmode smallint default 0 null comment 'unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15, scooter: 16',
+  health             smallint           null comment 'unknown: 0, unharmed: 1, injured: 2, dead: 3',
   child              smallint           null,
   underinfluence     tinyint(1)         null,
   hitrun             tinyint(1)         null,
   groupid            int                null,
   constraint crashpersons___fkcrashes
-    foreign key (crashid) references roaddanger.crashes (id)
+    foreign key (crashid) references crashes (id)
       on update cascade on delete cascade
-)
-  comment 'health: unknown: 0, unharmed: 1, injured: 2, dead: 3 | transportationmode: unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15';
+);
 
 create index crashpersons___fkcrash
-  on roaddanger.crashpersons (crashid);
+  on crashpersons (crashid);
 
 create index crashpersons___fkgroup
-  on roaddanger.crashpersons (groupid);
+  on crashpersons (groupid);
 

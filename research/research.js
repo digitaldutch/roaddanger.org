@@ -407,7 +407,7 @@ function aiModelChange() {
     structured_outputs +
     `<br><br>` + model.description;
 
-  document.getElementById('section_structured_outputs').style.display = model.structured_outputs? 'block' : 'none';
+  showStructuredOutputSection(model.structured_outputs);
 }
 
 async function showLoadAIQueryForm() {
@@ -564,6 +564,11 @@ async function loadAiQuery() {
     return;
   }
 
+  const model = aiModels.find(m => m.id === query.model_id);
+  if (! model) {
+    showError(`AI model "${query.model_id}" is not available. Add this model or select another one.`);
+  }
+
   document.getElementById('aiQueryId').value = query.id;
   document.getElementById('aiModel').value = query.model_id;
   document.getElementById('aiSystemInstructions').value = query.system_instructions;
@@ -575,28 +580,25 @@ async function loadAiQuery() {
 
   document.getElementById('queryInfo').innerText = `id: ${query.id} | user: ${query.user}`;
 
-  
-  
   document.getElementById('formLoadAiModel').style.display = 'none';
 
   loadArticle(query.article_id);
 
-  showArticleSectionIfNeeded();
+  showStructuredOutputSection(model && model.structured_outputs);
 }
 
-function containsArticleTags(query) {
-  return query.includes('[article_title]') || query.includes('[article_text]');
-}
+function showStructuredOutputSection(show) {
+  document.getElementById('section_structured_outputs').style.display = show? 'block' : 'none';
 
-function showArticleSectionIfNeeded() {
-  const query = document.getElementById('aiQuery').value;
-  const hasArticleTags = containsArticleTags(query);
-  document.getElementById('articleSection').style.display = hasArticleTags ? 'block' : 'none';
 }
 
 async function loadArticle(id) {
   const divArticle = document.getElementById('aiArticle');
+  const divArticleId = document.getElementById('aiArticleId');
+  const divCrashId = document.getElementById('aiCrashId');
   divArticle.innerText = '';
+  divCrashId.value = null;
+  divArticleId.value = null;
 
   if (id) {
     const url = '/research/ajax.php?function=loadArticle';
@@ -608,6 +610,8 @@ async function loadArticle(id) {
     }
 
     divArticle.innerText = response.article.text;
+    divArticleId.value = response.article.id;
+    divCrashId.value = response.article.crashid;
   }
 }
 
@@ -697,11 +701,7 @@ async function initAITest() {
     document.getElementById('aiModel').innerHTML = htmlSelectModels;
     document.getElementById('aiForm').style.display = 'block';
 
-    document.getElementById('aiArticleId').value = response.article.id;
-    document.getElementById('aiArticle').innerText = response.article.text;
-
     aiModelChange();
-    showArticleSectionIfNeeded();
 
     if (response.error) showError(response.error);
   } finally {
@@ -1097,6 +1097,17 @@ async function onClickStatisticsTable() {
   divResult.innerHTML = html;
 }
 
+function insertAITag(tagName) {
+  const element = document.getElementById('aiQuery');
+  const tag = `[${tagName}]`
+  const text = element.value;
+
+  const start = element.selectionStart;
+  const end = element.selectionEnd;
+  element.value = text.slice(0, start) + tag + text.slice(end);
+  element.selectionStart = element.selectionEnd = start + tag.length;
+}
+
 async function aiRunQuery() {
 
   const spinner = document.getElementById('spinnerRunQuery');
@@ -1117,7 +1128,7 @@ async function aiRunQuery() {
       model: document.getElementById('aiModel').value,
       query: document.getElementById('aiQuery').value,
       systemInstructions: document.getElementById('aiSystemInstructions').value,
-      responseFormat: model.structured_outputs? document.getElementById('aiResponseFormat').value : '',
+      responseFormat: model?.structured_outputs? document.getElementById('aiResponseFormat').value : '',
       articleId: document.getElementById('aiArticleId').value,
     }
 
@@ -1198,18 +1209,41 @@ function aiSaveCopyQuery() {
   aiSaveQuery();
 }
 
-async function loadAiArticle() {
+function copyServerResponse() {
+  const response = document.getElementById('aiResponse').innerText;
+  copyToClipboard(response);
+  showMessage('Copied to clipboard', 1);
+}
+
+async function loadAiArticle(command='') {
   const articleId = document.getElementById('aiArticleId').value;
 
+  if (! articleId && (command !== 'latest')) {
+    showError('No article ID found');
+    return;
+  }
+
   const url = '/research/ajax.php?function=loadArticle';
-  const response = await fetchFromServer(url, {id: articleId});
+  const response = await fetchFromServer(url, {id: articleId, command: command});
 
   if (response.error) {
     showError(response.error);
     return;
   }
 
+  document.getElementById('aiArticleId').value = response.article.id;
+  document.getElementById('aiCrashId').value = response.article.crashid;
   document.getElementById('aiArticle').innerText = response.article.text;
+}
+
+function viewAiCrash() {
+  const articleId = document.getElementById('aiCrashId').value;
+  if (! articleId) {
+    showError('No article ID found');
+    return;
+  }
+
+  viewCrashInTab(articleId);
 }
 
 function updateCreditsLeft(creditsLeft) {
