@@ -24,7 +24,7 @@ async function initResearch(){
     const idQuestionnaire = url.searchParams.get('id');
     if (idQuestionnaire) document.getElementById('filterQuestionnaire').value = idQuestionnaire;
     await loadQuestionnaireResults();
-  } else if (url.pathname.startsWith('/research/ai_test')) {
+  } else if (url.pathname.startsWith('/research/ai_prompt_builder')) {
     await initAITest();
   }
 }
@@ -410,7 +410,7 @@ function aiModelChange() {
   showStructuredOutputSection(model.structured_outputs);
 }
 
-async function showLoadAIQueryForm() {
+async function showLoadAiPromptForm() {
   const spinner = document.getElementById('spinnerLoadQueries');
   const tableBodyQueries = document.getElementById('loadAiQueriesBody');
 
@@ -420,13 +420,13 @@ async function showLoadAIQueryForm() {
 
     spinner.style.display = 'flex';
 
-    const url = '/research/ajax.php?function=aiGetQueryList';
+    const url = '/research/ajax.php?function=aiGetPromptList';
     const response = await fetchFromServer(url);
 
     tableData[1] = response.queries;
     selectedTableData[1] = null;
 
-    tableBodyQueries.innerHTML = getHtmlTableBodyAiQueries();
+    tableBodyQueries.innerHTML = getHtmlTableBodyAiPrompts();
 
   } finally {
     spinner.style.display = 'none';
@@ -498,12 +498,12 @@ function getHtmlTableBodyAiModels() {
   return htmlModels;
 }
 
-function getHtmlTableBodyAiQueries() {
+function getHtmlTableBodyAiPrompts() {
   let htmlQueries = '';
-  for (const query of tableData[1]) {
-    htmlQueries += `<tr id="tr1_${query.id}"><td>${query.id}</td><td>${query.model_id}</td><td>${query.user}</td>` +
-      `<td>${truncateText(query.query, 30)}</td><td>${truncateText(query.system_instructions, 30)}</td>` +
-      `<td>${truncateText(query.response_format, 30)}</td><td>${query.article_id??''}</td></tr>`;
+  for (const prompt of tableData[1]) {
+    htmlQueries += `<tr id="tr1_${prompt.id}"><td>${prompt.id}</td><td>${prompt.model_id}</td><td>${prompt.user}</td><td>${prompt.function}</td>` +
+      `<td>${truncateText(prompt.user_prompt, 30)}</td><td>${truncateText(prompt.system_prompt, 30)}</td>` +
+      `<td>${truncateText(prompt.response_format, 30)}</td><td>${prompt.article_id??''}</td></tr>`;
   }
 
   return htmlQueries;
@@ -523,10 +523,8 @@ function clickAiModelRow() {
   div.style.display = 'block';
 }
 
-function clickAiQueryRow() {
+function clickaiPromptRow() {
   tableDataClick(event, 1);
-
-  const query = selectedTableData[1];
 }
 
 async function addAiModel() {
@@ -556,33 +554,34 @@ async function addAiModel() {
   }
 }
 
-async function loadAiQuery() {
-  const query = selectedTableData[1];
+async function loadaiPrompt() {
+  const prompt = selectedTableData[1];
 
-  if (! query) {
-    showError('No AI query selected');
+  if (! prompt) {
+    showError('No AI prompt selected');
     return;
   }
 
-  const model = aiModels.find(m => m.id === query.model_id);
+  const model = aiModels.find(m => m.id === prompt.model_id);
   if (! model) {
-    showError(`AI model "${query.model_id}" is not available. Add this model or select another one.`);
+    showError(`AI model "${prompt.model_id}" is not available. Add this model or select another one.`);
   }
 
-  document.getElementById('aiQueryId').value = query.id;
-  document.getElementById('aiModel').value = query.model_id;
-  document.getElementById('aiSystemInstructions').value = query.system_instructions;
-  document.getElementById('aiQuery').value = query.query;
-  document.getElementById('aiResponseFormat').value = query.response_format;
+  document.getElementById('aiPromptId').value = prompt.id;
+  document.getElementById('aiModel').value = prompt.model_id;
+  document.getElementById('aiSystemPrompt').value = prompt.system_prompt;
+  document.getElementById('aiPrompt').value = prompt.user_prompt;
+  document.getElementById('aiResponseFormat').value = prompt.response_format;
 
-  document.getElementById('aiArticleId').value = query.article_id;
+  document.getElementById('aiArticleId').value = prompt.article_id;
   document.getElementById('aiArticle').innerText = '';
 
-  document.getElementById('queryInfo').innerText = `id: ${query.id} | user: ${query.user}`;
+  document.getElementById('promptInfo').innerText = `id: ${prompt.id} | user: ${prompt.user}`;
+  if (prompt.function) document.getElementById('promptInfo').innerText += ` | function: ${prompt.function}`;
 
   document.getElementById('formLoadAiModel').style.display = 'none';
 
-  loadArticle(query.article_id);
+  loadArticle(prompt.article_id);
 
   showStructuredOutputSection(model && model.structured_outputs);
 }
@@ -615,23 +614,23 @@ async function loadArticle(id) {
   }
 }
 
-async function deleteAiQuery() {
-  const query = selectedTableData[1];
+async function deleteAiPrompt() {
+  const prompt = selectedTableData[1];
 
-  if (! query) {
-    showError('No AI query selected');
+  if (! prompt) {
+    showError('No AI prompt selected');
     return;
   }
 
-  confirmWarning(`Delete query?<br>Id: ${query.id}<br>Query: ${truncateText(query.query, 100)}`,
+  confirmWarning(`Delete prompt?<br>Id: ${prompt.id}<br>Prompt: ${truncateText(prompt.user_prompt, 100)}`,
     async () => {
       let response
       const spinner = document.getElementById('spinnerLoadQueries');
       try {
         spinner.style.display = 'flex';
 
-        const url = '/research/ajax.php?function=aiDeleteQuery';
-        response = await fetchFromServer(url, {id: query.id});
+        const url = '/research/ajax.php?function=aiDeletePrompt';
+        response = await fetchFromServer(url, {id: prompt.id});
 
       } finally {
         spinner.style.display = 'none';
@@ -642,8 +641,8 @@ async function deleteAiQuery() {
         return;
       }
 
-      showLoadAIQueryForm();
-    }, 'Delete query'
+      showLoadAiPromptForm();
+    }, 'Delete prompt'
     )
 }
 
@@ -1098,7 +1097,7 @@ async function onClickStatisticsTable() {
 }
 
 function insertAITag(tagName) {
-  const element = document.getElementById('aiQuery');
+  const element = document.getElementById('aiPrompt');
   const tag = `[${tagName}]`
   const text = element.value;
 
@@ -1108,9 +1107,9 @@ function insertAITag(tagName) {
   element.selectionStart = element.selectionEnd = start + tag.length;
 }
 
-async function aiRunQuery() {
+async function aiRunPrompt() {
 
-  const spinner = document.getElementById('spinnerRunQuery');
+  const spinner = document.getElementById('spinnerRunPrompt');
   try {
     spinner.style.display = 'flex';
 
@@ -1126,17 +1125,17 @@ async function aiRunQuery() {
 
     const data = {
       model: document.getElementById('aiModel').value,
-      query: document.getElementById('aiQuery').value,
-      systemInstructions: document.getElementById('aiSystemInstructions').value,
+      userPrompt: document.getElementById('aiPrompt').value,
+      systemPrompt: document.getElementById('aiSystemPrompt').value,
       responseFormat: model?.structured_outputs? document.getElementById('aiResponseFormat').value : '',
       articleId: document.getElementById('aiArticleId').value,
     }
 
-    if (data.query.length < 1) {showError('Query is empty'); return;}
+    if (data.userPrompt.length < 1) {showError('User prompt is empty'); return;}
 
     divResponse.innerText = '...';
 
-    const url = '/research/ajax.php?function=aiRunQuery';
+    const url = '/research/ajax.php?function=aiRunPrompt';
     const response = await fetchFromServer(url, data);
 
     if (response.error) {
@@ -1146,7 +1145,7 @@ async function aiRunQuery() {
       lastGenerationId = response.id;
 
       // Wait for a second, otherwise the meta info is not yet available
-      divMeta.innerText = 'Checking query meta info...';
+      divMeta.innerText = 'Checking prompt meta info...';
       setTimeout(() => {showGenerationSummary();}, 2000);
     }
 
@@ -1157,34 +1156,34 @@ async function aiRunQuery() {
   }
 }
 
-function aiNewQuery() {
- document.getElementById('aiQueryId').value = null;
+function aiNewPrompt() {
+ document.getElementById('aiPromptId').value = null;
  document.getElementById('aiModel').value = null;
- document.getElementById('aiQuery').value = null;
- document.getElementById('aiSystemInstructions').value = null;
+ document.getElementById('aiPrompt').value = null;
+ document.getElementById('aiSystemPrompt').value = null;
  document.getElementById('aiResponseFormat').value = null;
 
- document.getElementById('queryInfo').innerText = ``;
+ document.getElementById('promptInfo').innerText = ``;
 }
-async function aiSaveQuery() {
-  const spinner = document.getElementById('spinnerRunQuery');
+async function aiSavePrompt() {
+  const spinner = document.getElementById('spinnerRunPrompt');
   try {
     spinner.style.display = 'flex';
 
     const model = selectedAiModel();
 
     const data = {
-      id: document.getElementById('aiQueryId').value,
+      id: document.getElementById('aiPromptId').value,
       modelId: document.getElementById('aiModel').value,
-      query: document.getElementById('aiQuery').value,
-      systemInstructions: document.getElementById('aiSystemInstructions').value,
+      userPrompt: document.getElementById('aiPrompt').value,
+      systemPrompt: document.getElementById('aiSystemPrompt').value,
       responseFormat: model.structured_outputs? document.getElementById('aiResponseFormat').value : '',
       articleId: document.getElementById('aiArticleId').value,
     }
 
-    if (data.query.length < 1) {showError('Query is empty'); return;}
+    if (data.userPrompt.length < 1) {showError('User prompt is empty'); return;}
 
-    const url = '/research/ajax.php?function=aiSaveQuery';
+    const url = '/research/ajax.php?function=aiSavePrompt';
     const response = await fetchFromServer(url, data);
 
     if (response.error) {
@@ -1195,8 +1194,8 @@ async function aiSaveQuery() {
     if (! data.id) {
       data.id = response.id;
       data.user = user.firstname + ' ' + user.lastname;
-      document.getElementById('queryInfo').innerText = `id: ${data.id} | user: ${data.user}`;
-      document.getElementById('aiQueryId').value = data.id;
+      document.getElementById('promptInfo').innerText = `id: ${data.id} | user: ${data.user}`;
+      document.getElementById('aiPromptId').value = data.id;
     }
 
   } finally {
@@ -1204,9 +1203,9 @@ async function aiSaveQuery() {
   }
 }
 
-function aiSaveCopyQuery() {
-  document.getElementById('aiQueryId').value = null;
-  aiSaveQuery();
+function aiSaveCopyPrompt() {
+  document.getElementById('aiPromptId').value = null;
+  aiSavePrompt();
 }
 
 function copyServerResponse() {
@@ -1257,7 +1256,7 @@ async function showGenerationSummary() {
   }
 
   const divMeta =document.getElementById('aiResponseMeta');
-  divMeta.innerText = 'Checking query meta info...';
+  divMeta.innerText = 'Checking prompt meta info...';
 
   const url = '/research/ajax.php?function=aiGetGenerationInfo';
   const response = await fetchFromServer(url, {id: lastGenerationId});

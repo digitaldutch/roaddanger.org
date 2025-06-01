@@ -24,7 +24,7 @@ enum PageType {
   case questionnaireSettings;
   case questionnaireResults;
   case questionnaireFillIn;
-  case ai_test;
+  case ai_prompt_builder;
 }
 
 enum QuestionnaireType: int {

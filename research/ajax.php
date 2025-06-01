@@ -21,8 +21,8 @@ if (!$user->isModerator()) {
   dieWithJSONErrorMessage('Permission error: Only moderators allowed');
 }
 
-if ($function === 'aiRunQuery') {
-  echo ResearchHandler::aiRunQuery();
+if ($function === 'aiRunPrompt') {
+  echo ResearchHandler::aiRunPrompt();
   return;
 } else if ($function === 'aiInit') {
   echo ResearchHandler::aiInit();
@@ -45,14 +45,14 @@ if ($function === 'aiRunQuery') {
 } else if ($function === 'updateModelsDatabase') {
   echo ResearchHandler::updateModelsDatabase();
   return;
-} else if ($function === 'aiSaveQuery') {
-  echo ResearchHandler::aiSaveQuery();
+} else if ($function === 'aiSavePrompt') {
+  echo ResearchHandler::aiSavePrompt();
   return;
-} else if ($function === 'aiGetQueryList') {
-  echo ResearchHandler::aiGetQueryList();
+} else if ($function === 'aiGetPromptList') {
+  echo ResearchHandler::aiGetPromptList();
   return;
-} else if ($function === 'aiDeleteQuery') {
-  echo ResearchHandler::aiDeleteQuery();
+} else if ($function === 'aiDeletePrompt') {
+  echo ResearchHandler::aiDeletePrompt();
   return;
 }
 

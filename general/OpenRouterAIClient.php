@@ -56,22 +56,22 @@ class OpenRouterAIClient {
   /**
    * @throws Exception
    */
-  public function chatWithMeta(string $question, string $systemInstructions = '', string $model = self::DEFAULT_MODEL,
-    string $responseFormat = ''): array {
+  public function chatWithMeta(string $user_prompt, string $systemPrompt = '', string $model = self::DEFAULT_MODEL,
+                               string $responseFormat = ''): array {
 
-    if (strlen($question) > 5000) {
-      throw new Exception('The "Query" exceeds the maximum allowed length of 5000 characters');
+    if (strlen($user_prompt) > 5000) {
+      throw new Exception('The "User prompt" exceeds the maximum allowed length of 5000 characters');
     }
 
-    if (strlen($systemInstructions) > 5000) {
-      throw new Exception('The "system instructions" exceed the maximum allowed length of 5000 characters');
+    if (strlen($systemPrompt) > 5000) {
+      throw new Exception('The "system prompt" exceeds the maximum allowed length of 5000 characters');
     }
     
     if (strlen($responseFormat) > 5000) {
-      throw new Exception('The "response format" exceed the maximum allowed length of 5000 characters');
+      throw new Exception('The "response format" exceeds the maximum allowed length of 5000 characters');
     }
 
-    $responseOpenRouter = $this->chatFromOpenRouter($question, $systemInstructions, $model, $responseFormat);
+    $responseOpenRouter = $this->chatFromOpenRouter($user_prompt, $systemPrompt, $model, $responseFormat);
 
     return [
       'response' => $responseOpenRouter['choices'][0]['message']['content'],
@@ -85,12 +85,12 @@ class OpenRouterAIClient {
    * @throws Exception
    */
   public function chat(
-    string $question,
-    string $systemInstructions = '',
+    string $userPrompt,
+    string $systemPrompt = '',
     string $model = self::DEFAULT_MODEL
   ): string {
 
-    $responseOpenRouter = $this->chatFromOpenRouter($question, $systemInstructions, $model);
+    $responseOpenRouter = $this->chatFromOpenRouter($userPrompt, $systemPrompt, $model);
 
     // Extract content from the first assistant response, if available
     if (isset($responseOpenRouter['choices'][0]['message']['content'])) {
@@ -103,20 +103,20 @@ class OpenRouterAIClient {
   /**
    * @throws Exception
    */
-  public function chatFromOpenRouter(string $question, string $systemInstructions = '',
-    string $model = self::DEFAULT_MODEL, string $responseFormat = ''): array {
+  public function chatFromOpenRouter(string $userPrompt, string $systemPrompt = '',
+                                     string $model = self::DEFAULT_MODEL, string $responseFormat = ''): array {
     $messages = [];
 
-    if (! empty($systemInstructions)) {
+    if (! empty($systemPrompt)) {
       $messages[] = [
         'role' => 'system',
-        'content' => $systemInstructions,
+        'content' => $systemPrompt,
       ];
     }
 
     $messages[] = [
       'role' => 'user',
-      'content' => $question,
+      'content' => $userPrompt,
     ];
 
     $postData = [

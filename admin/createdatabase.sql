@@ -128,17 +128,20 @@ create table users
       on update cascade on delete set null
 );
 
-create table ai_queries
+create table ai_prompts
 (
-  id                  int auto_increment
+  id              int auto_increment
     primary key,
-  user_id             int           not null,
-  model_id            varchar(50)   null,
-  query               varchar(5000) null,
-  system_instructions varchar(5000) null,
-  response_format     varchar(5000) null,
-  article_id          int           null,
-  constraint ai_queries_users_id_fk
+  user_id         int           not null,
+  function        varchar(20)   null comment 'Used in website function calls',
+  model_id        varchar(50)   null,
+  user_prompt     varchar(5000) null,
+  system_prompt   varchar(5000) null comment 'Openrouter.ai style system instructions',
+  response_format varchar(5000) null,
+  article_id      int           null,
+  constraint web_function
+    unique (function),
+  constraint ai_prompts_users_id_fk
     foreign key (user_id) references users (id)
       on update cascade
 );

@@ -360,24 +360,24 @@ SQL;
 
     return $text;
   }
-  public static function aiRunQuery(): false|string {
+  public static function aiRunPrompt(): false|string {
     try {
       $data = json_decode(file_get_contents('php://input'), true);
       $model = $data['model'];
-      $query = $data['query'];
-      $systemInstructions = $data['systemInstructions'];
+      $userPrompt = $data['userPrompt'];
+      $systemPrompt = $data['systemPrompt'];
       $responseFormat = $data['responseFormat'];
 
       if (is_numeric($data['articleId'])) {
         $articleId = intval($data['articleId']);
 
-        $query = self::getReplaceTags($query, $articleId);
+        $userPrompt = self::getReplaceTags($userPrompt, $articleId);
       }
 
       require_once '../general/OpenRouterAIClient.php';
 
       $openrouter = new OpenRouterAIClient();
-      $result = $openrouter->chatWithMeta($query, $systemInstructions, $model, $responseFormat);
+      $result = $openrouter->chatWithMeta($userPrompt, $systemPrompt, $model, $responseFormat);
 
       $result['ok'] = true;
     } catch (\Throwable $e) {
@@ -387,16 +387,16 @@ SQL;
     return json_encode($result);
   }
 
-  private static function mayEditQuery($queryId): bool {
+  private static function mayEditPrompt($promptId): bool {
     global $user;
     global $database;
 
     // Only admin can edit other users' queries
     if ($user->admin) return true;
 
-    $SQL = "SELECT 1 FROM ai_queries WHERE id=:id AND user_id=:user_id;";
+    $SQL = "SELECT 1 FROM ai_prompts WHERE id=:id AND user_id=:user_id;";
     $params = [
-      'id' => $queryId,
+      'id' => $promptId,
       'user_id' => $user->id,
     ];
     $dbResult = $database->fetchSingleValue($SQL, $params);
@@ -404,7 +404,7 @@ SQL;
     return $dbResult !== false;
   }
 
-  public static function aiSaveQuery(): false|string {
+  public static function aiSavePrompt(): false|string {
     try {
       $data = json_decode(file_get_contents('php://input'), true);
 
@@ -415,13 +415,13 @@ SQL;
 
       if (! empty ($data['id'])) {
 
-        if (! self::mayEditQuery($data['id'])) throw new Exception("You cannot save somebody else's query");
+        if (! self::mayEditPrompt($data['id'])) throw new Exception("You cannot save somebody else's prompt");
 
         $SQL = <<<SQL
-UPDATE ai_queries SET 
+UPDATE ai_prompts SET 
   model_id = :model_id,
-  query = :query,
-  system_instructions = :system_instructions,
+  user_prompt = :user_prompt,
+  system_prompt = :system_prompt,
   response_format = :response_format,
   article_id = :article_id
 WHERE id = :id;                                                                                              ;                                                                                              
@@ -430,8 +430,8 @@ SQL;
         $params = [
           ':id' => $data['id'],
           ':model_id' => $data['modelId'],
-          ':query' => $data['query'],
-          ':system_instructions' => $data['systemInstructions'],
+          ':user_prompt' => $data['user_prompt'],
+          ':system_prompt' => $data['systemPrompt'],
           ':response_format' => $data['responseFormat'],
           ':article_id' => $data['articleId'],
         ];
@@ -439,18 +439,18 @@ SQL;
         $dbResponse = $database->execute($SQL, $params);
 
       } else {
-        if (! $user->isModerator()) throw new Exception("You have no permission to save a query");
+        if (! $user->isModerator()) throw new Exception("You have no permission to save a prompt");
 
         $SQL = <<<SQL
-INSERT INTO ai_queries (user_id, model_id, query, system_instructions, response_format, article_id) 
-VALUES (:user_id, :model_id, :query, :system_instructions, :response_format, :article_id);                                                                                              ;                                                                                              
+INSERT INTO ai_prompts (user_id, model_id, user_prompt, system_prompt, response_format, article_id) 
+VALUES (:user_id, :model_id, :user_prompt, :system_prompt, :response_format, :article_id);                                                                                              ;                                                                                              
 SQL;
 
         $params = [
           ':user_id' => $user->id,
           ':model_id' => $data['modelId'],
-          ':query' => $data['query'],
-          ':system_instructions' => $data['systemInstructions'],
+          ':user_prompt' => $data['user_prompt'],
+          ':system_prompt' => $data['systemPrompt'],
           ':response_format' => $data['responseFormat'],
           ':article_id' => $data['articleId'],
         ];
@@ -458,7 +458,7 @@ SQL;
         $dbResponse = $database->execute($SQL, $params);
         $result['id'] = $database->lastInsertID();
       }
-      if ($dbResponse === false) throw new Exception('Internal error: Can not update query');
+      if ($dbResponse === false) throw new Exception('Internal error: Can not update prompt');
 
 
       $result['ok'] = true;
@@ -469,13 +469,13 @@ SQL;
     return json_encode($result);
   }
 
-  public static function aiDeleteQuery(): false|string {
+  public static function aiDeletePrompt(): false|string {
     try {
       $data = json_decode(file_get_contents('php://input'), true);
 
-      if (! self::mayEditQuery($data['id'])) throw new Exception("You cannot delete somebody else's query");
+      if (! self::mayEditPrompt($data['id'])) throw new Exception("You cannot delete somebody else's prompt");
 
-      $SQL = "DELETE FROM ai_queries WHERE id=:id;";
+      $SQL = "DELETE FROM ai_prompts WHERE id=:id;";
 
       global $database;
       $database->execute($SQL, ['id' => $data['id']]);;
@@ -490,18 +490,19 @@ SQL;
     return json_encode($result);
   }
 
-  public static function aiGetQueryList(): false|string {
+  public static function aiGetPromptList(): false|string {
     try {
       $SQL = <<<SQL
 SELECT 
   q.id, 
   q.model_id, 
-  q.query, 
-  q.system_instructions, 
+  q.user_prompt, 
+  COALESCE(q.function, '') AS function,  
+  q.system_prompt, 
   q.article_id, 
   q.response_format,
   CONCAT(u.firstname, ' ', u.lastname) AS user
-FROM ai_queries q
+FROM ai_prompts q
 LEFT JOIN users u ON u.id = q.user_id;
 SQL;
 
@@ -634,7 +635,7 @@ UPDATE ai_models SET
   structured_outputs = :structured_outputs
 WHERE id = :id;
 SQL;
-      $query = $database->prepare($SQL);
+      $prompt = $database->prepare($SQL);
 
       foreach ($models as $model) {
         $params = [
@@ -648,7 +649,7 @@ SQL;
           ':structured_outputs' => (int)$model['structured_outputs'],
         ];
 
-        $database->executePrepared($query, $params);
+        $database->executePrepared($prompt, $params);
       }
 
       $result = [

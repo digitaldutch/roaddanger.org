@@ -318,7 +318,7 @@ HTML;
     return <<<HTML
 <div id="pageMain">
   <div class="pageInner"> 
-    <div class="pageSubTitle">AI test page</div>
+    <div class="pageSubTitle">AI prompt builder</div>
     <div id="aiInfo" class="smallFont" style="text-align: right;">&nbsp;</div> 
   
     <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
@@ -334,11 +334,11 @@ HTML;
       </div>
       <div id="aiModelInfo" class="smallFont"></div>
       
-      <input type="hidden" id="aiQueryId" value="">
+      <input type="hidden" id="aiPromptId" value="">
       <input type="hidden" id="aiCrashId" value="">
       
-      <div class="labelDiv">System instructions</div>
-      <textarea id="aiSystemInstructions" class="inputForm" style="height: 100px; resize: vertical;"></textarea> 
+      <div class="labelDiv">System prompt</div>
+      <textarea id="aiSystemPrompt" class="inputForm" style="height: 100px; resize: vertical;"></textarea> 
     
       <div id="section_structured_outputs" style="display: none;">
         <div class="labelDiv">Response format</div>
@@ -346,38 +346,45 @@ HTML;
         <textarea id="aiResponseFormat" class="inputForm" style="height: 100px; resize: vertical;"></textarea> 
       </div>
       
-      <div class="labelDiv">Query <span class="smallFont" id="queryInfo"></span></div>
+      <div class="labelDiv">User prompt <span class="smallFont" id="promptInfo"></span></div>
       <div class="smallFont">Available tags:
       <button class="buttonTiny" onclick="insertAITag('article_title');">[article_title]</button>, 
       <button class="buttonTiny" onclick="insertAITag('article_text');">[article_text]</button>. 
       These are replaced by the media article title and full text.</div>
-      <textarea id="aiQuery" class="inputForm" style="height: 100px; resize: vertical;"></textarea>
+      <textarea id="aiPrompt" class="inputForm" style="height: 100px; resize: vertical;"></textarea>
       
       <div id="articleSection">
-        <div>Article
-          <span class="smallFont"> 
-            ID <input class="inputSmall" type="text" id="aiArticleId" style="width: 50px;">
-            <button class="buttonTiny" onclick="loadAiArticle();">Load from ID</button>
+      
+        <div style="display: flex; justify-content: space-between;">
+          <div>Article
+            <span class="smallFont"> 
+              ID <input class="inputSmall" type="text" id="aiArticleId" style="width: 50px;">
+              <button class="buttonTiny" onclick="loadAiArticle();">Load from ID</button>
+              <button class="buttonTiny" onclick="viewAiCrash();">View Crash</button>
+            </span>
+          </div>
+          <div>
             <button class="buttonTiny" onclick="loadAiArticle('latest');">Latest</button>
             <button class="buttonTiny" onclick="loadAiArticle('back');">Back</button>
-            <button class="buttonTiny" onclick="loadAiArticle('next');">Next</button>
-            <button class="buttonTiny" onclick="viewAiCrash();">View Crash</button>
-          </span>
+            <button class="buttonTiny" onclick="loadAiArticle('next');">Next</button>      
+          </div>
+        
         </div>
+
         <div id="aiArticle" class="readOnlyInput" style="min-height: 100px; max-height: 300px; margin-top: 5px; resize: vertical; overflow: auto;"></div>    
       </div>
 
       <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
       <div style="display: flex; justify-content: flex-end; margin: 10px 0;">
-        <button class="button buttonImportant" onclick="aiRunQuery();" style="margin-left: 0">Run query</button>     
-        <button class="button button buttonGray" onclick="showLoadAIQueryForm();">Load</button>     
-        <button class="button button buttonGray" onclick="aiNewQuery();">New</button>     
-        <button id="buttonSaveQuery" class="button button buttonGray" onclick="aiSaveQuery();">Save</button>     
-        <button id="buttonSaveCopyQuery" class="button button buttonGray" onclick="aiSaveCopyQuery();">Save copy</button>     
+        <button class="button buttonImportant" onclick="aiRunPrompt();" style="margin-left: 0">Run prompt</button>     
+        <button class="button button buttonGray" onclick="showLoadAiPromptForm();">Load</button>     
+        <button class="button button buttonGray" onclick="aiNewPrompt();">New</button>     
+        <button class="button button buttonGray" onclick="aiSavePrompt();">Save</button>     
+        <button class="button button buttonGray" onclick="aiSaveCopyPrompt();">Save copy</button>     
       </div>    
     </div>
     
-    <div id="spinnerRunQuery" style="display: none; margin: 5px 0; justify-content: center;"><img alt="Spinner" src="/images/spinner.svg"></div>
+    <div id="spinnerRunPrompt" style="display: none; margin: 5px 0; justify-content: center;"><img alt="Spinner" src="/images/spinner.svg"></div>
 
     <div id="groupAiResponse" style="display: none">
       <div>Server response <button class="buttonTiny" onclick="copyServerResponse();">Copy</button></div>
@@ -433,7 +440,7 @@ HTML;
 <div id="formLoadAiModel" class="popupOuter">
   <div class="formFullPage" onclick="event.stopPropagation();" style="width: 100%;">
 
-    <div id="headerQuestion" class="popupHeader">Load query</div>
+    <div id="headerQuestion" class="popupHeader">Load prompt</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
     
     <div class="formScrolling">
@@ -443,21 +450,22 @@ HTML;
             <th>Id</th>
             <th>Model</th>
             <th>Owner</th>
-            <th>Query</th>
-            <th>System instructions</th>
+            <th>Function</th>
+            <th>User prompt</th>
+            <th>System prompt</th>
             <th>Response format</th>
             <th>Article Id</th>
           </tr>
         </thead>
-        <tbody id="loadAiQueriesBody" onclick="clickAiQueryRow()" ondblclick="loadAiQuery();"></tbody>
+        <tbody id="loadAiQueriesBody" onclick="clickaiPromptRow()" ondblclick="loadaiPrompt();"></tbody>
       </table>      
     </div>
 
     <div id="spinnerLoadQueries" style="margin: 5px 0;justify-content: center;"><img alt="Spinner" src="/images/spinner.svg"></div>
           
     <div class="popupFooter">
-      <button class="button" style="margin-left: 0;" onclick="loadAiQuery();">Load</button>
-      <button class="button buttonRed" onclick="deleteAiQuery();">Delete</button>
+      <button class="button" style="margin-left: 0;" onclick="loadaiPrompt();">Load</button>
+      <button class="button buttonRed" onclick="deleteAiPrompt();">Delete</button>
       <button class="button buttonGray" onclick="closePopupForm();">Cancel</button>
     </div>
     

@@ -246,7 +246,7 @@ HTML;
     $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
       'Child_victims', 'Mosaic', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
       'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
-      'Version', 'Questionnaires', 'fill_in', 'settings', 'results', 'AI_test', 'Research',
+      'Version', 'Questionnaires', 'fill_in', 'settings', 'results', 'AI_prompt_builder', 'Research',
       'Graphs_and_statistics', 'Media_humanization_test']);
 
     $websiteTitle = WEBSITE_NAME;
@@ -281,7 +281,7 @@ HTML;
       <a href="/research/questionnaires/settings" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['settings']}</a>
       <a href="/research/questionnaires/" class="navItem">{$texts['Questionnaires']} | {$texts['results']}</a>
       <a href="/research/questionnaires/fill_in" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['fill_in']}</a>
-      <a href="/research/ai_test/" class="navItem" data-moderator>{$texts['AI_test']}</a>
+      <a href="/research/ai_prompt_builder/" class="navItem" data-moderator>{$texts['AI_prompt_builder']}</a>
     </div>
 
     <div class="navigationSection">
