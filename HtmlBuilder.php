@@ -365,7 +365,7 @@ HTML;
 
   public static function getFormEditCrash() {
     $texts = translateArray(['Article', 'Crash', 'Fetch_article', 'Link_url', 'Title', 'Media_source', 'Summary',
-      'Full_text',
+      'Full_text', 'Extract_data_from_text',
       'Photo_link_url', 'Same_as_article', 'Select_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
       'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
       'Location', 'Characteristics', 'Save', 'Cancel',
@@ -381,6 +381,7 @@ HTML;
     <div id="editHeader" class="popupHeader"></div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
 
+    <div style="overflow-y: auto">
     <div id="editArticleSection" class="flexColumn">
       <div class="formSubHeader">{$texts['Article']}</div>
 
@@ -422,6 +423,8 @@ HTML;
         <span class="iconTooltip" data-tippy-content="{$texts['Full_text_info']}"></span>
       </div>
       <textarea id="editArticleAllText" maxlength="10000" style="height: 150px; resize: vertical;" class="popupInput" autocomplete="off"></textarea>
+      
+      <div><button class="button buttonGray" style="margin: 5px 0;" onclick="extractDataFromText();">{$texts['Extract_data_from_text']}</button></div>
     </div>
 
     <div id="editCrashSection" class="flexColumn">
@@ -477,6 +480,7 @@ HTML;
         <div id="mapEdit"></div>
       </div>      
       
+    </div>
     </div>
             
     <div class="popupFooter">

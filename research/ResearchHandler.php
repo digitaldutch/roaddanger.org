@@ -363,6 +363,7 @@ SQL;
   public static function aiRunPrompt(): false|string {
     try {
       $data = json_decode(file_get_contents('php://input'), true);
+
       $model = $data['model'];
       $userPrompt = $data['userPrompt'];
       $systemPrompt = $data['systemPrompt'];
@@ -430,7 +431,7 @@ SQL;
         $params = [
           ':id' => $data['id'],
           ':model_id' => $data['modelId'],
-          ':user_prompt' => $data['user_prompt'],
+          ':user_prompt' => $data['userPrompt'],
           ':system_prompt' => $data['systemPrompt'],
           ':response_format' => $data['responseFormat'],
           ':article_id' => $data['articleId'],

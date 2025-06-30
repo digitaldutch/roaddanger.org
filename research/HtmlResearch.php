@@ -341,7 +341,7 @@ HTML;
       <textarea id="aiSystemPrompt" class="inputForm" style="height: 100px; resize: vertical;"></textarea> 
     
       <div id="section_structured_outputs" style="display: none;">
-        <div class="labelDiv">Response format</div>
+        <div class="labelDiv">Response format [JSON]</div>
         <div class="smallFont">For models supporting structured ouputs. Read instructions on the <a href="https://openrouter.ai/docs/features/structured-outputs" target="openrouter">openrouter.ai website</a>.</div>
         <textarea id="aiResponseFormat" class="inputForm" style="height: 100px; resize: vertical;"></textarea> 
       </div>

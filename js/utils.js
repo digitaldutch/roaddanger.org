@@ -1326,10 +1326,11 @@ function searchPersonOptionClick(event, buttonType, transportationMode) {
 
   const optionSelected = optionButton.classList.contains('inputSelectButtonSelected');
   if (optionSelected){
-    // Unselect other person selects if restricted or unilateral option is selected.
+    // Unselect other selected persons if the restricted or unilateral option is selected
     if ((buttonType === 'Restricted') || (buttonType === 'Unilateral')){
       const thisPersonSelect = document.getElementById('tm' + transportationMode);
       const allPersonSelects = document.querySelectorAll('#searchSearchPersons .itemSelected');
+
       if (allPersonSelects.length > 1) allPersonSelects.forEach(p => {if (p !== thisPersonSelect) p.classList.remove('itemSelected');});
     }
 

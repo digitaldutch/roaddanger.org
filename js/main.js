@@ -1432,6 +1432,18 @@ function addPersonPropertiesHtml(){
   document.getElementById('personHealthButtons').innerHTML = htmlButtons;
 }
 
+function extractDataFromText() {
+  event.preventDefault();
+  const text = document.getElementById('editArticleAllText').value;
+
+  if (! text.trim()) {
+    showError(translate('Add_full_article_text', 3));
+    return;
+  }
+
+  showMessage('Coming soon...')
+}
+
 function showSelectHumansForm() {
   closeAllPopups();
 

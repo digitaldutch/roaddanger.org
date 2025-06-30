@@ -608,9 +608,11 @@ async function loadArticle(id) {
       return;
     }
 
-    divArticle.innerText = response.article.text;
     divArticleId.value = response.article.id;
     divCrashId.value = response.article.crashid;
+    divArticle.innerText =
+      'Title:\n ' + response.article.title + '\n\n' +
+      'Text:\n' + response.article.text;
   }
 }
 
@@ -1232,7 +1234,9 @@ async function loadAiArticle(command='') {
 
   document.getElementById('aiArticleId').value = response.article.id;
   document.getElementById('aiCrashId').value = response.article.crashid;
-  document.getElementById('aiArticle').innerText = response.article.text;
+  document.getElementById('aiArticle').innerText =
+    'Title:\n ' + response.article.title + '\n\n' +
+    'Text:\n' + response.article.text;
 }
 
 function viewAiCrash() {
