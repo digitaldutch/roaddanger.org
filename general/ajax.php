@@ -3,11 +3,26 @@
 header('Content-Type: application/json; charset=utf-8');
 
 require_once '../initialize.php';
+require_once 'GeneralHandler.php';
 
 global $database;
 global $user;
 
 $function = $_REQUEST['function'];
+
+
+// All functions must be handled here instead of the loop below
+if ($function === 'extractDataFromArticle') {
+  echo GeneralHandler::extractDataFromArticle();
+  return;
+} else if ($function === 'loadCountryMapOptions') {
+  echo GeneralHandler::loadCountryMapOptions();
+  return;
+} else if ($function === 'loadCountryDomain') {
+  echo GeneralHandler::loadCountryDomain();
+  return;
+}
+
 
 function addPeriodWhereSql(&$sqlWhere, &$params, $filter): void {
   if ((! isset($filter['period'])) || ($filter['period'] === '')) return;
@@ -102,7 +117,7 @@ SELECT
   sum(cp.child=1)          AS child,
   sum(cp.health=3)         AS dead,
   sum(cp.health=2)         AS injured,
-  sum(cp.health=1)         AS unharmed,
+  sum(cp.health=1)         AS uninjured,
   sum(cp.health=0)         AS healthunknown,
   COUNT(*) AS total
 FROM crashpersons cp
@@ -114,16 +129,6 @@ ORDER BY dead DESC, injured DESC
 SQL;
 
   $stats['total'] = $database->fetchAll($sql, $params);
-  foreach ($stats['total'] as &$stat) {
-    $stat['transportationmode'] = (int)$stat['transportationmode'];
-    $stat['underinfluence']     = (int)$stat['underinfluence'];
-    $stat['hitrun']             = (int)$stat['hitrun'];
-    $stat['child']              = (int)$stat['child'];
-    $stat['dead']               = (int)$stat['dead'];
-    $stat['injured']            = (int)$stat['injured'];
-    $stat['healthunknown']      = (int)$stat['healthunknown'];
-    $stat['total']              = (int)$stat['total'];
-  }
 
   return $stats;
 }
@@ -289,6 +294,7 @@ function getStatsDatabase($database){
   $sql = "SELECT COUNT(*) AS count FROM articles";
   $stats['total']['articles'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE a.health=3";
+
   $stats['total']['dead'] = $database->fetchSingleValue($sql);
   $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE a.health=2";
   $stats['total']['injured'] = $database->fetchSingleValue($sql);
@@ -411,6 +417,7 @@ function cleanArticleDBRow($article){
 
 
 // ***** Main loop *****
+// TO DO: Move these over to the GeneralHandler above
 if ($function == 'login') {
 
   if (is_null($_REQUEST['email']) || is_null($_REQUEST['password'])) dieWithJSONErrorMessage('Invalid AJAX login call.');
@@ -563,7 +570,7 @@ else if ($function === 'loadCrashes') {
       if ($sqlModerated) $params[':useridModeration'] = $user->id;
     }
 
-    // Sort on dead=3, injured=2, unknown=0, unharmed=1
+    // Sort on dead=3, injured=2, unknown=0, uninjured=1
     $sql = <<<SQL
 SELECT 
   groupid,
@@ -597,7 +604,6 @@ SELECT DISTINCT
   c.unilateral,
   c.pet, 
   c.trafficjam, 
-  c.tree,
   CONCAT(u.firstname, ' ', u.lastname) AS user, 
   CONCAT(tu.firstname, ' ', tu.lastname) AS streamtopuser 
 FROM crashes c
@@ -698,7 +704,6 @@ SQL;
       $crash['unilateral']            = $crash['unilateral'] == 1;
       $crash['pet']                   = $crash['pet'] == 1;
       $crash['trafficjam']            = $crash['trafficjam'] == 1;
-      $crash['tree']                  = $crash['tree'] == 1;
 
       // Load crash persons
       $crash['persons'] = [];
@@ -880,8 +885,7 @@ else if ($function === 'saveArticleCrash'){
       location        = POINT(:longitude2, :latitude2), 
       unilateral      = :unilateral,
       pet             = :pet,
-      trafficjam      = :trafficjam,
-      tree            = :tree
+      trafficjam      = :trafficjam
     WHERE id=:id $sqlANDOwnOnly
 SQL;
         $params = [
@@ -898,7 +902,6 @@ SQL;
           ':unilateral'            => intval($crash['unilateral']),
           ':pet'                   => intval($crash['pet']),
           ':trafficjam'            => intval($crash['trafficjam']),
-          ':tree'                  => intval($crash['tree']),
         ];
         if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
@@ -909,8 +912,8 @@ SQL;
         // New crash
 
         $sql = <<<SQL
-    INSERT INTO crashes (userid, awaitingmoderation, title, text, date, countryid, location, latitude, longitude, unilateral, pet, trafficjam, tree)
-    VALUES (:userid, :awaitingmoderation, :title, :text, :date, :countryId, POINT(:longitude2, :latitude2), :latitude, :longitude, :unilateral, :pet, :trafficjam, :tree);
+    INSERT INTO crashes (userid, awaitingmoderation, title, text, date, countryid, location, latitude, longitude, unilateral, pet, trafficjam)
+    VALUES (:userid, :awaitingmoderation, :title, :text, :date, :countryId, POINT(:longitude2, :latitude2), :latitude, :longitude, :unilateral, :pet, :trafficjam);
 SQL;
 
         $params = [
@@ -927,7 +930,6 @@ SQL;
           ':unilateral'         => intval($crash['unilateral']),
           ':pet'                => intval($crash['pet']),
           ':trafficjam'         => intval($crash['trafficjam']),
-          ':tree'               => intval($crash['tree']),
         ];
         $dbResult = $database->execute($sql, $params);
         $crash['id'] = (int)$database->lastInsertID();
@@ -1332,39 +1334,6 @@ else if ($function === 'getMediaHumanizationData') {
       'statistics' => $stats,
     ];
   } catch (\Exception $e) {
-    $result = ['ok' => false, 'error' => $e->getMessage()];
-  }
-  echo json_encode($result);
-} //==========
-else if ($function === 'loadCountryOptions') {
-  try {
-    $sql         = 'SELECT options from countries WHERE id=:id;';
-    $params      = [':id' => $user->country['id']];
-    $optionsJson = $database->fetchSingleValue($sql, $params);
-
-    if (! isset($optionsJson)) throw new Exception('No country options found for ' . $user->country['id']);
-    $options     = json_decode($optionsJson);
-
-    $result = ['ok' => true,
-      'options' => $options,
-    ];
-  } catch (\Exception $e) {
-    $result = ['ok' => false, 'error' => $e->getMessage()];
-  }
-  echo json_encode($result);
-} //==========
-else if ($function === 'loadCountryDomain') {
-  try {
-    $data = json_decode(file_get_contents('php://input'), true);
-
-    $sql    = 'SELECT domain from countries WHERE id=:id;';
-    $params = [':id' => $data['countryId']];
-    $domain = $database->fetchSingleValue($sql, $params);
-
-    $result = ['ok' => true,
-      'domain' => $domain,
-    ];
-  } catch (\Throwable $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
   echo json_encode($result);

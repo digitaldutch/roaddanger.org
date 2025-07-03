@@ -1,0 +1,32 @@
+<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        .spinner_block {
+          animation: motion 2.4s linear infinite;
+          animation-delay: -2.4s;
+        }
+
+        .block2{
+          animation-delay: -1.6s;
+          fill: #000000;
+        }
+
+        .block3{
+          animation-delay: -.8s;
+          fill: #ffbe0d;
+        }
+
+        @keyframes motion {
+          8.33% {x:13px;y:1px}
+          25% {x:13px;y:1px}
+          33.3% {x:13px;y:13px}
+          50% {x:13px;y:13px}
+          58.33% {x:1px;y:13px}
+          75% {x:1px;y:13px}
+          83.33% {x:1px;y:1px}
+        }
+    </style>
+
+    <rect class="spinner_block" fill="#f23825" x="1" y="1" rx="1" width="10" height="10"/>
+    <rect class="spinner_block block2" x="1" y="1" rx="1" width="10" height="10"/>
+    <rect class="spinner_block block3" x="1" y="1" rx="1" width="10" height="10"/>
+</svg>

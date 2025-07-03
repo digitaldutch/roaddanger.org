@@ -1,6 +1,6 @@
 <?php
-$VERSION = 591;
-$VERSION_DATE = '30 June 2025';
+$VERSION = 592;
+$VERSION_DATE = '3 July 2025';
 
 require_once 'configsecret.php';
 
@@ -47,4 +47,4 @@ const MAPBOX_GEOCODER_CSS = 'https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-
 const HEADLESS_BROWSER_COMMAND = 'chromium --headless=new --dump-dom --disable-gpu --log-level=3 ';
 
 // Windows 11 with Google Chrome
-//const HEADLESS_BROWSER_COMMAND = '"C:\Program Files\Google\Chrome\Application\chrome.exe" --headless=new --dump-dom ';
+const HEADLESS_BROWSER_COMMAND_WINDOWS = '"C:\Program Files\Google\Chrome\Application\chrome.exe" --headless=new --dump-dom ';

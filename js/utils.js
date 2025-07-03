@@ -16,7 +16,7 @@ const UserPermission = Object.freeze({newUser: 0, admin: 1, moderator: 2});
 const TransportationMode = Object.freeze({
   unknown: 0, pedestrian: 1, bicycle: 2, motorScooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,
   bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15, scooter: 16});
-const Health = Object.freeze({unknown: 0, unharmed: 1, injured: 2, dead: 3});
+const Health = Object.freeze({unknown: 0, uninjured: 1, injured: 2, dead: 3});
 const StreamTopType = Object.freeze({unknown: 0, edited: 1, articleAdded: 2, placedOnTop: 3});
 const QuestionnaireType = Object.freeze({standard: 0, bechdel: 1});
 const QuestionAnswer = Object.freeze({no: 0, yes: 1, notDeterminable: 2});
@@ -808,11 +808,11 @@ function transportationImageFileName(transportationModeValue, white=false){
 
 function transportationModeImageClassName(transportationMode, white=false) {
   let className;
+
   switch (transportationMode) {
     case TransportationMode.unknown: className = 'bgUnknown'; break;
     case TransportationMode.pedestrian: className = 'bgPedestrian'; break;
     case TransportationMode.bicycle: className = 'bgBicycle'; break;
-    case TransportationMode.scooter: className = 'bgScooter'; break;
     case TransportationMode.motorScooter: className = 'bgMotorScooter'; break;
     case TransportationMode.motorcycle: className = 'bgMotorcycle'; break;
     case TransportationMode.car: className = 'bgCar'; break;
@@ -826,12 +826,36 @@ function transportationModeImageClassName(transportationMode, white=false) {
     case TransportationMode.train: className = 'bgTrain'; break;
     case TransportationMode.wheelchair: className = 'bgWheelchair'; break;
     case TransportationMode.mopedCar: className = 'bgMopedCar'; break;
+    case TransportationMode.scooter: className = 'bgScooter'; break;
     default: className = 'bgUnknown';
   }
 
   if (white) className += 'White';
 
   return className;
+}
+
+function transportationModeFromText(text) {
+  switch (text) {
+    case 'unknown': return TransportationMode.unknown;
+    case 'pedestrian': return TransportationMode.pedestrian;
+    case 'bicycle': return TransportationMode.bicycle;
+    case 'motorScooter': return TransportationMode.motorScooter;
+    case 'motorcycle': return TransportationMode.motorcycle;
+    case 'car': return TransportationMode.car;
+    case 'taxi': return TransportationMode.taxi;
+    case 'emergencyVehicle': return TransportationMode.emergencyVehicle;
+    case 'deliveryVan': return TransportationMode.deliveryVan;
+    case 'tractor': return TransportationMode.tractor;
+    case 'bus': return TransportationMode.bus;
+    case 'tram': return TransportationMode.tram;
+    case 'truck': return TransportationMode.truck;
+    case 'train': return TransportationMode.train;
+    case 'wheelchair': return TransportationMode.wheelchair;
+    case 'mopedCar': return TransportationMode.mopedCar;
+    case 'scooter': return TransportationMode.scooter;
+    default: return TransportationMode.unknown;
+  }
 }
 
 function humanIconHtml(human, humanIndex, showAllHealth=true) {
@@ -874,18 +898,28 @@ function healthIconHtml(healthStatus, addTooltip=true) {
 
 function healthText(healthStatus) {
   switch (healthStatus) {
-    case Health.unknown:  return translate('Unknown');
-    case Health.unharmed: return translate('Unharmed');
-    case Health.injured:  return translate('Injured');
-    case Health.dead:     return translate('Dead_(adjective)');
-    default:               return '';
+    case Health.unknown: return translate('Unknown');
+    case Health.uninjured: return translate('Uninjured');
+    case Health.injured: return translate('Injured');
+    case Health.dead: return translate('Dead_(adjective)');
+    default: return '';
+  }
+}
+
+function healthFromText(text) {
+  switch (text) {
+    case 'unknown': return Health.unknown;
+    case 'uninjured': return Health.uninjured;
+    case 'injured': return Health.injured;
+    case 'dead': return Health.dead;
+    default: return '';
   }
 }
 
 function healthImageClassName(healthStatus) {
   switch (healthStatus) {
     case Health.unknown: return 'bgUnknown';
-    case Health.unharmed: return 'bgUnharmed';
+    case Health.uninjured: return 'bgUninjured';
     case Health.injured: return 'bgInjuredRed';
     case Health.dead: return 'bgDeadRed';
     default: return 'bgUnknown';

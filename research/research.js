@@ -611,6 +611,7 @@ async function loadArticle(id) {
     divArticleId.value = response.article.id;
     divCrashId.value = response.article.crashid;
     divArticle.innerText =
+      'Date:\n ' + response.article.date + '\n\n' +
       'Title:\n ' + response.article.title + '\n\n' +
       'Text:\n' + response.article.text;
   }
@@ -1235,6 +1236,7 @@ async function loadAiArticle(command='') {
   document.getElementById('aiArticleId').value = response.article.id;
   document.getElementById('aiCrashId').value = response.article.crashid;
   document.getElementById('aiArticle').innerText =
+    'Date:\n ' + response.article.date + '\n\n' +
     'Title:\n ' + response.article.title + '\n\n' +
     'Text:\n' + response.article.text;
 }

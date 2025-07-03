@@ -750,7 +750,7 @@ h3, .pageSubTitleFont {
 .bgInjuredBlack { background-image: url(/images/person_injured_black.svg);}
 .bgInjuredWhite { background-image: url(/images/person_injured_white.svg);}
 .bgInjuredRed { background-image: url(/images/person_injured_red.svg);}
-.bgUnharmed { background-image: url(/images/unharmed.svg);}
+.bgUninjured { background-image: url(/images/uninjured.svg);}
 .bgRestricted { background-image: url(/images/restricted.svg);}
 
 .bgPedestrian { background-image: url(/images/transportation_modes/pedestrian.svg);}
@@ -800,7 +800,6 @@ h3, .pageSubTitleFont {
 .bgHitRun { background-image: url(/images/hitrun.svg);}
 .bgHitRunWhite { background-image: url(/images/hitrun_white.svg);}
 .bgTrafficJam { background-image: url(/images/trafficjam.svg);}
-.bgTree { background-image: url(/images/tree.svg);}
 
 .buttonPopupMenu, .buttonPopupMenuTemp {
   display: none;

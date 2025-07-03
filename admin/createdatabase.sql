@@ -246,7 +246,7 @@ create table crashpersons
     primary key,
   crashid            int                not null,
   transportationmode smallint default 0 null comment 'unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15, scooter: 16',
-  health             smallint           null comment 'unknown: 0, unharmed: 1, injured: 2, dead: 3',
+  health             smallint           null comment 'unknown: 0, uninjured: 1, injured: 2, dead: 3',
   child              smallint           null,
   underinfluence     tinyint(1)         null,
   hitrun             tinyint(1)         null,

@@ -272,3 +272,11 @@ function deleteSessionIdAndClose(string $id): void {
     session_write_close();
   }
 }
+
+function replaceArticleTags(string $text, object $article): string {
+  $text = str_replace('[article_date]', $article->date, $text);
+  $text = str_replace('[article_text]', $article->text, $text);
+  $text = str_replace('[article_title]', $article->title, $text);
+
+  return $text;
+}

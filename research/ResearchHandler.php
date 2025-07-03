@@ -3,6 +3,7 @@
 class ResearchHandler {
 
   static public function loadQuestionnaires():string {
+
     global $database;
     try{
 
@@ -227,7 +228,7 @@ SQL;
 
       $questionnaires = $database->fetchAll($sql);
 
-      // Sort on dead=3, injured=2, unknown=0, unharmed=1
+      // Sort on dead=3, injured=2, unknown=0, uninjured=1
       $sql = <<<SQL
 SELECT 
 groupid,
@@ -335,15 +336,15 @@ SQL;
 
     $params = [];
     if ($command === 'latest') {
-      $sql = "SELECT id, crashid, title, alltext AS text FROM articles WHERE alltext IS NOT NULL AND TRIM(alltext) != '' ORDER BY id DESC LIMIT 1";
+      $sql = "SELECT id, crashid, title, alltext AS text, DATE(publishedtime) AS date FROM articles WHERE alltext IS NOT NULL AND TRIM(alltext) != '' ORDER BY id DESC LIMIT 1";
     } else if ($command === 'next') {
-      $sql = "SELECT id, crashid, title, alltext AS text FROM articles WHERE alltext IS NOT NULL AND TRIM(alltext) != '' AND id < :id ORDER BY id DESC LIMIT 1";
+      $sql = "SELECT id, crashid, title, alltext AS text, DATE(publishedtime) AS date FROM articles WHERE alltext IS NOT NULL AND TRIM(alltext) != '' AND id < :id ORDER BY id DESC LIMIT 1";
       $params[':id'] = $articleId;
     } else if ($command === 'back') {
-      $sql = "SELECT id, crashid, title, alltext AS text FROM articles WHERE alltext IS NOT NULL AND TRIM(alltext) != '' AND id > :id ORDER BY id LIMIT 1";
+      $sql = "SELECT id, crashid, title, alltext AS text, DATE(publishedtime) AS date FROM articles WHERE alltext IS NOT NULL AND TRIM(alltext) != '' AND id > :id ORDER BY id LIMIT 1";
       $params[':id'] = $articleId;
     } else {
-      $sql = "SELECT id, crashid, title, alltext AS text FROM articles WHERE id=:id";
+      $sql = "SELECT id, crashid, title, alltext AS text, DATE(publishedtime) AS date FROM articles WHERE id=:id";
       $params[':id'] = $articleId;
     }
 
@@ -352,14 +353,6 @@ SQL;
     return $database->fetchObject($sql, $params);
   }
 
-  private static function getReplaceTags(string $text, int $articleId): string {
-    $article = self::loadArticleFromDatabase($articleId);
-
-    $text = str_replace('[article_text]', $article->text, $text);
-    $text = str_replace('[article_title]', $article->title, $text);
-
-    return $text;
-  }
   public static function aiRunPrompt(): false|string {
     try {
       $data = json_decode(file_get_contents('php://input'), true);
@@ -372,7 +365,9 @@ SQL;
       if (is_numeric($data['articleId'])) {
         $articleId = intval($data['articleId']);
 
-        $userPrompt = self::getReplaceTags($userPrompt, $articleId);
+        $article = self::loadArticleFromDatabase($articleId);
+
+        $userPrompt = replaceArticleTags($userPrompt, $article);
       }
 
       require_once '../general/OpenRouterAIClient.php';

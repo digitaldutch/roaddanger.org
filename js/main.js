@@ -437,7 +437,7 @@ async function loadStatistics() {
 <div class="iconMedium ${imageClassName}"></div><span class="hideOnMobile" style="margin-left: 5px;">${transportationModeText(stat.transportationmode)}</span></div></td>
 <td style="text-align: right;">${stat.dead}</td>
 <td style="text-align: right;">${stat.injured}</td>
-<td style="text-align: right;">${stat.unharmed}</td>
+<td style="text-align: right;">${stat.uninjured}</td>
 <td style="text-align: right;">${stat.healthunknown}</td>
 <td style="text-align: right;">${stat.child}</td>
 <td style="text-align: right;">${stat.underinfluence}</td>
@@ -878,8 +878,8 @@ async function loadMapDataFromServer(){
 
 }
 
-async function getCountryOptions(){
-  const urlServer = '/general/ajax.php?function=loadCountryOptions';
+async function getCountryMapOptions(){
+  const urlServer = '/general/ajax.php?function=loadCountryMapOptions';
   const response  = await fetchFromServer(urlServer);
 
   if (response.error) {
@@ -890,11 +890,11 @@ async function getCountryOptions(){
 }
 
 async function loadMap() {
-  const options = await getCountryOptions();
+  const options = await getCountryMapOptions();
 
   const url = new URL(location.href);
-  const longitude = url.searchParams.get('lng')  || options.map.longitude;
-  const latitude  = url.searchParams.get('lat')  || options.map.latitude;
+  const longitude = url.searchParams.get('lng') || options.map.longitude;
+  const latitude  = url.searchParams.get('lat') || options.map.latitude;
   const zoom      = url.searchParams.get('zoom') || options.map.zoom;
 
   if (! mapMain) {
@@ -1135,7 +1135,7 @@ function getMosaicHTML(newCrashes){
 }
 
 function getCrashDetailsHTML(crashId){
-  const crash         = getCrashFromId(crashId);
+  const crash = getCrashFromId(crashId);
   const crashArticles = getCrashArticles(crash.id, articles);
   const canEditCrash  = user.moderator || (crash.userid === user.id);
 
@@ -1371,33 +1371,33 @@ function showEditCrashForm(isNewCrash=false) {
      return;
   }
 
-  document.getElementById('editHeader').innerText       = translate('Add_new_crash');
-  document.getElementById('buttonSaveArticle').value    = translate('Save');
-  document.getElementById('crashIDHidden').value        = '';
-  document.getElementById('articleIDHidden').value      = '';
+  document.getElementById('editHeader').innerText = translate('Add_new_crash');
+  document.getElementById('buttonSaveArticle').value = translate('Save');
+  document.getElementById('crashIDHidden').value = '';
+  document.getElementById('articleIDHidden').value = '';
 
-  document.getElementById('editArticleUrl').value       = '';
-  document.getElementById('editArticleTitle').value     = '';
-  document.getElementById('editArticleText').value      = '';
-  document.getElementById('editArticleAllText').value   = '';
-  document.getElementById('editArticleUrlImage').value  = '';
-  document.getElementById('editArticleSiteName').value  = '';
-  document.getElementById('editArticleDate').value      = '';
+  document.getElementById('editArticleUrl').value = '';
+  document.getElementById('editArticleTitle').value = '';
+  document.getElementById('editArticleText').value = '';
+  document.getElementById('editArticleAllText').value = '';
+  document.getElementById('editArticleUrlImage').value = '';
+  document.getElementById('editArticleSiteName').value = '';
+  document.getElementById('editArticleDate').value = '';
 
-  document.getElementById('editCrashTitle').value       = '';
-  document.getElementById('editCrashText').value        = '';
-  document.getElementById('editCrashDate').value        = '';
-  document.getElementById('editCrashLatitude').value    = '';
-  document.getElementById('editCrashLongitude').value   = '';
-  document.getElementById('editCrashCountry').value     = user.country.id === 'UN'? null : user.countryid;
+  document.getElementById('editCrashTitle').value = '';
+  document.getElementById('editCrashText').value = '';
+  document.getElementById('editCrashDate').value = '';
+  document.getElementById('aiLocationInfo').innerText = '';
+  document.getElementById('editCrashLatitude').value = '';
+  document.getElementById('editCrashLongitude').value = '';
+  document.getElementById('editCrashCountry').value = user.country.id === 'UN'? null : user.countryid;
 
   document.getElementById('editCrashUnilateral').classList.remove('buttonSelected');
   document.getElementById('editCrashPet').classList.remove('buttonSelected');
   document.getElementById('editCrashTrafficJam').classList.remove('buttonSelected');
-  document.getElementById('editCrashTree').classList.remove('buttonSelected');
 
   editCrashPersons = [];
-  refreshEditCrashHumans(editCrashPersons);
+  setEditCrashHumans(editCrashPersons);
 
   document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'inline-flex';});
 
@@ -1407,8 +1407,11 @@ function showEditCrashForm(isNewCrash=false) {
 
   document.getElementById('editArticleUrl').focus();
 
+  document.getElementById('ai_extract_info').style.display = 'none';
+
   document.querySelectorAll('[data-readonlyhelper]').forEach(d => {d.readOnly = ! user.moderator;});
 
+  document.querySelectorAll('[data-crash-new-only]').forEach(d => {d.style.display = isNewCrash? 'flex' : 'none';});
   document.querySelectorAll('[data-crash-edit-only]').forEach(d => {d.style.display = isNewCrash? 'none' : 'flex';});
 }
 
@@ -1432,16 +1435,83 @@ function addPersonPropertiesHtml(){
   document.getElementById('personHealthButtons').innerHTML = htmlButtons;
 }
 
-function extractDataFromText() {
+async function extractDataFromArticle() {
   event.preventDefault();
-  const text = document.getElementById('editArticleAllText').value;
 
-  if (! text.trim()) {
-    showError(translate('Add_full_article_text', 3));
+  const spinner = document.getElementById('spinnerExtractData');
+
+  const date = document.getElementById('editArticleDate').value;
+  const text = document.getElementById('editArticleAllText').value;
+  const title = document.getElementById('editArticleTitle').value;
+
+  if (! date) {
+    showError(translate('Add_article_date'));
     return;
   }
 
-  showMessage('Coming soon...')
+  if (! text.trim()) {
+    showError(translate('Add_full_article_text'));
+    return;
+  }
+
+  if (! title.trim()) {
+    showError(translate('Add_article_title'));
+    return;
+  }
+
+  const url = '/general/ajax.php?function=extractDataFromArticle';
+  const data = {
+    text: text,
+    title: title,
+    date: date,
+  };
+
+  try {
+    spinner.style.display = 'inline-flex';
+
+    const response = await fetchFromServer(url, data);
+
+    if (response.error) showError(response.error, 10);
+
+    const crash = response.data;
+    editCrashPersons = [];
+    for (const transportationMode of crash.transportation_modes) {
+      const tmNumber = transportationModeFromText(transportationMode.transportation_mode);
+
+      for (const human of transportationMode.humans) {
+        editCrashPersons.push({
+          groupid: null,
+          transportationmode: tmNumber,
+          health: healthFromText(human.health),
+          child: human.child,
+          underinfluence: human.intoxicated,
+          hitrun: human.fled_scene,
+        });
+      }
+    }
+
+    // Set GUI with data from AI
+    document.getElementById('editCrashCountry').value = crash.location.country_code;
+    document.getElementById('editCrashDate').value = crash.crash_date? crash.crash_date : null;
+
+    selectButton('editCrashUnilateral', crash.single_party_incident);
+    selectButton('editCrashPet', crash.animals_mentioned);
+    selectButton('editCrashTrafficJam', crash.traffic_congestion);
+
+    setEditCrashHumans(editCrashPersons);
+
+    document.getElementById('aiLocationInfo').innerText = translate('Crash_location') + ': ' + crash.location.description;
+    document.getElementById('editCrashLatitude').value = crash.location.coordinates.latitude;
+    document.getElementById('editCrashLongitude').value = crash.location.coordinates.longitude;
+    showMapEdit(crash.location.coordinates.latitude, crash.location.coordinates.longitude).then(
+      () => {mapEdit.setZoom(12);}
+    );
+
+    document.getElementById('ai_extract_info').style.display = 'flex';
+
+  } finally {
+    spinner.style.display = 'none';
+  }
 }
 
 function showSelectHumansForm() {
@@ -1548,17 +1618,17 @@ function addHuman() {
   editCrashPersons.push(person);
 
   refreshSelectHumansIcons(editCrashPersons);
-  refreshEditCrashHumans(editCrashPersons);
+  setEditCrashHumans(editCrashPersons);
 }
 
 function deleteHuman(personId) {
   editCrashPersons = editCrashPersons.filter(person => person.id !== personId);
 
   refreshSelectHumansIcons(editCrashPersons);
-  refreshEditCrashHumans(editCrashPersons);
+  setEditCrashHumans(editCrashPersons);
 }
 
-function refreshEditCrashHumans(humans) {
+function setEditCrashHumans(humans) {
   let html = '';
 
   let iHuman = 0;
@@ -1570,6 +1640,7 @@ function refreshEditCrashHumans(humans) {
   }
 
   document.getElementById('editCrashPersons').innerHTML = html;
+
   tippy('[data-tippy-content]', {allowHTML: true});
 }
 function refreshSelectHumansIcons(humans) {
@@ -1591,7 +1662,7 @@ function refreshSelectHumansIcons(humans) {
   tippy('[data-tippy-content]', {allowHTML: true});
 }
 
-function setArticleCrashFields(crashID){
+function setArticleCrashFields(crashID, showMap=true){
   const crash = getCrashFromId(crashID);
   const crashDatetime = new Date(crash.date);
 
@@ -1602,6 +1673,7 @@ function setArticleCrashFields(crashID){
   document.getElementById('editCrashTitle').value = crash.title;
   document.getElementById('editCrashText').value = crash.text;
   document.getElementById('editCrashDate').value = dateToISO(crashDatetime);
+  document.getElementById('aiLocationInfo').innerText = '';
   document.getElementById('editCrashLatitude').value = crash.latitude;
   document.getElementById('editCrashLongitude').value = crash.longitude;
   document.getElementById('editCrashCountry').value = crash.countryid;
@@ -1609,11 +1681,12 @@ function setArticleCrashFields(crashID){
   selectButton('editCrashUnilateral', crash.unilateral);
   selectButton('editCrashPet', crash.pet);
   selectButton('editCrashTrafficJam', crash.trafficjam);
-  selectButton('editCrashTree', crash.tree);
 
-  refreshEditCrashHumans(crash.persons);
+  setEditCrashHumans(crash.persons);
 
-  showMapEdit(crash.latitude, crash.longitude);
+  document.getElementById('ai_extract_info').style.display = 'none';
+
+  if (showMap) showMapEdit(crash.latitude, crash.longitude);
 }
 
 function openArticleLink(event, articleID) {
@@ -1639,7 +1712,7 @@ function toggleAllText(element, event, articleDivId, articleId){
 function editArticle(crashID, articleID) {
   showEditCrashForm();
 
-  setArticleCrashFields(crashID);
+  setArticleCrashFields(crashID, false);
 
   const article = getArticleFromId(articleID);
 
@@ -1671,7 +1744,7 @@ function editArticle(crashID, articleID) {
 
 function addArticleToCrash(crashID) {
   showEditCrashForm();
-  setArticleCrashFields(crashID);
+  setArticleCrashFields(crashID, false);
 
   document.getElementById('editHeader').innerText           = translate('Add_article');
   document.getElementById('editCrashSection').style.display = 'none';
@@ -1805,7 +1878,7 @@ async function saveAnswer(articleId, questionId, answer) {
     }
   }
 
-  const url  = '/general/ajax.php?function=saveAnswer';
+  const url = '/general/ajax.php?function=saveAnswer';
   const data = {
     articleId:  articleId,
     questionId: questionId,
@@ -1987,7 +2060,7 @@ async function getArticleMetaData() {
   const url = '/general/ajax.php?function=getPageMetaData';
 
   document.getElementById('spinnerMeta').style.display = 'flex';
-  document.getElementById('tarantulaResults').innerHTML = '<img src="/images/spinner.svg" style="height: 30px;">';
+  document.getElementById('tarantulaResults').innerHTML = '<img src="/images/spinner_black.svg" style="height: 40px;">';
   try {
     const response = await fetchFromServer(url, dataServer);
 
@@ -2050,9 +2123,9 @@ async function saveArticleCrash(){
     if (! articleEdited.date)                         {showError(translate('Article_date_not_filled_in')); return;}
   }
 
-  let latitude  = document.getElementById('editCrashLatitude').value;
+  let latitude = document.getElementById('editCrashLatitude').value;
   let longitude = document.getElementById('editCrashLongitude').value;
-  latitude  = latitude?  parseFloat(latitude)  : null;
+  latitude  = latitude? parseFloat(latitude)  : null;
   longitude = longitude? parseFloat(longitude) : null;
 
   // Both latitude and longitude need to be defined or they both are set to null
@@ -2070,7 +2143,6 @@ async function saveArticleCrash(){
     unilateral: document.getElementById('editCrashUnilateral').classList.contains('buttonSelected'),
     pet: document.getElementById('editCrashPet').classList.contains('buttonSelected'),
     trafficjam: document.getElementById('editCrashTrafficJam').classList.contains('buttonSelected'),
-    tree: document.getElementById('editCrashTree').classList.contains('buttonSelected'),
   };
 
   if (crashEdited.id) crashEdited.id = parseInt(crashEdited.id);
@@ -2116,7 +2188,6 @@ async function saveArticleCrash(){
       crashes[i].longitude  = crashEdited.longitude;
       crashes[i].unilateral = crashEdited.unilateral;
       crashes[i].pet        = crashEdited.pet;
-      crashes[i].tree       = crashEdited.tree;
       crashes[i].trafficjam = crashEdited.trafficjam;
     } else if (saveArticle) {
       let i = articles.findIndex(article => {return article.id === articleEdited.id});
@@ -2599,9 +2670,9 @@ async function showMapEdit(latitude, longitude) {
   function setCrashMarker(latitude, longitude){
     if (mapCrash) mapCrash.setLngLat(new mapboxgl.LngLat(longitude, latitude));
     else {
-      const markerElement     = document.createElement('div');
+      const markerElement = document.createElement('div');
       markerElement.innerHTML = `<img class="mapMarker" src="/images/pin.svg" alt="marker">`;
-      markerElement.id        = 'marker';
+      markerElement.id = 'marker';
       markerElement.addEventListener('click', (e) => {
         e.stopPropagation();
         confirmMessage(`Locatie verwijderen?`, () => {
@@ -2612,6 +2683,7 @@ async function showMapEdit(latitude, longitude) {
        });
 
       deleteCrashMarker();
+
       markerEdit = new mapboxgl.Marker(markerElement, {anchor: 'bottom', draggable: true})
         .setLngLat([longitude, latitude])
         .addTo(mapEdit)
@@ -2629,8 +2701,8 @@ async function showMapEdit(latitude, longitude) {
     }
   }
 
-  const options = await getCountryOptions();
-  // Zoom out to fit into landscape map view
+  const options = await getCountryMapOptions();
+  // Zoom out to fit into the landscape map view
   options.map.zoom -= 1;
 
   let showMarker = true;

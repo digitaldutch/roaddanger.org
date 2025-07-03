@@ -365,7 +365,7 @@ HTML;
 
   public static function getFormEditCrash() {
     $texts = translateArray(['Article', 'Crash', 'Fetch_article', 'Link_url', 'Title', 'Media_source', 'Summary',
-      'Full_text', 'Extract_data_from_text',
+      'Full_text', 'Extract_data_from_text', 'Ai_extract_info',
       'Photo_link_url', 'Same_as_article', 'Select_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
       'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
       'Location', 'Characteristics', 'Save', 'Cancel',
@@ -423,8 +423,15 @@ HTML;
         <span class="iconTooltip" data-tippy-content="{$texts['Full_text_info']}"></span>
       </div>
       <textarea id="editArticleAllText" maxlength="10000" style="height: 150px; resize: vertical;" class="popupInput" autocomplete="off"></textarea>
+    
+      <div data-crash-new-only style="display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: center;">
       
-      <div><button class="button buttonGray" style="margin: 5px 0;" onclick="extractDataFromText();">{$texts['Extract_data_from_text']}</button></div>
+          <button class="button buttonGray" style="margin: 5px 0;" onclick="extractDataFromArticle();">{$texts['Extract_data_from_text']}</button>
+          <img id="spinnerExtractData" src="/images/spinner_black.svg" style="display: none; height: 17px; margin-left: 5px;" alt="Spinner">
+        </div>
+        <div id="ai_extract_info" class="smallFont notice">{$texts['Ai_extract_info']}</div>
+      </div>  
     </div>
 
     <div id="editCrashSection" class="flexColumn">
@@ -467,7 +474,6 @@ HTML;
           <span id="editCrashUnilateral" class="menuButton bgUnilateral" data-tippy-content="{$texts['One-sided_crash']}" onclick="toggleSelectionButton(this);"></span>      
           <span id="editCrashPet" class="menuButton bgPet" data-tippy-content="{$texts['Animals']}" onclick="toggleSelectionButton(this);"></span>      
           <span id="editCrashTrafficJam" class="menuButton bgTrafficJam" data-tippy-content="{$texts['Traffic_jam_disruption']}" onclick="toggleSelectionButton(this);"></span>      
-          <span id="editCrashTree" style="display: none;" class="menuButton bgTree" data-tippy-content="Boom/Paal" onclick="toggleSelectionButton(this);"></span>
         </div>
       </div>
       
@@ -476,7 +482,7 @@ HTML;
         <span class="iconTooltip" data-tippy-content="{$texts['Edit_location_instructions']}"></span></div>
             
         <input id="editCrashLatitude" type="hidden"><input id="editCrashLongitude" type="hidden">
-               
+        <div id="aiLocationInfo" class="smallFont"></div>
         <div id="mapEdit"></div>
       </div>      
       
@@ -834,7 +840,7 @@ HTML;
 
   public static function pageStatsTransportationModes(): string {
     $texts = translateArray(['Statistics', 'Transportation_modes', 'Transportation_mode', 'Child', 'Country',
-      'Intoxicated', 'Drive_on_or_fleeing', 'Dead_(adjective)', 'Injured', 'Unharmed', 'Unknown', 'Search_text_hint',
+      'Intoxicated', 'Drive_on_or_fleeing', 'Dead_(adjective)', 'Injured', 'Uninjured', 'Unknown', 'Search_text_hint',
       'Search']);
 
     $htmlSearchBar = self::getHtmlSearchBar(
@@ -858,7 +864,7 @@ HTML;
             <th style="text-align: left;">{$texts['Transportation_mode']}</th>
             <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgDeadWhite" data-tippy-content="{$texts['Dead_(adjective)']}"></div> <div class="hideOnMobile">{$texts['Dead_(adjective)']}</div></div></th>
             <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgInjuredWhite" data-tippy-content="{$texts['Injured']}"></div> <div  class="hideOnMobile">{$texts['Injured']}</div></div></th>
-            <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnharmed" data-tippy-content="{$texts['Unharmed']}"></div> <div  class="hideOnMobile">{$texts['Unharmed']}</div></div></th>
+            <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUninjured" data-tippy-content="{$texts['Uninjured']}"></div> <div  class="hideOnMobile">{$texts['Uninjured']}</div></div></th>
             <th><div class="flexRow" style="justify-content: flex-end;"><div class="iconSmall bgUnknownWhite" data-tippy-content="{$texts['Unknown']}"></div> <div  class="hideOnMobile">{$texts['Unknown']}</div></div></th>
             <th style="text-align: right;"><div class="iconSmall bgChildWhite" data-tippy-content="{$texts['Child']}"></div></th>
             <th style="text-align: right;"><div class="iconSmall bgAlcoholWhite" data-tippy-content="{$texts['Intoxicated']}"></div></th>
