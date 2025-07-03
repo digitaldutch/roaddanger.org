@@ -52,10 +52,15 @@
 }
 
 html, body {
-  height:           100%;
-  font-size:        14px;
-  margin:           0;
-  padding:          0;
+  height: 100%;
+  font-size: 14px;
+  margin: 0;
+  padding: 0;
+}
+
+textarea, input, button, select {
+  font-family: inherit;
+  font-size: inherit;
 }
 
 input, textarea, select, .readOnlyInput {
