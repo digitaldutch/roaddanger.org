@@ -54,6 +54,9 @@ if ($function === 'aiRunPrompt') {
 } else if ($function === 'aiDeletePrompt') {
   echo ResearchHandler::aiDeletePrompt();
   return;
+} else if ($function === 'loadArticlesUnanswered') {
+  echo ResearchHandler::loadArticlesUnanswered();
+  return;
 }
 
 // The stuff below is only for administrators
@@ -78,9 +81,6 @@ if ($function === 'loadQuestionnaires') {
   return;
 } else if ($function === 'deleteQuestionnaire') {
   echo ResearchHandler::deleteQuestionnaire();
-  return;
-} else if ($function === 'loadArticlesUnanswered') {
-  echo ResearchHandler::loadArticlesUnanswered();
   return;
 } else {
   echo json_encode(['ok' => false, 'error' => 'Function not found']);

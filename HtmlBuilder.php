@@ -280,7 +280,7 @@ HTML;
       <div class="navigationSectionHeader">{$texts['Research']}</div>
       <a href="/research/questionnaires/settings" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['settings']}</a>
       <a href="/research/questionnaires/" class="navItem">{$texts['Questionnaires']} | {$texts['results']}</a>
-      <a href="/research/questionnaires/fill_in" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['fill_in']}</a>
+      <a href="/research/questionnaires/fill_in" class="navItem" data-moderator>{$texts['Questionnaires']} | {$texts['fill_in']}</a>
       <a href="/research/ai_prompt_builder/" class="navItem" data-moderator>{$texts['AI_prompt_builder']}</a>
     </div>
 
