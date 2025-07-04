@@ -1062,7 +1062,7 @@ ${translate('Approval_required')}
   let htmlMenuEditItems = '';
   if (canEditCrash) {
     htmlMenuEditItems = `
-      <div onclick="editCrash(${crash.id});">${translate('Edit')}</div>
+      <div onclick="editArticle(${crash.id});">${translate('Edit')}</div>
       <div onclick="showMergeCrashForm(${crash.id});">${translate('Merge')}</div>
       <div onclick="deleteCrash(${crash.id});">${translate('Delete')}</div>
 `;
@@ -1235,7 +1235,7 @@ ${translate('Approval_required')}
   let htmlMenuEditItems = '';
   if (canEditCrash) {
     htmlMenuEditItems = `
-      <div onclick="editCrash(${crash.id});">${translate('Edit')}</div>
+      <div onclick="editArticle(${crash.id});">${translate('Edit')}</div>
       <div onclick="showMergeCrashForm(${crash.id});">${translate('Merge')}</div>
       <div onclick="deleteCrash(${crash.id});">${translate('Delete')}</div>
 `;
@@ -1371,8 +1371,7 @@ function showEditCrashForm(isNewCrash=false) {
      return;
   }
 
-  document.getElementById('editHeader').innerText = translate('Add_new_crash');
-  document.getElementById('buttonSaveArticle').value = translate('Save');
+  document.getElementById('editHeader').innerText = isNewCrash? translate('Add_new_crash') : translate('Edit_crash');
   document.getElementById('crashIDHidden').value = '';
   document.getElementById('articleIDHidden').value = '';
 
@@ -1399,19 +1398,13 @@ function showEditCrashForm(isNewCrash=false) {
   editCrashPersons = [];
   setEditCrashHumans(editCrashPersons);
 
-  document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'inline-flex';});
-
-  document.getElementById('editCrashSection').style.display   = 'flex';
-  document.getElementById('editArticleSection').style.display = 'flex';
-  document.getElementById('formEditCrash').style.display      = 'flex';
+  document.getElementById('formEditCrash').style.display = 'flex';
 
   document.getElementById('editArticleUrl').focus();
 
   document.getElementById('ai_extract_info').style.display = 'none';
 
   document.querySelectorAll('[data-readonlyhelper]').forEach(d => {d.readOnly = ! user.moderator;});
-
-  document.querySelectorAll('[data-crash-new-only]').forEach(d => {d.style.display = isNewCrash? 'flex' : 'none';});
   document.querySelectorAll('[data-crash-edit-only]').forEach(d => {d.style.display = isNewCrash? 'none' : 'flex';});
 }
 
@@ -1672,7 +1665,7 @@ function refreshSelectHumansIcons(humans) {
   tippy('[data-tippy-content]', {allowHTML: true});
 }
 
-function setArticleCrashFields(crashID, showMap=true){
+function setArticleCrashFields(crashID){
   const crash = getCrashFromId(crashID);
   const crashDatetime = new Date(crash.date);
 
@@ -1696,7 +1689,7 @@ function setArticleCrashFields(crashID, showMap=true){
 
   document.getElementById('ai_extract_info').style.display = 'none';
 
-  if (showMap) showMapEdit(crash.latitude, crash.longitude);
+  showMapEdit(crash.latitude, crash.longitude);
 }
 
 function openArticleLink(event, articleID) {
@@ -1719,34 +1712,39 @@ function toggleAllText(element, event, articleDivId, articleId){
   } else textElement.innerHTML = formatText(article.text);
 }
 
-function editArticle(crashID, articleID) {
+function editArticle(crashID, articleID=null) {
   showEditCrashForm();
 
-  setArticleCrashFields(crashID, false);
+  setArticleCrashFields(crashID);
 
-  const article = getArticleFromId(articleID);
+  let article;
+  if (articleID) {
+    article = getArticleFromId(articleID);
+  } else {
+    // Get first article
+    const crashArticles = getCrashArticles(crashID,articles);
+    if (crashArticles.length > 0) {
+      article = crashArticles[0];
+    }
+  }
 
-  document.getElementById('editHeader').innerText           = translate('Edit_article');
-  document.getElementById('buttonSaveArticle').value        = translate('Save');
+  document.getElementById('articleIDHidden').value = article? article.id : '';
 
-  document.getElementById('articleIDHidden').value          = article? article.id : '';
+  document.getElementById('editArticleUrl').value = article.url;
+  document.getElementById('editArticleTitle').value = article.title;
+  document.getElementById('editArticleText').value = article.text;
+  document.getElementById('editArticleAllText').readonly = true;
+  document.getElementById('editArticleAllText').value = '⌛';
 
-  document.getElementById('editArticleUrl').value           = article.url;
-  document.getElementById('editArticleTitle').value         = article.title;
-  document.getElementById('editArticleText').value          = article.text;
-  document.getElementById('editArticleAllText').readonly    = true;
-  document.getElementById('editArticleAllText').value       = '⌛';
+  document.getElementById('editArticleUrlImage').value = article.urlimage;
+  document.getElementById('editArticleSiteName').value = article.sitename;
+  document.getElementById('editArticleDate').value = dateToISO(article.publishedtime);
 
-  document.getElementById('editArticleUrlImage').value      = article.urlimage;
-  document.getElementById('editArticleSiteName').value      = article.sitename;
-  document.getElementById('editArticleDate').value          = dateToISO(article.publishedtime);
+  document.getElementById('formEditCrash').style.display = 'flex';
 
-  document.getElementById('formEditCrash').style.display    = 'flex';
-  document.getElementById('editCrashSection').style.display = 'none';
-
-  getArticleText(articleID).then(
+  getArticleText(article.id).then(
     text => {
-      document.getElementById('editArticleAllText').value    = text;
+      document.getElementById('editArticleAllText').value = text;
       document.getElementById('editArticleAllText').readonly = false;
     }
   );
@@ -1754,21 +1752,10 @@ function editArticle(crashID, articleID) {
 
 function addArticleToCrash(crashID) {
   showEditCrashForm();
-  setArticleCrashFields(crashID, false);
 
-  document.getElementById('editHeader').innerText           = translate('Add_article');
-  document.getElementById('editCrashSection').style.display = 'none';
-}
-
-function editCrash(crashID) {
-  closeAllPopups();
-  showEditCrashForm();
   setArticleCrashFields(crashID);
 
-  document.getElementById('editHeader').innerText             = translate('Edit_crash');
-  document.getElementById('editArticleSection').style.display = 'none';
-
-  document.querySelectorAll('[data-hideedit]').forEach(d => {d.style.display = 'none';});
+  document.getElementById('editHeader').innerText = translate('Add_article');
 }
 
 function viewCrashInTab(crashId) {
@@ -2104,34 +2091,31 @@ async function saveArticleCrash(){
   let crashEdited;
   let articleEdited;
 
-  const saveArticle = document.getElementById('editArticleSection').style.display !== 'none';
-  if (saveArticle){
-    articleEdited = {
-      id:       document.getElementById('articleIDHidden').value,
-      url:      document.getElementById('editArticleUrl').value,
-      sitename: document.getElementById('editArticleSiteName').value.trim(),
-      title:    document.getElementById('editArticleTitle').value.trim(),
-      text:     document.getElementById('editArticleText').value.trim(),
-      urlimage: document.getElementById('editArticleUrlImage').value.trim(),
-      date:     document.getElementById('editArticleDate').value,
-      alltext:  document.getElementById('editArticleAllText').value.trim(),
-    };
+  articleEdited = {
+    id: document.getElementById('articleIDHidden').value,
+    url: document.getElementById('editArticleUrl').value,
+    sitename: document.getElementById('editArticleSiteName').value.trim(),
+    title: document.getElementById('editArticleTitle').value.trim(),
+    text: document.getElementById('editArticleText').value.trim(),
+    urlimage: document.getElementById('editArticleUrlImage').value.trim(),
+    date: document.getElementById('editArticleDate').value,
+    alltext: document.getElementById('editArticleAllText').value.trim(),
+  };
 
-    if (articleEdited.id) articleEdited.id = parseInt(articleEdited.id);
+  if (articleEdited.id) articleEdited.id = parseInt(articleEdited.id);
 
-    const domain = domainBlacklisted(articleEdited.url);
-    if (domain) {
-      showError(`Website ${domain.domain} can not be added. ${domain.reason}`);
-      return
-    }
-
-    if (! articleEdited.url)                          {showError(translate('Article_link_not_filled_in')); return;}
-    if (! articleEdited.title)                        {showError(translate('Article_title_not_filled_in')); return;}
-    if (! articleEdited.text)                         {showError(translate('Article_summary_not_filled_in')); return;}
-    if (articleEdited.urlimage.startsWith('http://')) {showError(translate('Article_photo_link_unsafe')); return;}
-    if (! articleEdited.sitename)                     {showError(translate('Article_media_source_not_filled_in')); return;}
-    if (! articleEdited.date)                         {showError(translate('Article_date_not_filled_in')); return;}
+  const domain = domainBlacklisted(articleEdited.url);
+  if (domain) {
+    showError(`Website ${domain.domain} can not be added. ${domain.reason}`);
+    return
   }
+
+  if (! articleEdited.url) {showError(translate('Article_link_not_filled_in')); return;}
+  if (! articleEdited.title) {showError(translate('Article_title_not_filled_in')); return;}
+  if (! articleEdited.text) {showError(translate('Article_summary_not_filled_in')); return;}
+  if (articleEdited.urlimage.startsWith('http://')) {showError(translate('Article_photo_link_unsafe')); return;}
+  if (! articleEdited.sitename) {showError(translate('Article_media_source_not_filled_in')); return;}
+  if (! articleEdited.date) {showError(translate('Article_date_not_filled_in')); return;}
 
   let latitude = document.getElementById('editCrashLatitude').value;
   let longitude = document.getElementById('editCrashLongitude').value;
@@ -2155,27 +2139,22 @@ async function saveArticleCrash(){
     trafficjam: document.getElementById('editCrashTrafficJam').classList.contains('buttonSelected'),
   };
 
+  const isNewCrash = ! crashEdited.id;
   if (crashEdited.id) crashEdited.id = parseInt(crashEdited.id);
-  const editingCrash = crashEdited.id !== '';
 
-  const saveCrash = document.getElementById('editCrashSection').style.display !== 'none';
-  if (saveCrash) {
-    if (! editingCrash) {
-      crashEdited.title = articleEdited.title;
-    }
-
-    if (!crashEdited.title) {showError(translate('Crash_title_not_filled_in')); return;}
-    if (!crashEdited.date) {showError(translate('Crash_date_not_filled_in')); return;}
-    if (crashEdited.persons.length === 0) {showError(translate('No_humans_selected')); return;}
-    if (!crashEdited.countryid) {showError(translate('Crash_country_not_filled_in')); return;}
+  if (isNewCrash) {
+    crashEdited.title = articleEdited.title;
   }
+
+  if (!crashEdited.title) {showError(translate('Crash_title_not_filled_in')); return;}
+  if (!crashEdited.date) {showError(translate('Crash_date_not_filled_in')); return;}
+  if (crashEdited.persons.length === 0) {showError(translate('No_humans_selected')); return;}
+  if (!crashEdited.countryid) {showError(translate('Crash_country_not_filled_in')); return;}
 
   const url = '/general/ajax.php?function=saveArticleCrash';
   const serverData = {
     article: articleEdited,
     crash: crashEdited,
-    saveArticle: saveArticle,
-    saveCrash: saveCrash,
   }
   const response = await fetchFromServer(url, serverData);
 
@@ -2185,34 +2164,33 @@ async function saveArticleCrash(){
   }
 
   // No reload only if editing crash.
-  if (editingCrash && pageIsCrashPage(pageType)) {
-    if (saveCrash){
-      // Save changes in crashes cache
-      let i = crashes.findIndex(crash => {return crash.id === crashEdited.id});
-      crashes[i].title      = crashEdited.title;
-      crashes[i].text       = crashEdited.text;
-      crashes[i].persons    = crashEdited.persons;
-      crashes[i].date       = new Date(crashEdited.date);
-      crashes[i].countryid  = crashEdited.countryid;
-      crashes[i].latitude   = crashEdited.latitude;
-      crashes[i].longitude  = crashEdited.longitude;
-      crashes[i].unilateral = crashEdited.unilateral;
-      crashes[i].pet        = crashEdited.pet;
-      crashes[i].trafficjam = crashEdited.trafficjam;
-    } else if (saveArticle) {
-      let i = articles.findIndex(article => {return article.id === articleEdited.id});
-      if (i >= 0){
-        articles[i].url        = articleEdited.url;
-        articles[i].sitename   = articleEdited.sitename;
-        articles[i].title      = articleEdited.title;
-        articles[i].text       = articleEdited.text;
-        articles[i].urlimage   = articleEdited.urlimage;
-        articles[i].date       = articleEdited.date;
-        articles[i].hasalltext = articleEdited.alltext.length > 0;
-      } else if (response.article) {
-        prepareArticleServerData(response.article);
-        articles.push(response.article);
-      }
+  if ((! isNewCrash) && pageIsCrashPage(pageType)) {
+    // Save changes in crashes cache
+    const crash = crashes.find(c => c.id === crashEdited.id);
+
+    crash.title = crashEdited.title;
+    crash.text = crashEdited.text;
+    crash.persons = crashEdited.persons;
+    crash.date = new Date(crashEdited.date);
+    crash.countryid = crashEdited.countryid;
+    crash.latitude = crashEdited.latitude;
+    crash.longitude = crashEdited.longitude;
+    crash.unilateral = crashEdited.unilateral;
+    crash.pet = crashEdited.pet;
+    crash.trafficjam = crashEdited.trafficjam;
+
+    const article = articles.find(a => a.id === articleEdited.id);
+    if (article){
+      article.url = articleEdited.url;
+      article.sitename = articleEdited.sitename;
+      article.title = articleEdited.title;
+      article.text = articleEdited.text;
+      article.urlimage = articleEdited.urlimage;
+      article.date = articleEdited.date;
+      article.hasalltext = articleEdited.alltext.length > 0;
+    } else if (response.article) {
+      prepareArticleServerData(response.article);
+      articles.push(response.article);
     }
 
     const div = document.getElementById('crash' + crashEdited.id);
@@ -2300,7 +2278,7 @@ function getCrashArticles(crashID, articles){
 
 async function deleteArticleDirect(articleID) {
   try {
-    const url      = '/general/ajax.php?function=deleteArticle&id=' + articleID;
+    const url = '/general/ajax.php?function=deleteArticle&id=' + articleID;
     const response = await fetchFromServer(url);
 
     if (response.error) showError(response.error);

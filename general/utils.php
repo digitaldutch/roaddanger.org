@@ -38,6 +38,13 @@ enum Answer: int {
   case notDeterminable = 2;
 }
 
+enum StreamTopType: int {
+  case new = 0;
+  case edited = 1;
+  case articleAdded = 2;
+  case placedOnTop = 3;
+}
+
 function translate($key){
   global $user;
   return $user->translate($key);

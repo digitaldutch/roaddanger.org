@@ -382,7 +382,7 @@ HTML;
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
 
     <div style="overflow-y: auto">
-    <div id="editArticleSection" class="flexColumn">
+    <div class="flexColumn">
       <div class="formSubHeader">{$texts['Article']}</div>
 
       <input id="articleIDHidden" type="hidden">
@@ -424,7 +424,7 @@ HTML;
       </div>
       <textarea id="editArticleAllText" maxlength="10000" style="height: 150px; resize: vertical;" class="popupInput" autocomplete="off"></textarea>
     
-      <div data-crash-new-only style="display: flex; flex-direction: column;">
+      <div style="display: flex; flex-direction: column;">
         <div style="display: flex; align-items: center;">
       
           <button class="button buttonGray" style="margin: 5px 0;" onclick="extractDataFromArticle();">{$texts['Extract_data_from_text']}</button>
@@ -434,7 +434,7 @@ HTML;
       </div>  
     </div>
 
-    <div id="editCrashSection" class="flexColumn">
+    <div class="flexColumn">
       <div class="formSubHeader">{$texts['Crash']}</div>
      
       <input id="crashIDHidden" type="hidden">
@@ -443,7 +443,7 @@ HTML;
         <label for="editCrashTitle">{$texts['Title']}</label> 
         <div style="display: flex;">
           <input id="editCrashTitle" class="popupInput" type="text" maxlength="500" autocomplete="off" data-readonlyhelper>
-          <span data-hideedit class="button buttonGray buttonLine" onclick="copyCrashInfoFromArticle();">{$texts['Same_as_article']}</span>
+          <span class="button buttonGray buttonLine" onclick="copyCrashInfoFromArticle();">{$texts['Same_as_article']}</span>
         </div>
   
         <div class="labelDiv">
@@ -459,7 +459,7 @@ HTML;
       </div>
       <div style="display: flex;">
         <input id="editCrashDate" class="popupInput" type="date" autocomplete="off">
-        <span data-hideedit class="button buttonGray buttonLine" onclick="copyCrashDateFromArticle();">{$texts['Same_as_article']}</span>
+        <span class="button buttonGray buttonLine" onclick="copyCrashDateFromArticle();">{$texts['Same_as_article']}</span>
       </div>
           
       <div class="labelDiv">
@@ -490,7 +490,7 @@ HTML;
     </div>
             
     <div class="popupFooter">
-      <input id="buttonSaveArticle" type="button" class="button" value="{$texts['Save']}" onclick="saveArticleCrash();">
+      <input type="button" class="button" value="{$texts['Save']}" onclick="saveArticleCrash();">
       <input type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">
     </div>    
   </form>
@@ -666,7 +666,7 @@ HTML;
 
   public static function getFormEditUser() {
 
-    $texts = translateArray(['Save', 'Cancel', 'Helper', 'Moderator', 'Administrator', 'Email', 'First_name',
+    $texts = translateArray(['Save', 'Cancel', 'Edit_human', 'Helper', 'Moderator', 'Administrator', 'Email', 'First_name',
       'Last_name', 'Permission']);
 
     return
@@ -674,7 +674,7 @@ HTML;
 <div id="formEditUser" class="popupOuter" onclick="closePopupForm();">
   <form class="formFullPage" onclick="event.stopPropagation();">
     
-    <div id="editHeader" class="popupHeader">Mens aanpassen</div>
+    <div id="editHeader" class="popupHeader">{$texts['Edit_human']}</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
 
     <input id="userID" type="hidden">

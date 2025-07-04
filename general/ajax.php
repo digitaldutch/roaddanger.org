@@ -361,21 +361,19 @@ function urlExists(Database $database, string $url): array | false {
   return false;
 }
 
-/**
- * @param Database $database
- * @param integer $crashId
- * @param integer $userId
- * @param integer $streamTopType unknown: 0, edited: 1, articleAdded: 2, placedOnTop: 3
- */
-function setCrashStreamTop($database, $crashId, $userId, $streamTopType){
+function setCrashStreamTop(Database $database, int $crashId, int $userId, StreamTopType $streamTopType): void {
   $sql = <<<SQL
   UPDATE crashes SET
     streamdatetime  = current_timestamp,
-    streamtoptype   = $streamTopType, 
+    streamtoptype   = :streamTopType, 
     streamtopuserid = :userid
   WHERE id=:id;
 SQL;
-  $params = [':id' => $crashId, ':userid' => $userId];
+  $params = [
+    ':id' => $crashId,
+    ':streamTopType' => $streamTopType->value,
+    ':userid' => $userId,
+  ];
   $database->execute($sql, $params);
 }
 
@@ -847,184 +845,182 @@ else if ($function === 'getPageMetaData') {
 } //==========
 else if ($function === 'saveArticleCrash'){
   try {
-    $data                        = json_decode(file_get_contents('php://input'), true);
-    $article                     = $data['article']?? null;
-    $crash                       = $data['crash'];
-    $saveArticle                 = $data['saveArticle'];
-    $saveCrash                   = $data['saveCrash'];
-    $isNewCrash                  = (! isset($crash['id'])) || ($crash['id'] <= 0);
-    $moderationRequired          = ! $user->isModerator();
-    $crashIsAwaitingModeration   = $moderationRequired && $isNewCrash;
+    $data = json_decode(file_get_contents('php://input'), true);
+    $article = $data['article']?? null;
+    $crash = $data['crash'];
+    $isNewCrash = (! isset($crash['id'])) || ($crash['id'] <= 0);
+    $moderationRequired = ! $user->isModerator();
+    $crashIsAwaitingModeration = $moderationRequired && $isNewCrash;
     $articleIsAwaitingModeration = $moderationRequired && (! $crashIsAwaitingModeration);
 
     $database->beginTransaction();
 
     // Check if new article url already in database.
-    if ($saveArticle && ($article['id'] < 1)){
+    if ($article['id'] < 1) {
       $exists = urlExists($database, $article['url']);
       if ($exists) throw new \Exception("<a href='/{$exists['crashId']}}' style='text-decoration: underline;'>There is already a crash with this link</a>", 1);
     }
 
-    if ($saveCrash) {
-      if (! $isNewCrash) {
-        // Update existing crash
+    $streamToTopType = StreamTopType::new;
 
-        // We don't set awaitingmoderation for updates because it is unfriendly for helpers. We may need to come back on this policy if it is misused.
-        $sqlANDOwnOnly = (! $user->isModerator())? ' AND userid=:useridwhere ' : '';
-        $sql = <<<SQL
-    UPDATE crashes SET
-      streamdatetime  = current_timestamp,
-      streamtoptype   = 1, 
-      streamtopuserid = :userid,
-      title           = :title,
-      text            = :text,
-      date            = :date,
-      countryid       = :countryid,
-      latitude        = :latitude,
-      longitude       = :longitude,
-      location        = POINT(:longitude2, :latitude2), 
-      unilateral      = :unilateral,
-      pet             = :pet,
-      trafficjam      = :trafficjam
-    WHERE id=:id $sqlANDOwnOnly
+    if (! $isNewCrash) {
+      // Update existing crash
+      $streamToTopType = StreamTopType::edited;
+
+      // We don't set awaiting moderation for updates because it is unfriendly for helpers. We may need to come back on this policy if it is misused.
+      $sqlANDOwnOnly = (! $user->isModerator())? ' AND userid=:useridwhere ' : '';
+      $sql = <<<SQL
+  UPDATE crashes SET
+    streamdatetime  = current_timestamp,
+    streamtoptype   = 1, 
+    streamtopuserid = :userid,
+    title           = :title,
+    text            = :text,
+    date            = :date,
+    countryid       = :countryid,
+    latitude        = :latitude,
+    longitude       = :longitude,
+    location        = POINT(:longitude2, :latitude2), 
+    unilateral      = :unilateral,
+    pet             = :pet,
+    trafficjam      = :trafficjam
+  WHERE id=:id $sqlANDOwnOnly
 SQL;
-        $params = [
-          ':id'                    => $crash['id'],
-          ':userid'                => $user->id,
-          ':title'                 => $crash['title'],
-          ':text'                  => $crash['text'],
-          ':date'                  => $crash['date'],
-          ':countryid'             => $crash['countryid'],
-          ':latitude'              => empty($crash['latitude'])?  null : $crash['latitude'],
-          ':longitude'             => empty($crash['longitude'])? null : $crash['longitude'],
-          ':latitude2'             => empty($crash['latitude'])?  null : $crash['latitude'],
-          ':longitude2'            => empty($crash['longitude'])? null : $crash['longitude'],
-          ':unilateral'            => intval($crash['unilateral']),
-          ':pet'                   => intval($crash['pet']),
-          ':trafficjam'            => intval($crash['trafficjam']),
-        ];
-        if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
+      $params = [
+        ':id'                    => $crash['id'],
+        ':userid'                => $user->id,
+        ':title'                 => $crash['title'],
+        ':text'                  => $crash['text'],
+        ':date'                  => $crash['date'],
+        ':countryid'             => $crash['countryid'],
+        ':latitude'              => empty($crash['latitude'])?  null : $crash['latitude'],
+        ':longitude'             => empty($crash['longitude'])? null : $crash['longitude'],
+        ':latitude2'             => empty($crash['latitude'])?  null : $crash['latitude'],
+        ':longitude2'            => empty($crash['longitude'])? null : $crash['longitude'],
+        ':unilateral'            => intval($crash['unilateral']),
+        ':pet'                   => intval($crash['pet']),
+        ':trafficjam'            => intval($crash['trafficjam']),
+      ];
+      if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
-        $database->execute($sql, $params, true);
-        if ($database->rowCount === 0) throw new \Exception('Helpers can only edit their own crashes');
+      $database->execute($sql, $params, true);
+      if ($database->rowCount === 0) throw new \Exception('Helpers can only edit their own crashes');
 
-      } else {
-        // New crash
-
-        $sql = <<<SQL
-    INSERT INTO crashes (userid, awaitingmoderation, title, text, date, countryid, location, latitude, longitude, unilateral, pet, trafficjam)
-    VALUES (:userid, :awaitingmoderation, :title, :text, :date, :countryId, POINT(:longitude2, :latitude2), :latitude, :longitude, :unilateral, :pet, :trafficjam);
+    } else {
+      // New crash
+      $sql = <<<SQL
+  INSERT INTO crashes (userid, awaitingmoderation, title, text, date, countryid, location, latitude, longitude, unilateral, pet, trafficjam)
+  VALUES (:userid, :awaitingmoderation, :title, :text, :date, :countryId, POINT(:longitude2, :latitude2), :latitude, :longitude, :unilateral, :pet, :trafficjam);
 SQL;
 
-        $params = [
-          ':userid'             => $user->id,
-          ':awaitingmoderation' => intval($moderationRequired),
-          ':title'              => substr($crash['title'], 0, 500),
-          ':text'               => substr($crash['text'], 0, 500),
-          ':date'               => $crash['date'],
-          ':countryId'          => $crash['countryid'],
-          ':latitude'           => $crash['latitude'],
-          ':longitude'          => $crash['longitude'],
-          ':latitude2'          => $crash['latitude'],
-          ':longitude2'         => $crash['longitude'],
-          ':unilateral'         => intval($crash['unilateral']),
-          ':pet'                => intval($crash['pet']),
-          ':trafficjam'         => intval($crash['trafficjam']),
-        ];
-        $dbResult = $database->execute($sql, $params);
-        $crash['id'] = (int)$database->lastInsertID();
-      }
+      $params = [
+        ':userid'             => $user->id,
+        ':awaitingmoderation' => intval($moderationRequired),
+        ':title'              => substr($crash['title'], 0, 500),
+        ':text'               => substr($crash['text'], 0, 500),
+        ':date'               => $crash['date'],
+        ':countryId'          => $crash['countryid'],
+        ':latitude'           => $crash['latitude'],
+        ':longitude'          => $crash['longitude'],
+        ':latitude2'          => $crash['latitude'],
+        ':longitude2'         => $crash['longitude'],
+        ':unilateral'         => intval($crash['unilateral']),
+        ':pet'                => intval($crash['pet']),
+        ':trafficjam'         => intval($crash['trafficjam']),
+      ];
+      $dbResult = $database->execute($sql, $params);
+      $crash['id'] = (int)$database->lastInsertID();
+    }
 
-      // Save crash persons
-      $sql = "DELETE FROM crashpersons WHERE crashid=:crashId;";
-      $params = ['crashId' => $crash['id']];
-      $database->execute($sql, $params);
+    // Save crash persons
+    $sql = "DELETE FROM crashpersons WHERE crashid=:crashId;";
+    $params = ['crashId' => $crash['id']];
+    $database->execute($sql, $params);
 
-    $sql = <<<SQL
+  $sql = <<<SQL
 INSERT INTO crashpersons (crashid, groupid, transportationmode, health, child, underinfluence, hitrun) 
 VALUES (:crashid, :groupid, :transportationmode, :health, :child, :underinfluence, :hitrun);
 SQL;
-      $dbStatement = $database->prepare($sql);
-      foreach ($crash['persons'] AS $person){
-        $params = [
-          ':crashid'            => $crash['id'],
-          ':groupid'            => $person['groupid']?? null,
-          ':transportationmode' => $person['transportationmode'],
-          ':health'             => $person['health'],
-          ':child'              => intval($person['child']),
-          ':underinfluence'     => intval($person['underinfluence']),
-          ':hitrun'             => intval($person['hitrun']),
-        ];
-        $dbStatement->execute($params);
-      }
-
-      $params = ['crashId' => $crash['id']];
+    $dbStatement = $database->prepare($sql);
+    foreach ($crash['persons'] AS $person){
+      $params = [
+        ':crashid'            => $crash['id'],
+        ':groupid'            => $person['groupid']?? null,
+        ':transportationmode' => $person['transportationmode'],
+        ':health'             => $person['health'],
+        ':child'              => intval($person['child']),
+        ':underinfluence'     => intval($person['underinfluence']),
+        ':hitrun'             => intval($person['hitrun']),
+      ];
+      $dbStatement->execute($params);
     }
 
-    if ($saveArticle){
-      if ($article['id'] > 0){
-        // Update article
+    $params = ['crashId' => $crash['id']];
 
-        $sqlANDOwnOnly = (! $user->isModerator())? ' AND userid=:useridwhere ' : '';
+    if ($article['id'] > 0){
+      // Update article
 
-        $sql = <<<SQL
-    UPDATE articles SET
-      crashid       = :crashId,
-      url           = :url,
-      title         = :title,
-      text          = :text,
-      alltext       = :alltext,
-      publishedtime = :date,
-      sitename      = :sitename,
-      urlimage      = :urlimage
-      WHERE id=:id $sqlANDOwnOnly
+      $sqlANDOwnOnly = (! $user->isModerator())? ' AND userid=:useridwhere ' : '';
+
+      $sql = <<<SQL
+  UPDATE articles SET
+    crashid       = :crashId,
+    url           = :url,
+    title         = :title,
+    text          = :text,
+    alltext       = :alltext,
+    publishedtime = :date,
+    sitename      = :sitename,
+    urlimage      = :urlimage
+    WHERE id=:id $sqlANDOwnOnly
 SQL;
-        $params = [
-          ':crashId'  => $crash['id'],
-          ':url'      => $article['url'],
-          ':title'    => substr($article['title'], 0 , 500),
-          ':text'     => substr($article['text'], 0 , 500),
-          ':alltext'  => substr($article['alltext'], 0 , 10000),
-          ':sitename' => substr($article['sitename'], 0 , 200),
-          ':date'     => $article['date'],
-          ':urlimage' => $article['urlimage'],
-          ':id'       => $article['id'],
-        ];
+      $params = [
+        ':crashId'  => $crash['id'],
+        ':url'      => $article['url'],
+        ':title'    => substr($article['title'], 0 , 500),
+        ':text'     => substr($article['text'], 0 , 500),
+        ':alltext'  => substr($article['alltext'], 0 , 10000),
+        ':sitename' => substr($article['sitename'], 0 , 200),
+        ':date'     => $article['date'],
+        ':urlimage' => $article['urlimage'],
+        ':id'       => $article['id'],
+      ];
 
-        if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
-        $database->execute($sql, $params, true);
+      if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
+      $database->execute($sql, $params, true);
 
-        if (! $saveCrash) setCrashStreamTop($database, $crash['id'], $user->id, 1);
+      if (! $isNewCrash) $streamToTopType = StreamTopType::edited;
 
-      } else {
-        // New article
-        $sql = <<<SQL
-    INSERT INTO articles (userid, awaitingmoderation, crashid, url, title, text, alltext, publishedtime, sitename, urlimage)
-    VALUES (:userid, :awaitingmoderation, :crashid, :url, :title, :text, :alltext, :publishedtime, :sitename, :urlimage);
+    } else {
+      // New article
+      $sql = <<<SQL
+  INSERT INTO articles (userid, awaitingmoderation, crashid, url, title, text, alltext, publishedtime, sitename, urlimage)
+  VALUES (:userid, :awaitingmoderation, :crashid, :url, :title, :text, :alltext, :publishedtime, :sitename, :urlimage);
 SQL;
-        // Article moderation is only required if the crash is not awaiting moderation
-        $article['userid'] = $user->id;
-        $article['crashid'] = $crash['id'];
-        $article['awaitingmoderation'] = $articleIsAwaitingModeration;
-        $params = [
-          ':userid'             => $article['userid'],
-          ':awaitingmoderation' => intval($article['awaitingmoderation']),
-          ':crashid'            => $article['crashid'],
-          ':url'                => $article['url'],
-          ':title'              => substr($article['title'], 0, 500),
-          ':text'               => substr($article['text'], 0, 500),
-          ':alltext'            => substr($article['alltext'], 0, 10000),
-          ':sitename'           => substr($article['sitename'], 0, 200),
-          ':publishedtime'      => $article['date'],
-          ':urlimage'           => $article['urlimage'],
-        ];
+      // Article moderation is only required if the crash is not awaiting moderation
+      $article['userid'] = $user->id;
+      $article['crashid'] = $crash['id'];
+      $article['awaitingmoderation'] = $articleIsAwaitingModeration;
+      $params = [
+        ':userid'             => $article['userid'],
+        ':awaitingmoderation' => intval($article['awaitingmoderation']),
+        ':crashid'            => $article['crashid'],
+        ':url'                => $article['url'],
+        ':title'              => substr($article['title'], 0, 500),
+        ':text'               => substr($article['text'], 0, 500),
+        ':alltext'            => substr($article['alltext'], 0, 10000),
+        ':sitename'           => substr($article['sitename'], 0, 200),
+        ':publishedtime'      => $article['date'],
+        ':urlimage'           => $article['urlimage'],
+      ];
 
-        $database->execute($sql, $params);
-        $article['id'] = (int)$database->lastInsertID();
+      $database->execute($sql, $params);
+      $article['id'] = (int)$database->lastInsertID();
 
-        if (! $saveCrash) setCrashStreamTop($database, $crash['id'], $user->id, 2);
-      }
+      if (! $isNewCrash) $streamToTopType =  StreamTopType::articleAdded;
     }
+
+    setCrashStreamTop($database, $crash['id'], $user->id, $streamToTopType);
 
     $database->commit();
     $result = [
@@ -1032,17 +1028,15 @@ SQL;
       'crashId' => $crash['id'],
     ];
 
-    if ($saveArticle) {
-      $sqlArticleSelect = getArticleSelect();
-      $sqlArticle = "$sqlArticleSelect WHERE ar.ID=:id";
+    $sqlArticleSelect = getArticleSelect();
+    $sqlArticle = "$sqlArticleSelect WHERE ar.ID=:id";
 
-      $DBArticle = $database->fetch($sqlArticle, ['id' => $article['id']]);
-      $DBArticle = cleanArticleDBRow($DBArticle);
+    $DBArticle = $database->fetch($sqlArticle, ['id' => $article['id']]);
+    $DBArticle = cleanArticleDBRow($DBArticle);
 
-      $result['article'] = $DBArticle;
-    }
+    $result['article'] = $DBArticle;
 
-  } catch (\Exception $e){
+  } catch (\Throwable $e){
     $database->rollback();
     $result = ['ok' => false, 'error' => $e->getMessage(), 'errorcode' => $e->getCode()];
   }
@@ -1116,7 +1110,7 @@ else if ($function === 'crashToStreamTop'){
     if (! $user->isModerator()) throw new \Exception('Only moderators are allowed to put crashes to top of stream.');
 
     $crashId = (int)$_REQUEST['id'];
-    if ($crashId > 0) setCrashStreamTop($database, $crashId, $user->id, 3);
+    if ($crashId > 0) setCrashStreamTop($database, $crashId, $user->id, StreamTopType::placedOnTop);
     $result = ['ok' => true];
   } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
