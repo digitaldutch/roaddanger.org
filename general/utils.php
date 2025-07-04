@@ -276,7 +276,44 @@ function deleteSessionIdAndClose(string $id): void {
 function replaceArticleTags(string $text, object $article): string {
   $text = str_replace('[article_date]', $article->date, $text);
   $text = str_replace('[article_text]', $article->text, $text);
-  $text = str_replace('[article_title]', $article->title, $text);
+  return str_replace('[article_title]', $article->title, $text);
+}
 
-  return $text;
+/**
+ * @throws Exception
+ */
+function geocodeLocation($locationPrompt): ?array {
+  if (! defined('HERE_API_KEY')) return null;
+
+  // Using HERE map service. Preferred over OpenStreetMap-based services as it is better in places and does intersections
+  $url = "https://geocode.search.hereapi.com/v1/geocode?q=" . urlencode($locationPrompt) . "&apiKey=" . HERE_API_KEY;
+
+  $ch = curl_init($url);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  $response = curl_exec($ch);
+
+  if (curl_errno($ch)) {
+    throw new Exception('cURL error: ' . curl_error($ch));
+  }
+
+  $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+  curl_close($ch);
+
+  if ($httpCode !== 200) {
+    throw new Exception("Geocoder error: Received response code $httpCode");
+  }
+
+  $data = json_decode($response, true);
+
+  // Check if the response contains results
+  if (isset($data['items']) && count($data['items']) > 0) {
+    $position = $data['items'][0]['position'];
+    return [
+      'latitude' => $position['lat'],
+      'longitude' => $position['lng']
+    ];
+  } else {
+    throw new Exception("Geocoder error: No results found for the given address: $locationPrompt");
+  }
 }

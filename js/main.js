@@ -1503,7 +1503,17 @@ async function extractDataFromArticle() {
     document.getElementById('aiLocationInfo').innerText = translate('Crash_location') + ': ' + crash.location.description;
     document.getElementById('editCrashLatitude').value = crash.location.coordinates.latitude;
     document.getElementById('editCrashLongitude').value = crash.location.coordinates.longitude;
-    showMapEdit(crash.location.coordinates.latitude, crash.location.coordinates.longitude).then(
+
+    let latitude;
+    let longitude;
+    if (crash.location.geocoder_coordinates) {
+      latitude = crash.location.geocoder_coordinates.latitude;
+      longitude = crash.location.geocoder_coordinates.longitude;
+    } else {
+      latitude = crash.location.coordinates.latitude;
+      longitude = crash.location.coordinates.longitude;
+    }
+    showMapEdit(latitude, longitude).then(
       () => {mapEdit.setZoom(12);}
     );
 

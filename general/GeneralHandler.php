@@ -18,6 +18,10 @@ class GeneralHandler {
 
       $AIResults['response'] = json_decode($AIResults['response']);
 
+      // Get coordinates also from geocoder as AI is not very good at it yet
+      $geocoder_prompt = $AIResults['response']->location->geocoder_prompt;
+      $AIResults['response']->location->geocoder_coordinates = geocodeLocation($geocoder_prompt);
+
       $result = ['ok' => true, 'data' => $AIResults['response']];
     } catch (\Throwable $e){
       $result = ['ok' => false, 'error' => $e->getMessage()];
