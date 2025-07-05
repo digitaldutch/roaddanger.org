@@ -455,11 +455,11 @@ else if ($function == 'logout') {
 else if ($function == 'sendPasswordResetInstructions') {
   try {
     $result = [];
-    if (! isset($_REQUEST['email'])) throw new Exception('No email adres');
+    if (! isset($_REQUEST['email'])) throw new \Exception('No email adres');
     $email = trim($_REQUEST['email']);
 
     $recoveryID = $user->resetPasswordRequest($email);
-    if (! $recoveryID) throw new Exception('Interne fout: Kan geen recoveryID aanmaken');
+    if (! $recoveryID) throw new \Exception('Interne fout: Kan geen recoveryID aanmaken');
 
     $domain = $_SERVER['SERVER_NAME'];
     $subject = $domain . ' wachtwoord resetten';
@@ -478,7 +478,7 @@ $domain</p>
 HTML;
 
     if (sendEmail($email, $subject, $body, [])) $result['ok'] = true;
-    else throw new Exception('Interne server fout: Kan email niet verzenden.');
+    else throw new \Exception('Interne server fout: Kan email niet verzenden.');
   } catch (\Exception $e){
     $result = ['ok' => false, 'error' => $e->getMessage()];
   }
@@ -486,9 +486,9 @@ HTML;
 } // ====================
 else if ($function == 'saveNewPassword') {
   try {
-    if (! isset($_REQUEST['password']))   throw new Exception('Geen password opgegeven');
-    if (! isset($_REQUEST['recoveryid'])) throw new Exception('Geen recoveryid opgegeven');
-    if (! isset($_REQUEST['email']))      throw new Exception('Geen email opgegeven');
+    if (! isset($_REQUEST['password']))   throw new \Exception('Geen password opgegeven');
+    if (! isset($_REQUEST['recoveryid'])) throw new \Exception('Geen recoveryid opgegeven');
+    if (! isset($_REQUEST['email']))      throw new \Exception('Geen email opgegeven');
 
     $password   = $_REQUEST['password'];
     $recoveryId = $_REQUEST['recoveryid'];
@@ -555,8 +555,8 @@ else if ($function === 'loadCrashes') {
     $sort = $data['sort']?? '';
     $filter = $data['filter'];
 
-    if ($count > 1000) throw new Exception('Internal error: Count to high.');
-    if ($moderations && (! $user->isModerator())) throw new Exception('Moderaties zijn alleen zichtbaar voor moderators.');
+    if ($count > 1000) throw new \Exception('Internal error: Count to high.');
+    if ($moderations && (! $user->isModerator())) throw new \Exception('Moderaties zijn alleen zichtbaar voor moderators.');
 
     $crashes = [];
     $articles = [];
@@ -862,7 +862,7 @@ else if ($function === 'saveArticleCrash'){
     // Check if new article url already in database.
     if ($saveArticle && ($article['id'] < 1)){
       $exists = urlExists($database, $article['url']);
-      if ($exists) throw new Exception("<a href='/{$exists['crashId']}}' style='text-decoration: underline;'>There is already a crash with this link</a>", 1);
+      if ($exists) throw new \Exception("<a href='/{$exists['crashId']}}' style='text-decoration: underline;'>There is already a crash with this link</a>", 1);
     }
 
     if ($saveCrash) {
@@ -906,7 +906,7 @@ SQL;
         if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
         $database->execute($sql, $params, true);
-        if ($database->rowCount === 0) throw new Exception('Helpers can only edit their own crashes');
+        if ($database->rowCount === 0) throw new \Exception('Helpers can only edit their own crashes');
 
       } else {
         // New crash
@@ -1051,7 +1051,7 @@ SQL;
 } //==========
 else if ($function === 'mergeCrashes'){
   try {
-    if (! $user->isModerator()) throw new Exception('Only moderators are allowed to merge crashes.');
+    if (! $user->isModerator()) throw new \Exception('Only moderators are allowed to merge crashes.');
 
     $idFrom = (int)$_REQUEST['idFrom'];
     $idTo   = (int)$_REQUEST['idTo'];
@@ -1085,7 +1085,7 @@ else if ($function === 'deleteArticle'){
       if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
       $database->execute($sql, $params, true);
-      if ($database->rowCount === 0) throw new Exception('Internal error: Cannot delete article.');
+      if ($database->rowCount === 0) throw new \Exception('Internal error: Cannot delete article.');
     }
     $result = ['ok' => true];
   } catch (\Exception $e){
@@ -1103,7 +1103,7 @@ else if ($function === 'deleteCrash'){
       if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
       $database->execute($sql, $params, true);
-      if ($database->rowCount === 0) throw new Exception('Only moderators can delete crashes.');
+      if ($database->rowCount === 0) throw new \Exception('Only moderators can delete crashes.');
     }
     $result = ['ok' => true];
   } catch (\Exception $e){
@@ -1113,7 +1113,7 @@ else if ($function === 'deleteCrash'){
 } //==========
 else if ($function === 'crashToStreamTop'){
   try{
-    if (! $user->isModerator()) throw new Exception('Only moderators are allowed to put crashes to top of stream.');
+    if (! $user->isModerator()) throw new \Exception('Only moderators are allowed to put crashes to top of stream.');
 
     $crashId = (int)$_REQUEST['id'];
     if ($crashId > 0) setCrashStreamTop($database, $crashId, $user->id, 3);
@@ -1125,7 +1125,7 @@ else if ($function === 'crashToStreamTop'){
 } //==========
 else if ($function === 'crashModerateOK'){
   try{
-    if (! $user->isModerator()) throw new Exception('Only moderators are allowed to moderate crashes.');
+    if (! $user->isModerator()) throw new \Exception('Only moderators are allowed to moderate crashes.');
 
     $crashId = (int)$_REQUEST['id'];
     if ($crashId > 0){
@@ -1141,7 +1141,7 @@ else if ($function === 'crashModerateOK'){
 } //==========
 else if ($function === 'articleModerateOK'){
   try{
-    if (! $user->isModerator()) throw new Exception('Only moderators are allowed to moderate crashes.');
+    if (! $user->isModerator()) throw new \Exception('Only moderators are allowed to moderate crashes.');
 
     $crashId = (int)$_REQUEST['id'];
     if ($crashId > 0){
@@ -1179,7 +1179,7 @@ else if ($function === 'getArticleText'){
 } //==========
 else if ($function === 'saveAnswer') {
   try{
-    if (! $user->isModerator())  throw new Exception('Only moderators can save answers');
+    if (! $user->isModerator())  throw new \Exception('Only moderators can save answers');
 
     $data = json_decode(file_get_contents('php://input'));
 
@@ -1200,7 +1200,7 @@ else if ($function === 'saveAnswer') {
 } //==========
 else if ($function === 'saveExplanation') {
   try{
-    if (! $user->isModerator())  throw new Exception('Only moderators can save explanations');
+    if (! $user->isModerator())  throw new \Exception('Only moderators can save explanations');
 
     $data = json_decode(file_get_contents('php://input'));
 
@@ -1220,12 +1220,12 @@ else if ($function === 'saveExplanation') {
 } //==========
 else if ($function === 'getArticleQuestionnairesAndText'){
   try{
-    if (! $user->isModerator())  throw new Exception('Only moderators can edit article questions');
+    if (! $user->isModerator())  throw new \Exception('Only moderators can edit article questions');
 
     $data = json_decode(file_get_contents('php://input'), true);
 
-    if (! isset($data['crashCountryId'])) throw new Exception('No crashCountryId found');
-    if ($data['articleId'] <= 0) throw new Exception('No article id found');
+    if (! isset($data['crashCountryId'])) throw new \Exception('No crashCountryId found');
+    if ($data['articleId'] <= 0) throw new \Exception('No article id found');
 
     if ($data['crashCountryId'] === 'UN') $whereCountry = " ";
     else $whereCountry = " AND country_id IN ('UN', '" . $data['crashCountryId'] . "') ";
@@ -1278,7 +1278,7 @@ SQL;
 } //==========
 else if ($function === 'getQuestions'){
   try {
-    if (! $user->admin) throw new Exception('Admins only');
+    if (! $user->admin) throw new \Exception('Admins only');
 
     $questionnaireId = (int)$_REQUEST['questionnaireId'];
 

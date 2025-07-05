@@ -47,7 +47,7 @@ class OpenRouterAIClient {
       throw new \Exception($errorMsg, $response['error']['code'] ?? 0);
     }
     if ($httpCode !== 200 || !$response) {
-      throw new Exception('Error calling openrouter.ai API: ' . $response);
+      throw new \Exception('Error calling openrouter.ai API: ' . $response);
     }
 
     return $response;
@@ -60,15 +60,15 @@ class OpenRouterAIClient {
                                string $responseFormat = ''): array {
 
     if (strlen($user_prompt) > 5000) {
-      throw new Exception('The "User prompt" exceeds the maximum allowed length of 5000 characters');
+      throw new \Exception('The "User prompt" exceeds the maximum allowed length of 5000 characters');
     }
 
     if (strlen($systemPrompt) > 5000) {
-      throw new Exception('The "system prompt" exceeds the maximum allowed length of 5000 characters');
+      throw new \Exception('The "system prompt" exceeds the maximum allowed length of 5000 characters');
     }
     
     if (strlen($responseFormat) > 5000) {
-      throw new Exception('The "response format" exceeds the maximum allowed length of 5000 characters');
+      throw new \Exception('The "response format" exceeds the maximum allowed length of 5000 characters');
     }
 
     $responseOpenRouter = $this->chatFromOpenRouter($user_prompt, $systemPrompt, $model, $responseFormat);
@@ -97,7 +97,7 @@ class OpenRouterAIClient {
       return $responseOpenRouter['choices'][0]['message']['content'];
     }
 
-    throw new Exception('Invalid openrouter response');
+    throw new \Exception('Invalid openrouter response');
   }
 
   /**
@@ -141,7 +141,7 @@ class OpenRouterAIClient {
     $serverResponse = $this->callServer($url);
 
     if (! isset($serverResponse['data'])) {
-      throw new Exception('Invalid openrouter generation response');
+      throw new \Exception('Invalid openrouter generation response');
     }
 
     $generation = (object) $serverResponse['data'];
@@ -159,7 +159,7 @@ class OpenRouterAIClient {
     $generation = $this->getGenerationInfo($generationId);
 
     if (! isset($generation->total_cost)) {
-      throw new Exception('Invalid openrouter generation response');
+      throw new \Exception('Invalid openrouter generation response');
     }
 
     return is_numeric($generation->total_cost) ? (float)$generation->total_cost : null;
@@ -178,7 +178,7 @@ class OpenRouterAIClient {
       $response = $this->callServer($url,);
 
       if (isset($response['error']['message'])) {
-        throw new Exception($response['error']['message']);
+        throw new \Exception($response['error']['message']);
       }
 
       $modelsOpenRouter = $response['data'];
@@ -217,7 +217,7 @@ class OpenRouterAIClient {
     $response = $this->callServer($url,);
 
     if (isset($response['error']['message'])) {
-      throw new Exception($response['error']['message']);
+      throw new \Exception($response['error']['message']);
     }
 
     $total_credits = $response['data']['total_credits'];

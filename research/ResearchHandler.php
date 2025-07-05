@@ -86,7 +86,7 @@ SQL;
 
       if (count($ids) > 0) {
         $idsString = implode(", ", $ids);
-        throw new Exception('Cannot delete question. Question is still use in questionnaires: ' . $idsString);
+        throw new \Exception('Cannot delete question. Question is still use in questionnaires: ' . $idsString);
       }
 
       $sql = "DELETE FROM questions WHERE id=:id;";
@@ -411,7 +411,7 @@ SQL;
 
       if (! empty ($data['id'])) {
 
-        if (! self::mayEditPrompt($data['id'])) throw new Exception("You cannot save somebody else's prompt");
+        if (! self::mayEditPrompt($data['id'])) throw new \Exception("You cannot save somebody else's prompt");
 
         $SQL = <<<SQL
 UPDATE ai_prompts SET 
@@ -435,7 +435,7 @@ SQL;
         $dbResponse = $database->execute($SQL, $params);
 
       } else {
-        if (! $user->isModerator()) throw new Exception("You have no permission to save a prompt");
+        if (! $user->isModerator()) throw new \Exception("You have no permission to save a prompt");
 
         $SQL = <<<SQL
 INSERT INTO ai_prompts (user_id, model_id, user_prompt, system_prompt, response_format, article_id) 
@@ -454,7 +454,7 @@ SQL;
         $dbResponse = $database->execute($SQL, $params);
         $result['id'] = $database->lastInsertID();
       }
-      if ($dbResponse === false) throw new Exception('Internal error: Can not update prompt');
+      if ($dbResponse === false) throw new \Exception('Internal error: Can not update prompt');
 
 
       $result['ok'] = true;
@@ -469,7 +469,7 @@ SQL;
     try {
       $data = json_decode(file_get_contents('php://input'), true);
 
-      if (! self::mayEditPrompt($data['id'])) throw new Exception("You cannot delete somebody else's prompt");
+      if (! self::mayEditPrompt($data['id'])) throw new \Exception("You cannot delete somebody else's prompt");
 
       $SQL = "DELETE FROM ai_prompts WHERE id=:id;";
 
@@ -522,7 +522,7 @@ SQL;
       $command = $data['command']?? null;
 
       $article = self::loadArticleFromDatabase($articleId, $command);
-      if ($article === null) throw new Exception('Article not found');
+      if ($article === null) throw new \Exception('Article not found');
 
       $result = [
         'ok' => true,
@@ -579,7 +579,7 @@ SQL;
 
       $models = array_filter($modelsAvailable, fn($m) => $m['id'] === $modelId);
 
-      if (count($models) === 0) throw new Exception('Model ID not found: ' . $modelId);
+      if (count($models) === 0) throw new \Exception('Model ID not found: ' . $modelId);
 
       $model = reset($models);
 

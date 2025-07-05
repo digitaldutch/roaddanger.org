@@ -56,7 +56,7 @@ class GeneralHandler {
       $params = [':id' => $user->country['id']];
       $optionsJson = $database->fetchSingleValue($sql, $params);
 
-      if (! isset($optionsJson)) throw new Exception('No country options found for ' . $user->country['id']);
+      if (! isset($optionsJson)) throw new \Exception('No country options found for ' . $user->country['id']);
       $options     = json_decode($optionsJson);
 
       $result = ['ok' => true,

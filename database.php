@@ -40,7 +40,7 @@ class Database {
       $this->pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD, $options);
 
     } catch (\Exception $e) {
-      throw new Exception('Database error: ' . $e->getMessage());
+      throw new \Exception('Database error: ' . $e->getMessage());
     }
   }
 

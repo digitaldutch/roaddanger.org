@@ -68,7 +68,7 @@ SQL;
     $questionnaire = $database->fetch($sql, $params);
 
     if (($filter['public'] === 1) && ($questionnaire['public'] !== 1)) {
-      throw new Exception("Questionnaire " . $filter['questionnaireId'] . " is not public");
+      throw new \Exception("Questionnaire " . $filter['questionnaireId'] . " is not public");
     }
 
     $result['questionnaire'] = $questionnaire;
@@ -294,7 +294,7 @@ SQL;
               break;
             }
 
-            default: throw new Exception('Internal error: Unknown Bechdel result');
+            default: throw new \Exception('Internal error: Unknown Bechdel result');
           }
 
           if (! empty($articleFilter['getArticles'])) {

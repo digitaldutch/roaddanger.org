@@ -91,7 +91,7 @@ else if ($function === 'deleteUser') {
       $params = [':id' => $id];
 
       $database->execute($sql, $params, true);
-      if ($database->rowCount === 0) throw new Exception('Kan mens niet verwijderen.');
+      if ($database->rowCount === 0) throw new \Exception('Kan mens niet verwijderen.');
     }
     $result = ['ok' => true];
   } catch (\Exception $e){
