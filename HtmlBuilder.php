@@ -369,7 +369,7 @@ HTML;
       'Photo_link_url', 'Same_as_article', 'Select_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
       'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
       'Location', 'Characteristics', 'Save', 'Cancel',
-      'Spider_is_working', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Accident_text_info', 'Edit_location_instructions']);
+      'Spider_is_working', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions']);
 
     $htmlSearchCountry = self::getSearchCountryHtml('', 'editCrashCountry');
 
@@ -439,20 +439,6 @@ HTML;
      
       <input id="crashIDHidden" type="hidden">
   
-      <div data-crash-edit-only class="flexColumn">
-        <label for="editCrashTitle">{$texts['Title']}</label> 
-        <div style="display: flex;">
-          <input id="editCrashTitle" class="popupInput" type="text" maxlength="500" autocomplete="off" data-readonlyhelper>
-          <span class="button buttonGray buttonLine" onclick="copyCrashInfoFromArticle();">{$texts['Same_as_article']}</span>
-        </div>
-  
-        <div class="labelDiv">
-          <label for="editCrashText">{$texts['Text']}</label>
-          <span class="iconTooltip" data-tippy-content="{$texts['Accident_text_info']}"></span>
-        </div>
-        <textarea id="editCrashText" maxlength="500" style="height: 50px; resize: vertical;" class="popupInput" autocomplete="off" data-readonlyhelper></textarea>
-      </div>        
-
       <div class="labelDiv">
         <label for="editCrashDate">{$texts['Date']}</label>
         <span class="iconTooltip" data-tippy-content="{$texts['Accident_date_info']}"></span>
@@ -507,8 +493,9 @@ HTML;
   <div class="formFullPage" onclick="event.stopPropagation();">    
     <div class="showOnMobile" style="height: 15px"></div>
     <div class="popupCloseCross showOnMobile" onclick="closeCrashDetails();"></div>
-
-    <div id="crashDetails" class="flexColumn">
+    
+    <div style="overflow-y: auto;">
+      <div id="crashDetails" class="flexColumn"></div>
     </div>
   </div>
   

@@ -1,6 +1,6 @@
 <?php
-$VERSION = 598;
-$VERSION_DATE = '5 July 2025';
+$VERSION = 599;
+$VERSION_DATE = '6 July 2025';
 
 require_once 'configsecret.php';
 
@@ -36,12 +36,12 @@ const MAPBOX_GL_CSS = 'https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css'
 const MAPBOX_GEOCODER_JS = 'https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js';
 const MAPBOX_GEOCODER_CSS = 'https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css';
 
-// Command to start headless browser and return DOM.
+// Command to start the headless browser and return DOM.
 // The headless browser is needed if a media website uses a dummy first page which loads the main page with JavaScript.
-// The DPG Media group does this (e.g. ad.nl).
+// The DPG Media group does this (e.g., ad.nl).
 // Install Chromium or another browser on your server if you want to enable loading websites using a headless browser
-// --disable-gpu is used as servers often run without desktop environment.
-// --log-level=3 to suppress error messages which are triggeredby the lack of a desktop environment, but don't matter
+// --disable-gpu is used as servers often run without a desktop environment.
+// --log-level=3 to suppress error messages which are triggered by the lack of a desktop environment, but don't matter
 // The media url is appended to the end of this command. Hence, the single space character at the end of the command.
 
 // Debian Linux with Chromium

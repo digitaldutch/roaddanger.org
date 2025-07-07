@@ -23,7 +23,7 @@ class Database {
    * @throws Exception
    */
   public function open(){
-    // To debug on localhost with remote database use port forwarding:
+    // To debug on localhost with the remote database, use port forwarding use port forwarding:
     // ssh -L 3306:localhost:3306 loginname@databaseserver.com
     try {
       $options = [
@@ -39,28 +39,28 @@ class Database {
 
       $this->pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD, $options);
 
-    } catch (\Exception $e) {
+    } catch (\Throwable $e) {
       throw new \Exception('Database error: ' . $e->getMessage());
     }
   }
 
-  public function close(){
+  public function close(): void {
     unset($this->pdo);
   }
 
-  public function beginTransaction(){
+  public function beginTransaction(): void {
     $this->pdo->beginTransaction();
   }
 
-  public function rollback(){
+  public function rollback(): void {
     $this->pdo->rollBack();
   }
 
-  public function commit(){
+  public function commit(): void {
     $this->pdo->commit();
   }
 
-  public function inTransaction(){
+  public function inTransaction(): void {
     $this->pdo->inTransaction();
   }
 
@@ -80,7 +80,7 @@ class Database {
     }
   }
 
-  public function fetchAllGroup($sql, $params=null){
+  public function fetchAllGroup($sql, $params=null): false|array {
     try {
       $statement = $this->pdo->prepare($sql);
       $statement->execute($params);

@@ -593,8 +593,6 @@ SELECT DISTINCT
   c.streamtopuserid,     
   c.streamtoptype,
   c.awaitingmoderation,
-  c.title,
-  c.text,
   c.date,
   c.countryid,
   ST_X(c.location) AS longitude,
@@ -874,8 +872,6 @@ else if ($function === 'saveArticleCrash'){
     streamdatetime  = current_timestamp,
     streamtoptype   = 1, 
     streamtopuserid = :userid,
-    title           = :title,
-    text            = :text,
     date            = :date,
     countryid       = :countryid,
     latitude        = :latitude,
@@ -887,19 +883,17 @@ else if ($function === 'saveArticleCrash'){
   WHERE id=:id $sqlANDOwnOnly
 SQL;
       $params = [
-        ':id'                    => $crash['id'],
-        ':userid'                => $user->id,
-        ':title'                 => $crash['title'],
-        ':text'                  => $crash['text'],
-        ':date'                  => $crash['date'],
-        ':countryid'             => $crash['countryid'],
-        ':latitude'              => empty($crash['latitude'])?  null : $crash['latitude'],
-        ':longitude'             => empty($crash['longitude'])? null : $crash['longitude'],
-        ':latitude2'             => empty($crash['latitude'])?  null : $crash['latitude'],
-        ':longitude2'            => empty($crash['longitude'])? null : $crash['longitude'],
-        ':unilateral'            => intval($crash['unilateral']),
-        ':pet'                   => intval($crash['pet']),
-        ':trafficjam'            => intval($crash['trafficjam']),
+        ':id' => $crash['id'],
+        ':userid' => $user->id,
+        ':date' => $crash['date'],
+        ':countryid' => $crash['countryid'],
+        ':latitude' => empty($crash['latitude'])?  null : $crash['latitude'],
+        ':longitude' => empty($crash['longitude'])? null : $crash['longitude'],
+        ':latitude2' => empty($crash['latitude'])?  null : $crash['latitude'],
+        ':longitude2' => empty($crash['longitude'])? null : $crash['longitude'],
+        ':unilateral' => intval($crash['unilateral']),
+        ':pet' => intval($crash['pet']),
+        ':trafficjam' => intval($crash['trafficjam']),
       ];
       if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
@@ -909,16 +903,15 @@ SQL;
     } else {
       // New crash
       $sql = <<<SQL
-  INSERT INTO crashes (userid, awaitingmoderation, title, text, date, countryid, location, latitude, longitude, unilateral, pet, trafficjam)
-  VALUES (:userid, :awaitingmoderation, :title, :text, :date, :countryId, POINT(:longitude2, :latitude2), :latitude, :longitude, :unilateral, :pet, :trafficjam);
+  INSERT INTO crashes (userid, awaitingmoderation, title, date, countryid, location, latitude, longitude, unilateral, pet, trafficjam)
+  VALUES (:userid, :awaitingmoderation, :title, :date, :countryId, POINT(:longitude2, :latitude2), :latitude, :longitude, :unilateral, :pet, :trafficjam);
 SQL;
 
       $params = [
         ':userid'             => $user->id,
         ':awaitingmoderation' => intval($moderationRequired),
-        ':title'              => substr($crash['title'], 0, 500),
-        ':text'               => substr($crash['text'], 0, 500),
         ':date'               => $crash['date'],
+        ':title'              => $article['title'],
         ':countryId'          => $crash['countryid'],
         ':latitude'           => $crash['latitude'],
         ':longitude'          => $crash['longitude'],

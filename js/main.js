@@ -653,6 +653,8 @@ async function loadChildVictims(){
       let html = '';
       for (const crash of newCrashes) {
 
+        const crashArticles = getCrashArticles(crash.id, articles);
+
         const year = crash.date.getFullYear();
         if (year !== iYear) {
           iYear = year;
@@ -672,11 +674,12 @@ async function loadChildVictims(){
           }
         });
 
+        const title = crashArticles.length > 0? crashArticles[0].title : '';
         html += `
         <tr onclick="showCrashDetails(${crash.id})">
           <td style="white-space: nowrap;">${crash.date.pretty()}</td>
           <td style="white-space: nowrap;">${htmlIconsChildren}${htmlIconsOther}</td>
-          <td class="td400">${crash.title}</td>
+          <td class="td400">${title}</td>
         </tr>      
       `;
       }
@@ -946,161 +949,9 @@ function crashHasActiveQuestionnaires(crash) {
 }
 
 function getCrashListHTML(crashID){
-  const crash         = getCrashFromId(crashID);
-  const crashArticles = getCrashArticles(crash.id, articles);
-  const canEditCrash  = user.moderator || (crash.userid === user.id);
+  const crash = getCrashFromId(crashID);
 
-  let htmlArticles = '';
-  for (const article of crashArticles) {
-
-    const canEditArticle = user.moderator || (article.userid === user.id);
-    let htmlModeration = '';
-
-    if (article.awaitingmoderation){
-      let modHTML = '';
-      if (user.moderator) modHTML = `
-${translate('Approval_required')}
-<div style="margin: 10px;">
-  <button class="button" onclick="articleModerateOK(${article.id})">${translate('Approve')}</button>
-  <button class="button buttonGray" onclick="deleteArticle(${article.id})">${translate('Delete')}</button>
-</div>
-`;
-      else if (article.userid === user.id) modHTML = translate('Contribution_thanks');
-      else modHTML = translate('Moderation_pending');
-
-      htmlModeration = `<div id="articleModeration${article.id}" class="moderation">${modHTML}</div>`;
-    }
-
-    let htmlQuestionnaires = '';
-    if (user.moderator && crashHasActiveQuestionnaires(crash)) {
-      htmlQuestionnaires = `<div onclick="showQuestionsForm(${crashID}, ${article.id});" data-moderator>${translate('Questionnaires')}</div>`;
-    }
-
-    let htmlButtonAllText = '';
-    if (user.moderator && article.hasalltext) htmlButtonAllText = `<span class="buttonSelectionSmall bgArticle" data-userid="${article.userid}" data-tippy-content="Toon alle tekst" onclick="toggleAllText(this, event, ${article.id}, ${article.id});"></span>`;
-
-    let htmlMenuEdit      = '';
-    let buttonEditArticle = '';
-    if (canEditArticle) {
-      buttonEditArticle = `<span class="buttonEditPost bgTripleDots" data-userid="${article.userid}" onclick="showArticleMenu(event, ${article.id});"></span>`;
-      htmlMenuEdit += `
-        <div id="menuArticle${article.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
-          <div onclick="editArticle(${crash.id},  ${article.id});">${translate('Edit')}</div>
-          ${htmlQuestionnaires}
-          <div onclick="deleteArticle(${article.id})">${translate('Delete')}</div>
-       </div>`;
-    }
-
-    htmlArticles +=`
-<div class="cardArticle" id="article${article.id}">
-  <a href="${article.url}" target="article" onclick="event.stopPropagation();">
-    <div class="articleImageWrapper"><img class="articleImage" src="${article.urlimage}" onerror="this.style.display='none';"></div>
-  </a>
-  <div class="articleBody">
-    <span class="postButtonArea" onclick="event.stopPropagation();">
-      <span style="position: relative;">
-        ${htmlButtonAllText}
-        ${buttonEditArticle}
-      </span>
-      ${htmlMenuEdit}                  
-    </span>   
-    
-    ${htmlModeration}     
-  
-    <div class="smallFont articleTitleSmall">
-      <a href="${article.url}" target="article" onclick="event.stopPropagation();"><span class="cardSiteName">${escapeHtml(article.sitename)}</span></a> 
-      | ${article.publishedtime.pretty()} | ${translate('added_by')} ${article.user}
-    </div>
-  
-    <div class="articleTitle">${escapeHtml(article.title)}</div>
-    <div id="articleText${article.id}" class="postText">${escapeHtml(article.text)}</div>
-  </div>
-</div>`;
-  }
-
-  const htmlTopIcons = getCrashTopIcons(crash, true);
-  let titleSmall = translate('created_by') + ' ' + crash.user;
-  let titleModified = '';
-  if (crash.streamtopuser) {
-    switch (crash.streamtoptype) {
-      case StreamTopType.edited:       titleModified = ' | ' + translate('edited_by')            + ' ' + crash.streamtopuser; break;
-      case StreamTopType.articleAdded: titleModified = ' | ' + translate('new_article_added_by') + ' ' + crash.streamtopuser; break;
-    }
-  }
-
-  // Created date is only added if no modified title
-  if (titleModified) titleSmall += titleModified;
-  else titleSmall += ' ' + crash.createtime.pretty();
-
-  const htmlPersons = getCrashHumansIcons(crash, false);
-
-  let htmlQuestionnaireHelp = '';
-  if (user.moderator && (crashArticles.length > 0) && (! crash.unilateral) && crashHasActiveQuestionnaires(crash)) {
-    htmlQuestionnaireHelp = `
-<div class="notice smallFont" style="display: flex; justify-content: space-between; align-items: center; margin: 0 5px 5px 0;" onclick="showQuestionsForm(${crashID}, ${crashArticles[0].id});">
-<div>We are doing a research project and would be grateful if you answered a few questions about media articles.</div> 
-  <span class="button buttonLine">Answer research questions</span>
-</div>`;
-  }
-
-  let htmlModeration = '';
-  if (crash.awaitingmoderation){
-    let modHTML;
-    if (user.moderator) modHTML = `
-${translate('Approval_required')}
-<div style="margin: 10px;">
-  <button class="button" onclick="crashModerateOK(${crash.id})">${translate('Approve')}</button>
-  <button class="button buttonGray" onclick="deleteCrash(${crash.id})">${translate('Delete')}</button>
-</div>
-`;
-    else if (crash.userid === user.id) modHTML = translate('Contribution_thanks');
-    else modHTML = translate('Moderation_pending');
-
-    htmlModeration = `<div id="crashModeration${crash.id}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
-  }
-
-  let htmlMenuEditItems = '';
-  if (canEditCrash) {
-    htmlMenuEditItems = `
-      <div onclick="editArticle(${crash.id});">${translate('Edit')}</div>
-      <div onclick="showMergeCrashForm(${crash.id});">${translate('Merge')}</div>
-      <div onclick="deleteCrash(${crash.id});">${translate('Delete')}</div>
-`;
-  }
-
-  if (user.moderator) {
-    htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>${translate('Place_at_top_of_stream')}</div>`;
-  }
-
-  return `
-<div id="crash${crash.id}" class="cardCrashList" onclick="showCrashDetails(${crash.id}); event.stopPropagation();">
-  <span class="postButtonArea" onclick="event.stopPropagation();">
-    <span style="position: relative;">
-      <span class="buttonEditPost bgTripleDots"  data-userid="${crash.userid}" onclick="showCrashMenu(event, ${crash.id});"></span>
-    </span>
-    <div id="menuCrash${crash.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
-      <div onclick="addArticleToCrash(${crash.id});">${translate('Add_article')}</div>
-      ${htmlMenuEditItems}
-    </div>            
-  </span>        
-
-  ${htmlModeration}
-  
-  ${htmlQuestionnaireHelp}
-   
-  <div class="cardTop">
-    <div style="width: 100%;">
-      <div class="smallFont cardTitleSmall">${crash.date.pretty()} | ${titleSmall}</div>
-      <div class="cardTitle">${escapeHtml(crash.title)}</div>
-      <div>${htmlPersons}</div>
-    </div>
-    ${htmlTopIcons}
-  </div>
-
-  <div class="postText">${escapeHtml(crash.text)}</div>    
-  
-  ${htmlArticles}
-</div>`;
+  return getCrashCard(crash);
 }
 
 function getMosaicHTML(newCrashes){
@@ -1134,88 +985,46 @@ function getMosaicHTML(newCrashes){
   return html;
 }
 
-function getCrashDetailsHTML(crashId){
-  const crash = getCrashFromId(crashId);
+function getCrashCard(crash, detailsPage=false) {
+
   const crashArticles = getCrashArticles(crash.id, articles);
   const canEditCrash  = user.moderator || (crash.userid === user.id);
 
   let htmlArticles = '';
   for (const article of crashArticles) {
-
-    const articleDivID = 'details' + article.id;
-
-    let htmlModeration = '';
-    if (article.awaitingmoderation) {
-      let modHTML = '';
-      if (user.moderator) modHTML = `
-${translate('Approval_required')}
-<div style="margin: 10px;">
-  <button class="button" onclick="articleModerateOK(${article.id})">${translate('Approve')}</button>
-  <button class="button buttonGray" onclick="deleteArticle(${article.id})">${translate('Delete')}</button>
-</div>
-`;
-      else if (article.userid === user.id) modHTML = translate('Contribution_thanks');
-      else modHTML = translate('Moderation_pending');
-
-      htmlModeration = `<div id="articleModeration${articleDivID}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
-    }
-
-    let htmlQuestionnaires = '';
-    if (user.moderator && crashHasActiveQuestionnaires(crash)) {
-      htmlQuestionnaires = `<div onclick="showQuestionsForm(${crashId}, ${article.id});" data-moderator>${translate('Questionnaires')}</div>`;
-    }
-
-    let htmlButtonAllText = '';
-    if (user.moderator && article.hasalltext) htmlButtonAllText = `<span class="buttonSelectionSmall bgArticle" data-userid="${article.userid}" data-tippy-content="Toon alle tekst" onclick="toggleAllText(this, event, '${articleDivID}', ${article.id});"></span>`;
-
-    htmlArticles +=`
-<div class="cardArticle" id="article${articleDivID}" onclick="closeAllPopups(); event.stopPropagation();">
-  <a href="${article.url}" target="article">
-    <div class="articleImageWrapper"><img class="articleImage" src="${article.urlimage}" onerror="this.style.display='none';"></div>
-  </a>
-  <div class="articleBody">
-    <span class="postButtonArea" onclick="event.stopPropagation();">
-      <span style="position: relative;">
-        ${htmlButtonAllText}
-        <span class="buttonEditPost bgTripleDots" data-userid="${article.userid}" onclick="showArticleMenu(event, '${articleDivID}');"></span>
-      </span>
-      <div id="menuArticle${articleDivID}" class="buttonPopupMenu" onclick="event.preventDefault();">
-        <div onclick="editArticle(${crash.id},  ${article.id});">${translate('Edit')}</div>
-        ${htmlQuestionnaires}
-        <div onclick="deleteArticle(${article.id})">${translate('Delete')}</div>
-      </div>            
-    </span>   
-    
-    ${htmlModeration}     
-  
-    <div class="smallFont articleTitleSmall">
-      <a href="${article.url}" target="article"><span class="cardSiteName">${escapeHtml(article.sitename)}</span></a> 
-      | ${article.publishedtime.pretty()} | ${translate('added_by')} ${article.user}
-    </div>
-  
-    <div class="articleTitle">${escapeHtml(article.title)}</div>
-    <div id="articleText${articleDivID}" class="postText">${escapeHtml(article.text)}</div>
-  </div>
-</div>`;
+    htmlArticles += getArticleCard(crash, article, detailsPage);
   }
 
   const htmlTopIcons = getCrashTopIcons(crash);
-  let titleSmall     = translate('created_by') + ' ' + crash.user;
-  let titleModified  = '';
+  let crashHeader = crash.date.pretty() + ' | ' + translate('Crash_added_by') + ' ' + crash.user;
+  let titleModified = '';
   if (crash.streamtopuser) {
     switch (crash.streamtoptype) {
-      case StreamTopType.edited:       titleModified = ' | ' + translate('edited_by')            + ' ' + crash.streamtopuser; break;
+      case StreamTopType.edited: titleModified = ' | ' + translate('edited_by') + ' ' + crash.streamtopuser; break;
       case StreamTopType.articleAdded: titleModified = ' | ' + translate('new_article_added_by') + ' ' + crash.streamtopuser; break;
     }
   }
 
   // Created date is only added if no modified title
-  if (titleModified) titleSmall += titleModified;
-  else titleSmall += ' ' + crash.createtime.pretty();
+  if (titleModified) crashHeader += titleModified;
+  else crashHeader += ' ' + crash.createtime.pretty();
 
   const htmlPersons = getCrashHumansIcons(crash, false);
 
-  const crashDivId = 'details' + crash.id;
+  let htmlQuestionnaireHelp = '';
+  if (! detailsPage) {
+    if (user.moderator && (crashArticles.length > 0) && (! crash.unilateral) && crashHasActiveQuestionnaires(crash)) {
+      htmlQuestionnaireHelp = `
+<div class="notice smallFont" style="display: flex; justify-content: space-between; align-items: center; margin: 0 5px 5px 0;" onclick="showQuestionsForm(${crash.id}, ${crashArticles[0].id});">
+<div>We are doing a research project and would be grateful if you answered a few questions about media articles.</div> 
+  <span class="button buttonLine">Answer research questions</span>
+</div>`;
+    }
+  }
+
+  let crashElId = crash.id;
+  if (detailsPage) crashElId = 'details' + crashElId;
+
   let htmlModeration = '';
   if (crash.awaitingmoderation){
     let modHTML = '';
@@ -1229,7 +1038,7 @@ ${translate('Approval_required')}
     else if (crash.userid === user.id) modHTML = translate('Contribution_thanks');
     else modHTML = translate('Moderation_pending');
 
-    htmlModeration = `<div id="crashModeration${crashDivId}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
+    htmlModeration = `<div id="crashModeration${crashElId}" class="moderation" onclick="event.stopPropagation()">${modHTML}</div>`;
   }
 
   let htmlMenuEditItems = '';
@@ -1245,39 +1054,130 @@ ${translate('Approval_required')}
     htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>${translate('Place_at_top_of_stream')}</div>`;
   }
 
+  const htmlMap = detailsPage? '<div id="mapCrash"></div>' : '';
+  const crashClick = detailsPage? '' : `onclick="showCrashDetails(${crash.id});"`;
+  const htmlClassClickable = detailsPage? '' : 'cardCrashClickable';
+
   return `
-<div id="crash${crashDivId}" class="cardCrashDetails">
+<div id="crash${crashElId}" class="cardCrash ${htmlClassClickable}" ${crashClick}>
   <span class="postButtonArea" onclick="event.stopPropagation();">
-    <span style="position: relative;"><span class="buttonEditPost bgTripleDots"  data-userid="${crash.userid}" onclick="showCrashMenu(event, '${crashDivId}');"></span></span>
-    <div id="menuCrash${crashDivId}" class="buttonPopupMenu" onclick="event.preventDefault();">
+    <span style="position: relative;">
+      <span class="buttonEditPost bgTripleDots"  data-userid="${crash.userid}" onclick="showCrashMenu('${crashElId}');"></span>
+    </span>
+    <div id="menuCrash${crashElId}" class="buttonPopupMenu" onclick="event.preventDefault();">
       <div onclick="addArticleToCrash(${crash.id});">${translate('Add_article')}</div>
       ${htmlMenuEditItems}
     </div>            
   </span>        
 
   ${htmlModeration}
-    
+  
+  ${htmlQuestionnaireHelp}
+  
   <div class="cardTop">
     <div style="width: 100%;">
-      <div class="smallFont cardTitleSmall">${crash.date.pretty()} | ${titleSmall}</div>
-      <div class="cardTitle">${escapeHtml(crash.title)}</div>
+      <div class="smallFont cardTitleSmall">${crashHeader}</div>
       <div>${htmlPersons}</div>
     </div>
     ${htmlTopIcons}
   </div>
 
-  <div class="postText">${escapeHtml(crash.text)}</div>    
+  ${htmlMap}
   
   ${htmlArticles}
-  <div id="mapCrash"></div>
 </div>`;
+}
+
+function getArticleCard(crash, article, detailsPage=false) {
+  const canEditArticle = user.moderator || (article.userid === user.id);
+
+  let htmlModeration = '';
+
+  if (article.awaitingmoderation){
+    let modHTML = '';
+    if (user.moderator) modHTML = `
+${translate('Approval_required')}
+<div style="margin: 10px;">
+  <button class="button" onclick="articleModerateOK(${article.id})">${translate('Approve')}</button>
+  <button class="button buttonGray" onclick="deleteArticle(${article.id})">${translate('Delete')}</button>
+</div>
+`;
+    else if (article.userid === user.id) modHTML = translate('Contribution_thanks');
+    else modHTML = translate('Moderation_pending');
+
+    htmlModeration = `<div id="articleModeration${article.id}" class="moderation">${modHTML}</div>`;
+  }
+
+  let htmlQuestionnaires = '';
+  if (user.moderator && crashHasActiveQuestionnaires(crash)) {
+    htmlQuestionnaires = `<div onclick="showQuestionsForm(${crash.id}, ${article.id});" data-moderator>${translate('Questionnaires')}</div>`;
+  }
+
+  let htmlButtonAllText = '';
+  if (user.moderator && article.hasalltext) {
+    let detailsElementId = article.id;
+    if (detailsPage) detailsElementId = 'details' + detailsElementId;
+
+    htmlButtonAllText = `<span class="buttonSelectionSmall bgArticle" data-userid="${article.userid}" data-tippy-content="Toon alle tekst" onclick="toggleAllText(this, '${detailsElementId}', ${article.id});"></span>`;
+  }
+
+  let htmlMenuEdit      = '';
+  let buttonEditArticle = '';
+  if (canEditArticle) {
+    const menuId = detailsPage? 'menuDetails' : 'menuArticle';
+    buttonEditArticle = `<span class="buttonEditPost bgTripleDots" data-userid="${article.userid}" onclick="showArticleMenu(event, ${article.id});"></span>`;
+    htmlMenuEdit += `
+        <div id="menuArticle${article.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
+          <div onclick="editArticle(${crash.id},  ${article.id});">${translate('Edit')}</div>
+          ${htmlQuestionnaires}
+          <div onclick="deleteArticle(${article.id})">${translate('Delete')}</div>
+       </div>`;
+  }
+
+  const elementArticleTextId = detailsPage? 'articleTextdetails' + article.id : 'articleText' + article.id;
+  return `
+<div class="cardArticle" id="article${article.id}">
+
+  <div class="articleBody">
+    <div class="articleTitle">${escapeHtml(article.title)}</div>
+
+    <div class="smallFont articleTitleSmall">
+      <a href="${article.url}" target="article" onclick="event.stopPropagation();"><span class="cardSiteName">${escapeHtml(article.sitename)}</span></a> 
+      | ${article.publishedtime.pretty()} | ${translate('added_by')} ${article.user}
+    </div>  
+  </div>
+  
+  <a href="${article.url}" target="article" onclick="event.stopPropagation();">
+    <div class="articleImageWrapper"><img class="articleImage" src="${article.urlimage}" onerror="this.style.display='none';"></div>
+  </a>
+  
+  <div class="articleBody">
+    <span class="postButtonArea" onclick="event.stopPropagation();">
+      <span style="position: relative;">
+        ${htmlButtonAllText}
+        ${buttonEditArticle}
+      </span>
+      ${htmlMenuEdit}                  
+    </span>   
+    
+    ${htmlModeration}     
+  
+    <div id="${elementArticleTextId}" class="postText">${escapeHtml(article.text)}</div>
+  </div>
+</div>`;
+}
+
+function getCrashDetailsHTML(crashId){
+  const crash = getCrashFromId(crashId);
+
+  return getCrashCard(crash, true);
 }
 
 function getIconUnilateral() {
   return `<div class="iconSmall bgUnilateral" data-tippy-content="${translate('One-sided_crash')}"></div>`;
 }
 
-function getCrashTopIcons(crash, allowClick=false){
+function getCrashTopIcons(crash){
   let html = '';
 
   if (crash.unilateral)                  html += getIconUnilateral();
@@ -1290,13 +1190,12 @@ function getCrashTopIcons(crash, allowClick=false){
   html += `<div class="iconSmall" style="background-image: url('${flagFile}')"></div>`;
 
   if (html){
-    const htmlClick = allowClick? '' : 'onclick="stopPropagation();"';
     html = `
-    <div data-info="preventFullBorder">
-      <div class="cardIcons" ${htmlClick}>
-        <div class="flexRow" style="justify-content: flex-end">${html}</div>
-      </div>
-    </div>`;
+<div data-info="preventFullBorder">
+  <div class="cardIcons">
+    <div class="flexRow" style="justify-content: flex-end">${html}</div>
+  </div>
+</div>`;
   }
   return html;
 }
@@ -1383,8 +1282,6 @@ function showEditCrashForm(isNewCrash=false) {
   document.getElementById('editArticleSiteName').value = '';
   document.getElementById('editArticleDate').value = '';
 
-  document.getElementById('editCrashTitle').value = '';
-  document.getElementById('editCrashText').value = '';
   document.getElementById('editCrashDate').value = '';
   document.getElementById('aiLocationInfo').innerText = '';
   document.getElementById('editCrashLatitude').value = '';
@@ -1673,8 +1570,6 @@ function setArticleCrashFields(crashID){
 
   document.getElementById('crashIDHidden').value = crash.id;
 
-  document.getElementById('editCrashTitle').value = crash.title;
-  document.getElementById('editCrashText').value = crash.text;
   document.getElementById('editCrashDate').value = dateToISO(crashDatetime);
   document.getElementById('aiLocationInfo').innerText = '';
   document.getElementById('editCrashLatitude').value = crash.latitude;
@@ -1698,7 +1593,7 @@ function openArticleLink(event, articleID) {
   window.open(article.url,"article");
 }
 
-function toggleAllText(element, event, articleDivId, articleId){
+function toggleAllText(element, articleDivId, articleId){
   event.preventDefault();
   event.stopPropagation();
 
@@ -1773,8 +1668,6 @@ async function showQuestionsForm(crashId, articleId) {
   const crash   = getCrashFromId(crashId);
 
   const onFillInPage = window.location.href.includes('fill_in');
-  const htmlHelpWanted = onFillInPage? '' : '<br>Help our research project by <a href=\'/research/questionnaires/fill_in\' class="button buttonLine">answering questions for other articles</a>';
-
   const htmlUnilateral = crash.unilateral? getIconUnilateral() : '';
 
   document.getElementById('buttonEditCrash').addEventListener('click', () => viewCrashInTab(crashId));
@@ -1818,7 +1711,7 @@ async function showQuestionsForm(crashId, articleId) {
         }
 
         htmlQuestionnaires += `<tr id="questionnaireCompleted${questionnaire.id}" class="ready" style="display: none;"><td colspan="2">
-All questions answered 🙏${htmlHelpWanted}</td></tr>`;
+All questions answered 🙏🏼</td></tr>`;
         htmlQuestionnaires += '<tr><td colspan="2" style="border: none; height: 10px;"></td></tr>'
       }
 
@@ -2007,10 +1900,6 @@ function domainBlacklisted(url){
   return domainBlacklist.find(d => url.includes(d.domain));
 }
 
-function copyCrashInfoFromArticle(){
-  document.getElementById('editCrashTitle').value = document.getElementById('editArticleTitle').value;
-}
-
 function copyCrashDateFromArticle(){
   document.getElementById('editCrashDate').value  = document.getElementById('editArticleDate').value;
 }
@@ -2127,8 +2016,6 @@ async function saveArticleCrash(){
   if (! longitude) latitude  = null;
   crashEdited = {
     id: document.getElementById('crashIDHidden').value,
-    title: document.getElementById('editCrashTitle').value,
-    text: document.getElementById('editCrashText').value,
     date: document.getElementById('editCrashDate').value,
     countryid: document.getElementById('editCrashCountry').value,
     latitude: latitude,
@@ -2146,7 +2033,6 @@ async function saveArticleCrash(){
     crashEdited.title = articleEdited.title;
   }
 
-  if (!crashEdited.title) {showError(translate('Crash_title_not_filled_in')); return;}
   if (!crashEdited.date) {showError(translate('Crash_date_not_filled_in')); return;}
   if (crashEdited.persons.length === 0) {showError(translate('No_humans_selected')); return;}
   if (!crashEdited.countryid) {showError(translate('Crash_country_not_filled_in')); return;}
@@ -2246,7 +2132,7 @@ function pageIsCrashPage(){
   return (pageType === PageType.crash) || pageIsCrashList();
 }
 
-function showCrashMenu(event, crashDivID) {
+function showCrashMenu(crashDivID) {
   event.preventDefault();
   event.stopPropagation();
 
@@ -2346,12 +2232,11 @@ function deleteArticle(id) {
     translate('Delete'), null, true);
 }
 
-function deleteCrash(id) {
+function deleteCrash(crashId) {
   closeAllPopups();
-  const crash = getCrashFromId(id);
 
-  confirmWarning(translate('Delete_crash') + '<br>' + crash.title.substr(0, 100),
-    function (){deleteCrashDirect(id)},
+  confirmWarning(translate('Delete_crash') + '<br>' + crashId,
+    function (){deleteCrashDirect(crashId)},
     translate('Delete'));
 }
 
@@ -2361,11 +2246,17 @@ function crashRowHTML(crash, isSearch=false){
     const htmlPersons = getCrashHumansIcons(crash, false);
 
     const crashArticles = getCrashArticles(crash.id, allArticles);
-    const img = (crashArticles.length > 0)? `<img class="thumbnail" src="${crashArticles[0].urlimage}">` : '';
+    let img = '';
+    let title = '';
+    if (crashArticles.length > 0) {
+      title = crashArticles[0].title;
+      img = `<img class="thumbnail" src="${crashArticles[0].urlimage}">`
+    }
+
     return `
   <div class="flexRow" style="justify-content: space-between;">
     <div style="padding: 3px;">
-      ${crash.title}
+      ${title}
       <div class="smallFont">#${crash.id} ${crash.date.pretty()}</div>
       <div>${htmlPersons}</div>
     </div>
@@ -2527,7 +2418,10 @@ function crashDetailsVisible(){
 }
 
 function showCrashDetails(crashId, addToHistory=true){
+  event.stopPropagation();
+
   const crash = crashByID(crashId);
+  const crashArticles = getCrashArticles(crash.id, articles);
 
   // Show crash overlay
   const divCrash = document.getElementById('formCrash');
@@ -2542,8 +2436,9 @@ function showCrashDetails(crashId, addToHistory=true){
   tippy('#crashDetails [data-tippy-content]');
 
   // Change browser url
-  const url = createCrashURL(crash.id, crash.title);
-  if (addToHistory) window.history.pushState({lastCrashId: crash.id}, crash.title, url);
+  const title = crashArticles.length > 0? crashArticles[0].title : '';
+  const url = createCrashURL(crash.id, title);
+  if (addToHistory) window.history.pushState({lastCrashId: crash.id}, title, url);
 
   // Firefox bug workaround: Firefox selects all text in the popup which is what we do not want.
   window.getSelection().removeAllRanges();
