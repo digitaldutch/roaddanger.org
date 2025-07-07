@@ -1125,9 +1125,12 @@ ${translate('Approval_required')}
   let buttonEditArticle = '';
   if (canEditArticle) {
     const menuId = detailsPage? 'menuDetails' : 'menuArticle';
-    buttonEditArticle = `<span class="buttonEditPost bgTripleDots" data-userid="${article.userid}" onclick="showArticleMenu(event, ${article.id});"></span>`;
+    let articleElId = article.id;
+    if (detailsPage) articleElId = 'details' + articleElId;
+
+    buttonEditArticle = `<span class="buttonEditPost bgTripleDots" data-userid="${article.userid}" onclick="showArticleMenu('${articleElId}');"></span>`;
     htmlMenuEdit += `
-        <div id="menuArticle${article.id}" class="buttonPopupMenu" onclick="event.preventDefault();">
+        <div id="menuArticle${articleElId}" class="buttonPopupMenu" onclick="event.preventDefault();">
           <div onclick="editArticle(${crash.id},  ${article.id});">${translate('Edit')}</div>
           ${htmlQuestionnaires}
           <div onclick="deleteArticle(${article.id})">${translate('Delete')}</div>
@@ -2114,7 +2117,7 @@ async function saveArticleCrash(){
   hideElement('formEditCrash');
 }
 
-function showArticleMenu(event, articleDivId) {
+function showArticleMenu(articleDivId) {
   event.preventDefault();
   event.stopPropagation();
 
