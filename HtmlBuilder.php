@@ -369,7 +369,7 @@ HTML;
       'Photo_link_url', 'Same_as_article', 'Select_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
       'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
       'Location', 'Characteristics', 'Save', 'Cancel',
-      'Spider_is_working', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions']);
+      'Fetching_web_page', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions']);
 
     $htmlSearchCountry = self::getSearchCountryHtml('', 'editCrashCountry');
 
@@ -398,9 +398,8 @@ HTML;
       </div>
   
       <div id="spinnerMeta" class="spiderBackground">
-        <div class="popupHeader">{$texts['Spider_is_working']}</div>
-        <div><img src="/images/tarantula.jpg" style="height: 200px;" alt="Spider"></div>
-        <div id="tarantulaResults"></div> 
+        <div class="popupHeader">{$texts['Fetching_web_page']}</div>
+        <div id="spiderResults"></div> 
       </div>
   
       <label for="editArticleSiteName">{$texts['Media_source']}</label>

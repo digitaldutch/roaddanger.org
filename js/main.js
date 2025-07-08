@@ -1949,7 +1949,7 @@ async function getArticleMetaData() {
   const url = '/general/ajax.php?function=getPageMetaData';
 
   document.getElementById('spinnerMeta').style.display = 'flex';
-  document.getElementById('tarantulaResults').innerHTML = '<img src="/images/spinner_black.svg" style="height: 40px;">';
+  document.getElementById('spiderResults').innerHTML = '<img src="/images/spinner_black.svg" style="height: 40px;">';
   try {
     const response = await fetchFromServer(url, dataServer);
 
@@ -1961,7 +1961,7 @@ async function getArticleMetaData() {
         showMessage(translate('no_data_found_on_web_page'), 30);
       } else showMetaData(response.media);
 
-      document.getElementById('tarantulaResults').innerHTML = `
+      document.getElementById('spiderResults').innerHTML = `
 <div>${translate('Tags_found')}</div>
 <table class="dataTable">
 <td><td>JSON-LD:</td><td> ${response.tagcount.json_ld}</td></tr>
