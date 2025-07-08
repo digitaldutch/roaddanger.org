@@ -1842,7 +1842,7 @@ async function crashToTopStream(crashID) {
 }
 
 async function getArticleText(articleId) {
-  const url      = '/general/ajax.php?function=getArticleText&id=' + articleId;
+  const url = '/general/ajax.php?function=getArticleText&id=' + articleId;
   const response = await fetchFromServer(url);
 
   if (response.error) showError(response.error, 10);

@@ -1148,14 +1148,8 @@ else if ($function === 'getArticleText'){
     $articleId = (int)$_REQUEST['id'];
     if ($articleId > 0){
       $params = [':id' => $articleId];
+      $sql  = "SELECT alltext FROM articles WHERE id=:id;";
 
-      $sqlANDOwnOnly = '';
-      if (! $user->isModerator()) {
-        $params[':useridwhere'] = $user->id;
-        $sqlANDOwnOnly = ' AND userid=:useridwhere ';
-      }
-
-      $sql  = "SELECT alltext FROM articles WHERE id=:id $sqlANDOwnOnly;";
       $text = $database->fetchSingleValue($sql, $params);
     }
     $result = ['ok' => true, 'text' => $text];
