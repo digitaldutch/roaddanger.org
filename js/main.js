@@ -1118,7 +1118,7 @@ ${translate('Approval_required')}
     let detailsElementId = article.id;
     if (detailsPage) detailsElementId = 'details' + detailsElementId;
 
-    htmlButtonAllText = `<div style="display: flex; justify-content: center;"><button class="buttonTiny" onclick="showAllText(this, '${detailsElementId}', ${article.id});">Show full text</button></div>`;
+    htmlButtonAllText = `<div style="display: flex; justify-content: center;"><button class="buttonTiny" onclick="showAllText(this, '${detailsElementId}', ${article.id});">${translate('Show_full_text')}</button></div>`;
   }
 
   let htmlMenuEdit      = '';
