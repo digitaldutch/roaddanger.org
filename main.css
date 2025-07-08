@@ -734,7 +734,6 @@ h3, .pageSubTitleFont {
 .bgSearchWhite {background-image: url(/images/search_white.svg);}
 .bgMenu {background-image: url(/images/menu.svg);}
 .bgMenuWhite {background-image: url(/images/menu_white.svg);}
-.bgArticle {background-image: url(/images/article.svg);}
 .bgGeo {background-image: url(/images/geo.svg);}
 .bgTripleDots {background-image: url(/images/tripledots.svg);}
 
@@ -1107,7 +1106,8 @@ h3, .pageSubTitleFont {
   width: fit-content;
   font-size: 10px;
   height: auto;
-  border-radius: 10px;
+  border-radius: 5px;
+  border: 1px solid #aaaaaa;
 }
 
 .buttonTiny:hover {

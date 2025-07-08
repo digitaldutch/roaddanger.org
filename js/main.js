@@ -1114,11 +1114,11 @@ ${translate('Approval_required')}
   }
 
   let htmlButtonAllText = '';
-  if (user.moderator && article.hasalltext) {
+  if (article.hasalltext) {
     let detailsElementId = article.id;
     if (detailsPage) detailsElementId = 'details' + detailsElementId;
 
-    htmlButtonAllText = `<span class="buttonSelectionSmall bgArticle" data-userid="${article.userid}" data-tippy-content="Toon alle tekst" onclick="toggleAllText(this, '${detailsElementId}', ${article.id});"></span>`;
+    htmlButtonAllText = `<div style="display: flex; justify-content: center;"><button class="buttonTiny" onclick="showAllText(this, '${detailsElementId}', ${article.id});">Show full text</button></div>`;
   }
 
   let htmlMenuEdit      = '';
@@ -1157,7 +1157,6 @@ ${translate('Approval_required')}
   <div class="articleBody">
     <span class="postButtonArea" onclick="event.stopPropagation();">
       <span style="position: relative;">
-        ${htmlButtonAllText}
         ${buttonEditArticle}
       </span>
       ${htmlMenuEdit}                  
@@ -1166,6 +1165,7 @@ ${translate('Approval_required')}
     ${htmlModeration}     
   
     <div id="${elementArticleTextId}" class="postText">${escapeHtml(article.text)}</div>
+    ${htmlButtonAllText}
   </div>
 </div>`;
 }
@@ -1554,9 +1554,10 @@ function refreshSelectHumansIcons(humans) {
     iHuman++;
     const iconHuman = humanIconHtml(human, iHuman);
 
+    const textDelete = translate('Delete');
     html += `<div style="display: flex; flex-direction: column; align-items: center;">
   ${iconHuman}
-  <div class="button buttonTiny buttonGray" onclick="deleteHuman(${human.id})">Delete</div>
+  <div class="buttonTiny" onclick="deleteHuman(${human.id})">${textDelete}</div>
 </div>`;
   }
 
@@ -1596,18 +1597,16 @@ function openArticleLink(event, articleID) {
   window.open(article.url,"article");
 }
 
-function toggleAllText(element, articleDivId, articleId){
+function showAllText(element, articleDivId, articleId){
   event.preventDefault();
   event.stopPropagation();
 
-  toggleSelectionButton(element);
+  element.style.display = 'none';
 
-  const article = getArticleFromId(articleId);
   const textElement = document.getElementById('articleText' + articleDivId);
-  if (element.classList.contains('buttonSelected')) {
-    textElement.innerHTML = '⌛';
-    getArticleText(articleId).then(text => textElement.innerHTML = formatText(text));
-  } else textElement.innerHTML = formatText(article.text);
+  textElement.innerHTML = '⌛';
+
+  getArticleText(articleId).then(text => textElement.innerHTML = formatText(text));
 }
 
 function editArticle(crashID, articleID=null) {
