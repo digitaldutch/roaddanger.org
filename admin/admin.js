@@ -67,7 +67,7 @@ async function loadUsers(){
     observerSpinner.unobserve(spinnerLoad);
 
     if (! tableData[0]) tableData[0] = [];
-    const url = '/admin/ajax.php?function=loadUsers&count=' + maxLoadCount + '&offset=' + tableData[0].length;
+    const url = '/admin/ajaxAdmin.php?function=loadUsers&count=' + maxLoadCount + '&offset=' + tableData[0].length;
     response  = await fetchFromServer(url);
 
     if (response.error) showError(response.error);
@@ -116,7 +116,7 @@ function adminEditUser() {
 async function deleteUserDirect() {
   try {
     const userId   = selectedTableData[0].id;
-    const url      = '/admin/ajax.php?function=deleteUser&id=' + userId;
+    const url      = '/admin/ajaxAdmin.php?function=deleteUser&id=' + userId;
     const response = await fetchFromServer(url);
     if (response.error) showError(response.error);
     else {
@@ -150,7 +150,7 @@ async function saveUser(){
   if (! user.firstname) {showError(translate('First_name_not_filled_in')); return;}
   if (! user.lastname) {showError(translate('Last_name_not_filled_in')); return;}
 
-  const url      = '/admin/ajax.php?function=saveUser';
+  const url      = '/admin/ajaxAdmin.php?function=saveUser';
   const response = await fetchFromServer(url, user);
 
   if (response.error) {
@@ -272,7 +272,7 @@ async function saveNewTranslation() {
     return;
   }
 
-  const url      = '/admin/ajax.php?function=saveNewTranslation';
+  const url      = '/admin/ajaxAdmin.php?function=saveNewTranslation';
   const response = await fetchFromServer(url, translation);
 
   if (response.error) showError(response.error);
@@ -301,7 +301,7 @@ function deleteTranslation() {
           id: selectedTableData[0].id,
         };
 
-        const url      = '/admin/ajax.php?function=deleteTranslation';
+        const url      = '/admin/ajaxAdmin.php?function=deleteTranslation';
         const response = await fetchFromServer(url, serverData);
 
         if (response.error) showError(response.error);
@@ -322,7 +322,7 @@ async function changeUserLanguage(){
   await saveTranslations();
 
   const languageId = document.getElementById('selectLanguage').value;
-  const url        = '/general/ajax.php?function=setLanguage&id=' + languageId;
+  const url = '/general/ajax.php?function=setLanguage&id=' + languageId;
   const response   = await fetchFromServer(url);
 
   if (response.error) {
@@ -352,7 +352,7 @@ async function loadLongText(){
   if (data.languageId) browserUrl.searchParams.set('language_id', data.languageId); else browserUrl.searchParams.delete('language_id');
   window.history.pushState(null, null, browserUrl.toString());
   if (data.longtextId) {
-    const url      = '/admin/ajax.php?function=loadLongText';
+    const url      = '/admin/ajaxAdmin.php?function=loadLongText';
     const response = await fetchFromServer(url, data);
 
     if (response.error) {
@@ -397,7 +397,7 @@ async function saveLongText() {
     return
   }
 
-  const url      = '/admin/ajax.php?function=saveLongText';
+  const url      = '/admin/ajaxAdmin.php?function=saveLongText';
   const response = await fetchFromServer(url, data);
 
   if (response.error) showError(response.error);

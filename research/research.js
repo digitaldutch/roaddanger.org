@@ -71,7 +71,7 @@ async function loadQuestionnaires() {
   try {
     spinnerLoad.style.display = 'block';
 
-    const url = '/research/ajax.php?function=loadQuestionnaires';
+    const url = '/research/ajaxResearch.php?function=loadQuestionnaires';
     const response = await fetchFromServer(url);
 
     if (response.error) showError(response.error);
@@ -113,7 +113,7 @@ async function loadArticlesUnanswered() {
       },
     }
 
-    const url = '/research/ajax.php?function=loadArticlesUnanswered';
+    const url = '/research/ajaxResearch.php?function=loadArticlesUnanswered';
     const response = await fetchFromServer(url, data);
 
     response.articles.forEach(article => {
@@ -265,7 +265,7 @@ async function downloadQuestionnaireResults(articleFilter={}) {
     articleFilter: articleFilter,
   }
 
-  const url = '/research/ajax.php?function=loadQuestionnaireResults';
+  const url = '/research/ajaxResearch.php?function=loadQuestionnaireResults';
   return  await fetchFromServer(url, data);
 }
 
@@ -420,7 +420,7 @@ async function showLoadAiPromptForm() {
 
     spinner.style.display = 'flex';
 
-    const url = '/research/ajax.php?function=aiGetPromptList';
+    const url = '/research/ajaxResearch.php?function=aiGetPromptList';
     const response = await fetchFromServer(url);
 
     tableData[1] = response.queries;
@@ -444,7 +444,7 @@ async function showAddAiModelForm() {
   try {
     spinner.style.display = 'flex';
 
-    const url = '/research/ajax.php?function=aiGetAvailableModels';
+    const url = '/research/ajaxResearch.php?function=aiGetAvailableModels';
     const response = await fetchFromServer(url);
 
     tableData = [response.models];
@@ -461,7 +461,7 @@ async function updateAiModelsInfo() {
   try {
     spinnerLoad.style.display = 'block';
 
-    const url = '/research/ajax.php?function=updateModelsDatabase';
+    const url = '/research/ajaxResearch.php?function=updateModelsDatabase';
     const response = await fetchFromServer(url);
 
     if (response.error) {
@@ -545,7 +545,7 @@ async function addAiModel() {
     model_id: model.id,
   };
 
-  const url = '/research/ajax.php?function=selectAiModel';
+  const url = '/research/ajaxResearch.php?function=selectAiModel';
   const response = await fetchFromServer(url, serverData);
 
   if (response.error) showError(response.error);
@@ -600,7 +600,7 @@ async function loadArticle(id) {
   divArticleId.value = null;
 
   if (id) {
-    const url = '/research/ajax.php?function=loadArticle';
+    const url = '/research/ajaxResearch.php?function=loadArticle';
     const response = await fetchFromServer(url, {id: id});
 
     if (response.error) {
@@ -632,7 +632,7 @@ async function deleteAiPrompt() {
       try {
         spinner.style.display = 'flex';
 
-        const url = '/research/ajax.php?function=aiDeletePrompt';
+        const url = '/research/ajaxResearch.php?function=aiDeletePrompt';
         response = await fetchFromServer(url, {id: prompt.id});
 
       } finally {
@@ -663,7 +663,7 @@ function removeAiModel() {
         model_id: model.id,
       };
 
-      const url = '/research/ajax.php?function=removeAiModel';
+      const url = '/research/ajaxResearch.php?function=removeAiModel';
       const response = await fetchFromServer(url, serverData);
 
       if (response.error) showError(response.error);
@@ -679,7 +679,7 @@ async function initAITest() {
   try {
     spinnerLoad.style.display = 'block';
 
-    const url = '/research/ajax.php?function=aiInit';
+    const url = '/research/ajaxResearch.php?function=aiInit';
     const response = await fetchFromServer(url);
 
     if (response.error) {
@@ -768,7 +768,7 @@ async function saveQuestion() {
 
   if (! serverData.text) {showError('Text field is empty'); return;}
 
-  const url = '/research/ajax.php?function=saveQuestion';
+  const url = '/research/ajaxResearch.php?function=saveQuestion';
   const response = await fetchFromServer(url, serverData);
 
   if (response.error) showError(response.error);
@@ -789,7 +789,7 @@ function deleteQuestion() {
         id: selectedTableData[0].id,
       };
 
-      const url      = '/research/ajax.php?function=deleteQuestion';
+      const url      = '/research/ajaxResearch.php?function=deleteQuestion';
       const response = await fetchFromServer(url, serverData);
 
       if (response.error) showError(response.error);
@@ -923,7 +923,7 @@ async function saveQuestionnaire() {
   if (serverData.type === null) {showError('No type selected'); return;}
   if (! serverData.countryId)   {showError('No country selected'); return;}
 
-  const url = '/research/ajax.php?function=saveQuestionnaire';
+  const url = '/research/ajaxResearch.php?function=saveQuestionnaire';
   const response = await fetchFromServer(url, serverData);
 
   if (response.error) showError(response.error);
@@ -945,7 +945,7 @@ function deleteQuestionnaire() {
             id: selectedTableData[1].id,
           };
 
-          const url      = '/research/ajax.php?function=deleteQuestionnaire';
+          const url      = '/research/ajaxResearch.php?function=deleteQuestionnaire';
           const response = await fetchFromServer(url, serverData);
 
           if (response.error) showError(response.error);
@@ -976,7 +976,7 @@ function onDragRowStart(event, id){
 
 async function saveQuestionOrder(){
   const questionIds = tableData[0].map(item => item.id);
-  const url         = '/research/ajax.php?function=saveQuestionsOrder';
+  const url         = '/research/ajaxResearch.php?function=saveQuestionsOrder';
   const response    = await fetchFromServer(url, questionIds);
 
   if (response.error) {
@@ -1138,7 +1138,7 @@ async function aiRunPrompt() {
 
     divResponse.innerText = '...';
 
-    const url = '/research/ajax.php?function=aiRunPrompt';
+    const url = '/research/ajaxResearch.php?function=aiRunPrompt';
     const response = await fetchFromServer(url, data);
 
     if (response.error) {
@@ -1186,7 +1186,7 @@ async function aiSavePrompt() {
 
     if (data.userPrompt.length < 1) {showError('User prompt is empty'); return;}
 
-    const url = '/research/ajax.php?function=aiSavePrompt';
+    const url = '/research/ajaxResearch.php?function=aiSavePrompt';
     const response = await fetchFromServer(url, data);
 
     if (response.error) {
@@ -1225,7 +1225,7 @@ async function loadAiArticle(command='') {
     return;
   }
 
-  const url = '/research/ajax.php?function=loadArticle';
+  const url = '/research/ajaxResearch.php?function=loadArticle';
   const response = await fetchFromServer(url, {id: articleId, command: command});
 
   if (response.error) {
@@ -1264,7 +1264,7 @@ async function showGenerationSummary() {
   const divMeta =document.getElementById('aiResponseMeta');
   divMeta.innerText = 'Checking prompt meta info...';
 
-  const url = '/research/ajax.php?function=aiGetGenerationInfo';
+  const url = '/research/ajaxResearch.php?function=aiGetGenerationInfo';
   const response = await fetchFromServer(url, {id: lastGenerationId});
 
   if (response.error) {
@@ -1301,7 +1301,7 @@ async function showFullGenerationInfo(generationId) {
   try {
     spinner.style.display = 'block';
 
-    const url = '/research/ajax.php?function=aiGetGenerationInfo';
+    const url = '/research/ajaxResearch.php?function=aiGetGenerationInfo';
     const response = await fetchFromServer(url, {id: generationId});
     
     if (response.error) {
