@@ -1,5 +1,6 @@
 <?php
 require_once '../config.php';
+require_once '../general/OpenRouterAIClient.php';
 
 // Set proper headers for JSON response
 header('Content-Type: application/json');
@@ -217,65 +218,17 @@ $articleBody
  * Analyze headline using OpenRouter API
  */
 function analyzeHeadline($headline, $articleBody) {
-    $apiKey = OPENROUTER_API_KEY;
-    
-    if (!$apiKey) {
-        return [
-            'analysis' => [
-                'isRelevant' => false,
-                'originalHeadline' => $headline,
-                'score' => 0,
-                'criteriaResults' => [
-                    ['criterionId' => 1, 'passed' => false, 'explanation' => 'API key not configured.'],
-                    ['criterionId' => 2, 'passed' => false, 'explanation' => 'API key not configured.'],
-                    ['criterionId' => 3, 'passed' => false, 'explanation' => 'API key not configured.'],
-                ],
-                'improvedHeadline' => 'Error: API key not configured.',
-                'changes' => []
-            ]
-        ];
-    }
-
-    $promptContent = generatePrompt($headline, $articleBody);
-
-    $postData = [
-        'model' => 'openai/gpt-4o-mini',
-        'messages' => [
-            [
-                'role' => 'user',
-                'content' => $promptContent
-            ]
-        ]
-    ];
-
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'POST',
-            'header' => [
-                'Content-Type: application/json',
-                'Authorization: Bearer ' . $apiKey,
-                'HTTP-Referer: ' . ($_SERVER['HTTP_HOST'] ?? 'localhost'),
-                'X-Title: ReFrame'
-            ],
-            'content' => json_encode($postData),
-            'timeout' => 60
-        ]
-    ]);
-
     try {
-        $response = file_get_contents('https://openrouter.ai/api/v1/chat/completions', false, $context);
+        $client = new OpenRouterAIClient();
+        $promptContent = generatePrompt($headline, $articleBody);
         
-        if ($response === false) {
-            throw new Exception('Failed to get response from API');
-        }
-
-        $data = json_decode($response, true);
+        // Use the existing client to make the API call
+        $llmOutputContent = $client->chat(
+            $promptContent,
+            '', // no system prompt needed
+            'openai/gpt-4o-mini'
+        );
         
-        if (!$data || !isset($data['choices'][0]['message']['content'])) {
-            throw new Exception('Invalid API response structure');
-        }
-
-        $llmOutputContent = $data['choices'][0]['message']['content'];
         $parsedLlmResponse = json_decode($llmOutputContent, true);
         
         if (!$parsedLlmResponse || !isset($parsedLlmResponse['analysis'])) {

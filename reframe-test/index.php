@@ -226,15 +226,7 @@ The incident happened at about 8:15 a.m. on the west side of Linnaeusstraat near
                 <h2 class="text-3xl font-medium mb-4 text-black">About ReFrame</h2>
                 <div class="space-y-4 text-lg">
                     <p>ReFrame is part of a research project at the University of Amsterdam exploring how language shapes our perception of road safety. <br><br> Note: This website uses generative AI.</p>
-                    <div class="pt-4">
-                        <p class="text-lg text-black">
-                            Send me a message (Sahir) at 
-                            <span class="underline cursor-pointer transition-all" onclick="copyPhoneNumber('+31616972205')" role="button" tabindex="0" onkeydown="if(event.key === 'Enter' || event.key === ' ') copyPhoneNumber('+31616972205');">
-                                +31 6 1697 2205
-                            </span>
-                            <span id="copy-confirmation" class="ml-2 text-green-600 font-semibold text-lg hidden">Copied!</span>
-                        </p>
-                    </div>
+
                 </div>
             </div>
         </footer>

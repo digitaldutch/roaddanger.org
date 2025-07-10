@@ -208,9 +208,6 @@ class ReFrameApp {
         this.analysisResults.innerHTML = `
             <div>
                 <h2 class="text-4xl font-normal text-black mb-2">Results:</h2>
-                <a class="text-lg text-black underline underline-offset-4 decoration-0 hover:decoration-1 hover:text-red-600 transition-all cursor-pointer" onclick="app.showRewriteGuide()">
-                    Are you a journalist (or curious about how we did this)?
-                </a>
                 
                 <!-- Image Generator Component -->
                 <div class="mt-6">
@@ -540,11 +537,7 @@ class ReFrameApp {
             </div>
         `;
     }
-    
-    // Show rewrite guide (placeholder for modal)
-    showRewriteGuide() {
-        alert('Rewrite guide modal would open here (matches RewriteGuide.svelte component)');
-    }
+
     
     // Utility functions
     escapeHtml(text) {
@@ -554,19 +547,6 @@ class ReFrameApp {
     }
 }
 
-// Phone number copy functionality (matches Svelte)
-async function copyPhoneNumber(number) {
-    try {
-        await navigator.clipboard.writeText(number);
-        const confirmation = document.getElementById('copy-confirmation');
-        confirmation.classList.remove('hidden');
-        setTimeout(() => {
-            confirmation.classList.add('hidden');
-        }, 2000);
-    } catch (err) {
-        console.error('Failed to copy phone number:', err);
-    }
-}
 
 // Initialize app when DOM is loaded
 let app;
