@@ -1,9 +1,5 @@
 <?php
 
-/**
- * HeadlineTerms - Matches the Svelte headline terms functionality exactly
- * Identifies and highlights problematic language in crash headlines
- */
 class HeadlineTerms {
     
     private static $headlineTerms = [
@@ -192,7 +188,7 @@ class HeadlineTerms {
     ];
 
     /**
-     * Find headline terms to highlight (matches Svelte findHeadlineTerms exactly)
+     * Find headline terms to highlight
      */
     public static function findHeadlineTerms($headline) {
         $found = [];
@@ -274,28 +270,4 @@ class HeadlineTerms {
         return $result;
     }
 
-    /**
-     * Analyze headline coverage (for testing/debugging)
-     */
-    public static function analyzeHeadlineCoverage($headline) {
-        $terms = self::findHeadlineTerms($headline);
-        $coverage = '';
-        
-        for ($i = 0; $i < strlen($headline); $i++) {
-            $isCovered = false;
-            foreach ($terms as $term) {
-                if ($i >= $term['startIndex'] && $i < $term['endIndex']) {
-                    $isCovered = true;
-                    break;
-                }
-            }
-            $coverage .= $isCovered ? '█' : $headline[$i];
-        }
-
-        return [
-            'original' => $headline,
-            'termsFound' => count($terms),
-            'coverage' => $coverage
-        ];
-    }
 } 

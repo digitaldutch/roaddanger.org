@@ -1,8 +1,6 @@
-// ReFrame Application JavaScript - Matches Svelte functionality exactly
-
 class ReFrameApp {
     constructor() {
-        // State management (matches Svelte runes)
+        // State management
         this.isAnalyzing = false;
         this.analysis = null;
         this.headlineInput = '';
@@ -62,7 +60,7 @@ class ReFrameApp {
         document.addEventListener('mouseout', (e) => this.handleTooltipHide(e));
     }
     
-    // Handle example selection (matches Svelte handleExampleSelect)
+    // Handle example selection
     handleExampleSelect(btn) {
         const headline = btn.getAttribute('data-headline');
         const body = btn.getAttribute('data-body').replace(/&quot;/g, '"');
@@ -78,7 +76,7 @@ class ReFrameApp {
         this.updateSubmitButton();
     }
     
-    // Handle form submission (matches Svelte handleAnalyze)
+    // Handle form submission
     async handleAnalyze(event) {
         event.preventDefault();
         
@@ -139,7 +137,7 @@ class ReFrameApp {
         }
     }
     
-    // Reset analysis (matches Svelte resetAnalysis)
+    // Reset analysis
     resetAnalysis(event) {
         event.preventDefault();
         this.analysis = null;
@@ -188,12 +186,11 @@ class ReFrameApp {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     
-    // Equivalent to Svelte tick()
     async tick() {
         return new Promise(resolve => requestAnimationFrame(resolve));
     }
     
-    // Results display (matches Svelte ImageGenerator component)
+    // Results display
     async displayResults() {
         if (!this.analysis.isRelevant) {
             this.displayNonRelevantResult();
@@ -204,7 +201,7 @@ class ReFrameApp {
         const originalHighlighted = await this.createHighlightedHeadline(this.analysis.originalHeadline, true, !this.isGenerating);
         const improvedHighlighted = await this.createHighlightedHeadline(this.analysis.improvedHeadline, false, !this.isGenerating);
         
-        // Create the complex side-by-side comparison like in Svelte
+        // Create the side-by-side comparison
         this.analysisResults.innerHTML = `
             <div>
                 <h2 class="text-4xl font-normal text-black mb-2">Results:</h2>
@@ -266,11 +263,9 @@ class ReFrameApp {
             </div>
         `;
         
-        // Reinitialize event handlers for the new content
-        this.initializeCriteriaEventHandlers();
     }
     
-    // Create highlighted headline HTML (matches HighlightedHeadline component)
+    // Create highlighted headline HTML
     async createHighlightedHeadline(headline, isDarkBackground, showTooltips = true) {
         if (!showTooltips) return this.escapeHtml(headline);
         
@@ -306,7 +301,7 @@ class ReFrameApp {
         }
     }
     
-    // Create original criteria HTML (matches Svelte ImageGenerator)
+    // Create original criteria HTML
     createOriginalCriteriaHTML() {
         const criteriaNames = ['Mention all parties involved', 'Uses human terms', 'Active voice'];
         let html = '';
@@ -433,43 +428,11 @@ class ReFrameApp {
         return change ? change.explanation : 'This criterion is met in the original headline.';
     }
     
-    // Initialize event handlers after displaying results
-    initializeCriteriaEventHandlers() {
-        // Event handlers are attached via onclick in the HTML
-        // This method can be extended for additional interactive features
-    }
-    
-    // Image generation (matches Svelte html2canvas functionality)
+
+    // Image generation
     async downloadGeneratedImage() {
-        const canvasElement = document.getElementById('image-render-source');
-        if (!canvasElement) {
-            console.error('Element to capture not found for image generation.');
-            alert('Error: Could not find content to generate image from.');
-            return;
-        }
-        
-        this.isGenerating = true;
-        await this.displayResults(); // Re-render with loading state
-        await this.tick();
-        
-        try {
-            const canvas = await html2canvas(canvasElement, {
-                backgroundColor: '#ffffff',
-                scale: 2,
-                useCORS: true,
-                logging: false
-            });
-            
-            const imageUrl = canvas.toDataURL('image/png');
-            this.downloadLink.href = imageUrl;
-            this.downloadLink.click();
-        } catch (err) {
-            console.error('Error generating share image:', err);
-            alert('Could not generate share image. Please try again.');
-        } finally {
-            this.isGenerating = false;
-            await this.displayResults(); // Re-render without loading state
-        }
+        // TODO: Implement image download
+        alert('Image download not implemented');
     }
     
     // Tooltip handling
