@@ -2,6 +2,9 @@
 
 class ReframeHandler {
 
+  /**
+   * @throws Exception
+   */
   static function reframeArticle(): false|string {
     $article = json_decode(file_get_contents('php://input'));
 

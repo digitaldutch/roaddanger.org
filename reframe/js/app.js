@@ -408,7 +408,9 @@ class ReFrameApp {
     
     // Helper methods for criteria
     isCriterionMetInOriginal(criterionId) {
-        return !this.analysis.changes.some(change => change.criterionId === criterionId);
+        const criteria = this.analysis.criteriaResults.find(c => c.criterionId === criterionId);
+
+        return criteria && criteria.passed;
     }
     
     isOriginalCriterionDisabled(criterionId) {

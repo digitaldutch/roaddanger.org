@@ -81,16 +81,44 @@ class OpenRouterAIClient {
     ];
   }
 
+  private function replaceArticleTags(string $text, object $article): string {
+    if (isset($article->date)) $text = str_replace('[article_date]', $article->date, $text);
+    $text = str_replace('[article_text]', $article->text, $text);
+    return str_replace('[article_title]', $article->title, $text);
+  }
+
+
+  /**
+   * @throws Exception
+   */
+  public function chatUsingPromptFunction(string $promptFunction, object $article): string {
+    if (empty($article->title)) throw new \Exception('Article title is empty');
+    if (empty($article->text)) throw new \Exception('Article text is empty');
+
+    global $database;
+
+    $sql = 'SELECT model_id, system_prompt, user_prompt, response_format FROM ai_prompts WHERE function = :id';
+    $params = ['id' => $promptFunction];
+    $prompt = $database->fetchObject($sql, $params);
+
+    if ($prompt === false) throw new \Exception("AI prompt function '$promptFunction' not found");
+
+    $prompt->user_prompt = replaceArticleTags($prompt->user_prompt, $article);
+
+    return $this->chat($prompt->user_prompt, $prompt->system_prompt, $prompt->model_id, $prompt->response_format);
+  }
+
   /**
    * @throws Exception
    */
   public function chat(
     string $userPrompt,
     string $systemPrompt = '',
-    string $model = self::DEFAULT_MODEL
+    string $model = self::DEFAULT_MODEL,
+    string $responseFormat = ''
   ): string {
 
-    $responseOpenRouter = $this->chatFromOpenRouter($userPrompt, $systemPrompt, $model);
+    $responseOpenRouter = $this->chatFromOpenRouter($userPrompt, $systemPrompt, $model, $responseFormat);
 
     // Extract content from the first assistant response, if available
     if (isset($responseOpenRouter['choices'][0]['message']['content'])) {
