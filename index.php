@@ -22,7 +22,6 @@ else if (str_starts_with($uri, '/statistics'))                      $pageType = 
 else if (str_starts_with($uri, '/export'))                          $pageType = PageType::export;
 else $pageType = PageType::recent;
 
-$showFullHeaderTitle = true;
 $searchFunction = '';
 $showButtonAdd = false;
 $head = "<script src='/js/main.js?v=$VERSION'></script>";
@@ -115,7 +114,6 @@ HTML;
 } else {
   $searchFunction = 'searchCrashes';
   $showButtonAdd = true;
-  $showFullHeaderTitle = false;
   $websiteInfo = translateLongText('website_info');
 
   $title = '';
@@ -152,7 +150,7 @@ HTML;
 
 $html =
   HtmlBuilder::getHTMLBeginMain('', $head, 'initMain', $searchFunction,
-    $showButtonAdd, $showFullHeaderTitle) .
+    $showButtonAdd) .
   $mainHTML .
   HtmlBuilder::getHTMLEnd();
 

@@ -3,7 +3,7 @@
 class HtmlBuilder {
 
   public static function getHTMLBeginMain(string $pageTitle='', string $head='', string $initFunction='',
-      string $searchFunction='', bool $showButtonAdd=false, bool $showFullHeaderTitle=true): string {
+      string $searchFunction='', bool $showButtonAdd=false): string {
     global $VERSION;
 
     $texts = translateArray(['Cookie_warning', 'More_info', 'Accept', 'Add']);
@@ -40,11 +40,7 @@ HTML;
 HTML;
     }
 
-    $headerTitle = '';
-    if ($showFullHeaderTitle) {
-      $websiteName = WEBSITE_NAME;
-      $headerTitle = "<a href='/'>$websiteName</a>";
-    }
+    $websiteName = WEBSITE_NAME;
 
     global $database;
     global $user;
@@ -101,7 +97,7 @@ $navigation
     </div>
   
     <div class="headerMain pageTitle">
-      $headerTitle        
+      <a href='/'>$websiteName</a>        
     </div>
    
     <div style="display: flex; position: relative; justify-self: flex-end;">
@@ -468,7 +464,15 @@ HTML;
             
         <input id="editCrashLatitude" type="hidden"><input id="editCrashLongitude" type="hidden">
         <div id="aiLocationInfo" class="smallFont"></div>
-        <div id="mapEdit"></div>
+
+        <div style="position: relative;">
+          <div style="position: absolute; z-index: 1; top: 10px; left: 10px; user-select: none;">
+            <div class="buttonMap bgZoomIn" onclick="zoomEditMap(1);"></div>
+            <div class="buttonMap bgZoomOut" onclick="zoomEditMap(-1);"></div>
+          </div>
+          <div id="mapEdit"></div>
+        </div>
+
       </div>      
       
     </div>

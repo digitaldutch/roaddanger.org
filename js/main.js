@@ -897,22 +897,21 @@ async function loadMap() {
 
   const url = new URL(location.href);
   const longitude = url.searchParams.get('lng') || options.map.longitude;
-  const latitude  = url.searchParams.get('lat') || options.map.latitude;
-  const zoom      = url.searchParams.get('zoom') || options.map.zoom;
+  const latitude = url.searchParams.get('lat') || options.map.latitude;
+  const zoom = url.searchParams.get('zoom') || options.map.zoom;
 
   if (! mapMain) {
-
     mapboxgl.accessToken = mapboxKey;
     mapMain = new mapboxgl.Map({
       container: 'mapMain',
-      style: 'mapbox://styles/mapbox/streets-v12',
+      style: 'mapbox://styles/mapbox/standard',
       center: [longitude, latitude],
       zoom: zoom,
     })
     .addControl(
       new MapboxGeocoder({
         accessToken: mapboxgl.accessToken,
-        mapboxgl:    mapboxgl,
+        mapboxgl: mapboxgl,
         clearOnBlur: true,
       })
     )
@@ -1054,7 +1053,16 @@ ${translate('Approval_required')}
     htmlMenuEditItems += `<div onclick="crashToTopStream(${crash.id});" data-moderator>${translate('Place_at_top_of_stream')}</div>`;
   }
 
-  const htmlMap = detailsPage? '<div id="mapCrash"></div>' : '';
+  let htmlMap = '';
+  if (detailsPage) {
+    htmlMap = `<div style="position: relative;">
+  <div style="position: absolute; z-index: 1; top: 10px; left: 10px; user-select: none;">
+    <div class="buttonMap bgZoomIn" onclick="zoomCrashMap(${crash.id}, 1);"></div>
+    <div class="buttonMap bgZoomOut" onclick="zoomCrashMap(${crash.id}, -1);"></div>
+  </div>
+  <div id="mapCrash"></div>
+</div>`;
+  }
   const crashClick = detailsPage? '' : `onclick="showCrashDetails(${crash.id});"`;
   const htmlClassClickable = detailsPage? '' : 'cardCrashClickable';
 
@@ -1394,8 +1402,6 @@ async function extractDataFromArticle() {
     setEditCrashHumans(editCrashPersons);
 
     document.getElementById('aiLocationInfo').innerText = translate('Crash_location') + ': ' + crash.location.description;
-    document.getElementById('editCrashLatitude').value = crash.location.coordinates.latitude;
-    document.getElementById('editCrashLongitude').value = crash.location.coordinates.longitude;
 
     let latitude;
     let longitude;
@@ -1406,6 +1412,9 @@ async function extractDataFromArticle() {
       latitude = crash.location.coordinates.latitude;
       longitude = crash.location.coordinates.longitude;
     }
+    document.getElementById('editCrashLatitude').value = latitude;
+    document.getElementById('editCrashLongitude').value = longitude;
+
     showMapEdit(latitude, longitude).then(
       () => {mapEdit.setZoom(12);}
     );
@@ -1834,7 +1843,7 @@ function nextArticleQuestions(forward=true) {
 async function crashToTopStream(crashID) {
   closeAllPopups();
 
-  const url      = '/general/ajax.php?function=crashToStreamTop&id=' + crashID;
+  const url = '/general/ajax.php?function=crashToStreamTop&id=' + crashID;
   const response = await fetchFromServer(url);
 
   if (response.error) showError(response.error, 10);
@@ -2553,7 +2562,7 @@ async function showMapEdit(latitude, longitude) {
   }
 
   function setCrashMarker(latitude, longitude){
-    if (mapCrash) mapCrash.setLngLat(new mapboxgl.LngLat(longitude, latitude));
+    if (markerEdit) markerEdit.setLngLat([longitude, latitude]);
     else {
       const markerElement = document.createElement('div');
       markerElement.innerHTML = `<img class="mapMarker" src="/images/pin.svg" alt="marker">`;
@@ -2566,8 +2575,6 @@ async function showMapEdit(latitude, longitude) {
           deleteCrashMarker();
         });
        });
-
-      deleteCrashMarker();
 
       markerEdit = new mapboxgl.Marker(markerElement, {anchor: 'bottom', draggable: true})
         .setLngLat([longitude, latitude])
@@ -2602,13 +2609,13 @@ async function showMapEdit(latitude, longitude) {
     mapboxgl.accessToken = mapboxKey;
     mapEdit = new mapboxgl.Map({
       container: 'mapEdit',
-      style:     'mapbox://styles/mapbox/streets-v11',
-      center:    [longitude, latitude],
-      zoom:      options.map.zoom,
+      style: 'mapbox://styles/mapbox/standard',
+      center: [longitude, latitude],
+      zoom: options.map.zoom,
     }).addControl(
       new MapboxGeocoder({
         accessToken: mapboxgl.accessToken,
-        mapboxgl:    mapboxgl,
+        mapboxgl: mapboxgl,
         clearOnBlur: true,
       })
     ).on('click', (e) => {
@@ -2624,20 +2631,41 @@ async function showMapEdit(latitude, longitude) {
   if (showMarker) setCrashMarker(latitude, longitude);
 }
 
+function zoomEditMap(direction) {
+  event.preventDefault();
+  if (!mapEdit) return;
+
+  const currentZoom = mapEdit.getZoom();
+  const zoomChange = direction === 1 ? 2 : -2;
+  const newZoom = currentZoom + zoomChange;
+
+  mapEdit.setZoom(newZoom);
+
+  let latitude = document.getElementById('editCrashLatitude').value;
+  let longitude = document.getElementById('editCrashLongitude').value;
+  latitude = latitude? parseFloat(latitude)  : null;
+  longitude = longitude? parseFloat(longitude) : null;
+
+  if (longitude && latitude) {
+    mapEdit.setCenter([longitude, latitude]);
+  }
+}
+
 function showMapCrash(latitude, longitude) {
+  const elMapCrash = document.getElementById('mapCrash');
   if (! latitude || ! longitude) {
-    document.getElementById('mapCrash').style.display = 'none';
+    elMapCrash.style.display = 'none';
     return;
   }
 
   let zoomLevel = 6;
 
   mapboxgl.accessToken = mapboxKey;
-  const mapCrash = new mapboxgl.Map({
+  mapCrash = new mapboxgl.Map({
     container: 'mapCrash',
-    style:     'mapbox://styles/mapbox/streets-v11',
-    center:    [longitude, latitude],
-    zoom:      zoomLevel,
+    style: 'mapbox://styles/mapbox/standard',
+    center: [longitude, latitude],
+    zoom: zoomLevel,
   });
 
   const markerElement = document.createElement('div');
@@ -2647,7 +2675,22 @@ function showMapCrash(latitude, longitude) {
     .setLngLat([longitude, latitude])
     .addTo(mapCrash);
 
-  document.getElementById('mapCrash').style.display = 'block';
+  elMapCrash.style.display = 'block';
+}
+
+function zoomCrashMap(crashID, direction) {
+  if (!mapCrash) return;
+
+  const currentZoom = mapCrash.getZoom();
+  const zoomChange = direction === 1 ? 2 : -2;
+  const newZoom = currentZoom + zoomChange;
+
+  mapCrash.setZoom(newZoom);
+
+  const crash = getCrashFromId(crashID);
+  if (crash && crash.longitude && crash.latitude) {
+    mapCrash.setCenter([crash.longitude, crash.latitude]);
+  }
 }
 
 function togglePageInfo(){
