@@ -243,7 +243,7 @@ HTML;
       'Child_victims', 'Mosaic', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
       'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
       'Version', 'Questionnaires', 'fill_in', 'settings', 'results', 'AI_prompt_builder', 'Research',
-      'Graphs_and_statistics', 'Media_humanization_test']);
+      'Graphs_and_statistics', 'Media_humanization_test', 'Tools', 'Reframe']);
 
     $websiteTitle = WEBSITE_NAME;
 
@@ -281,7 +281,13 @@ HTML;
     </div>
 
     <div class="navigationSection">
+      <div class="navigationSectionHeader">{$texts['Tools']}</div>
+      <a href="/reframe" target="tools" class="navItem">{$texts['Reframe']}</a>
+    </div>
+
+    <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Other']}</div>
+      
       <a href="/decorrespondent" class="navItem">{$texts['The_correspondent_week']}</a>
       <a href="/export/" class="navItem">{$texts['Export_data']}</a>
       <a href="/aboutthissite/" class="navItem">{$texts['About_this_site']}</a>
