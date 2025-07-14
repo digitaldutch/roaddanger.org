@@ -245,7 +245,7 @@ class ReFrameApp {
                     </div>
                     
                     <div class="p-4 text-center">
-                        <button onclick="app.downloadGeneratedImage()" 
+                        <button id="download-image-btn" onclick="app.downloadGeneratedImage()" 
                                 class="px-8 py-3 bg-white text-xl text-black font-normal border-2 border-black hover:bg-red-600 hover:text-white hover:border-white transition-all disabled:opacity-75 disabled:cursor-not-allowed"
                                 ${this.isGenerating ? 'disabled' : ''}>
                             ${this.isGenerating ? `
@@ -313,7 +313,7 @@ class ReFrameApp {
             
             html += `
                 <div>
-                    <div class="w-full flex items-center text-left ${!disabled ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}" 
+                    <button class="w-full flex items-center text-left ${!disabled ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}" 
                          onclick="${!disabled ? `app.toggleOriginalCriterion(${i})` : ''}">
                         <div class="w-8 h-8 flex items-center justify-center border border-white ${disabled ? 'bg-transparent' : passed ? 'bg-white' : 'bg-transparent'}">
                             ${!disabled && passed ? `
@@ -332,7 +332,7 @@ class ReFrameApp {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         ` : ''}
-                    </div>
+                    </button>
                     
                     ${!disabled && expanded ? `
                         <div class="pl-11 mt-2 text-white text-sm border-l-2 border-white ml-4">
@@ -433,8 +433,79 @@ class ReFrameApp {
 
     // Image generation
     async downloadGeneratedImage() {
-        // TODO: Implement image download
-        alert('Image download not implemented');
+        const elementToCapture = document.getElementById('image-render-source');
+        if (!elementToCapture) {
+            console.error('Element to capture not found for image generation.');
+            alert('Error: Could not find content to generate image from.');
+            return;
+        }
+
+        const downloadBtn = document.getElementById('download-image-btn');
+
+        this.isGenerating = true;
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = `
+                <span class="flex items-center justify-center">
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Generating...
+                </span>
+            `;
+        }
+        await this.tick();
+
+        try {
+            const canvas = await html2canvas(elementToCapture, {
+                backgroundColor: '#ffffff',
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                onclone: (clonedDoc) => {
+                    const tooltip = clonedDoc.getElementById('tooltip');
+                    if (tooltip) {
+                        tooltip.style.display = 'none';
+                    }
+
+                    // Checkboxes are not agreeing with our styling, so I manually move them down to align with text
+                    const criteriaCheckboxes = clonedDoc.querySelectorAll('.w-8.h-8.flex.items-center.justify-center');
+                    criteriaCheckboxes.forEach(checkbox => {
+                        checkbox.style.position = 'relative';
+                        checkbox.style.top = '10px';
+                    });
+
+                    
+                    //add a margin-bottom to the 3rd and 6th criteria checkbox
+                    const thirdCriteriaCheckbox = criteriaCheckboxes[2];
+                    thirdCriteriaCheckbox.style.marginBottom = '10px';
+                    const sixthCriteriaCheckbox = criteriaCheckboxes[5];
+                    sixthCriteriaCheckbox.style.marginBottom = '10px';
+                    
+                    // Hide underlines from highlighted terms in the generated image.
+                    const terms = clonedDoc.querySelectorAll('.headline-term');
+                    terms.forEach(term => {
+                        term.style.textDecoration = 'none';
+                    });
+
+                }
+            });
+            const imageUrl = canvas.toDataURL('image/png');
+            
+            this.downloadLink.href = imageUrl;
+            this.downloadLink.download = 'reframe-headline-comparison.png';
+            this.downloadLink.click();
+        } catch (err) {
+            console.error('Error generating share image:', err);
+            alert('Could not generate share image. Please try again.');
+        } finally {
+            this.isGenerating = false;
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = 'Download Image';
+            }
+        }
     }
     
     // Tooltip handling
