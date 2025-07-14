@@ -2593,14 +2593,19 @@ async function showMapEdit(latitude, longitude) {
     }
   }
 
-  const options = await getCountryMapOptions();
+  const countryOptions = await getCountryMapOptions();
   // Zoom out to fit into the landscape map view
-  options.map.zoom -= 1;
+  countryOptions.map.zoom -= 1;
 
   let showMarker = true;
+  let zoomDefault = 11;
   if (! latitude || ! longitude) {
-    latitude   = options.map.latitude;
-    longitude  = options.map.longitude;
+    latitude = countryOptions.map.latitude;
+    longitude = countryOptions.map.longitude;
+
+    // Show full country if no coordinates are available
+    zoomDefault = countryOptions.map.zoom;
+
     showMarker = false;
     deleteCrashMarker();
   }
@@ -2611,7 +2616,7 @@ async function showMapEdit(latitude, longitude) {
       container: 'mapEdit',
       style: 'mapbox://styles/mapbox/standard',
       center: [longitude, latitude],
-      zoom: options.map.zoom,
+      zoom: zoomDefault,
     }).addControl(
       new MapboxGeocoder({
         accessToken: mapboxgl.accessToken,
@@ -2625,7 +2630,7 @@ async function showMapEdit(latitude, longitude) {
 
   } else {
     mapEdit.setCenter([longitude, latitude]);
-    mapEdit.setZoom(options.map.zoom);
+    mapEdit.setZoom(zoomDefault);
   }
 
   if (showMarker) setCrashMarker(latitude, longitude);
@@ -2658,7 +2663,7 @@ function showMapCrash(latitude, longitude) {
     return;
   }
 
-  let zoomLevel = 6;
+  let zoomLevel = 12;
 
   mapboxgl.accessToken = mapboxKey;
   mapCrash = new mapboxgl.Map({
