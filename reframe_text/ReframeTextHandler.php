@@ -1,6 +1,6 @@
 <?php
 
-class ReframeHandler {
+class ReframeTextHandler {
 
   /**
    * @throws Exception

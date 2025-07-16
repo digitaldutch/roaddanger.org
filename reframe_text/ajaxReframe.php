@@ -10,6 +10,6 @@ $function = $_REQUEST['function'];
 
 // Public functions
 if ($function === 'reframeArticle') {
-  echo ReframeHandler::reframeArticle();
+  echo ReframeTextHandler::reframeArticle();
   return;
 }

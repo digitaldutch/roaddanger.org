@@ -385,8 +385,13 @@ HTML;
 
     <div style="overflow-y: auto">
     <div class="flexColumn">
-      <div class="formSubHeader">{$texts['Article']}</div>
-
+      
+      <div class="formSubHeader" style="display: flex; align-items: center; justify-content: space-between;">
+        <div>{$texts['Article']}</div>
+        <div id="articleInfo" class="smallFont" style="font-weight: normal;">ID: 123</div>
+      </div>
+    
+      
       <input id="articleIDHidden" type="hidden">
   
       <div class="labelDiv">

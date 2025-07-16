@@ -1142,6 +1142,7 @@ ${translate('Approval_required')}
           <div onclick="editArticle(${crash.id},  ${article.id});">${translate('Edit')}</div>
           ${htmlQuestionnaires}
           <div onclick="deleteArticle(${article.id})">${translate('Delete')}</div>
+          <a href="/reframe?articleId=${article.id}" target="tools" onclick="event.stopPropagation();">${translate('Reframe')}</a>
        </div>`;
   }
 
@@ -1284,6 +1285,7 @@ function showEditCrashForm(isNewCrash=false) {
   document.getElementById('editHeader').innerText = isNewCrash? translate('Add_new_crash') : translate('Edit_crash');
   document.getElementById('crashIDHidden').value = '';
   document.getElementById('articleIDHidden').value = '';
+  document.getElementById('articleInfo').innerText = '';
 
   document.getElementById('editArticleUrl').value = '';
   document.getElementById('editArticleTitle').value = '';
@@ -1635,6 +1637,7 @@ function editArticle(crashID, articleID=null) {
   }
 
   document.getElementById('articleIDHidden').value = article? article.id : '';
+  document.getElementById('articleInfo').innerText = 'Id: ' + article.id;
 
   document.getElementById('editArticleUrl').value = article.url;
   document.getElementById('editArticleTitle').value = article.title;

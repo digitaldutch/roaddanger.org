@@ -3,10 +3,7 @@ class ReFrameApp {
         // State management
         this.isAnalyzing = false;
         this.analysis = null;
-        this.headlineInput = '';
-        this.articleBodyInput = '';
-        this.showCopiedConfirmation = false;
-        
+
         // Interactive state for criteria
         this.expandedOriginalCriteria = [];
         this.expandedHumanizedCriteria = [];
@@ -30,6 +27,7 @@ class ReFrameApp {
         
         this.initializeEventListeners();
         this.updateSubmitButton();
+        this.loadArticleFromURL();
     }
     
     initializeEventListeners() {
@@ -97,12 +95,13 @@ class ReFrameApp {
         }
         
         try {
-            const response = await fetch('analyze.php', {
+            const response = await fetch('ReframeHandler.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    function: 'analyzeHeadline',
                     headline: headline,
                     articleBody: articleBody
                 })
@@ -180,6 +179,36 @@ class ReFrameApp {
         const headline = this.headlineInputEl.value.trim();
         const articleBody = this.articleBodyInputEl.value.trim();
         this.analyzeBtn.disabled = !headline || !articleBody || this.isAnalyzing;
+    }
+
+    async loadArticleFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const articleId = urlParams.get('articleId');
+
+        if (articleId) {
+            const response = await fetch('ReframeHandler.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    function: 'getArticle',
+                    articleId: articleId,
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+               alert(data.error);
+               return;
+            }
+
+            this.headlineInputEl.value = data.title;
+            this.articleBodyInputEl.value = data.text;
+
+            this.updateSubmitButton();
+
+            this.analyzeBtn.click();
+        }
     }
     
     scrollToTop() {
