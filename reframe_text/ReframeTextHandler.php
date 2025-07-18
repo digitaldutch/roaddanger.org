@@ -13,7 +13,7 @@ class ReframeTextHandler {
 
     global $database;
     try {
-      $prompt = $database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='article_reframe';");
+      $prompt = $database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='article_reframe_text';");
 
       require_once '../general/OpenRouterAIClient.php';
 

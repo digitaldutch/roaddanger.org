@@ -199,7 +199,7 @@ class OpenRouterAIClient {
   public function getAllModels(): array {
 
     require_once 'Cache.php';
-    $cacheResponse = Cache::get('openRouterGetAllModels', 30);
+    $cacheResponse = Cache::get('openRouterGetAllModels', 3600);
 
     if ($cacheResponse === null) {
       $url = 'https://openrouter.ai/api/v1/models';

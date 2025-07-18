@@ -9,12 +9,6 @@ error_reporting(0);
 // Set proper headers for JSON response
 header('Content-Type: application/json');
 
-// Handle preflight OPTIONS request
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -53,29 +47,42 @@ class ReframeHandler {
 
   }
 
-  private function analyzeHeadline($headline, $articleBody): array {
+  private function analyzeHeadline($title, $text): array {
+
     try {
-      $openrouterClient = new OpenRouterAIClient();
+      // Create unique ID for article title and text
+      $cacheId = 'renew_' . md5($title . '|' . $text);
 
-      $article = (object)[
-        'title' => $headline,
-        'text' => $articleBody,
-      ];
+      require_once '../general/Cache.php';
 
-      // Use the existing client to make the API call
-      $llmOutputContent = $openrouterClient->chatUsingPromptFunction('article_reframe', $article);
+      // AI responses are cached for 1 hour
+      $cacheResponse = Cache::get($cacheId, 3600);
+      if ($cacheResponse === null) {
+        $openrouterClient = new OpenRouterAIClient();
 
-      $llmAnalysis = json_decode($llmOutputContent, true);
+        $article = (object)[
+          'title' => $title,
+          'text' => $text,
+        ];
 
-      $finalAnalysis = [
-        'isRelevant' => $llmAnalysis['isRelevant'],
-        'originalHeadline' => $headline,
-        'criteriaResults' => $llmAnalysis['criteriaResults'] ?? [],
-        'score' => $this->calculateScore($llmAnalysis['criteriaResults'] ?? []),
-        'improvedHeadline' => $llmAnalysis['improvedHeadline'] ?? ($llmAnalysis['isRelevant'] ? 'Could not generate improved headline.' : ''),
-        'changes' => $llmAnalysis['changes'] ?? []
-      ];
+        // Use the existing client to make the API call
+        $llmOutputContent = $openrouterClient->chatUsingPromptFunction('article_reframe', $article);
 
+        $llmAnalysis = json_decode($llmOutputContent, true);
+
+        $finalAnalysis = [
+          'isRelevant' => $llmAnalysis['isRelevant'],
+          'originalHeadline' => $title,
+          'criteriaResults' => $llmAnalysis['criteriaResults'] ?? [],
+          'score' => $this->calculateScore($llmAnalysis['criteriaResults'] ?? []),
+          'improvedHeadline' => $llmAnalysis['improvedHeadline'] ?? ($llmAnalysis['isRelevant'] ? 'Could not generate improved headline.' : ''),
+          'changes' => $llmAnalysis['changes'] ?? []
+        ];
+
+        Cache::set($cacheId, json_encode($finalAnalysis));
+      } else {
+        $finalAnalysis = json_decode($cacheResponse, true);
+      }
       return ['analysis' => $finalAnalysis];
 
     } catch (Exception $e) {
@@ -84,7 +91,7 @@ class ReframeHandler {
       return [
         'analysis' => [
           'isRelevant' => false,
-          'originalHeadline' => $headline,
+          'originalHeadline' => $title,
           'score' => 0,
           'criteriaResults' => [
             ['criterionId' => 1, 'passed' => false, 'explanation' => $e->getMessage()],
@@ -119,7 +126,7 @@ class ReframeHandler {
     }
   }
 
-  private function calculateScore($results) {
+  private function calculateScore($results): int {
     /**
      * Calculate the score based on criteria results following a tiered system.
      */

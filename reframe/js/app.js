@@ -242,7 +242,7 @@ class ReFrameApp {
                             <!-- Left Column: Original - Red background with white text -->
                             <div class="w-full md:w-1/2 bg-red-600 px-6 py-4 md:p-12 border-b-2 md:border-b-0 md:border-r-2 border-black">
                                 <h3 class="text-md sm:text-2xl md:text-3xl font-black text-white mb-2 md:mb-6 uppercase">Original</h3>
-                                <p class="text-md sm:text-3xl md:text-3xl lg:text-4xl text-white font-semibold md:font-bold leading-tight break-words">
+                                <p class="text-md sm:text-3xl md:text-3xl text-white font-semibold md:font-bold leading-tight break-words">
                                     ${originalHighlighted}
                                 </p>
                                 
@@ -256,7 +256,7 @@ class ReFrameApp {
                             <div class="w-full md:w-1/2 bg-white px-6 py-4 md:p-12 md:pt-8">
                                 <p class="text-sm text-black -mb-1 font-light">AI-rewritten</p>
                                 <h3 class="text-md sm:text-2xl md:text-3xl font-black text-black mb-2 md:mb-6 uppercase">Humanized</h3>
-                                <p class="text-md sm:text-3xl md:text-3xl lg:text-4xl text-black font-semibold md:font-bold leading-tight break-words">
+                                <p class="text-md sm:text-3xl md:text-3xl text-black font-semibold md:font-bold leading-tight break-words">
                                     ${improvedHighlighted}
                                 </p>
                                 
