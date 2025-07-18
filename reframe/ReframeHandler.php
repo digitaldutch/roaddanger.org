@@ -51,7 +51,7 @@ class ReframeHandler {
 
     try {
       // Create unique ID for article title and text
-      $cacheId = 'renew_' . md5($title . '|' . $text);
+      $cacheId = 'reframe_' . md5($title . '|' . $text);
 
       require_once '../general/Cache.php';
 
