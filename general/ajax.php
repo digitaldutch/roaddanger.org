@@ -895,6 +895,7 @@ SQL;
         ':pet' => intval($crash['pet']),
         ':trafficjam' => intval($crash['trafficjam']),
       ];
+
       if (! $user->isModerator()) $params[':useridwhere'] = $user->id;
 
       $database->execute($sql, $params, true);

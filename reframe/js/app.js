@@ -219,7 +219,6 @@ class ReFrameApp {
         return new Promise(resolve => requestAnimationFrame(resolve));
     }
     
-    // Results display
     async displayResults() {
         if (!this.analysis.isRelevant) {
             this.displayNonRelevantResult();

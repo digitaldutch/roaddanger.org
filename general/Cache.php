@@ -14,7 +14,7 @@
  * The cache is cleaned automatically when calling set(), but only once an hour
  */
 class Cache {
-  private const lastCleanUpFileName = '.lastCleanup';
+  private const string lastCleanUpFileName = '.lastCleanup';
 
 
   static private function getCacheFolder():string {

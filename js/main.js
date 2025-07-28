@@ -1313,9 +1313,6 @@ function showEditCrashForm(isNewCrash=false) {
   document.getElementById('editArticleUrl').focus();
 
   document.getElementById('ai_extract_info').style.display = 'none';
-
-  document.querySelectorAll('[data-readonlyhelper]').forEach(d => {d.readOnly = ! user.moderator;});
-  document.querySelectorAll('[data-crash-edit-only]').forEach(d => {d.style.display = isNewCrash? 'none' : 'flex';});
 }
 
 function addPersonPropertiesHtml(){

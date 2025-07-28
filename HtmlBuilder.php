@@ -410,16 +410,16 @@ HTML;
       </div>
   
       <label for="editArticleSiteName">{$texts['Media_source']}</label>
-      <input id="editArticleSiteName" class="popupInput" type="text" maxlength="200" autocomplete="off" data-readonlyhelper>
+      <input id="editArticleSiteName" class="popupInput" type="text" maxlength="200" autocomplete="off">
      
       <label for="editArticleTitle">{$texts['Title']}</label>
-      <input id="editArticleTitle" class="popupInput" type="text" maxlength="500" autocomplete="off" data-readonlyhelper>
+      <input id="editArticleTitle" class="popupInput" type="text" maxlength="500" autocomplete="off">
   
       <label for="editArticleText">{$texts['Summary']}</label>
-      <textarea id="editArticleText" maxlength="500" style="height: 50px; resize: vertical;" class="popupInput" autocomplete="off" data-readonlyhelper></textarea>
+      <textarea id="editArticleText" maxlength="500" style="height: 50px; resize: vertical;" class="popupInput" autocomplete="off"></textarea>
    
       <label for="editArticleUrlImage">{$texts['Photo_link_url']}</label>
-      <input id="editArticleUrlImage" class="popupInput" type="url" maxlength="1000" autocomplete="off" data-readonlyhelper>
+      <input id="editArticleUrlImage" class="popupInput" type="url" maxlength="1000" autocomplete="off">
       
       <label for="editArticleDate">{$texts['Publication_date']}</label>
       <input id="editArticleDate" class="popupInput" type="date" autocomplete="off">

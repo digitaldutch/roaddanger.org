@@ -101,7 +101,7 @@ class HeadlineTerms {
                 '/\b(motorist|driver)\b/i',
                 '/\b(motorcyclist)\b/i',
             ],
-            'explanation' => 'Identifes people by their specific roles and activities rather than just their vehicles.',
+            'explanation' => 'Identifies people by their specific roles and activities rather than just their vehicles.',
             'category' => 'role-based'
         ],
 
@@ -172,7 +172,7 @@ class HeadlineTerms {
         ],
     ];
 
-    private static $categoryPriority = [
+    private static array $categoryPriority = [
         'active-voice' => 5,
         'passive-voice' => 5,
         'vehicle-agency' => 4,
