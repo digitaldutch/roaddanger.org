@@ -1613,9 +1613,8 @@ h3, .pageSubTitleFont {
 
 #mapCrash {
   height: 250px;
-  margin: 10px 0;
+  margin: 0;
   border: 1px solid #eee;
-  border-radius: 10px;
 }
 
 #mapMain {

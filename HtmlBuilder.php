@@ -474,7 +474,7 @@ HTML;
         <span class="iconTooltip" data-tippy-content="{$texts['Edit_location_instructions']}"></span></div>
             
         <input id="editCrashLatitude" type="hidden"><input id="editCrashLongitude" type="hidden">
-        <div id="aiLocationInfo" class="smallFont"></div>
+        <div id="locationDescription" class="smallFont"></div>
 
         <div style="position: relative;">
           <div style="position: absolute; z-index: 1; top: 10px; left: 10px; user-select: none;">

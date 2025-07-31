@@ -728,7 +728,7 @@ async function loadCrashes(crashId=null, articleId=null){
     }
 
     document.getElementById('cards').innerHTML += html;
-    if (pageType === PageType.crash) showMapCrash(newCrashes[0].latitude, newCrashes[0].longitude);
+    if (pageType === PageType.crash) showMapCrash(newCrashes[0]);
     tippy('[data-tippy-content]', {allowHTML: true});
   }
 
@@ -1055,14 +1055,21 @@ ${translate('Approval_required')}
 
   let htmlMap = '';
   if (detailsPage) {
-    htmlMap = `<div style="position: relative;">
-  <div style="position: absolute; z-index: 1; top: 10px; left: 10px; user-select: none;">
-    <div class="buttonMap bgZoomIn" onclick="zoomCrashMap(${crash.id}, 1);"></div>
-    <div class="buttonMap bgZoomOut" onclick="zoomCrashMap(${crash.id}, -1);"></div>
-  </div>
-  <div id="mapCrash"></div>
-</div>`;
+    htmlMap = `
+  <div style="margin-top: 10px;">
+    <div id="crashLocationDescription" class="smallFont"></div> 
+    
+    <div style="position: relative;">
+      <div style="position: absolute; z-index: 1; top: 10px; left: 10px; user-select: none;">
+        <div class="buttonMap bgZoomIn" onclick="zoomCrashMap(${crash.id}, 1);"></div>
+        <div class="buttonMap bgZoomOut" onclick="zoomCrashMap(${crash.id}, -1);"></div>
+      </div>
+    
+      <div id="mapCrash"></div>
+    </div>
+  </div>`;
   }
+
   const crashClick = detailsPage? '' : `onclick="showCrashDetails(${crash.id});"`;
   const htmlClassClickable = detailsPage? '' : 'cardCrashClickable';
 
@@ -1296,9 +1303,10 @@ function showEditCrashForm(isNewCrash=false) {
   document.getElementById('editArticleDate').value = '';
 
   document.getElementById('editCrashDate').value = '';
-  document.getElementById('aiLocationInfo').innerText = '';
+  document.getElementById('locationDescription').innerText = '';
   document.getElementById('editCrashLatitude').value = '';
   document.getElementById('editCrashLongitude').value = '';
+  document.getElementById('locationDescription').value = '';
   document.getElementById('editCrashCountry').value = user.country.id === 'UN'? null : user.countryid;
 
   document.getElementById('editCrashUnilateral').classList.remove('buttonSelected');
@@ -1400,7 +1408,7 @@ async function extractDataFromArticle() {
 
     setEditCrashHumans(editCrashPersons);
 
-    document.getElementById('aiLocationInfo').innerText = translate('Crash_location') + ': ' + crash.location.description;
+    document.getElementById('locationDescription').innerText = crash.location.description;
 
     let latitude;
     let longitude;
@@ -1583,9 +1591,9 @@ function setArticleCrashFields(crashID){
   document.getElementById('crashIDHidden').value = crash.id;
 
   document.getElementById('editCrashDate').value = dateToISO(crashDatetime);
-  document.getElementById('aiLocationInfo').innerText = '';
   document.getElementById('editCrashLatitude').value = crash.latitude;
   document.getElementById('editCrashLongitude').value = crash.longitude;
+  document.getElementById('locationDescription').innerText = crash.locationdescription;
   document.getElementById('editCrashCountry').value = crash.countryid;
 
   selectButton('editCrashUnilateral', crash.unilateral);
@@ -2022,6 +2030,8 @@ async function saveArticleCrash(){
   latitude  = latitude? parseFloat(latitude)  : null;
   longitude = longitude? parseFloat(longitude) : null;
 
+  const locationDescription = document.getElementById('locationDescription').innerText;
+
   // Both latitude and longitude need to be defined or they both are set to null
   if (! latitude)  longitude = null;
   if (! longitude) latitude  = null;
@@ -2031,6 +2041,7 @@ async function saveArticleCrash(){
     countryid: document.getElementById('editCrashCountry').value,
     latitude: latitude,
     longitude: longitude,
+    locationdescription: locationDescription,
     persons: editCrashPersons,
     unilateral: document.getElementById('editCrashUnilateral').classList.contains('buttonSelected'),
     pet: document.getElementById('editCrashPet').classList.contains('buttonSelected'),
@@ -2095,7 +2106,7 @@ async function saveArticleCrash(){
     const divDetails = document.getElementById('crashdetails' + crashEdited.id);
     if (divDetails) {
       divDetails.outerHTML = getCrashDetailsHTML(crashEdited.id);
-      showMapCrash(crashEdited.latitude, crashEdited.longitude);
+      showMapCrash(crashEdited);
     }
 
   } else {
@@ -2443,7 +2454,7 @@ function showCrashDetails(crashId, addToHistory=true){
 
   document.body.style.overflow = 'hidden';
 
-  showMapCrash(crash.latitude, crash.longitude);
+  showMapCrash(crash);
   tippy('#crashDetails [data-tippy-content]');
 
   // Change browser url
@@ -2557,7 +2568,7 @@ function downloadResearchData() {
 async function showMapEdit(latitude, longitude) {
 
   function saveMarkerPosition(lngLat){
-    document.getElementById('editCrashLatitude').value  = lngLat.lat.toFixed(6);
+    document.getElementById('editCrashLatitude').value = lngLat.lat.toFixed(6);
     document.getElementById('editCrashLongitude').value = lngLat.lng.toFixed(6);
   }
 
@@ -2656,9 +2667,19 @@ function zoomEditMap(direction) {
   }
 }
 
-function showMapCrash(latitude, longitude) {
+function showMapCrash(crash) {
   const elMapCrash = document.getElementById('mapCrash');
-  if (! latitude || ! longitude) {
+  const elLocationDescription = document.getElementById('crashLocationDescription');
+
+  if (crash.locationdescription) {
+    elLocationDescription.style.display = 'block';
+    elLocationDescription.innerText = crash.locationdescription
+  } else {
+    elLocationDescription.style.display = 'none';
+    elLocationDescription.innerText = ''
+  }
+
+  if (! crash.latitude || ! crash.longitude) {
     elMapCrash.style.display = 'none';
     return;
   }
@@ -2669,7 +2690,7 @@ function showMapCrash(latitude, longitude) {
   mapCrash = new mapboxgl.Map({
     container: 'mapCrash',
     style: 'mapbox://styles/mapbox/standard',
-    center: [longitude, latitude],
+    center: [crash.longitude, crash.latitude],
     zoom: zoomLevel,
   });
 
@@ -2677,7 +2698,7 @@ function showMapCrash(latitude, longitude) {
   markerElement.innerHTML = `<img class="mapMarker" src="/images/pin.svg" alt="marker">`;
 
   new mapboxgl.Marker(markerElement, {anchor: 'bottom'})
-    .setLngLat([longitude, latitude])
+    .setLngLat([crash.longitude, crash.latitude])
     .addTo(mapCrash);
 
   elMapCrash.style.display = 'block';
