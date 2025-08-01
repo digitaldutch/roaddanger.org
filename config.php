@@ -1,6 +1,6 @@
 <?php
-$VERSION = 622;
-$VERSION_DATE = '31 July 2025';
+$VERSION = 623;
+$VERSION_DATE = '1 August 2025';
 
 require_once 'configsecret.php';
 
@@ -25,7 +25,6 @@ require_once 'configsecret.php';
 const COOKIE_DOMAIN = '';
 
 const WEBSITE_NAME = 'roaddanger';
-
 const DEFAULT_COUNTRY_ID = 'NL';
 
 // https://docs.mapbox.com/mapbox-gl-js/guides/

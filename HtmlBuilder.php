@@ -12,7 +12,7 @@ class HtmlBuilder {
     if ($pageTitle !== '') $title = $pageTitle . ' | ' . WEBSITE_NAME;
     else $title = WEBSITE_NAME;
 
-    $initScript = ($initFunction !== '') ? "<script>document.addEventListener('DOMContentLoaded', $initFunction);</script>" : '';
+    $initScript = ($initFunction !== '') ? "<script>document.addEventListener('DOMContentLoaded', $initFunction)</script>" : '';
     $navigation = self::getNavigation();
 
     if (!cookiesApproved()) {
@@ -193,7 +193,7 @@ HTML;
 
   }
 
-  public static function getHTMLEnd($htmlEnd = '') {
+  public static function getHTMLEnd($htmlEnd = ''): string {
     $forms = self::getHTMLConfirm() . self::getLoginForm() . self::getFormCrash() . self::getFormEditCrash() . self::getFormMergeCrash() .
       self::getFormEditPerson() . self::getFormQuestionnaires();
     return <<<HTML
@@ -210,7 +210,7 @@ HTML;
 HTML;
   }
 
-  public static function getHTMLConfirm() {
+  public static function getHTMLConfirm(): string {
     $texts = translateArray(['Confirm', 'Ok', 'Cancel']);
 
     $formConfirm = <<<HTML
@@ -234,7 +234,7 @@ HTML;
     return $formConfirm;
   }
 
-  public static function getNavigation() {
+  public static function getNavigation(): string {
 
     global $VERSION;
     global $VERSION_DATE;
@@ -314,7 +314,7 @@ HTML;
 HTML;
   }
 
-  public static function getLoginForm() {
+  public static function getLoginForm(): string {
     $texts = translateArray(['Cancel', 'Email', 'Log_in_or_register', 'First_name', 'Last_name', 'Password', 'Confirm_password', 'Log_in',
       'Register', 'Stay_logged_in', 'Forgot_password']);
 
@@ -365,7 +365,7 @@ HTML;
 HTML;
   }
 
-  public static function getFormEditCrash() {
+  public static function getFormEditCrash(): string {
     $texts = translateArray(['Article', 'Crash', 'Fetch_article', 'Link_url', 'Title', 'Media_source', 'Summary',
       'Full_text', 'Extract_data_from_text', 'Ai_extract_info',
       'Photo_link_url', 'Same_as_article', 'Select_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
@@ -499,7 +499,7 @@ HTML;
 HTML;
   }
 
-  public static function getFormCrash() {
+  public static function getFormCrash(): string {
     return <<<HTML
 <div id="formCrash" class="popupOuter" onclick="closeCrashDetails();">
     <div class="popupCloseCrossWhiteFullScreen hideOnMobile" onclick="closeCrashDetails();"></div>
@@ -517,7 +517,7 @@ HTML;
 HTML;
   }
 
-  public static function getFormQuestionnaires() {
+  public static function getFormQuestionnaires(): string {
 
     return <<<HTML
 <div id="formQuestions" class="popupOuter">
@@ -613,7 +613,7 @@ HTML;
 HTML;
   }
 
-  public static function getFormEditPerson() {
+  public static function getFormEditPerson(): string {
     $texts = translateArray(['Select_humans', 'Involved_humans', 'Add_human', 'Transportation_mode', 'Characteristics',
       'Child', 'Intoxicated', 'Drive_on_or_fleeing', 'Injury',
       'Close', 'Delete', 'Add']);
@@ -665,7 +665,7 @@ HTML;
 HTML;
   }
 
-  public static function getFormEditUser() {
+  public static function getFormEditUser(): string {
 
     $texts = translateArray(['Save', 'Cancel', 'Edit_human', 'Helper', 'Moderator', 'Administrator', 'Email', 'First_name',
       'Last_name', 'Permission']);
@@ -882,7 +882,7 @@ HTML;
 </div>
 HTML;  }
 
-  public static function getSearchPeriodHtml($onInputFunctionName = '') {
+  public static function getSearchPeriodHtml($onInputFunctionName = ''): string {
     $texts = translateArray(['Always', 'Today', 'Yesterday', 'days', 'The_correspondent_week', 'Custom_period', 'Period', 'Start_date', 'End_date']);
 
     $onInputFunction = $onInputFunctionName === '' ? '' : $onInputFunctionName . '();';
@@ -912,7 +912,7 @@ HTML;  }
 HTML;
   }
 
-  public static function getSearchPersonsHtml() {
+  public static function getSearchPersonsHtml(): string {
     $texts = translateArray(['Humans']);
 
     return <<<HTML
