@@ -46,10 +46,23 @@ HTML;
     global $user;
 
     // Add countries
+    function addCountry($country, $userCountryId) {
+      $class = $country['id'] === $userCountryId ? "class='menuSelected'" : '';
+      return "<div $class onclick=\"selectCountry('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url({$country['flagFile']});'></div>{$country['name']}</div>";
+    }
+
     $countryOptions = '';
     foreach ($database->countries as $country) {
-      $class = $country['id'] === $user->country['id'] ? "class='menuSelected'" : '';
-      $countryOptions .= "<div $class onclick=\"selectCountry('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url({$country['flagFile']});'></div>{$country['name']}</div>";
+      if ($country['id'] === 'UN') {
+        $countryOptions .= addCountry($country, $user->country['id']);
+        break;
+      }
+    }
+
+    foreach ($database->countries as $country) {
+      if ($country['id'] !== 'UN') {
+        $countryOptions .= addCountry($country, $user->country['id']);
+      }
     }
 
     $languages = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
