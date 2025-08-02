@@ -17,9 +17,6 @@ if ($function === 'extractDataFromArticle') {
 } else if ($function === 'loadCountryMapOptions') {
   echo GeneralHandler::loadCountryMapOptions();
   return;
-} else if ($function === 'loadCountryDomain') {
-  echo GeneralHandler::loadCountryDomain();
-  return;
 } else if ($function === 'loadCrashes') {
   echo GeneralHandler::loadCrashes();
   return;
@@ -599,11 +596,11 @@ else if ($function === 'loadUserData') {
     $result = [
       'ok' => true,
       'user' => $user->info(),
-      'extraData',
+      'countries' => $database->loadCountries(),
     ];
 
     if (isset($data->getQuestionnaireCountries) && $data->getQuestionnaireCountries === true) {
-      $result['extraData']['questionnaireCountries'] = $database->getQuestionnaireCountries();
+      $result['questionnaireCountries'] = $database->getQuestionnaireCountries();
     }
   } catch (\Exception $e) {
     $result = ['ok' => false, 'error' => $e->getMessage()];

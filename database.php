@@ -9,11 +9,10 @@ enum LogLevel: int {
 
 
 class Database {
-  /** @var  PDO */
-  private $pdo;
-  public  $countryId = DEFAULT_COUNTRY_ID;
-  public  $countries;
-  public  $rowCount;
+  private PDO $pdo;
+  public string $countryId = DEFAULT_COUNTRY_ID;
+  public  ?array $countries;
+  public  int $rowCount = 0;
 
   public function databaseHandle(){
     return $this->pdo;

@@ -45,26 +45,6 @@ HTML;
     global $database;
     global $user;
 
-    // Add countries
-    function addCountry($country, $userCountryId) {
-      $class = $country['id'] === $userCountryId ? "class='menuSelected'" : '';
-      return "<div $class onclick=\"selectCountry('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url({$country['flagFile']});'></div>{$country['name']}</div>";
-    }
-
-    $countryOptions = '';
-    foreach ($database->countries as $country) {
-      if ($country['id'] === 'UN') {
-        $countryOptions .= addCountry($country, $user->country['id']);
-        break;
-      }
-    }
-
-    foreach ($database->countries as $country) {
-      if ($country['id'] !== 'UN') {
-        $countryOptions .= addCountry($country, $user->country['id']);
-      }
-    }
-
     $languages = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
     $languageOptions = '';
     foreach ($languages as $language) {
@@ -109,8 +89,12 @@ $navigation
       <img id="spinnerHeader" src="/images/spinner.svg" style="display: none; height: 17px; margin-left: 5px;" alt="Spinner">
     </div>
   
-    <div class="headerMain pageTitle">
-      <a href='/'>$websiteName</a>        
+    <div class="headerMain">
+      <a href='/'class="pageTitle">
+      <div>$websiteName</div>
+      <div id="headerCountry" style="display: none;"></div>
+      </a>        
+      
     </div>
    
     <div style="display: flex; position: relative; justify-self: flex-end;">
@@ -133,13 +117,10 @@ $navigation
   
       <span style="position: relative;">
         <div id="buttonLanguages" class="buttonHeader" onclick="countryClick(event);">
-          <div id="iconCountry" class="buttonIcon"></div>
           <div class="buttonIcon buttonInsideMargin bgLanguageWhite"></div>
         </div>
         
         <div id="menuCountries" class="buttonPopupMenu">
-          <div class="navigationSectionHeader">{$texts['Country']}</div>
-          $countryOptions
           <div class="navigationSectionHeader">{$texts['Language']}</div>
           $languageOptions
         </div>
@@ -183,13 +164,13 @@ HTML;
       $htmlHealth
       <span id="searchPersonChild" class="menuButtonBlack bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectSearchPersonChild();"></span>      
     </div>
-
+   
+    <div class="toolbarItem">$htmlSearchCountry</div>
+    
     <div class="toolbarItem">
        <input id="searchText" class="searchInput textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" $htmlKeyUp autocomplete="off">  
     </div>
-    
-    <div class="toolbarItem">$htmlSearchCountry</div>
-    
+
     $htmlSearchPeriod
     
     $htmlSearchPersons    
@@ -814,7 +795,7 @@ HTML;
     $infoText = $user->translateLongText('counter_party_info');
 
     $htmlSearchBar = self::getHtmlSearchBar(
-      searchFunction: 'loadStatistics',
+      searchFunction: 'searchStatistics',
       keySearchFunction: 'startStatsSearchKey',
       inline: true,
       addPersons: false
@@ -858,7 +839,7 @@ HTML;
       'Search']);
 
     $htmlSearchBar = self::getHtmlSearchBar(
-      searchFunction: 'loadStatistics',
+      searchFunction: 'searchStatistics',
       inline: true,
       addPersons: false,
       addHealth: false);
@@ -943,11 +924,16 @@ HTML;
 
   }
 
+  private static function addFilterCountry($country, $selectedCountryId): string {
+    $selected = $country['id'] === $selectedCountryId ? "selected" : '';
+    return "<option value='{$country['id']}' $selected>{$country['name']}</option>";
+  }
+
   public static function getSearchCountryHtml(string $onInputFunctionName = '', string $elementId = 'searchCountry', string $selectedCountryId = ''): string {
     global $database;
     global $user;
 
-    if ($selectedCountryId === '') $selectedCountryId = $user->country['id'];
+    if ($selectedCountryId === '') $selectedCountryId = DEFAULT_COUNTRY_ID;
 
     $texts = translateArray(['Country']);
 
@@ -955,8 +941,11 @@ HTML;
 
     $countryOptions = '';
     foreach ($database->countries as $country) {
-      $selected = $country['id'] === $selectedCountryId ? "selected" : '';
-      $countryOptions .= "<option value='{$country['id']}' $selected>{$country['name']}</option>";
+      if ($country['id'] === 'UN') $countryOptions .= self::addFilterCountry($country, $selectedCountryId);
+    }
+
+    foreach ($database->countries as $country) {
+      if ($country['id'] !== 'UN') $countryOptions .= self::addFilterCountry($country, $selectedCountryId);
     }
 
     return <<<HTML

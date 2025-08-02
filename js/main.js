@@ -11,6 +11,7 @@ let mapEdit;
 let mapCrash;
 let markerEdit;
 let questionnaireCountries = [];
+let countries = [];
 
 const PageType = Object.freeze({
   stream: 0,
@@ -32,32 +33,34 @@ const PageType = Object.freeze({
 class Filter {
 
   filters = {
-    healthDead:    0,
+    healthDead: 0,
     healthInjured: 0,
-    child:         0,
+    child: 0,
 
-    text:          '',
-    country:       '',
-    period:        null,
-    dateFrom:      null,
-    dateTo:        null,
-    persons:       [],
-    siteName:      '',
+    text: '',
+    countryId: '',
+    period: null,
+    dateFrom: null,
+    dateTo: null,
+    persons: [],
+    siteName: '',
   }
 
   loadFromUrl() {
     const url = new URL(location.href);
 
-    this.filters.healthDead    = url.searchParams.get('hd')? parseInt(url.searchParams.get('hd')) : 0;
-    this.filters.healthInjured = url.searchParams.get('hi')? parseInt(url.searchParams.get('hi')) : 0;
-    this.filters.child         = url.searchParams.get('child')? parseInt(url.searchParams.get('child')) : 0;
+    const countryId = url.searchParams.get('country') ?? localStorage.getItem('countryId') ?? 'UN';
 
-    this.filters.text          = url.searchParams.get('search') ?? '';
-    this.filters.country       = url.searchParams.get('country') ?? 'UN';
-    this.filters.period        = url.searchParams.get('period') ?? null;
-    this.filters.dateFrom      = url.searchParams.get('date_from') ?? null;
-    this.filters.dateTo        = url.searchParams.get('date_to') ?? null;
-    this.filters.siteName      = url.searchParams.get('siteName') ?? [];
+    this.filters.healthDead = url.searchParams.get('hd')? parseInt(url.searchParams.get('hd')) : 0;
+    this.filters.healthInjured = url.searchParams.get('hi')? parseInt(url.searchParams.get('hi')) : 0;
+    this.filters.child = url.searchParams.get('child')? parseInt(url.searchParams.get('child')) : 0;
+
+    this.filters.countryId = countryId;
+    this.filters.text = url.searchParams.get('search') ?? '';
+    this.filters.period = url.searchParams.get('period') ?? null;
+    this.filters.dateFrom = url.searchParams.get('date_from') ?? null;
+    this.filters.dateTo = url.searchParams.get('date_to') ?? null;
+    this.filters.siteName = url.searchParams.get('siteName') ?? [];
 
     const personsParam = url.searchParams.get('persons');
     this.filters.persons = personsParam ? personsParam.split(',') : [];
@@ -67,12 +70,12 @@ class Filter {
   addSearchParams(url) {
     this.getFromGUI();
 
-    if (this.filters.healthDead)    url.searchParams.set('hd', 1);
+    if (this.filters.healthDead) url.searchParams.set('hd', 1);
     if (this.filters.healthInjured) url.searchParams.set('hi', 1);
-    if (this.filters.child)         url.searchParams.set('child', 1);
+    if (this.filters.child) url.searchParams.set('child', 1);
 
-    if (this.filters.text)     url.searchParams.set('search', this.filters.text);
-    if (this.filters.country)  url.searchParams.set('country', this.filters.country);
+    if (this.filters.text) url.searchParams.set('search', this.filters.text);
+    if (this.filters.countryId) url.searchParams.set('country', this.filters.countryId);
     if (this.filters.siteName) url.searchParams.set('siteName', this.filters.siteName);
 
     if (this.filters.period) {
@@ -105,13 +108,37 @@ class Filter {
     }
 
     setSearchValue('searchText', this.filters.text);
-    setSearchValue('searchCountry', this.filters.country);
+    setSearchValue('searchCountry', this.filters.countryId);
     setSearchValue('searchPeriod', this.filters.period);
     setSearchValue('searchDateFrom', this.filters.dateFrom);
     setSearchValue('searchDateTo', this.filters.dateTo);
     setSearchValue('searchSiteName', this.filters.siteName);
 
+    this.setCountryLabel();
+
     setPersonsFilter(this.filters.persons);
+  }
+
+  getCountryId() {
+    const elSearch = document.getElementById('searchCountry');
+    if (elSearch) return elSearch.value;
+    else return localStorage.getItem('countryId');
+  }
+  setCountryLabel() {
+    const elSearch = document.getElementById('searchCountry');
+
+    if (elSearch) {
+      const countryId = elSearch.value;
+
+      localStorage.setItem('countryId', countryId);
+
+      const elCountry = document.getElementById('headerCountry');
+      if (elCountry) {
+        const country = countries.find(c => c.id === countryId);
+        elCountry.innerText = country? country.name : '';
+        elCountry.style.display = country? 'block' : 'none';
+      }
+    }
   }
 
   getFromGUI() {
@@ -121,17 +148,17 @@ class Filter {
       const searchSiteName = document.getElementById('searchSiteName');
 
       this.filters = {
-        healthDead:    buttonDead && buttonDead.classList.contains('menuButtonSelected')? 1 : 0,
+        healthDead: buttonDead && buttonDead.classList.contains('menuButtonSelected')? 1 : 0,
         healthInjured: buttonInjured && buttonInjured.classList.contains('menuButtonSelected')? 1 : 0,
-        child:         document.getElementById('searchPersonChild').classList.contains('menuButtonSelected')? 1 : 0,
+        child: document.getElementById('searchPersonChild').classList.contains('menuButtonSelected')? 1 : 0,
 
-        text:          document.getElementById('searchText').value.trim().toLowerCase(),
-        country:       document.getElementById('searchCountry').value,
-        period:        document.getElementById('searchPeriod').value,
-        dateFrom:      document.getElementById('searchDateFrom').value,
-        dateTo:        document.getElementById('searchDateTo').value,
-        persons:       getPersonsFromFilter(),
-        siteName:      (searchSiteName && searchSiteName.value.trim().toLowerCase()) ?? '',
+        text: document.getElementById('searchText').value.trim().toLowerCase(),
+        country: document.getElementById('searchCountry').value,
+        period: document.getElementById('searchPeriod').value,
+        dateFrom: document.getElementById('searchDateFrom').value,
+        dateTo: document.getElementById('searchDateTo').value,
+        persons: getPersonsFromFilter(),
+        siteName: (searchSiteName && searchSiteName.value.trim().toLowerCase()) ?? '',
       }
     } else this.filters = {};
 
@@ -144,15 +171,17 @@ async function initMain() {
 
   const data = await loadUserData({getQuestionnaireCountries: true});
   questionnaireCountries = data.questionnaireCountries;
+  countries = data.countries;
   initSearchBar();
 
   spinnerLoad = document.getElementById('spinnerLoad');
+
+  const url = new URL(location.href);
 
   const filter = new Filter;
   filter.loadFromUrl();
   filter.setToGUI();
 
-  const url = new URL(location.href);
   const crashID = getCrashNumberFromPath(url.pathname);
   const articleID = url.searchParams.get('articleid');
 
@@ -423,6 +452,12 @@ function selectFilterChildVictims() {
   window.history.pushState(null, null, url.toString());
 
   loadChildVictims();
+}
+
+function searchStatistics() {
+  const filter = new Filter;
+  filter.setCountryLabel();
+  loadStatistics()
 }
 
 async function loadStatistics() {
@@ -882,8 +917,14 @@ async function loadMapDataFromServer(){
 }
 
 async function getCountryMapOptions(){
+
+  const filter = new Filter;
+  const serverData = {
+    countryId: filter.getCountryId()
+  }
+
   const urlServer = '/general/ajax.php?function=loadCountryMapOptions';
-  const response  = await fetchFromServer(urlServer);
+  const response  = await fetchFromServer(urlServer, serverData);
 
   if (response.error) {
     showError(response.error);
@@ -1307,7 +1348,7 @@ function showEditCrashForm(isNewCrash=false) {
   document.getElementById('editCrashLatitude').value = '';
   document.getElementById('editCrashLongitude').value = '';
   document.getElementById('locationDescription').value = '';
-  document.getElementById('editCrashCountry').value = user.country.id === 'UN'? null : user.countryid;
+  document.getElementById('editCrashCountry').value = getCountryId();
 
   document.getElementById('editCrashUnilateral').classList.remove('buttonSelected');
   document.getElementById('editCrashPet').classList.remove('buttonSelected');
@@ -2497,10 +2538,12 @@ function keySearchCrashes() {
 }
 
 function startStatsSearchKey() {
-  if (event.key === 'Enter') loadStatistics();
+  if (event.key === 'Enter') searchStatistics();
 }
 
 function searchCrashes() {
+  const filter = new Filter;
+  filter.setCountryLabel();
   updateBrowserUrl(true);
   reloadCrashes();
 }

@@ -347,8 +347,6 @@ function updateLoginGUI(userNew){
     buttonProfile.classList.add('buttonProfile');
   }
 
-  document.getElementById('iconCountry').style.backgroundImage = `url(/images/flags/${user.countryid.toLowerCase()}.svg)`;
-
   document.querySelectorAll('.buttonEditPost').forEach(
     button => {
       const buttonUserId = parseInt(button.getAttribute('data-userid'));
@@ -361,25 +359,12 @@ function updateLoginGUI(userNew){
   document.querySelectorAll('[data-moderator]').forEach(d => {d.style.display = user.moderator? 'block' : 'none'});
   document.querySelectorAll('[data-admin]').forEach(d => {d.style.display = user.admin? 'block' : 'none'});
   document.querySelectorAll('[data-inline-admin]').forEach(d => {d.style.display = user.admin? 'inline-block' : 'none'});
-
-  const divCountry = document.getElementById('countryName');
-  if (divCountry) divCountry.innerHTML = ' · ' + user.country.name;
 }
 
-async function selectCountry(countryId) {
-  const urlServer = '/general/ajax.php?function=loadCountryDomain';
-  const response  = await fetchFromServer(urlServer, {countryId: countryId});
-
-  if (response.error) {
-    showError(response.error);
-  }
-
-  if (response.domain) {
-    const url = new URL(location.href);
-    url.hostname = response.domain;
-
-    location.href = url.href;
-  }
+function getCountryId() {
+  const elSearchCountry = document.getElementById('searchCountry');
+  if (elSearchCountry) return elSearchCountry.value;
+  else return localStorage.getItem('countryId');
 }
 
 async function setLanguage(languageId){
@@ -700,7 +685,7 @@ async function loadUserData(options=[]) {
     const response = await fetchFromServer(url, options);
     if (response.user) updateLoginGUI(response.user);
 
-    return response.extraData;
+    return response;
   } catch (error) {
     showError(error.message);
   }

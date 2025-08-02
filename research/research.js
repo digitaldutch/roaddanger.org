@@ -253,13 +253,13 @@ async function downloadQuestionnaireResults(articleFilter={}) {
   const data = {
     filter: {
       questionnaireId: parseInt(document.getElementById('filterQuestionnaire').value),
-      healthDead:      document.getElementById('filterResearchDead').classList.contains('menuButtonSelected')? 1 : 0,
-      child:           document.getElementById('filterResearchChild').classList.contains('menuButtonSelected')? 1 : 0,
-      noUnilateral:    document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected')? 1 : 0,
-      timeSpan:        document.getElementById('filterResearchTimeSpan').value,
-      country:         document.getElementById('filterResearchCountry').value,
-      minArticles:     parseInt(document.getElementById('filterMinArticles').value),
-      persons:         getPersonsFromFilter(),
+      healthDead: document.getElementById('filterResearchDead').classList.contains('menuButtonSelected')? 1 : 0,
+      child: document.getElementById('filterResearchChild').classList.contains('menuButtonSelected')? 1 : 0,
+      noUnilateral: document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected')? 1 : 0,
+      timeSpan: document.getElementById('filterResearchTimeSpan').value,
+      country: document.getElementById('filterResearchCountry').value,
+      minArticles: parseInt(document.getElementById('filterMinArticles').value),
+      persons: getPersonsFromFilter(),
     },
     group: document.getElementById('filterResearchGroup').value,
     articleFilter: articleFilter,
@@ -281,7 +281,7 @@ async function loadQuestionnaireResults() {
     if (response.error) showError(response.error);
     else if (response.ok) {
       document.getElementById('questionnaireInfo').innerHTML = 'Questionnaire type: ' + questionnaireTypeToText(response.questionnaire.type) +
-        ` | Questions country: ` + response.questionnaire.country;
+        ` | Questions country: ` + response.questionnaire.countryId;
 
       let htmlQuestions = '';
       let htmlHead = '';

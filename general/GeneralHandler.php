@@ -29,37 +29,22 @@ class GeneralHandler {
     return json_encode($result);
   }
 
-  static public function loadCountryDomain(): false|string {
-    global $database;
-    try {
-      $data = json_decode(file_get_contents('php://input'), true);
-
-      $sql = 'SELECT domain from countries WHERE id=:id;';
-      $params = [':id' => $data['countryId']];
-      $domain = $database->fetchSingleValue($sql, $params);
-
-      $result = ['ok' => true,
-        'domain' => $domain,
-      ];
-    } catch (\Throwable $e) {
-      $result = ['ok' => false, 'error' => $e->getMessage()];
-    }
-    return json_encode($result);
-  }
-
   static public function loadCountryMapOptions(): false|string {
     global $database;
     global $user;
 
     try {
+      $data = json_decode(file_get_contents('php://input'), true);
+
       $sql = 'SELECT options from countries WHERE id=:id;';
-      $params = [':id' => $user->country['id']];
+      $params = [':id' => $data['countryId']];
       $optionsJson = $database->fetchSingleValue($sql, $params);
 
       if (! isset($optionsJson)) throw new \Exception('No country options found for ' . $user->country['id']);
       $options     = json_decode($optionsJson);
 
-      $result = ['ok' => true,
+      $result = [
+        'ok' => true,
         'options' => $options,
       ];
     } catch (\Exception $e) {
@@ -365,8 +350,6 @@ SQL;
             addSQLWhere($SQLWhere, "c.countryid=:country");
             $params[':country'] = $filter['country'];
           }
-        } else {
-          if ($user->country['id'] !== 'UN') addSQLWhere($SQLWhere, "c.countryid='{$user->country['id']}'");
         }
 
         if (! empty($filter['siteName'])){

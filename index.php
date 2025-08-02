@@ -43,10 +43,6 @@ if ($pageType === PageType::statisticsCrashPartners) {
 //  <script src="https://cdn.maptiler.com/ol-mapbox-style/v4.3.1/olms.js"></script>
 //  <link rel="stylesheet" href="https://cdn.maptiler.com/ol/v5.3.0/ol.css">
 
-// Mapbox tiles
-//<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.css' rel='stylesheet'>
-//<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.js'></script>
-
 if (pageWithMap($pageType)) {
   $mapbox_js = MAPBOX_GL_JS;
   $mapbox_css = MAPBOX_GL_CSS;
@@ -121,7 +117,7 @@ HTML;
     case PageType::lastChanged: $title = translate('Last_modified_crashes'); break;
     case PageType::deCorrespondent: $title = translate('The_correspondent_week') . '<br>14-20 jan. 2019'; break;
     case PageType::moderations: $title = translate('Moderations'); break;
-    case PageType::recent: $title = translate('Recent_crashes') . '<span id="countryName"></span>'; break;
+    case PageType::recent: $title = translate('Recent_crashes'); break;
   }
 
   $pageTitle = WEBSITE_NAME;
