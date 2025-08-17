@@ -487,6 +487,16 @@ h3, .pageSubTitleFont {
   transition: transform 0.5s;
 }
 
+.inputArrowDownWhite {
+  position:   absolute;
+  right:      2px;
+  top:        3px;
+  width:      20px;
+  height:     calc(100% - 6px);
+  background: url("/images/arrow_dropdown_white.svg") no-repeat center/15px;
+  transition: transform 0.5s;
+}
+
 .inputArrowDownOpen{
   transform: rotate(180deg);
 }
@@ -752,6 +762,7 @@ h3, .pageSubTitleFont {
 
 .bgAdd {background-image: url(/images/add.svg);}
 .bgAddWhite {background-image: url(/images/add_white.svg);}
+.bgArrowDownWhite {background-image: url(/images/arrow_dropdown_white.svg);}
 .bgRemove {background-image: url(/images/remove.svg);}
 .bgPerson {background-image: url(/images/person.svg);}
 .bgPersonWhite {background-image: url(/images/person_white.svg);}

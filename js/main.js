@@ -134,9 +134,10 @@ class Filter {
 
       const elCountry = document.getElementById('headerCountry');
       if (elCountry) {
+        const elCountryName = document.getElementById('headerCountryName');
         const country = countries.find(c => c.id === countryId);
-        elCountry.innerText = country? country.name : '';
-        elCountry.style.display = country? 'block' : 'none';
+        elCountryName.innerText = country? country.name : '';
+        elCountry.style.display = country? 'flex' : 'none';
       }
     }
   }

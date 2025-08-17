@@ -90,11 +90,12 @@ $navigation
     </div>
   
     <div class="headerMain">
-      <a href='/'class="pageTitle">
-      <div>$websiteName</div>
-      <div id="headerCountry" style="display: none;"></div>
-      </a>        
-      
+      <a href='/'class="pageTitle">$websiteName</a>        
+  
+      <div id="headerCountry" class="buttonHeader" style="height: auto; width: auto; display: none;">
+        <div id="headerCountryName">&nbsp;</div>
+        <div class="bgArrowDownWhite" style="width: 15px; height: 15px; position: relative; top: 2px; margin-left: 3px;"></div> 
+      </div>
     </div>
    
     <div style="display: flex; position: relative; justify-self: flex-end;">
