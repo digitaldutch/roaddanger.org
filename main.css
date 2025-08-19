@@ -837,7 +837,6 @@ h3, .pageSubTitleFont {
 .buttonPopupMenu, .buttonPopupMenuTemp {
   display: none;
   position: absolute;
-  right: 0;
   min-width: 200px;
   text-align: left;
   z-index: 10;

@@ -25,7 +25,9 @@ require_once 'configsecret.php';
 const COOKIE_DOMAIN = '';
 
 const WEBSITE_NAME = 'roaddanger';
-const DEFAULT_COUNTRY_ID = 'NL';
+const DEFAULT_LANGUAGE = 'en';
+const DEFAULT_COUNTRY_ID = 'UN';
+const DEFAULT_COUNTRY = 'World';
 
 // https://docs.mapbox.com/mapbox-gl-js/guides/
 const MAPBOX_GL_JS = 'https://api.mapbox.com/mapbox-gl-js/v3.13.0/mapbox-gl.js';

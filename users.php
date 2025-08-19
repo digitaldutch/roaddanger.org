@@ -17,9 +17,9 @@ class User {
   public string $lastName;
   public string $email;
   public bool $emailExists = false;
-  public string $languageId = 'en';
-  public string $countryId;
-  public array $country;
+  public ?string $languageId;
+  public ?string $countryId;
+  public ?string $country;
   public array $translations;
   public bool $admin = false;
   public UserPermission $permission;
@@ -42,10 +42,9 @@ class User {
     if (!$this->loggedIn) {
       // Delete hanging sessions and cookies if not logged in. Sometimes a session is killed.
       $this->logout();
-
-      // Load default language from cookie if it exists
-      if (isset($_COOKIE['language_id'])) $this->languageId = $_COOKIE['language_id'];
     }
+
+    $this->loadDefaultCountryAndLanguage();
   }
 
   function isModerator(): bool {
@@ -58,23 +57,87 @@ class User {
     $this->firstName = '';
     $this->lastName = '';
     $this->email = '';
-    $this->countryId = $this->database->countryId;
-    $this->country = $this->database->getCountry($this->database->countryId);
-    $this->languageId = $this->country['defaultlanguageid'];
+    $this->countryId = null;
+    $this->country = null;
+    $this->languageId = null;
     $this->translations = [];
     $this->emailExists = false;
     $this->admin = false;
     $this->permission = UserPermission::newuser;
   }
 
+  private function loadDefaultCountryAndLanguage(): void {
+
+    if (! isset($this->languageId)) {
+
+      // Load language from cookie if set
+      if (isset($_COOKIE['language_id'])) {
+        $this->languageId = $_COOKIE['language_id'];
+      } else {
+        $this->languageId = DEFAULT_LANGUAGE;
+      }
+    }
+
+    if (! isset($this->countryId)) {
+
+      // Load country from country cookie if set
+      if (isset($_COOKIE['country_id'])) {
+        $sql = "SELECT name FROM countries WHERE id=:id";
+        $params = ['id' => $_COOKIE['country_id']];
+        $country = $this->database->fetchSingleValue($sql, $params);
+
+        if (isset($country)) {
+          $this->countryId = $_COOKIE['country_id'];
+          $this->country = $country;
+        }
+      }
+
+      // No cookie means use the default
+      if (! isset($this->countryId)) {
+        $this->countryId = DEFAULT_COUNTRY_ID;
+        $this->country = DEFAULT_COUNTRY;
+      }
+    }
+  }
+
   private function loadUserFromDBIntern($id='', $email='', $password=''): void {
     $this->clearData();
 
-    if ($id !== ''){
-      $sql = "SELECT u.id, firstname, lastname, email, passwordhash, permission, language FROM users u WHERE id=:id;";
+    if ($id !== '') {
+      $sql = <<<SQL
+SELECT 
+  u.id, 
+  u.firstname, 
+  u.lastname, 
+  u.email, 
+  u.passwordhash, 
+  u.permission, 
+  u.countryid, 
+  c.name AS country,
+  u.language 
+FROM users u 
+LEFT JOIN countries c ON u.countryid = c.id
+WHERE u.id=:id;
+SQL;
+
       $params = [':id' => $id];
     } else {
-      $sql = "SELECT u.id, firstname, lastname, email, passwordhash, permission, language FROM users u WHERE email=:email;";
+      $sql = <<<SQL
+SELECT 
+  u.id, 
+  u.firstname, 
+  u.lastname, 
+  u.email, 
+  u.passwordhash, 
+  u.permission, 
+  u.countryid, 
+  c.name AS country,
+  u.language 
+FROM users u 
+LEFT JOIN countries c ON u.countryid = c.id
+WHERE u.email=:email;
+SQL;
+
       $params = [':email' => $email];
     }
 
@@ -82,14 +145,20 @@ class User {
     if ($user) {
       $this->emailExists = true;
       if (($password === '') || (password_verify($password, $user['passwordhash']))) {
-        $this->id         = (int)$user['id'];
-        $this->firstName  = $user['firstname'];
-        $this->lastName   = $user['lastname'];
-        $this->email      = $user['email'];
+        $this->id = (int)$user['id'];
+        $this->firstName = $user['firstname'];
+        $this->lastName = $user['lastname'];
+        $this->email = $user['email'];
         $this->languageId = $user['language']?? $this->languageId;
         $this->permission = UserPermission::from($user['permission']);
-        $this->admin      = $this->permission === UserPermission::admin;
-        $this->loggedIn   = true;
+        $this->admin = $this->permission === UserPermission::admin;
+        $this->loggedIn = true;
+
+        if (isset($user['country'])) {
+          $this->countryId = $user['countryid'];
+          $this->country = $user['country'];
+        }
+
       }
     }
 
@@ -340,26 +409,20 @@ SQL;
   }
 
   /**
-   * @param $newUser
-   * @return bool
    * @throws Exception
    */
-  public function saveLanguage($languageId){
+  public function saveLanguage($languageId): bool {
     if ($this->loggedIn) {
-      $sql = <<<SQL
-UPDATE users SET
-  language = :language                 
-WHERE id = :id
-SQL;
+      $sql = "UPDATE users SET users.language = :language WHERE id = :id;";
 
       $params = [
-        ':language'  => $languageId,
-        ':id'        => $this->id,
+        ':language' => $languageId,
+        ':id' => $this->id,
       ];
       $this->database->execute($sql, $params);
     }
 
-    // Also save language id in cookie in case user is not logged in.
+    // Also save language id in cookie in case the user is not logged in.
     $NowPlus10Years = time() + 60*60*24*3650; // 3650 dagen cookie expiration time
     setcookie(
       'language_id',
@@ -375,11 +438,41 @@ SQL;
     return true;
   }
 
-  public function fullName(){
+  /**
+   * @throws Exception
+   */
+  public function saveCountry($countryId): bool {
+    if ($this->loggedIn) {
+      $sql = "UPDATE users SET users.countryid = :countryid WHERE id = :id;";
+
+      $params = [
+        ':countryid' => $countryId,
+        ':id' => $this->id,
+      ];
+      $this->database->execute($sql, $params);
+    }
+
+    // Also save country id in cookie in case the user is not logged in.
+    $NowPlus10Years = time() + 60*60*24*3650; // 3650 dagen cookie expiration time
+    setcookie(
+      'country_id',
+      $countryId,
+      ['expires'  => $NowPlus10Years,
+       'path'     => '/',
+       'domain'   => COOKIE_DOMAIN,
+       'secure'   => true,
+       'samesite' => 'Lax',
+        ]
+    );
+
+    return true;
+  }
+
+  public function fullName(): string {
     return trim($this->firstName . ' ' . $this->lastName);
   }
 
-  public function info() {
+  public function info(): array {
     if ($this->loggedIn)
       $info = [
         'loggedin'     => $this->loggedIn,

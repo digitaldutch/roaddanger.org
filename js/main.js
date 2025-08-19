@@ -108,38 +108,12 @@ class Filter {
     }
 
     setSearchValue('searchText', this.filters.text);
-    setSearchValue('searchCountry', this.filters.countryId);
     setSearchValue('searchPeriod', this.filters.period);
     setSearchValue('searchDateFrom', this.filters.dateFrom);
     setSearchValue('searchDateTo', this.filters.dateTo);
     setSearchValue('searchSiteName', this.filters.siteName);
 
-    this.setCountryLabel();
-
     setPersonsFilter(this.filters.persons);
-  }
-
-  getCountryId() {
-    const elSearch = document.getElementById('searchCountry');
-    if (elSearch) return elSearch.value;
-    else return localStorage.getItem('countryId');
-  }
-  setCountryLabel() {
-    const elSearch = document.getElementById('searchCountry');
-
-    if (elSearch) {
-      const countryId = elSearch.value;
-
-      localStorage.setItem('countryId', countryId);
-
-      const elCountry = document.getElementById('headerCountry');
-      if (elCountry) {
-        const elCountryName = document.getElementById('headerCountryName');
-        const country = countries.find(c => c.id === countryId);
-        elCountryName.innerText = country? country.name : '';
-        elCountry.style.display = country? 'flex' : 'none';
-      }
-    }
   }
 
   getFromGUI() {
@@ -154,7 +128,6 @@ class Filter {
         child: document.getElementById('searchPersonChild').classList.contains('menuButtonSelected')? 1 : 0,
 
         text: document.getElementById('searchText').value.trim().toLowerCase(),
-        country: document.getElementById('searchCountry').value,
         period: document.getElementById('searchPeriod').value,
         dateFrom: document.getElementById('searchDateFrom').value,
         dateTo: document.getElementById('searchDateTo').value,
@@ -173,6 +146,7 @@ async function initMain() {
   const data = await loadUserData({getQuestionnaireCountries: true});
   questionnaireCountries = data.questionnaireCountries;
   countries = data.countries;
+
   initSearchBar();
 
   spinnerLoad = document.getElementById('spinnerLoad');
@@ -457,7 +431,6 @@ function selectFilterChildVictims() {
 
 function searchStatistics() {
   const filter = new Filter;
-  filter.setCountryLabel();
   loadStatistics()
 }
 
@@ -921,7 +894,7 @@ async function getCountryMapOptions(){
 
   const filter = new Filter;
   const serverData = {
-    countryId: filter.getCountryId()
+    countryId: user.countryId,
   }
 
   const urlServer = '/general/ajax.php?function=loadCountryMapOptions';
@@ -1310,9 +1283,9 @@ function selectCrash(crashID, smooth=false) {
   const div = document.getElementById('crash' + crashID);
   if (smooth){
     div.scrollIntoView({
-      block:    'start',
+      block: 'start',
       behavior: 'smooth',
-      inline:   'nearest'});
+      inline: 'nearest'});
 
   } else scrollIntoViewIfNeeded(div);
 }
@@ -1349,7 +1322,7 @@ function showEditCrashForm(isNewCrash=false) {
   document.getElementById('editCrashLatitude').value = '';
   document.getElementById('editCrashLongitude').value = '';
   document.getElementById('locationDescription').value = '';
-  document.getElementById('editCrashCountry').value = getCountryId();
+  document.getElementById('editCrashCountry').value = user.country.id;
 
   document.getElementById('editCrashUnilateral').classList.remove('buttonSelected');
   document.getElementById('editCrashPet').classList.remove('buttonSelected');
@@ -2544,7 +2517,6 @@ function startStatsSearchKey() {
 
 function searchCrashes() {
   const filter = new Filter;
-  filter.setCountryLabel();
   updateBrowserUrl(true);
   reloadCrashes();
 }

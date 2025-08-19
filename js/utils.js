@@ -319,11 +319,20 @@ async function loginIntern(email, password, stayLoggedIn=0) {
   }
 }
 
+function setCountryLabel(country) {
+  const elCountry = document.getElementById('headerCountry');
+  if (elCountry) {
+    const elCountryName = document.getElementById('headerCountryName');
+    elCountryName.innerText = country;
+    elCountry.style.display = country? 'flex' : 'none';
+  }
+}
+
 function updateLoginGUI(userNew){
   user = userNew;
   const buttonProfile = document.getElementById('buttonProfile');
 
-  // New crash button is only visible after user data is loaded, because new crash function checks if user is logged in.
+  // The new crash button is only visible after user data is loaded, because new crash function checks if user is logged in.
   const buttonNewCrash = document.getElementById('buttonNewCrash');
   if (buttonNewCrash) buttonNewCrash.style.display = 'inline-flex';
 
@@ -347,6 +356,8 @@ function updateLoginGUI(userNew){
     buttonProfile.classList.add('buttonProfile');
   }
 
+  setCountryLabel(user.country);
+
   document.querySelectorAll('.buttonEditPost').forEach(
     button => {
       const buttonUserId = parseInt(button.getAttribute('data-userid'));
@@ -361,14 +372,20 @@ function updateLoginGUI(userNew){
   document.querySelectorAll('[data-inline-admin]').forEach(d => {d.style.display = user.admin? 'inline-block' : 'none'});
 }
 
-function getCountryId() {
-  const elSearchCountry = document.getElementById('searchCountry');
-  if (elSearchCountry) return elSearchCountry.value;
-  else return localStorage.getItem('countryId');
+async function setLanguage(languageId){
+  const url = '/general/ajax.php?function=saveLanguage&id=' + languageId;
+  const response = await fetchFromServer(url);
+
+  if (response.error) {
+    showError(response.error);
+    return;
+  }
+
+  window.location.reload();
 }
 
-async function setLanguage(languageId){
-  const url      = '/general/ajax.php?function=setLanguage&id=' + languageId;
+async function setCountry(countryId){
+  const url = '/general/ajax.php?function=saveCountry&id=' + countryId;
   const response = await fetchFromServer(url);
 
   if (response.error) {
@@ -706,7 +723,18 @@ function profileClick(event) {
   } else showLoginForm();
 }
 
-function countryClick(event){
+function languageClick(){
+  event.stopPropagation();
+
+  const div = document.getElementById('menuLanguages');
+  const isOpen = div.style.display === 'block';
+
+  closeAllPopups();
+
+  div.style.display = isOpen? 'none' : 'block';
+}
+
+function countryClick() {
   event.stopPropagation();
 
   const div = document.getElementById('menuCountries');
@@ -927,7 +955,7 @@ function createCookie(name, value, days, options={}) {
 
   // Default options
   const defaultOptions = {
-    domain: '',           // Empty means current domain
+    domain: '', // Empty means current domain
     path: '/',
     sameSite: 'Lax',
     secure: location.protocol === 'https:'
@@ -939,7 +967,7 @@ function createCookie(name, value, days, options={}) {
   // Build cookie string
   let cookieString = name + "=" + encodeURIComponent(value) + expires;
 
-  // Add path
+  // Add the path
   cookieString += "; path=" + cookieOptions.path;
 
   // Add domain only if specified
@@ -950,15 +978,13 @@ function createCookie(name, value, days, options={}) {
   // Add SameSite
   cookieString += "; SameSite=" + cookieOptions.sameSite;
 
-  // Add Secure flag if needed
+  // Add the Secure flag if needed
   if (cookieOptions.secure) {
     cookieString += "; Secure";
   }
 
   // Set the cookie
   document.cookie = cookieString;
-
-
 }
 
 function formatText(text) {

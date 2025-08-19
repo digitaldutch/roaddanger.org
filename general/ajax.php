@@ -23,6 +23,12 @@ if ($function === 'extractDataFromArticle') {
 } else if ($function === 'saveArticleCrash') {
   echo GeneralHandler::saveArticleCrash();
   return;
+} else if ($function === 'saveLanguage') {
+  echo GeneralHandler::saveLanguage();
+  return;
+} else if ($function === 'saveCountry') {
+  echo GeneralHandler::saveCountry();
+  return;
 }
 
 
@@ -531,19 +537,6 @@ else if ($function == 'saveAccount') {
 
   echo json_encode($result);
 } // ====================
-else if ($function == 'setLanguage') {
-  try {
-    $languageId = getRequest('id');
-
-    $user->saveLanguage($languageId);
-
-    $result = ['ok' => true];
-  } catch (\Exception $e) {
-    $result = ['ok' => false, 'error' => $e->getMessage()];
-  }
-
-  echo json_encode($result);
-} //==========
 else if ($function === 'loadMapCrashes') {
 
   $data = json_decode(file_get_contents('php://input'), true);

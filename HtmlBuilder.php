@@ -45,6 +45,13 @@ HTML;
     global $database;
     global $user;
 
+    // Add countries
+    $countryOptions = '';
+    foreach ($database->countries as $country) {
+      $class = $country['id'] === $user->countryId ? "class='menuSelected'" : '';
+      $countryOptions .= "<div $class onclick=\"setCountry('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url({$country['flagFile']});'></div>{$country['name']}</div>";
+    }
+
     $languages = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
     $languageOptions = '';
     foreach ($languages as $language) {
@@ -92,10 +99,18 @@ $navigation
     <div class="headerMain">
       <a href='/'class="pageTitle">$websiteName</a>        
   
-      <div id="headerCountry" class="buttonHeader" style="height: auto; width: auto; display: none;">
-        <div id="headerCountryName">&nbsp;</div>
-        <div class="bgArrowDownWhite" style="width: 15px; height: 15px; position: relative; top: 2px; margin-left: 3px;"></div> 
+      <div style="position: relative;">
+        <div id="headerCountry" class="buttonHeader" style="height: auto; width: auto; display: none;" onclick="countryClick();">
+          <div id="headerCountryName">&nbsp;</div>
+          <div class="bgArrowDownWhite" style="width: 15px; height: 15px; position: relative; top: 2px; margin-left: 3px;"></div> 
+        </div>     
+          
+        <div id="menuCountries" class="buttonPopupMenu">
+          <div class="navigationSectionHeader">{$texts['Country']}</div>
+          $countryOptions
+        </div>      
       </div>
+      
     </div>
    
     <div style="display: flex; position: relative; justify-self: flex-end;">
@@ -117,11 +132,11 @@ $navigation
       </span>
   
       <span style="position: relative;">
-        <div id="buttonLanguages" class="buttonHeader" onclick="countryClick(event);">
+        <div id="buttonLanguages" class="buttonHeader" onclick="languageClick();">
           <div class="buttonIcon buttonInsideMargin bgLanguageWhite"></div>
         </div>
         
-        <div id="menuCountries" class="buttonPopupMenu">
+        <div id="menuLanguages" class="buttonPopupMenu" style="right: 0;">
           <div class="navigationSectionHeader">{$texts['Language']}</div>
           $languageOptions
         </div>
@@ -140,7 +155,6 @@ HTML;
                                           bool $addPersons=true, bool $addHealth=true): string {
     $texts = translateArray(['Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source', 'Search_text_hint']);
 
-    $htmlSearchCountry = self::getSearchCountryHtml();
     $htmlSearchPeriod = self::getSearchPeriodHtml();
     $htmlSearchPersons = $addPersons? self::getSearchPersonsHtml() : '';
 
@@ -166,8 +180,6 @@ HTML;
       <span id="searchPersonChild" class="menuButtonBlack bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectSearchPersonChild();"></span>      
     </div>
    
-    <div class="toolbarItem">$htmlSearchCountry</div>
-    
     <div class="toolbarItem">
        <input id="searchText" class="searchInput textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" $htmlKeyUp autocomplete="off">  
     </div>
@@ -368,7 +380,7 @@ HTML;
       'Location', 'Characteristics', 'Save', 'Cancel',
       'Fetching_web_page', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions']);
 
-    $htmlSearchCountry = self::getSearchCountryHtml('', 'editCrashCountry');
+    $htmlLocation = self::getSearchCountryHtml( 'editCrashCountry');
 
     return <<<HTML
 <div id="formEditCrash" class="popupOuter">
@@ -465,7 +477,7 @@ HTML;
       </div>
       
       <div class="labelDiv">
-        <div>{$texts['Location']} $htmlSearchCountry
+        <div>{$texts['Location']} $htmlLocation
         <span class="iconTooltip" data-tippy-content="{$texts['Edit_location_instructions']}"></span></div>
             
         <input id="editCrashLatitude" type="hidden"><input id="editCrashLongitude" type="hidden">
@@ -930,15 +942,13 @@ HTML;
     return "<option value='{$country['id']}' $selected>{$country['name']}</option>";
   }
 
-  public static function getSearchCountryHtml(string $onInputFunctionName = '', string $elementId = 'searchCountry', string $selectedCountryId = ''): string {
+  public static function getSearchCountryHtml(string $elementId, string $selectedCountryId = ''): string {
     global $database;
     global $user;
 
-    if ($selectedCountryId === '') $selectedCountryId = DEFAULT_COUNTRY_ID;
+    if ($selectedCountryId === '') $selectedCountryId = $user->countryId;
 
     $texts = translateArray(['Country']);
-
-    $onInputFunction = $onInputFunctionName === '' ? '' : 'oninput="' . $onInputFunctionName . '();"';
 
     $countryOptions = '';
     foreach ($database->countries as $country) {
@@ -950,7 +960,7 @@ HTML;
     }
 
     return <<<HTML
-<select id="$elementId" class="searchInput" $onInputFunction data-tippy-content="{$texts['Country']}">
+<select id="$elementId" class="searchInput" data-tippy-content="{$texts['Country']}">
   $countryOptions
 </select>
 HTML;

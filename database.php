@@ -184,11 +184,4 @@ class Database {
     return $this->fetchAllValues("SELECT DISTINCT country_id FROM questionnaires WHERE active=1 ORDER BY country_id;");
   }
 
-  public function getCountry(string $id) {
-    foreach ($this->countries AS $country) {
-      if ($country['id'] === $id) return $country;
-    }
-    return null;
-  }
-
 }

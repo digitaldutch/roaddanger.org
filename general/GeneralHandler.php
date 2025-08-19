@@ -40,7 +40,7 @@ class GeneralHandler {
       $params = [':id' => $data['countryId']];
       $optionsJson = $database->fetchSingleValue($sql, $params);
 
-      if (! isset($optionsJson)) throw new \Exception('No country options found for ' . $user->country['id']);
+      if (! isset($optionsJson)) throw new \Exception('No country options found for ' . $user->countryId);
       $options     = json_decode($optionsJson);
 
       $result = [
@@ -255,6 +255,36 @@ SQL;
     return json_encode($result);
   }
 
+  static public function saveLanguage(): string {
+    global $user;
+
+    try {
+      $languageId = getRequest('id');
+
+      $user->saveLanguage($languageId);
+
+      $result = ['ok' => true];
+    } catch (\Exception $e) {
+      $result = ['ok' => false, 'error' => $e->getMessage()];
+    }
+
+    return json_encode($result);
+  }
+  static public function saveCountry(): string {
+    global $user;
+
+    try {
+      $countryId = getRequest('id');
+
+      $user->saveCountry($countryId);
+
+      $result = ['ok' => true];
+    } catch (\Exception $e) {
+      $result = ['ok' => false, 'error' => $e->getMessage()];
+    }
+
+    return json_encode($result);
+  }
   static public function loadCrashes(): string {
     global $database;
     global $user;
