@@ -10,18 +10,13 @@ enum LogLevel: int {
 
 class Database {
   private PDO $pdo;
-  public string $countryId = DEFAULT_COUNTRY_ID;
   public  ?array $countries;
   public  int $rowCount = 0;
-
-  public function databaseHandle(){
-    return $this->pdo;
-  }
 
   /**
    * @throws Exception
    */
-  public function open(){
+  public function open(): void {
     // To debug on localhost with the remote database, use port forwarding use port forwarding:
     // ssh -L 3306:localhost:3306 loginname@databaseserver.com
     try {
@@ -38,8 +33,8 @@ class Database {
 
       $this->pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD, $options);
 
-    } catch (\Throwable $e) {
-      throw new \Exception('Database error: ' . $e->getMessage());
+    } catch (Throwable $e) {
+      throw new Exception('Database error: ' . $e->getMessage());
     }
   }
 
@@ -69,12 +64,12 @@ class Database {
     return $statement->fetchAll(PDO::FETCH_ASSOC);
   }
 
-  public function fetchAllValues($sql, $params=null){
+  public function fetchAllValues($sql, $params=null): false|array {
     try {
       $statement = $this->pdo->prepare($sql);
       $statement->execute($params);
       return $statement->fetchAll(PDO::FETCH_COLUMN);
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
       return false;
     }
   }
@@ -84,17 +79,17 @@ class Database {
       $statement = $this->pdo->prepare($sql);
       $statement->execute($params);
       return $statement->fetchAll(PDO::FETCH_GROUP);
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
       return false;
     }
   }
 
-  public function fetchObject($sql, $params=null){
+  public function fetchObject($sql, $params=null) {
     try {
       $statement = $this->pdo->prepare($sql);
       $statement->execute($params);
       return $statement->fetchObject();
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
       return false;
     }
   }
@@ -104,7 +99,7 @@ class Database {
       $statement = $this->pdo->prepare($sql);
       $statement->execute($params);
       return $statement->fetch(PDO::FETCH_ASSOC);
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
       return false;
     }
   }
@@ -158,14 +153,12 @@ class Database {
 
   public function loadCountries(): array {
     if (empty($this->countries)) {
-      $dbCountries = $this->fetchAll("SELECT id, name, defaultlanguageid, domain FROM countries ORDER BY name;");
+      $sql = "SELECT id, name, defaultlanguageid, domain FROM countries ORDER BY CASE WHEN id='UN' THEN 0 ELSE 1 END, name;";
+      $dbCountries = $this->fetchAll($sql);
       $this->countries = [];
       foreach ($dbCountries as $country) {
         $flagId = strtolower($country['id']);
-        $country['flagFile'] = "/images/flags/{$flagId}.svg";
-
-        // Country id depends on domain name (e.g. nl.roaddanger.org > id=NL)
-        if (str_contains($_SERVER['SERVER_NAME'], $country['domain'])) $this->countryId = $country['id'];
+        $country['flagFile'] = "/images/flags/$flagId.svg";
 
         $this->countries[] = $country;
       }
@@ -180,7 +173,7 @@ class Database {
     return $this->fetchAll($sql);
   }
 
-  public function getQuestionnaireCountries() {
+  public function getQuestionnaireCountries(): false|array {
     return $this->fetchAllValues("SELECT DISTINCT country_id FROM questionnaires WHERE active=1 ORDER BY country_id;");
   }
 

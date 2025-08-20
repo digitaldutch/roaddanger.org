@@ -49,7 +49,7 @@ HTML;
     $countryOptions = '';
     foreach ($database->countries as $country) {
       $class = $country['id'] === $user->countryId ? "class='menuSelected'" : '';
-      $countryOptions .= "<div $class onclick=\"setCountry('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url({$country['flagFile']});'></div>{$country['name']}</div>";
+      $countryOptions .= "<div $class onclick=\"selectLocation('{$country['id']}')\"><div class='menuIcon' style='margin-right: 5px;background-image: url({$country['flagFile']});'></div>{$country['name']}</div>";
     }
 
     $languages = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
@@ -59,7 +59,7 @@ HTML;
       $languageOptions .= "<div $class onclick=\"setLanguage('{$language['id']}')\">{$language['name']}</div>";
     }
 
-    $texts = translateArray(['Log_out', 'Log_in', 'Account', 'Country', 'Language']);
+    $texts = translateArray(['Log_out', 'Log_in', 'Account', 'Location', 'Language']);
 
     if ($searchFunction === 'searchCrashes') {
       $keySearchFunction = 'keySearchCrashes';
@@ -100,13 +100,14 @@ $navigation
       <a href='/'class="pageTitle">$websiteName</a>        
   
       <div style="position: relative;">
-        <div id="headerCountry" class="buttonHeader" style="height: auto; width: auto; display: none;" onclick="countryClick();">
-          <div id="headerCountryName">&nbsp;</div>
+        <div id="filterCountry" class="buttonHeader" style="height: auto; width: auto; display: none;" onclick="countryClick();">
+          <img id="filterCountryFlag" src="/images/flags/un.svg" style="width: 15px; height: 15px; margin-right: 3px;">
+          <div id="filterCountryName">nbsp;</div>
           <div class="bgArrowDownWhite" style="width: 15px; height: 15px; position: relative; top: 2px; margin-left: 3px;"></div> 
         </div>     
           
         <div id="menuCountries" class="buttonPopupMenu">
-          <div class="navigationSectionHeader">{$texts['Country']}</div>
+          <div class="navigationSectionHeader">{$texts['Location']}</div>
           $countryOptions
         </div>      
       </div>
@@ -380,7 +381,7 @@ HTML;
       'Location', 'Characteristics', 'Save', 'Cancel',
       'Fetching_web_page', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions']);
 
-    $htmlLocation = self::getSearchCountryHtml( 'editCrashCountry');
+    $htmlLocation = self::getSearchLocationHtml( 'editCrashCountry');
 
     return <<<HTML
 <div id="formEditCrash" class="popupOuter">
@@ -942,7 +943,7 @@ HTML;
     return "<option value='{$country['id']}' $selected>{$country['name']}</option>";
   }
 
-  public static function getSearchCountryHtml(string $elementId, string $selectedCountryId = ''): string {
+  public static function getSearchLocationHtml(string $elementId, string $selectedCountryId = ''): string {
     global $database;
     global $user;
 

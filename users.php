@@ -44,6 +44,9 @@ class User {
       $this->logout();
     }
 
+    // Country in url overrides user country
+
+
     $this->loadDefaultCountryAndLanguage();
   }
 

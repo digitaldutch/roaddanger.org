@@ -11,7 +11,6 @@ let mapEdit;
 let mapCrash;
 let markerEdit;
 let questionnaireCountries = [];
-let countries = [];
 
 const PageType = Object.freeze({
   stream: 0,
@@ -38,7 +37,7 @@ class Filter {
     child: 0,
 
     text: '',
-    countryId: '',
+    country: '',
     period: null,
     dateFrom: null,
     dateTo: null,
@@ -49,13 +48,13 @@ class Filter {
   loadFromUrl() {
     const url = new URL(location.href);
 
-    const countryId = url.searchParams.get('country') ?? localStorage.getItem('countryId') ?? 'UN';
+    this.filters.country = url.searchParams.get('country') ?? 'UN';
+    setFilterCountry(this.filters.country);
 
     this.filters.healthDead = url.searchParams.get('hd')? parseInt(url.searchParams.get('hd')) : 0;
     this.filters.healthInjured = url.searchParams.get('hi')? parseInt(url.searchParams.get('hi')) : 0;
-    this.filters.child = url.searchParams.get('child')? parseInt(url.searchParams.get('child')) : 0;
 
-    this.filters.countryId = countryId;
+    this.filters.child = url.searchParams.get('child')? parseInt(url.searchParams.get('child')) : 0;
     this.filters.text = url.searchParams.get('search') ?? '';
     this.filters.period = url.searchParams.get('period') ?? null;
     this.filters.dateFrom = url.searchParams.get('date_from') ?? null;
@@ -70,12 +69,13 @@ class Filter {
   addSearchParams(url) {
     this.getFromGUI();
 
+    if (this.filters.country) url.searchParams.set('country', this.filters.country);
+
     if (this.filters.healthDead) url.searchParams.set('hd', 1);
     if (this.filters.healthInjured) url.searchParams.set('hi', 1);
     if (this.filters.child) url.searchParams.set('child', 1);
 
     if (this.filters.text) url.searchParams.set('search', this.filters.text);
-    if (this.filters.countryId) url.searchParams.set('country', this.filters.countryId);
     if (this.filters.siteName) url.searchParams.set('siteName', this.filters.siteName);
 
     if (this.filters.period) {
@@ -98,31 +98,41 @@ class Filter {
       }
     }
 
-    setSearchButton('searchPersonHealthDead', this.filters.healthDead);
-    setSearchButton('searchPersonHealthInjured', this.filters.healthInjured);
-    setSearchButton('searchPersonChild', this.filters.child);
-
-    function setSearchValue(id, value) {
+    function setFilterValue(id, value) {
       const element = document.getElementById(id);
       if (element && value) element.value = value;
     }
 
-    setSearchValue('searchText', this.filters.text);
-    setSearchValue('searchPeriod', this.filters.period);
-    setSearchValue('searchDateFrom', this.filters.dateFrom);
-    setSearchValue('searchDateTo', this.filters.dateTo);
-    setSearchValue('searchSiteName', this.filters.siteName);
+    function setFilterDataValue(id, value) {
+      const element = document.getElementById(id);
+      if (element && value) element.dataset.value = value;
+    }
+
+    setFilterDataValue('filterCountry', this.filters.country);
+
+    setSearchButton('searchPersonHealthDead', this.filters.healthDead);
+    setSearchButton('searchPersonHealthInjured', this.filters.healthInjured);
+    setSearchButton('searchPersonChild', this.filters.child);
+
+    setFilterValue('searchText', this.filters.text);
+    setFilterValue('searchPeriod', this.filters.period);
+    setFilterValue('searchDateFrom', this.filters.dateFrom);
+    setFilterValue('searchDateTo', this.filters.dateTo);
+    setFilterValue('searchSiteName', this.filters.siteName);
 
     setPersonsFilter(this.filters.persons);
   }
 
   getFromGUI() {
+
     if (searchVisible()) {
       const buttonDead = document.getElementById('searchPersonHealthDead');
       const buttonInjured = document.getElementById('searchPersonHealthInjured');
       const searchSiteName = document.getElementById('searchSiteName');
 
       this.filters = {
+        country:  null,
+
         healthDead: buttonDead && buttonDead.classList.contains('menuButtonSelected')? 1 : 0,
         healthInjured: buttonInjured && buttonInjured.classList.contains('menuButtonSelected')? 1 : 0,
         child: document.getElementById('searchPersonChild').classList.contains('menuButtonSelected')? 1 : 0,
@@ -135,6 +145,9 @@ class Filter {
         siteName: (searchSiteName && searchSiteName.value.trim().toLowerCase()) ?? '',
       }
     } else this.filters = {};
+
+    const filterCountry = document.getElementById('filterCountry');
+    if (filterCountry) this.filters.country = filterCountry.dataset.value;
 
     return this.filters;
   }
@@ -894,7 +907,7 @@ async function getCountryMapOptions(){
 
   const filter = new Filter;
   const serverData = {
-    countryId: user.countryId,
+    countryId: user.country,
   }
 
   const urlServer = '/general/ajax.php?function=loadCountryMapOptions';
@@ -2516,7 +2529,6 @@ function startStatsSearchKey() {
 }
 
 function searchCrashes() {
-  const filter = new Filter;
   updateBrowserUrl(true);
   reloadCrashes();
 }

@@ -213,7 +213,7 @@ HTML;
     }
 
     $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml();
-    $htmlSearchCountry = HtmlBuilder::getSearchCountryHtml('filterResearchCountry', 'UN');
+    $htmlSearchCountry = HtmlBuilder::getSearchLocationHtml('filterResearchCountry', 'UN');
 
     return <<<HTML
 <div id="pageMain">

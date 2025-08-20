@@ -1,4 +1,5 @@
 let user;
+let countries = [];
 let observerSpinner;
 let tableData = [];
 let selectedTableData = [];
@@ -319,12 +320,20 @@ async function loginIntern(email, password, stayLoggedIn=0) {
   }
 }
 
-function setCountryLabel(country) {
-  const elCountry = document.getElementById('headerCountry');
-  if (elCountry) {
-    const elCountryName = document.getElementById('headerCountryName');
-    elCountryName.innerText = country;
-    elCountry.style.display = country? 'flex' : 'none';
+function setFilterCountry(countryId) {
+
+  const filterCountry = document.getElementById('filterCountry');
+  if (filterCountry) {
+    filterCountry.dataset.value = countryId.toLowerCase();
+
+    const country = countries.find(c => c.id === countryId.toUpperCase());
+    const elCountryName = document.getElementById('filterCountryName');
+    elCountryName.innerText = country? country.name : '';
+    filterCountry.style.display = country? 'flex' : 'none';
+
+    const elCountryFlag = document.getElementById('filterCountryFlag');
+    elCountryFlag.src = flagIconPath(countryId);
+    elCountryFlag.style.display = country? 'inline-block' : 'none';
   }
 }
 
@@ -356,8 +365,6 @@ function updateLoginGUI(userNew){
     buttonProfile.classList.add('buttonProfile');
   }
 
-  setCountryLabel(user.country);
-
   document.querySelectorAll('.buttonEditPost').forEach(
     button => {
       const buttonUserId = parseInt(button.getAttribute('data-userid'));
@@ -384,7 +391,7 @@ async function setLanguage(languageId){
   window.location.reload();
 }
 
-async function setCountry(countryId){
+async function selectLocation(countryId){
   const url = '/general/ajax.php?function=saveCountry&id=' + countryId;
   const response = await fetchFromServer(url);
 
@@ -392,6 +399,8 @@ async function setCountry(countryId){
     showError(response.error);
     return;
   }
+
+  updateBrowserUrl(true);
 
   window.location.reload();
 }
@@ -942,6 +951,32 @@ function healthImageClassName(healthStatus) {
 function acceptCookies() {
   createCookie('cookiesAccepted', 1, 3650);
   document.getElementById('cookieWarning').style.display = 'none';
+}
+
+function readCookie(name) {
+  // https://www.quirksmode.org/js/cookies.html
+  // https://stackoverflow.com/questions/14573223/set-cookie-and-get-cookie-with-javascript
+  const nameEQ = name + "=";
+  if (!document.cookie) return null;
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i].trim();
+    if (c.indexOf(nameEQ) === 0) {
+      const raw = c.substring(nameEQ.length);
+      try {
+        return decodeURIComponent(raw);
+      } catch (e) {
+        // Fallback in case value wasn't encoded
+        return raw;
+      }
+    }
+  }
+  return null;
+}
+
+
+function eraseCookie(name) {
+  createCookie(name,"",-1);
 }
 
 function createCookie(name, value, days, options={}) {

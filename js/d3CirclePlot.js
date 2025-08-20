@@ -317,7 +317,7 @@ function CrashPartnerGraph(divID, data, optionsUser=[], filter=null) {
       else url += `,${d.partnerMode}`;
 
       if (filter.child) url += '&child=1';
-      if (filter.countryId) url += '&country=' + filter.countryId;
+      if (filter.country) url += '&country=' + filter.country;
       if (filter.period) {
         url += '&period=' + filter.period;
         if (filter.dateFrom) url += '&date_from=' + filter.dateFrom;
