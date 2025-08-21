@@ -48,7 +48,7 @@ class Filter {
   loadFromUrl() {
     const url = new URL(location.href);
 
-    this.filters.country = url.searchParams.get('country') ?? 'UN';
+    this.filters.country = user.countryid;
     setFilterCountry(this.filters.country);
 
     this.filters.healthDead = url.searchParams.get('hd')? parseInt(url.searchParams.get('hd')) : 0;
