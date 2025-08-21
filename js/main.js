@@ -69,8 +69,6 @@ class Filter {
   addSearchParams(url) {
     this.getFromGUI();
 
-    if (this.filters.country) url.searchParams.set('country', this.filters.country);
-
     if (this.filters.healthDead) url.searchParams.set('hd', 1);
     if (this.filters.healthInjured) url.searchParams.set('hi', 1);
     if (this.filters.child) url.searchParams.set('child', 1);

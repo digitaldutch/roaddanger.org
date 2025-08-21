@@ -392,17 +392,12 @@ async function setLanguage(languageId){
 }
 
 async function selectLocation(countryId){
-  const url = '/general/ajax.php?function=saveCountry&id=' + countryId;
-  const response = await fetchFromServer(url);
+  const hostname = window.location.hostname;
+  const baseHostname = hostname.split('.').slice(-2).join('.');
+  const newHostname = countryId.toUpperCase() === 'UN' ? baseHostname : countryId.toLowerCase() + '.' + baseHostname;
+  const newUrl = window.location.protocol + '//' + newHostname + window.location.pathname + window.location.search;
 
-  if (response.error) {
-    showError(response.error);
-    return;
-  }
-
-  updateBrowserUrl(true);
-
-  window.location.reload();
+  window.location.href = newUrl;
 }
 
 async function checkLogin() {

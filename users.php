@@ -70,15 +70,17 @@ class User {
 
     // Country in url overrides user country
     if (isset($_SERVER['SERVER_NAME'])) {
+      $countryId = 'UN';
       $host = parse_url('http://' . $_SERVER['SERVER_NAME'], PHP_URL_HOST);
       $parts = explode('.', $host);
       if (count($parts) > 2) {
         $subdomain = $parts[0];
+        $countryId = $subdomain;
+      }
 
-        $country = $this->database->getCountryFromId($subdomain);
-        if (isset($country)) {
-          $this->countryId = $country['id'];
-        }
+      $country = $this->database->getCountryFromId($countryId);
+      if (isset($country)) {
+        $this->countryId = $country['id'];
       }
     }
 
@@ -123,8 +125,6 @@ SELECT
   u.email, 
   u.passwordhash, 
   u.permission, 
-  u.countryid, 
-  c.name AS country,
   u.language 
 FROM users u 
 LEFT JOIN countries c ON u.countryid = c.id
@@ -141,8 +141,6 @@ SELECT
   u.email, 
   u.passwordhash, 
   u.permission, 
-  u.countryid, 
-  c.name AS country,
   u.language 
 FROM users u 
 LEFT JOIN countries c ON u.countryid = c.id
@@ -164,12 +162,6 @@ SQL;
         $this->permission = UserPermission::from($user['permission']);
         $this->admin = $this->permission === UserPermission::admin;
         $this->loggedIn = true;
-
-        if (isset($user['country'])) {
-          $this->countryId = $user['countryid'];
-          $this->country = $user['country'];
-        }
-
       }
     }
 
@@ -410,7 +402,7 @@ SQL;
       $sql = "UPDATE users SET passwordhash=:passwordhash, passwordrecoveryid = null WHERE id=:id;";
       $params = [
         ':passwordhash' => $passwordHash,
-        ':id'           => $this->id,
+        ':id' => $this->id,
       ];
 
       $this->database->execute($sql, $params);
