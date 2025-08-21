@@ -44,9 +44,6 @@ class User {
       $this->logout();
     }
 
-    // Country in url overrides user country
-
-
     $this->loadDefaultCountryAndLanguage();
   }
 
@@ -71,6 +68,20 @@ class User {
 
   private function loadDefaultCountryAndLanguage(): void {
 
+    // Country in url overrides user country
+    if (isset($_SERVER['SERVER_NAME'])) {
+      $host = parse_url('http://' . $_SERVER['SERVER_NAME'], PHP_URL_HOST);
+      $parts = explode('.', $host);
+      if (count($parts) > 2) {
+        $subdomain = $parts[0];
+
+        $country = $this->database->getCountryFromId($subdomain);
+        if (isset($country)) {
+          $this->countryId = $country['id'];
+        }
+      }
+    }
+
     if (! isset($this->languageId)) {
 
       // Load language from cookie if set
@@ -82,12 +93,9 @@ class User {
     }
 
     if (! isset($this->countryId)) {
-
       // Load country from country cookie if set
       if (isset($_COOKIE['country_id'])) {
-        $sql = "SELECT name FROM countries WHERE id=:id";
-        $params = ['id' => $_COOKIE['country_id']];
-        $country = $this->database->fetchSingleValue($sql, $params);
+        $country = $this->database->getCountryName($_COOKIE['country_id']);
 
         if (isset($country)) {
           $this->countryId = $_COOKIE['country_id'];

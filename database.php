@@ -167,6 +167,24 @@ class Database {
     return $this->countries;
   }
 
+  public function getCountryName(string $countryId): ?string {
+    $country = $this->getCountryFromId($countryId);
+    return $country ? $country['name'] : null;
+  }
+
+  public function getCountryFromId(string $countryId): ?array {
+    $countryId = mb_strtoupper($countryId);
+    
+    $countries = $this->loadCountries();
+    foreach ($countries as $country) {
+      if ($country['id'] === $countryId) {
+        return $country;
+      }
+    }
+    return null;
+  }
+
+
   public function getQuestionnaires($publicOnly=false): bool|array {
     $where = $publicOnly? ' WHERE public=1 ' : '';
     $sql = "SELECT id, type, title, country_id, public, active FROM questionnaires $where ORDER BY title;";
