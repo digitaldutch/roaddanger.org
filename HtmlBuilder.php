@@ -907,12 +907,7 @@ HTML;  }
     <option value="yesterday">{$texts['Yesterday']}</option> 
     <option value="7days">7 {$texts['days']}</option> 
     <option value="30days">30 {$texts['days']}</option> 
-    <option value="2024">2024</option>
-    <option value="2023">2023</option>
-    <option value="2022">2022</option>
-    <option value="2021">2021</option>
-    <option value="2020">2020</option>
-    <option value="2019">2019</option> 
+    <option value="365days">365 {$texts['days']}</option>
     <option value="custom">{$texts['Custom_period']}</option>          
   </select>
 </div>

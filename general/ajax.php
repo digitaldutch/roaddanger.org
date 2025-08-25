@@ -45,23 +45,8 @@ function addPeriodWhereSql(&$sqlWhere, &$params, $filter): void {
     case '30days':
       addSQLWhere($sqlWhere, ' DATE(c.date) > SUBDATE(CURDATE(), 30) ');
       break;
-    case '2024':
-      addSQLWhere($sqlWhere, ' YEAR(c.date) = 2024 ');
-      break;
-    case '2023':
-      addSQLWhere($sqlWhere, ' YEAR(c.date) = 2023 ');
-      break;
-    case '2022':
-      addSQLWhere($sqlWhere, ' YEAR(c.date) = 2022 ');
-      break;
-    case '2021':
-      addSQLWhere($sqlWhere, ' YEAR(c.date) = 2021 ');
-      break;
-    case '2020':
-      addSQLWhere($sqlWhere, ' YEAR(c.date) = 2020 ');
-      break;
-    case '2019':
-      addSQLWhere($sqlWhere, ' YEAR(c.date) = 2019 ');
+    case '365days':
+      addSQLWhere($sqlWhere, ' DATE(c.date) > SUBDATE(CURDATE(), 365) ');
       break;
     case 'decorrespondent':
       addSQLWhere($sqlWhere, " DATE(c.date) >= '2019-01-14' AND DATE (c.date) <= '2019-01-20' ");
