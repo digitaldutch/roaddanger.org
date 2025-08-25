@@ -153,7 +153,7 @@ class Database {
 
   public function loadCountries(): array {
     if (empty($this->countries)) {
-      $sql = "SELECT id, name, defaultlanguageid, domain FROM countries ORDER BY CASE WHEN id='UN' THEN 0 ELSE 1 END, name;";
+      $sql = "SELECT id, name, defaultlanguageid FROM countries ORDER BY CASE WHEN id='UN' THEN 0 ELSE 1 END, name;";
       $dbCountries = $this->fetchAll($sql);
       $this->countries = [];
       foreach ($dbCountries as $country) {
