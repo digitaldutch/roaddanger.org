@@ -26,9 +26,6 @@ if ($function === 'extractDataFromArticle') {
 } else if ($function === 'saveLanguage') {
   echo GeneralHandler::saveLanguage();
   return;
-} else if ($function === 'saveCountry') {
-  echo GeneralHandler::saveCountry();
-  return;
 }
 
 

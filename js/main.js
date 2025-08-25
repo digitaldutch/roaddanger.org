@@ -655,6 +655,7 @@ async function loadChildVictims(){
     offset: crashes.length,
     sort: 'crashDate',
     filter: {
+      country: user.countryid,
       child: 1,
       healthDead: document.getElementById('filterChildDead').classList.contains('menuButtonSelected')? 1 : 0,
       healthInjured: document.getElementById('filterChildInjured').classList.contains('menuButtonSelected')? 1 : 0,
@@ -905,7 +906,7 @@ async function getCountryMapOptions(){
 
   const filter = new Filter;
   const serverData = {
-    countryId: user.country,
+    countryId: user.countryid,
   }
 
   const urlServer = '/general/ajax.php?function=loadCountryMapOptions';
@@ -1333,7 +1334,7 @@ function showEditCrashForm(isNewCrash=false) {
   document.getElementById('editCrashLatitude').value = '';
   document.getElementById('editCrashLongitude').value = '';
   document.getElementById('locationDescription').value = '';
-  document.getElementById('editCrashCountry').value = user.country.id;
+  document.getElementById('editCrashCountry').value = user.countryid;
 
   document.getElementById('editCrashUnilateral').classList.remove('buttonSelected');
   document.getElementById('editCrashPet').classList.remove('buttonSelected');

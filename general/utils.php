@@ -1,5 +1,6 @@
 <?php
 
+use JetBrains\PhpStorm\NoReturn;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
@@ -45,17 +46,17 @@ enum StreamTopType: int {
   case placedOnTop = 3;
 }
 
-function translate($key){
+function translate($key): string {
   global $user;
   return $user->translate($key);
 }
 
-function translateLongText($key){
+function translateLongText($key): string {
   global $user;
   return $user->translateLongText($key);
 }
 
-function translateArray($keys){
+function translateArray($keys): array {
   $texts = [];
 
   foreach ($keys as $key) $texts[$key] = translate($key);
@@ -77,7 +78,7 @@ function datetimeDBToISO8601($datetimeDB): string {
   return $datetime->format('c'); // ISO 8601
 }
 
-function pageWithEditMap($pageType){
+function pageWithEditMap($pageType): bool {
   return in_array($pageType,
     [PageType::recent,
       PageType::lastChanged,
@@ -90,23 +91,27 @@ function pageWithEditMap($pageType){
     ]);
 }
 
-function pageWithMap($pageType){
+function pageWithMap($pageType): bool {
   return pageWithEditMap($pageType) || in_array($pageType, [PageType::map]);
 }
 
 
-function jsonErrorMessage($message) {
+function jsonErrorMessage($message): false|string {
   return json_encode(['error' => $message]);
 }
 
-function dieWithJSONErrorMessage($message) {
+#[NoReturn]
+function dieWithJSONErrorMessage($message): void {
   die(jsonErrorMessage($message));
 }
 
-function getRandomString($length=16){
+function getRandomString($length): string {
   return substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"), 0, $length);
 }
 
+/**
+ * @throws Exception
+ */
 function sendEmail(string $emailTo, string $subject, string $body, array $ccList=[]): bool {
   $root = realpath($_SERVER["DOCUMENT_ROOT"]);
   require_once $root . '/scripts/PHPMailer/PHPMailer.php';
@@ -135,21 +140,17 @@ function sendEmail(string $emailTo, string $subject, string $body, array $ccList
   return true;
 }
 
-function getRequest($name, $default=null) {
-  return isset($_REQUEST[$name]) ? $_REQUEST[$name] : $default;
+function getRequest($name, $default=null): mixed {
+  return $_REQUEST[$name] ?? $default;
 }
 
-function cookiesApproved(){
-  return isset($_COOKIE['cookiesAccepted']) && (isset($_COOKIE['cookiesAccepted']) == 1);
-}
-
-function addSQLWhere(&$whereSql, $wherePart){
+function addSQLWhere(&$whereSql, $wherePart): void {
   if ($wherePart === '') return;
   $whereSql .= ($whereSql === '')? ' WHERE ' : ' AND ';
   $whereSql .= ' ' . $wherePart . ' ';
 }
 
-function addHealthWhereSql(&$sqlWhere, &$joinPersonsTable, $filter){
+function addHealthWhereSql(&$sqlWhere, &$joinPersonsTable, $filter): void {
   if ((isset($filter['healthDead'])    && ($filter['healthDead'] === 1)) ||
     (isset($filter['healthInjured']) && ($filter['healthInjured'] === 1))) {
     $joinPersonsTable = true;
@@ -161,7 +162,7 @@ function addHealthWhereSql(&$sqlWhere, &$joinPersonsTable, $filter){
   }
 }
 
-function addPersonsWhereSql(&$sqlWhere, &$sqlJoin, $filterPersons) {
+function addPersonsWhereSql(&$sqlWhere, &$sqlJoin, $filterPersons): void {
   if (isset($filterPersons) && (count($filterPersons) > 0)) {
     foreach ($filterPersons as $person){
       $tableName          = 'p' . $person;
@@ -280,15 +281,93 @@ function deleteSessionIdAndClose(string $id): void {
   }
 }
 
+/**
+ * Return a registrable base domain for cookies (example.com, example.co.uk, etc.)
+ * Returns '' for localhost or IPs so the Domain attribute is omitted (required for those).
+ */
+function cookie_base_domain(string $host): string {
+  $hostLower = strtolower($host);
+
+  // Localhost or IP (IPv4/IPv6)
+  if ($hostLower === 'localhost' || filter_var($hostLower, FILTER_VALIDATE_IP)) {
+    return '';
+  }
+
+  // Handle some common multipart public suffixes
+  $multiPartTLDs = [
+    'co.uk','org.uk','ac.uk','gov.uk',
+    'com.au','net.au','org.au',
+    'co.nz','co.jp'
+  ];
+  foreach ($multiPartTLDs as $tld) {
+    if (str_ends_with($hostLower, '.' . $tld)) {
+      $parts = explode('.', $hostLower);
+      $keep = substr_count($tld, '.') + 2; // e.g., example + co + uk
+      return implode('.', array_slice($parts, -$keep));
+    }
+  }
+
+  // Default: last two labels (example.com)
+  $parts = explode('.', $hostLower);
+  return count($parts) >= 2 ? implode('.', array_slice($parts, -2)) : '';
+}
+
+/**
+ * Set a site-wide cookie for apex + subdomains.
+ */
+function set_site_cookie(string $name, string $value, int $expiresDays, array $opts = []): bool {
+  $host = $opts['host'] ?? ($_SERVER['HTTP_HOST'] ?? '');
+  $domain = $opts['domain'] ?? cookie_base_domain($host);
+
+  $expires = time() + $expiresDays * 24 * 60 * 60;
+  $options = [
+    'expires'  => $expires,
+    'path'     => $opts['path'] ?? '/',
+    // only include domain if non-empty (omit for localhost/IP)
+    'domain'   => $domain ?: null,
+    'secure'   => $opts['secure'] ?? true,
+    'httponly' => $opts['httponly'] ?? true,
+    'samesite' => $opts['samesite'] ?? 'Lax', // use 'None' if you need cross-site
+  ];
+
+  // Remove null to avoid sending an empty Domain attribute
+  if ($options['domain'] === null) unset($options['domain']);
+
+  return setcookie($name, $value, $options);
+}
+
+/**
+ * Delete a cookie set by set_site_cookie. Must match path/domain.
+ *
+ * @param string $name
+ * @param array $opts Optional overrides: path, secure, httponly, samesite, domain, host (for detection)
+ * @return bool
+ */
+function delete_site_cookie(string $name, array $opts = []): bool {
+  $host = $opts['host'] ?? ($_SERVER['HTTP_HOST'] ?? '');
+  $domain = $opts['domain'] ?? cookie_base_domain($host);
+
+  $options = [
+    'expires' => time() - 3600,
+    'path' => $opts['path'] ?? '/',
+    'domain' => $domain ?: null,
+    'secure' => $opts['secure'] ?? true,
+    'httponly' => $opts['httponly'] ?? true,
+    'samesite' => $opts['samesite'] ?? 'Lax',
+  ];
+
+  if ($options['domain'] === null) unset($options['domain']);
+
+  return setcookie($name, '', $options);
+}
+
+
 function replaceArticleTags(string $text, object $article): string {
   if (isset($article->date)) $text = str_replace('[article_date]', $article->date, $text);
   $text = str_replace('[article_text]', $article->text, $text);
   return str_replace('[article_title]', $article->title, $text);
 }
 
-/**
- * @throws Exception
- */
 function geocodeLocation($locationPrompt): ?array {
   if (! defined('HERE_API_KEY')) return null;
 

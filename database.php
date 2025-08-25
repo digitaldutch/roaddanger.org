@@ -167,9 +167,9 @@ class Database {
     return $this->countries;
   }
 
-  public function getCountryName(string $countryId): ?string {
+  public function getCountryLanguage(string $countryId): ?string {
     $country = $this->getCountryFromId($countryId);
-    return $country ? $country['name'] : null;
+    return $country? $country['defaultlanguageid'] : DEFAULT_LANGUAGE;
   }
 
   public function getCountryFromId(string $countryId): ?array {

@@ -15,7 +15,9 @@ class HtmlBuilder {
     $initScript = ($initFunction !== '') ? "<script>document.addEventListener('DOMContentLoaded', $initFunction)</script>" : '';
     $navigation = self::getNavigation();
 
-    if (!cookiesApproved()) {
+    $cookiesAccepted = $_COOKIE['cookiesAccepted'] ?? null === '1';
+
+    if (! $cookiesAccepted) {
       $cookieWarning = <<<HTML
     <div id="cookieWarning" class="flexRow">
       <div>{$texts['Cookie_warning']}

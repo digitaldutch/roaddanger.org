@@ -270,21 +270,6 @@ SQL;
 
     return json_encode($result);
   }
-  static public function saveCountry(): string {
-    global $user;
-
-    try {
-      $countryId = getRequest('id');
-
-      $user->saveCountry($countryId);
-
-      $result = ['ok' => true];
-    } catch (\Exception $e) {
-      $result = ['ok' => false, 'error' => $e->getMessage()];
-    }
-
-    return json_encode($result);
-  }
   static public function loadCrashes(): string {
     global $database;
     global $user;

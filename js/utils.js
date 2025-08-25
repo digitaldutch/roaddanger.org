@@ -974,6 +974,38 @@ function eraseCookie(name) {
   createCookie(name,"",-1);
 }
 
+// Determine a sensible default cookie domain (apex) for subdomains.
+// Returns '' for localhost or IPs (host-only cookie), otherwise a base like 'example.com'.
+function cookieBaseDomain(host = location.hostname) {
+  const h = String(host || '').toLowerCase();
+
+  // localhost, IPv4, IPv6
+  if (
+    h === 'localhost' ||
+    /^\d{1,3}(\.\d{1,3}){3}$/.test(h) ||
+    h.includes(':')
+  ) {
+    return '';
+  }
+
+  // Handle some common multi-part public suffixes
+  const multiPartTLDs = [
+    'co.uk','org.uk','ac.uk','gov.uk',
+    'com.au','net.au','org.au',
+    'co.nz','co.jp'
+  ];
+  for (const tld of multiPartTLDs) {
+    if (h.endsWith('.' + tld)) {
+      const parts = h.split('.');
+      const keep = tld.split('.').length + 1; // e.g., sub + co + uk
+      return parts.slice(-keep).join('.');
+    }
+  }
+
+  const parts = h.split('.');
+  return parts.length >= 2 ? parts.slice(-2).join('.') : h;
+}
+
 function createCookie(name, value, days, options={}) {
 
   let expires = "";
@@ -985,7 +1017,7 @@ function createCookie(name, value, days, options={}) {
 
   // Default options
   const defaultOptions = {
-    domain: '', // Empty means current domain
+    domain: cookieBaseDomain(), // Use base domain to also active subdomains
     path: '/',
     sameSite: 'Lax',
     secure: location.protocol === 'https:'

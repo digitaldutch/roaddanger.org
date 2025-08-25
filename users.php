@@ -19,7 +19,6 @@ class User {
   public bool $emailExists = false;
   public ?string $languageId;
   public ?string $countryId;
-  public ?string $country;
   public array $translations;
   public bool $admin = false;
   public UserPermission $permission;
@@ -30,9 +29,9 @@ class User {
 
     // Load user data
     // Plan A: Check if the user is logged in (user_id set).
-    if (isset($_SESSION['user_id'])) {
-      $this->loadUserFromDBByID($_SESSION['user_id']);
-    }
+//    if (isset($_SESSION['user_id'])) {
+//      $this->loadUserFromDBByID($_SESSION['user_id']);
+//    }
 
     // Plan B: Check if a remember me login token cookie is available
     if ( (! $this->loggedIn) && isset($_COOKIE['user_id']) && isset($_COOKIE['login_token']) && isset($_COOKIE['login_id'])) {
@@ -44,7 +43,9 @@ class User {
       $this->logout();
     }
 
-    $this->loadDefaultCountryAndLanguage();
+    $this->loadCountryFromUrl();
+
+    $this->loadDefaultLanguageIfNoneSet();
   }
 
   function isModerator(): bool {
@@ -58,7 +59,6 @@ class User {
     $this->lastName = '';
     $this->email = '';
     $this->countryId = null;
-    $this->country = null;
     $this->languageId = null;
     $this->translations = [];
     $this->emailExists = false;
@@ -66,11 +66,11 @@ class User {
     $this->permission = UserPermission::newuser;
   }
 
-  private function loadDefaultCountryAndLanguage(): void {
-
-    // Country in url overrides user country
+  private function loadCountryFromUrl(): void {
+    // Country is extracted from the subdomain
     if (isset($_SERVER['SERVER_NAME'])) {
-      $countryId = 'UN';
+      $countryId = 'UN'; // Default
+
       $host = parse_url('http://' . $_SERVER['SERVER_NAME'], PHP_URL_HOST);
       $parts = explode('.', $host);
       if (count($parts) > 2) {
@@ -83,32 +83,19 @@ class User {
         $this->countryId = $country['id'];
       }
     }
+  }
 
+  private function loadDefaultLanguageIfNoneSet(): void {
     if (! isset($this->languageId)) {
 
       // Load language from cookie if set
       if (isset($_COOKIE['language_id'])) {
         $this->languageId = $_COOKIE['language_id'];
       } else {
-        $this->languageId = DEFAULT_LANGUAGE;
-      }
-    }
+        $this->languageId = $this->database->getCountryLanguage($this->countryId);
 
-    if (! isset($this->countryId)) {
-      // Load country from country cookie if set
-      if (isset($_COOKIE['country_id'])) {
-        $country = $this->database->getCountryName($_COOKIE['country_id']);
-
-        if (isset($country)) {
-          $this->countryId = $_COOKIE['country_id'];
-          $this->country = $country;
-        }
-      }
-
-      // No cookie means use the default
-      if (! isset($this->countryId)) {
-        $this->countryId = DEFAULT_COUNTRY_ID;
-        $this->country = DEFAULT_COUNTRY;
+        // Save the default language as we do not want to change automatically when selecting another country
+        set_site_cookie('language_id', $this->languageId, 10 * 365);
       }
     }
   }
@@ -127,7 +114,6 @@ SELECT
   u.permission, 
   u.language 
 FROM users u 
-LEFT JOIN countries c ON u.countryid = c.id
 WHERE u.id=:id;
 SQL;
 
@@ -143,7 +129,6 @@ SELECT
   u.permission, 
   u.language 
 FROM users u 
-LEFT JOIN countries c ON u.countryid = c.id
 WHERE u.email=:email;
 SQL;
 
@@ -174,32 +159,31 @@ SQL;
     }
   }
 
-  private function loadUserFromDBByID($ID) {
-    $this->loadUserFromDBIntern($ID);
+  private function loadUserFromDBByID($Id): void {
+    $this->loadUserFromDBIntern($Id);
   }
 
-  private function loadUserFromDBByToken($userId, $loginId, $loginToken) {
+  private function loadUserFromDBByToken($userId, $loginId, $loginToken): void {
     $sql = "SELECT tokenhash FROM logins WHERE userid=:userid AND id=:loginid";
     $params = [
       ':userid' => $userId,
       ':loginid' => $loginId,
     ];
 
-    $row = $this->database->fetch($sql, $params);
+    $tokenHash = $this->database->fetchSingleValue($sql, $params);
 
-    // Kill the token even if login fails. One time use only to block tokens from stolen cookies.
-    $sql = "DELETE FROM logins WHERE userid=:userid AND id=:loginid";
-    $this->database->execute($sql, $params);
+    if ($tokenHash) {
+      if (password_verify($loginToken, $tokenHash)){
+        $this->loadUserFromDBIntern($userId);
 
-    if ($row && password_verify($loginToken, $row['tokenhash'])){
-      $this->loadUserFromDBIntern($userId);
-
-      // Create a new token now that we successfully logged in
-      $this->setStayLoggedInToken();
+        $this->updateStayLoggedInToken();
+      } else {
+        $this->deleteStayLoggedInToken($tokenHash);
+      }
     }
   }
 
-  private function deleteLoginTokenAndCookies() {
+  private function deleteLoginTokenAndCookies(): void {
     if (isset($_COOKIE['login_token'])) {
       $token = $_COOKIE['login_token'];
 
@@ -208,19 +192,19 @@ SQL;
       $params = ['tokenhash' => $tokenHash];
       $this->database->execute($sql, $params);
 
-      // Clear remember me cookies
-      setcookie('login_token', '', time() - 3600, '/', COOKIE_DOMAIN);
+      // Delete the "remember me" cookie
+      delete_site_cookie('login_token');
     }
-    if (isset($_COOKIE['user_id']))  setcookie('user_id',  '', time() - 3600, '/', COOKIE_DOMAIN);
-    if (isset($_COOKIE['login_id'])) setcookie('login_id', '', time() - 3600, '/', COOKIE_DOMAIN);
+    if (isset($_COOKIE['user_id'])) delete_site_cookie('user_id');
+    if (isset($_COOKIE['login_id'])) delete_site_cookie('login_id');
   }
 
 
-  private function loadUserFromDB($email, $password) {
+  private function loadUserFromDB($email, $password): void {
     $this->loadUserFromDBIntern('', $email, $password);
   }
 
-  private function loadTranslations() {
+  private function loadTranslations(): void {
     // First, get English translations
     $sql = "SELECT translations FROM languages WHERE id='en';";
     $translations_json = $this->database->fetchSingleValue($sql);
@@ -250,7 +234,7 @@ SQL;
   public function translateLongText($textId): string {
     $text = $this->getLongText($textId, $this->languageId);
 
-    // Fall back to English if original does not exist.
+    // Fall back to English if the original does not exist.
     if (($text === false) && ($this->languageId !== 'en')){
       $text = $this->getLongText($textId, 'en');
     }
@@ -269,7 +253,7 @@ SQL;
     return $this->database->fetchSingleValue($sql, $params);
   }
 
-  public function getTranslations(){
+  public function getTranslations(): void {
     if (empty($this->translations)) $this->loadTranslations();
   }
 
@@ -301,7 +285,13 @@ SQL;
     }
   }
 
-  private function setStayLoggedInToken(): void {
+  private function deleteStayLoggedInToken($tokenHash): void {
+    $sql = "DELETE FROM logins WHERE tokenhash=:tokenhash";
+    $this->database->execute($sql, [':tokenhash' => $tokenHash]);
+  }
+
+  private function updateStayLoggedInToken(): void {
+
     $token = bin2hex(random_bytes(64));
     $tokenHash = password_hash($token, PASSWORD_DEFAULT);
     $sql = <<<SQL
@@ -314,13 +304,9 @@ SQL;
     $this->database->execute($sql, $params);
     $id = $this->database->lastInsertID();
 
-    $expires = time() + 60 * 60 * 24 * 365 * 1; // 1 year cookie expiration time
-
-    setcookie('login_token', $token, ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'domain' => COOKIE_DOMAIN]);
-
-    // httponly: Cookie can only be read in PHP. Not in JavaScript.
-    setcookie('user_id', $this->id, ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'httponly' => true, 'domain' => COOKIE_DOMAIN]);
-    setcookie('login_id', $id, ['expires' => $expires, 'path' => '/', 'secure' => true, 'samesite' => 'Lax', 'httponly' => true, 'domain' => COOKIE_DOMAIN]);
+    set_site_cookie('login_token', $token,365);
+    set_site_cookie('user_id', $this->id, 365);
+    set_site_cookie('login_id', $id, 365);
   }
 
   public function login(string $email, string $password, bool $stayLoggedIn=false): void {
@@ -328,7 +314,7 @@ SQL;
     $this->loadUserFromDB($email, $password);
     $this->loadTranslations();
 
-    if ($stayLoggedIn) $this->setStayLoggedInToken();
+    if ($stayLoggedIn) $this->updateStayLoggedInToken();
   }
 
   /**
@@ -360,11 +346,9 @@ SQL;
   }
 
   /**
-   * @param $newUser
-   * @return bool
    * @throws Exception
    */
-  public function saveAccount($newUser){
+  public function saveAccount($newUser): void {
     // Users can only change their own account
     if ($newUser->id !== $this->id) throw new \Exception('Internal error: User id is not of logged in user');
 
@@ -408,7 +392,6 @@ SQL;
       $this->database->execute($sql, $params);
     }
 
-    return true;
   }
 
   /**
@@ -425,54 +408,10 @@ SQL;
       $this->database->execute($sql, $params);
     }
 
-    // Also save language id in cookie in case the user is not logged in.
-    $NowPlus10Years = time() + 60*60*24*3650; // 3650 dagen cookie expiration time
-    setcookie(
-      'language_id',
-      $languageId,
-      ['expires'  => $NowPlus10Years,
-       'path'     => '/',
-       'domain'   => COOKIE_DOMAIN,
-       'secure'   => true,
-       'samesite' => 'Lax',
-        ]
-    );
+    // Save language id in cookie in case the user is not logged in or logs out
+    set_site_cookie('language_id',$languageId, 10 * 365);
 
     return true;
-  }
-
-  /**
-   * @throws Exception
-   */
-  public function saveCountry($countryId): bool {
-    if ($this->loggedIn) {
-      $sql = "UPDATE users SET users.countryid = :countryid WHERE id = :id;";
-
-      $params = [
-        ':countryid' => $countryId,
-        ':id' => $this->id,
-      ];
-      $this->database->execute($sql, $params);
-    }
-
-    // Also save country id in cookie in case the user is not logged in.
-    $NowPlus10Years = time() + 60*60*24*3650; // 3650 dagen cookie expiration time
-    setcookie(
-      'country_id',
-      $countryId,
-      ['expires'  => $NowPlus10Years,
-       'path'     => '/',
-       'domain'   => COOKIE_DOMAIN,
-       'secure'   => true,
-       'samesite' => 'Lax',
-        ]
-    );
-
-    return true;
-  }
-
-  public function fullName(): string {
-    return trim($this->firstName . ' ' . $this->lastName);
   }
 
   public function info(): array {
@@ -484,7 +423,6 @@ SQL;
         'lastname'     => $this->lastName,
         'email'        => $this->email,
         'countryid'    => $this->countryId,
-        'country'      => $this->country,
         'language'     => $this->languageId,
         'translations' => $this->translations,
         'emailexists'  => $this->emailExists,
@@ -495,7 +433,6 @@ SQL;
     else $info = [
       'loggedin'     => false,
       'countryid'    => $this->countryId,
-      'country'      => $this->country,
       'language'     => $this->languageId,
       'translations' => $this->translations,
       'emailexists'  => $this->emailExists,
@@ -503,17 +440,23 @@ SQL;
     return $info;
   }
 
-  private function firstCharacterUpper($text) {
-    // Note: ucfirst() does not support Unicode
-    if (strlen($text) > 1) return mb_convert_case(mb_substr($text, 0, 1), MB_CASE_TITLE) . mb_substr($text, 1, mb_strlen($text));
-    else return $text;
+  private function firstCharacterUpper($text): string {
+    // Unicode-aware ucfirst; prefers grapheme clusters if intl is installed
+    if ($text === '') return $text;
+
+    if (function_exists('grapheme_substr')) {
+      $first = grapheme_substr($text, 0, 1);
+      $rest = grapheme_substr($text, 1);
+    } else {
+      $first = mb_substr($text, 0, 1, 'UTF-8');
+      $rest = mb_substr($text, 1, null, 'UTF-8');
+    }
+
+    $first = mb_convert_case($first, MB_CASE_TITLE, 'UTF-8');
+    return $first . $rest;
   }
 
-  /**
-   * @param string $key
-   * @return string
-   */
-  public function translate($key) {
+  public function translate(string $key): string {
     $lowerKey = strtolower($key);
 
     $this ->getTranslations();
