@@ -9,7 +9,7 @@ class HtmlBuilder {
     $texts = translateArray(['Cookie_warning', 'More_info', 'Accept', 'Add']);
     $addSearchBar = $searchFunction !== '';
 
-    if ($pageTitle !== '') $title = $pageTitle . ' | ' . WEBSITE_NAME;
+    if (! empty($pageTitle)) $title = $pageTitle . ' | ' . WEBSITE_NAME;
     else $title = WEBSITE_NAME;
 
     $initScript = ($initFunction !== '') ? "<script>document.addEventListener('DOMContentLoaded', $initFunction)</script>" : '';

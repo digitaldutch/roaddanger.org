@@ -29,9 +29,9 @@ class User {
 
     // Load user data
     // Plan A: Check if the user is logged in (user_id set).
-//    if (isset($_SESSION['user_id'])) {
-//      $this->loadUserFromDBByID($_SESSION['user_id']);
-//    }
+    if (isset($_SESSION['user_id'])) {
+      $this->loadUserFromDBByID($_SESSION['user_id']);
+    }
 
     // Plan B: Check if a remember me login token cookie is available
     if ( (! $this->loggedIn) && isset($_COOKIE['user_id']) && isset($_COOKIE['login_token']) && isset($_COOKIE['login_id'])) {
