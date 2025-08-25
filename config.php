@@ -1,5 +1,5 @@
 <?php
-$VERSION = 628;
+$VERSION = 629;
 $VERSION_DATE = '25 August 2025';
 
 require_once 'configsecret.php';
@@ -23,6 +23,7 @@ require_once 'configsecret.php';
 // *** End settings that belong in configsecret.php ***
 
 const WEBSITE_NAME = 'roaddanger';
+const DEFAULT_COUNTRY_ID = 'UN';
 const DEFAULT_LANGUAGE = 'en';
 
 // https://docs.mapbox.com/mapbox-gl-js/guides/

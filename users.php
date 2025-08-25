@@ -67,21 +67,23 @@ class User {
   }
 
   private function loadCountryFromUrl(): void {
-    // Country is extracted from the subdomain
-    if (isset($_SERVER['SERVER_NAME'])) {
-      $countryId = 'UN'; // Default
+    $this->countryId = DEFAULT_COUNTRY_ID; // Default
 
+    if (isset($_SERVER['SERVER_NAME'])) {
+
+      // Country is extracted from the subdomain
       $host = parse_url('http://' . $_SERVER['SERVER_NAME'], PHP_URL_HOST);
       $parts = explode('.', $host);
       if (count($parts) > 2) {
         $subdomain = $parts[0];
         $countryId = $subdomain;
+
+        $country = $this->database->getCountryFromId($countryId);
+        if (isset($country)) {
+          $this->countryId = $country['id'];
+        }
       }
 
-      $country = $this->database->getCountryFromId($countryId);
-      if (isset($country)) {
-        $this->countryId = $country['id'];
-      }
     }
   }
 
