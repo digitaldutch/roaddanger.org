@@ -830,9 +830,10 @@ h3, .pageSubTitleFont {
 .bgHitRunWhite { background-image: url(/images/hitrun_white.svg);}
 .bgTrafficJam { background-image: url(/images/trafficjam.svg);}
 
-.buttonPopupMenu, .buttonPopupMenuTemp {
+.buttonPopupMenu {
   display: none;
   position: absolute;
+  right: 0;
   min-width: 200px;
   text-align: left;
   z-index: 10;
@@ -844,8 +845,7 @@ h3, .pageSubTitleFont {
 }
 
 .buttonPopupMenu > div:not(.navigationSectionHeader),
-.buttonPopupMenu > a,
-.buttonPopupMenuTemp > div {
+.buttonPopupMenu > a {
   display: flex;
   align-items: center;
   white-space: nowrap;
@@ -1349,7 +1349,6 @@ h3, .pageSubTitleFont {
 
 .buttonPopupMenu > div:not(.navigationSectionHeader):hover,
 .buttonPopupMenu > a:hover,
-.buttonPopupMenuTemp div:hover,
 .navItem:hover,
 .dataTable tbody tr:hover,
 .optionCheckImage:hover {

@@ -259,7 +259,7 @@ function closeAllPopups() {
   document.querySelectorAll('.buttonPopupMenu').forEach(
       popup => {if (popup.style.display === 'block') popup.style.display = 'none';}
     );
-  document.querySelectorAll('.buttonPopupMenuTemp').forEach(menu => menu.remove());
+
   document.body.style.overflow = 'auto';
 
   const searchPersons = document.getElementById('searchSearchPersons');
