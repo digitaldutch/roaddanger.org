@@ -1989,7 +1989,7 @@ async function getArticleMetaData() {
     newArticle: isNewArticle,
   }
 
-  const url = '/general/ajax.php?function=getPageMetaData';
+  const url = '/general/ajax.php?function=getArticleWebpageMetaData';
 
   document.getElementById('spinnerMeta').style.display = 'flex';
   document.getElementById('spiderResults').innerHTML = '<img src="/images/spinner_black.svg" style="height: 40px;">';

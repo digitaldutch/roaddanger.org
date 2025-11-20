@@ -43,8 +43,6 @@ SQL;
     $users = [];
     $users = $database->fetchAll($sql);
     foreach ($users as &$dbUser) {
-      $dbUser['id'] = (int)$dbUser['id'];
-      $dbUser['permission'] = (int)$dbUser['permission'];
       $dbUser['lastactive'] = datetimeDBToISO8601($dbUser['lastactive']);
       $dbUser['registrationtime'] = datetimeDBToISO8601($dbUser['registrationtime']);
     }

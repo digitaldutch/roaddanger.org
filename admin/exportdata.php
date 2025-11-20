@@ -7,11 +7,51 @@ global $user;
 
 $function = $_REQUEST['function'];
 
-if ($function === 'downloadCrashesData'){
-  try{
+class ExportHandler {
 
+  private Database $database;
+
+  public function __construct() {
+    global $database;
+    $this->database = $database;
+  }
+
+  public function handleRequest($command): void {
+    try {
+
+      $response = match ($command) {
+        'downloadCrashesData' => $this->downloadCrashesData(),
+        'downloadResearchData' => $this->downloadResearchData(),
+
+        default => throw new Exception('Invalid command'),
+      };
+
+      $this->respondWithSucces($response);
+
+    } catch (Exception $e) {
+      $this->respondWithError($e->getMessage());
+    }
+  }
+
+  private function respondWithError(string $errorMessage): void {
+    http_response_code(500);
+    header('Content-Type: application/json');
+    echo json_encode([
+      'ok' => false,
+      'error' => $errorMessage,
+    ]);
+  }
+
+  private function respondWithSucces(array $response): void {
+    header('Content-Type: application/json');
+
+    $response['ok'] = true;
+    echo json_encode($response);
+  }
+
+  private function downloadCrashesData(): array {
     // Only admins can download the crashes with full text.
-//    $includeAllText = $user->admin;
+    // $includeAllText = $user->admin;
 
     // NOTE: Everyone can download all data including full texts
     $includeAllText = true;
@@ -23,7 +63,7 @@ if ($function === 'downloadCrashesData'){
 
       // We need more memory to parse all data. 128MB allows a little over 10,000 crashes.
       // 1028M should allow 80,000 crashes with all text.
-      // We should not use more than a safe percentage of the server installed memory
+      // We should not use more than a safe percentage of the server-installed memory
       ini_set('memory_limit', '1028M');
       // 100,000 is the default
       $maxDownloadCrashes = 100000;
@@ -31,80 +71,64 @@ if ($function === 'downloadCrashesData'){
       // This can be much quicker using JSON_OBJECT() and JSON_ARRAYAGG()
       $sql = <<<SQL
 SELECT
-  id,
-  groupid,
-  transportationmode,
-  health,
-  child,
-  underinfluence,
-  hitrun
+id,
+groupid,
+transportationmode,
+health,
+child,
+underinfluence,
+hitrun
 FROM crashpersons
 WHERE crashid=:crashid
 SQL;
-      $DBStatementPersons = $database->prepare($sql);
+      $DBStatementPersons = $this->database->prepare($sql);
 
       $allText = $includeAllText? 'alltext,' : '';
       $sql = <<<SQL
 SELECT
-  id,
-  sitename,
-  publishedtime,
-  url,
-  urlimage,
-  title,
-  $allText       
-  text AS 'summary'
+id,
+sitename,
+publishedtime,
+url,
+urlimage,
+title,
+$allText       
+text AS 'summary'
 FROM articles
 WHERE crashid=:crashid
 SQL;
-      $DBStatementArticles = $database->prepare($sql);
+      $DBStatementArticles = $this->database->prepare($sql);
 
       $sql = <<<SQL
 SELECT DISTINCT 
-  ac.id,
-  ac.title,
-  ac.text,
-  ac.date,
-  ac.latitude,
-  ac.longitude,
-  ac.countryid,
-  ac.unilateral, 
-  ac.pet, 
-  ac.trafficjam
+ac.id,
+ac.title,
+ac.text,
+ac.date,
+ac.latitude,
+ac.longitude,
+ac.countryid,
+ac.unilateral, 
+ac.pet, 
+ac.trafficjam
 FROM crashes ac
 ORDER BY date DESC 
 LIMIT 0, $maxDownloadCrashes
 SQL;
 
-      $DBResults = $database->fetchAll($sql);
+      $DBResults = $this->database->fetchAll($sql);
       foreach ($DBResults as $crash) {
-        $crash['id'] = (int)$crash['id'];
-        $crash['latitude'] = isset($crash['latitude'])? floatval($crash['latitude']) : null;
-        $crash['longitude'] = isset($crash['longitude'])? floatval($crash['longitude']) : null;
-        $crash['unilateral'] = (int)$crash['unilateral'];
-        $crash['pet'] = (int)$crash['pet'];
-        $crash['trafficjam'] = (int)$crash['trafficjam'];
+        $crash['latitude'] = isset($crash['latitude'])? (float) $crash['latitude'] : null;
+        $crash['longitude'] = isset($crash['longitude'])? (float) $crash['longitude'] : null;
         $crash['date'] = datetimeDBToISO8601($crash['date']);
 
         // Load persons
-        $crash['persons'] = [];
-        $DBPersons = $database->fetchAllPrepared($DBStatementPersons, ['crashid' => $crash['id']]);
-        foreach ($DBPersons as $person) {
-          $person['groupid'] = isset($person['groupid'])? (int)$person['groupid'] : null;
-          $person['transportationmode'] = (int)$person['transportationmode'];
-          $person['health'] = isset($person['health'])? (int)$person['health'] : null;
-          $person['child'] = (int)$person['child'];
-          $person['underinfluence'] = (int)$person['underinfluence'];
-          $person['hitrun'] = (int)$person['hitrun'];
-
-          $crash['persons'][] = $person;
-        }
+        $crash['persons'] = $this->database->fetchAllPrepared($DBStatementPersons, ['crashid' => $crash['id']]);
 
         // Load articles
         $crash['articles'] = [];
-        $DBArticles = $database->fetchAllPrepared($DBStatementArticles, ['crashid' => $crash['id']]);
+        $DBArticles = $this->database->fetchAllPrepared($DBStatementArticles, ['crashid' => $crash['id']]);
         foreach ($DBArticles as $article) {
-          $article['id']          = (int)$article['id'];
           $crash['publishedtime'] = datetimeDBToISO8601($crash['publishedtime'] ?? '');
 
           $crash['articles'][] = $article;
@@ -121,14 +145,12 @@ SQL;
       file_put_contents($filename, $gzData);
     }
 
-    $result = ['ok' => true, 'filename' => $filename];
-  } catch (\Exception $e){
-    $result = ['ok' => false, 'error' => $e->getMessage()];
+    return [
+      'filename' => $filename,
+      ];
   }
-  echo json_encode($result);
-} else if ($function === 'downloadResearchData'){
 
-  try {
+  private function downloadResearchData(): array {
     $filename = 'roaddanger_org_research_data.json.gz';
 
     // Recreate backup if existing backup file older than 24 hours
@@ -145,16 +167,14 @@ SELECT
 FROM questions;
 SQL;
 
-      $questions = [];
-      $questions = $database->fetchAll($sql);
+      $questions = $this->database->fetchAll($sql);
 
-      $answers = [];
       $sql = <<<SQL
 SELECT
   questionid, articleid, answer
 FROM answers;
 SQL;
-      $answers = $database->fetchAll($sql);
+      $answers = $this->database->fetchAll($sql);
 
       $dataOut = [
         'questions' => $questions,
@@ -165,10 +185,9 @@ SQL;
       file_put_contents($filename, $gzData);
     }
 
-
-    $result = ['ok' => true, 'filename' => $filename];
-  } catch (\Exception $e){
-    $result = ['ok' => false, 'error' => $e->getMessage()];
+    return ['filename' => $filename];
   }
-  echo json_encode($result);
 }
+
+$handler = new ExportHandler();
+$handler->handleRequest($function);

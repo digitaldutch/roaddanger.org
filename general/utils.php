@@ -118,7 +118,7 @@ function sendEmail(string $emailTo, string $subject, string $body, array $ccList
   require_once $root . '/scripts/PHPMailer/SMTP.php';
   require_once $root . '/scripts/PHPMailer/Exception.php';
 
-  $from     = 'noreply@roaddanger.org';
+  $from = 'noreply@roaddanger.org';
   $fromName = $_SERVER['SERVER_NAME'];
 
   $mail = new PHPMailer;

@@ -141,7 +141,7 @@ SQL;
     if ($user) {
       $this->emailExists = true;
       if (($password === '') || (password_verify($password, $user['passwordhash']))) {
-        $this->id = (int)$user['id'];
+        $this->id = $user['id'];
         $this->firstName = $user['firstname'];
         $this->lastName = $user['lastname'];
         $this->email = $user['email'];
@@ -296,6 +296,7 @@ SQL;
 
     $token = bin2hex(random_bytes(64));
     $tokenHash = password_hash($token, PASSWORD_DEFAULT);
+
     $sql = <<<SQL
 INSERT INTO logins 
   (userid, tokenhash, lastlogin) 

@@ -1,6 +1,6 @@
 <?php
-$VERSION = 631;
-$VERSION_DATE = '15 September 2025';
+$VERSION = 632;
+$VERSION_DATE = '20 November 2025';
 
 require_once 'configsecret.php';
 
@@ -27,12 +27,12 @@ const DEFAULT_COUNTRY_ID = 'UN';
 const DEFAULT_LANGUAGE = 'en';
 
 // https://docs.mapbox.com/mapbox-gl-js/guides/
-const MAPBOX_GL_JS = 'https://api.mapbox.com/mapbox-gl-js/v3.13.0/mapbox-gl.js';
-const MAPBOX_GL_CSS = 'https://api.mapbox.com/mapbox-gl-js/v3.13.0/mapbox-gl.css';
+const MAPBOX_GL_JS = 'https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.js';
+const MAPBOX_GL_CSS = 'https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css';
 
 // https://docs.mapbox.com/mapbox-gl-js/example/mapbox-gl-geocoder/
-const MAPBOX_GEOCODER_JS = 'https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js';
-const MAPBOX_GEOCODER_CSS = 'https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css';
+const MAPBOX_GEOCODER_JS = 'https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.1.0/mapbox-gl-geocoder.min.js';
+const MAPBOX_GEOCODER_CSS = 'https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.1.0/mapbox-gl-geocoder.css';
 
 // Command to start the headless browser and return DOM.
 // The headless browser is needed if a media website uses a dummy first page which loads the main page with JavaScript.

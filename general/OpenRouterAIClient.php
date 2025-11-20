@@ -223,8 +223,8 @@ class OpenRouterAIClient {
           'description' => $modelOpenRouter['description'],
           'context_length' => $modelOpenRouter['context_length'],
           'created' => $dateCreated->format('Y-m-d'),
-          'cost_input' => floatval($modelOpenRouter['pricing']['prompt']),
-          'cost_output' => floatval($modelOpenRouter['pricing']['completion']),
+          'cost_input' => (float)$modelOpenRouter['pricing']['prompt'],
+          'cost_output' => (float)$modelOpenRouter['pricing']['completion'],
           'structured_outputs' => in_array('structured_outputs', $modelOpenRouter['supported_parameters']),
         ];
       }

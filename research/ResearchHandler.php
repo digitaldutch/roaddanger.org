@@ -208,7 +208,7 @@ SQL;
     return json_encode($result);
   }
 
-  static public function loadArticlesUnanswered() {
+  static public function loadArticlesUnanswered(): false|string {
     global $database;
     global $user;
     try {
@@ -304,18 +304,7 @@ SQL;
         ];
 
         // Load crash persons
-        $crash['persons'] = [];
-        $dBPersons = $database->fetchAllPrepared($dBStatementCrashPersons, ['crashid' => $crash['id']]);
-        foreach ($dBPersons as $person) {
-          $person['groupid']            = isset($person['groupid'])? (int)$person['groupid'] : null;
-          $person['transportationmode'] = (int)$person['transportationmode'];
-          $person['health']             = isset($person['health'])? (int)$person['health'] : null;
-          $person['child']              = (int)$person['child'];
-          $person['underinfluence']     = (int)$person['underinfluence'];
-          $person['hitrun']             = (int)$person['hitrun'];
-
-          $crash['persons'][] = $person;
-        }
+        $crash['persons'] = $database->fetchAllPrepared($dBStatementCrashPersons, ['crashid' => $crash['id']]);
 
         $crashes[] = $crash;
       }
