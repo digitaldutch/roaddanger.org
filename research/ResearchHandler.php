@@ -71,7 +71,6 @@ class ResearchHandler {
 
   private function loadQuestionnaires():string {
 
-    global $database;
     try{
 
       $sql = <<<SQL
@@ -85,7 +84,7 @@ SELECT
 FROM questionnaires;
 SQL;
 
-      $questionnaires = $database->fetchAll($sql);
+      $questionnaires = $this->database->fetchAll($sql);
 
       $sql = <<<SQL
 SELECT 
@@ -96,7 +95,7 @@ FROM questions
 ORDER BY question_order;
 SQL;
 
-      $questions = $database->fetchAll($sql);
+      $questions = $this->database->fetchAll($sql);
 
       $result = ['ok' => true, 'questionnaires' => $questionnaires, 'questions' => $questions];
     } catch (\Exception $e){
@@ -106,8 +105,6 @@ SQL;
     return json_encode($result);
   }
   private function saveQuestion(): string {
-    global $database;
-
     try{
       $question = json_decode(file_get_contents('php://input'));
 
@@ -119,8 +116,9 @@ SQL;
           ':text'        => $question->text,
           ':explanation' => $question->explanation,
         ];
-        $dbResult = $database->execute($sql, $params);
-        $question->id = (int)$database->lastInsertID();
+        $this->database->execute($sql, $params);
+        $question->id = (int)$this->database->lastInsertID();
+
       } else {
         $sql = "UPDATE questions SET text=:text, explanation=:explanation WHERE id=:id;";
 
@@ -129,7 +127,8 @@ SQL;
           ':text'        => $question->text,
           ':explanation' => $question->explanation,
         ];
-        $dbResult = $database->execute($sql, $params);
+
+        $this->database->execute($sql, $params);
       }
 
       $result = ['ok' => true, 'id' => $question->id];
@@ -140,14 +139,13 @@ SQL;
   }
 
   private function deleteQuestion(): string {
-    global $database;
 
     try{
       $question = json_decode(file_get_contents('php://input'));
 
       $sql = "SELECT questionnaire_id FROM questionnaire_questions WHERE question_id=:question_id;";
       $params = [':question_id' => $question->id];
-      $dbIds = $database->fetchAll($sql, $params);
+      $dbIds = $this->database->fetchAll($sql, $params);
       $ids = [];
       foreach ($dbIds as $dbId) $ids[] = $dbId['questionnaire_id'];
 
@@ -159,7 +157,7 @@ SQL;
       $sql = "DELETE FROM questions WHERE id=:id;";
 
       $params = [':id' => $question->id];
-      $dbResult = $database->execute($sql, $params);
+      $this->database->execute($sql, $params);
 
       $result = ['ok' => true];
     } catch (\Exception $e){
@@ -169,15 +167,14 @@ SQL;
   }
 
   private function saveQuestionsOrder(): string {
-    global $database;
     try{
       $ids = json_decode(file_get_contents('php://input'));
 
       $sql = "UPDATE questions SET question_order=:question_order WHERE id=:id";
-      $statement = $database->prepare($sql);
+      $statement = $this->database->prepare($sql);
       foreach ($ids as $order=>$id){
         $params = [':id' => $id, ':question_order' => $order];
-        $database->executePrepared($statement,$params);
+        $this->database->executePrepared($statement,$params);
       }
 
       $result = ['ok' => true];
@@ -188,7 +185,6 @@ SQL;
   }
 
   private function saveQuestionnaire(): string {
-    global $database;
     try {
       $questionnaire = json_decode(file_get_contents('php://input'));
 
@@ -203,8 +199,8 @@ SQL;
           ':active'     => intval($questionnaire->active),
           ':public'     => intval($questionnaire->public),
         ];
-        $dbResult = $database->execute($sql, $params);
-        $questionnaire->id = (int)$database->lastInsertID();
+        $this->database->execute($sql, $params);
+        $questionnaire->id = (int)$this->database->lastInsertID();
       } else {
         $sql = "UPDATE questionnaires SET title=:title, type=:type, country_id=:country_id, active=:active, public=:public WHERE id=:id;";
 
@@ -216,20 +212,20 @@ SQL;
           ':active'     => intval($questionnaire->active),
           ':public'     => intval($questionnaire->public),
         ];
-        $dbResult = $database->execute($sql, $params);
+        $this->database->execute($sql, $params);
       }
 
       // Save questionnaire questions
       $sql = "DELETE FROM questionnaire_questions WHERE questionnaire_id=:questionnaire_id;";
       $params = [':questionnaire_id' => $questionnaire->id];
-      $database->execute($sql, $params);
+      $this->database->execute($sql, $params);
 
       $sql = "INSERT INTO questionnaire_questions (questionnaire_id, question_id, question_order) VALUES (:questionnaire_id, :question_id, :question_order);";
-      $statement = $database->prepare($sql);
+      $statement = $this->database->prepare($sql);
       $order = 1;
       foreach ($questionnaire->questionIds as $questionId){
         $params = [':questionnaire_id' => $questionnaire->id, ':question_id' => $questionId, ':question_order' => $order];
-        $database->executePrepared($statement, $params);
+        $this->database->executePrepared($statement, $params);
         $order += 1;
       }
 
@@ -241,13 +237,13 @@ SQL;
   }
 
   private function deleteQuestionnaire(): string {
-    global $database;
     try {
       $questionnaire = json_decode(file_get_contents('php://input'));
 
       $sql    = "DELETE FROM questionnaires WHERE id=:id;";
       $params = [':id' => $questionnaire->id];
-      $dbResult = $database->execute($sql, $params);
+
+      $this->database->execute($sql, $params);
 
       $result = ['ok' => true];
     } catch (\Exception $e){
@@ -259,9 +255,8 @@ SQL;
     try {
       $data = json_decode(file_get_contents('php://input'), true);
 
-      global $user;
       $filter = $data['filter'];
-      $filter['public'] = ! $user->admin;
+      $filter['public'] = ! $this->user->admin;
       $articleFilter = $data['articleFilter'];
       $group = $data['group']?? '';
 
@@ -276,8 +271,6 @@ SQL;
   }
 
   private function loadArticlesUnanswered(): false|string {
-    global $database;
-    global $user;
     try {
       $data = json_decode(file_get_contents('php://input'), true);
       $filter = $data['filter'];
@@ -293,7 +286,7 @@ WHERE active = 1
 ORDER BY id;
 SQL;
 
-      $questionnaires = $database->fetchAll($sql);
+      $questionnaires = $this->database->fetchAll($sql);
 
       // Sort on dead=3, injured=2, unknown=0, uninjured=1
       $sql = <<<SQL
@@ -309,9 +302,8 @@ WHERE crashid=:crashid
 ORDER BY health IS NULL, FIELD(health, 3, 2, 0, 1);
 SQL;
 
-      $dBStatementCrashPersons = $database->prepare($sql);
+      $dBStatementCrashPersons = $this->database->prepare($sql);
 
-      $articles = [];
       if (count($questionnaires) > 0) {
 
         $SQLJoin          = '';
@@ -333,7 +325,7 @@ SQL;
 
         addPersonsWhereSql($SQLWhereAnd, $SQLJoin, $filter['persons']);
 
-        $SQLWhereAnd .= $user->countryId === 'UN'? '' : " AND c.countryid='" . $user->countryId . "'";
+        $SQLWhereAnd .= $this->user->countryId === 'UN'? '' : " AND c.countryid='" . $this->user->countryId . "'";
 
         if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
 
@@ -359,7 +351,7 @@ LIMIT 50;
 SQL;
       }
 
-      $articles = $database->fetchAll($sql);
+      $articles = $this->database->fetchAll($sql);
 
       $crashes = [];
       foreach ($articles as $article) {
@@ -371,7 +363,7 @@ SQL;
         ];
 
         // Load crash persons
-        $crash['persons'] = $database->fetchAllPrepared($dBStatementCrashPersons, ['crashid' => $crash['id']]);
+        $crash['persons'] = $this->database->fetchAllPrepared($dBStatementCrashPersons, ['crashid' => $crash['id']]);
 
         $crashes[] = $crash;
       }
@@ -404,9 +396,7 @@ SQL;
       $params[':id'] = $articleId;
     }
 
-    global $database;
-
-    return $database->fetchObject($sql, $params);
+    return $this->database->fetchObject($sql, $params);
   }
 
   private function aiRunPrompt(): false|string {
@@ -440,18 +430,15 @@ SQL;
   }
 
   private function mayEditPrompt($promptId): bool {
-    global $user;
-    global $database;
-
     // Only admin can edit other users' queries
-    if ($user->admin) return true;
+    if ($this->user->admin) return true;
 
     $SQL = "SELECT 1 FROM ai_prompts WHERE id=:id AND user_id=:user_id;";
     $params = [
       'id' => $promptId,
-      'user_id' => $user->id,
+      'user_id' => $this->user->id,
     ];
-    $dbResult = $database->fetchSingleValue($SQL, $params);
+    $dbResult = $this->database->fetchSingleValue($SQL, $params);
 
     return $dbResult !== false;
   }
@@ -459,9 +446,6 @@ SQL;
   private function aiSavePrompt(): false|string {
     try {
       $data = json_decode(file_get_contents('php://input'), true);
-
-      global $user;
-      global $database;
 
       if (empty($data['articleId'])) $data['articleId'] = null;
 
@@ -488,10 +472,10 @@ SQL;
           ':article_id' => $data['articleId'],
         ];
 
-        $dbResponse = $database->execute($SQL, $params);
+        $dbResponse = $this->database->execute($SQL, $params);
 
       } else {
-        if (! $user->isModerator()) throw new \Exception("You have no permission to save a prompt");
+        if (! $this->user->isModerator()) throw new \Exception("You have no permission to save a prompt");
 
         $SQL = <<<SQL
 INSERT INTO ai_prompts (user_id, model_id, user_prompt, system_prompt, response_format, article_id) 
@@ -499,7 +483,7 @@ VALUES (:user_id, :model_id, :user_prompt, :system_prompt, :response_format, :ar
 SQL;
 
         $params = [
-          ':user_id' => $user->id,
+          ':user_id' => $this->user->id,
           ':model_id' => $data['modelId'],
           ':user_prompt' => $data['user_prompt'],
           ':system_prompt' => $data['systemPrompt'],
@@ -507,8 +491,8 @@ SQL;
           ':article_id' => $data['articleId'],
         ];
 
-        $dbResponse = $database->execute($SQL, $params);
-        $result['id'] = $database->lastInsertID();
+        $dbResponse = $this->database->execute($SQL, $params);
+        $result['id'] = $this->database->lastInsertID();
       }
       if ($dbResponse === false) throw new \Exception('Internal error: Can not update prompt');
 
@@ -529,8 +513,7 @@ SQL;
 
       $SQL = "DELETE FROM ai_prompts WHERE id=:id;";
 
-      global $database;
-      $database->execute($SQL, ['id' => $data['id']]);;
+      $this->database->execute($SQL, ['id' => $data['id']]);
 
       $result = [
         'ok' => true,
@@ -558,8 +541,7 @@ FROM ai_prompts q
 LEFT JOIN users u ON u.id = q.user_id;
 SQL;
 
-      global $database;
-      $queries = $database->fetchAll($SQL);
+      $queries = $this->database->fetchAll($SQL);
       $result = [
         'ok' => true,
         'queries' => $queries,
@@ -578,7 +560,7 @@ SQL;
       $command = $data['command']?? null;
 
       $article = $this->loadArticleFromDatabase($articleId, $command);
-      if ($article === null) throw new \Exception('Article not found');
+      if ($article === false) throw new \Exception('Article not found');
 
       $result = [
         'ok' => true,
@@ -655,8 +637,7 @@ SQL;
         ':structured_outputs' => $model['structured_outputs'] === true? 1 : 0,
       ];
 
-      global $database;
-      $database->execute($SQL, $params);
+      $this->database->execute($SQL, $params);
 
       $result = [
         'ok' => true,
@@ -670,9 +651,6 @@ SQL;
   }
 
   private function updateModelsDatabase(): string|false {
-
-    global $database;
-
     try {
       $models = $this->getOpenRouterModels();
 
@@ -687,7 +665,7 @@ UPDATE ai_models SET
   structured_outputs = :structured_outputs
 WHERE id = :id;
 SQL;
-      $prompt = $database->prepare($SQL);
+      $prompt = $this->database->prepare($SQL);
 
       foreach ($models as $model) {
         $params = [
@@ -701,7 +679,7 @@ SQL;
           ':structured_outputs' => (int)$model['structured_outputs'],
         ];
 
-        $database->executePrepared($prompt, $params);
+        $this->database->executePrepared($prompt, $params);
       }
 
       $result = [
@@ -722,8 +700,7 @@ SQL;
 
       $SQL = "DELETE FROM ai_models WHERE id=:id;";
 
-      global $database;
-      $database->execute($SQL, ['id' => $modelId]);
+      $this->database->execute($SQL, ['id' => $modelId]);
 
       $result = [
         'ok' => true,
