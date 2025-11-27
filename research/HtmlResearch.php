@@ -300,7 +300,7 @@ HTML;
 
 <div id="formResultArticles" class="popupOuter">
 
-  <div class="formFixed" onclick="event.stopPropagation();">how 
+  <div class="formFixed" onclick="event.stopPropagation();">
    
     <div id="headerResultArticles" class="popupHeader">Result articles</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>

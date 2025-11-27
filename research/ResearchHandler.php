@@ -2,7 +2,74 @@
 
 class ResearchHandler {
 
-  static public function loadQuestionnaires():string {
+  private Database $database;
+  private User $user;
+
+  public function __construct(Database $database, User $user) {
+    $this->database = $database;
+    $this->user = $user;
+  }
+
+  public function handleRequest($command): void {
+    try {
+
+      // Public functions
+      $response = match ($command) {
+        'loadQuestionnaireResults' => $this->loadQuestionnaireResults(),
+        default => null,
+      };
+
+      // The stuff below is for moderators only
+      if (! $response  && $this->user->isModerator()) {
+        $response = match ($command) {
+          'aiRunPrompt' => $this->aiRunPrompt(),
+          'aiInit' => $this->aiInit(),
+          'aiGetAvailableModels' => $this->aiGetAvailableModels(),
+          'aiGetGenerationInfo' => $this->aiGetGenerationInfo(),
+          'loadArticle' => $this->loadArticle(),
+          'selectAiModel' => $this->selectAiModel(),
+          'removeAiModel' => $this->removeAiModel(),
+          'updateModelsDatabase' => $this->updateModelsDatabase(),
+          'aiSavePrompt' => $this->aiSavePrompt(),
+          'aiGetPromptList' => $this->aiGetPromptList(),
+          'aiDeletePrompt' => $this->aiDeletePrompt(),
+          'loadArticlesUnanswered' => $this->loadArticlesUnanswered(),
+          default => null,
+        };
+      }
+
+      // The stuff below is only for administrators
+      if (! $response && $this->user->admin) {
+        $response = match($command) {
+          'loadQuestionnaires' => $this->loadQuestionnaires(),
+          'saveQuestion' => $this->saveQuestion(),
+          'deleteQuestion' => $this->deleteQuestion(),
+          'saveQuestionsOrder' => $this->saveQuestionsOrder(),
+          'saveQuestionnaire' => $this->saveQuestionnaire(),
+          'deleteQuestionnaire' => $this->deleteQuestionnaire(),
+          default => null,
+        };
+      }
+
+      $this->respondWithSucces($response);
+
+    } catch (Exception $e) {
+      $this->respondWithError($e->getMessage());
+    }
+  }
+
+  private function respondWithSucces(string $response): void {
+    header('Content-Type: application/json');
+    echo $response;
+  }
+
+  private function respondWithError(string $error): void {
+    header('HTTP/1.1 500 Internal Server Error');
+    header('Content-Type: application/json');
+    echo json_encode(['error' => $error]);
+  }
+
+  private function loadQuestionnaires():string {
 
     global $database;
     try{
@@ -38,7 +105,7 @@ SQL;
 
     return json_encode($result);
   }
-  static public function saveQuestion(): string {
+  private function saveQuestion(): string {
     global $database;
 
     try{
@@ -72,7 +139,7 @@ SQL;
     return json_encode($result);
   }
 
-  static public function deleteQuestion(): string {
+  private function deleteQuestion(): string {
     global $database;
 
     try{
@@ -101,7 +168,7 @@ SQL;
     return json_encode($result);
   }
 
-  static public function saveQuestionsOrder(): string {
+  private function saveQuestionsOrder(): string {
     global $database;
     try{
       $ids = json_decode(file_get_contents('php://input'));
@@ -120,7 +187,7 @@ SQL;
     return json_encode($result);
   }
 
-  static public function saveQuestionnaire(): string {
+  private function saveQuestionnaire(): string {
     global $database;
     try {
       $questionnaire = json_decode(file_get_contents('php://input'));
@@ -173,7 +240,7 @@ SQL;
     return json_encode($result);
   }
 
-  static public function deleteQuestionnaire(): string {
+  private function deleteQuestionnaire(): string {
     global $database;
     try {
       $questionnaire = json_decode(file_get_contents('php://input'));
@@ -188,7 +255,7 @@ SQL;
     }
     return json_encode($result);
   }
-  static public function loadQuestionnaireResults(): string {
+  private function loadQuestionnaireResults(): string {
     try {
       $data = json_decode(file_get_contents('php://input'), true);
 
@@ -208,7 +275,7 @@ SQL;
     return json_encode($result);
   }
 
-  static public function loadArticlesUnanswered(): false|string {
+  private function loadArticlesUnanswered(): false|string {
     global $database;
     global $user;
     try {
@@ -321,7 +388,7 @@ SQL;
     return json_encode($result);
   }
 
-  private static function loadArticleFromDatabase($articleId, $command=''): false|stdClass {
+  private function loadArticleFromDatabase($articleId, $command=''): false|stdClass {
 
     $params = [];
     if ($command === 'latest') {
@@ -342,7 +409,7 @@ SQL;
     return $database->fetchObject($sql, $params);
   }
 
-  public static function aiRunPrompt(): false|string {
+  private function aiRunPrompt(): false|string {
     try {
       $data = json_decode(file_get_contents('php://input'), true);
 
@@ -354,7 +421,7 @@ SQL;
       if (is_numeric($data['articleId'])) {
         $articleId = intval($data['articleId']);
 
-        $article = self::loadArticleFromDatabase($articleId);
+        $article = $this->loadArticleFromDatabase($articleId);
 
         $userPrompt = replaceArticleTags($userPrompt, $article);
       }
@@ -372,7 +439,7 @@ SQL;
     return json_encode($result);
   }
 
-  private static function mayEditPrompt($promptId): bool {
+  private function mayEditPrompt($promptId): bool {
     global $user;
     global $database;
 
@@ -389,7 +456,7 @@ SQL;
     return $dbResult !== false;
   }
 
-  public static function aiSavePrompt(): false|string {
+  private function aiSavePrompt(): false|string {
     try {
       $data = json_decode(file_get_contents('php://input'), true);
 
@@ -400,7 +467,7 @@ SQL;
 
       if (! empty ($data['id'])) {
 
-        if (! self::mayEditPrompt($data['id'])) throw new \Exception("You cannot save somebody else's prompt");
+        if (! $this->mayEditPrompt($data['id'])) throw new \Exception("You cannot save somebody else's prompt");
 
         $SQL = <<<SQL
 UPDATE ai_prompts SET 
@@ -454,11 +521,11 @@ SQL;
     return json_encode($result);
   }
 
-  public static function aiDeletePrompt(): false|string {
+  private function aiDeletePrompt(): false|string {
     try {
       $data = json_decode(file_get_contents('php://input'), true);
 
-      if (! self::mayEditPrompt($data['id'])) throw new \Exception("You cannot delete somebody else's prompt");
+      if (! $this->mayEditPrompt($data['id'])) throw new \Exception("You cannot delete somebody else's prompt");
 
       $SQL = "DELETE FROM ai_prompts WHERE id=:id;";
 
@@ -475,7 +542,7 @@ SQL;
     return json_encode($result);
   }
 
-  public static function aiGetPromptList(): false|string {
+  private function aiGetPromptList(): false|string {
     try {
       $SQL = <<<SQL
 SELECT 
@@ -504,13 +571,13 @@ SQL;
     return json_encode($result);
   }
 
-  public static function loadArticle(): false|string {
+  private function loadArticle(): false|string {
     try {
       $data = json_decode(file_get_contents('php://input'), true);
       $articleId = $data['id'];
       $command = $data['command']?? null;
 
-      $article = self::loadArticleFromDatabase($articleId, $command);
+      $article = $this->loadArticleFromDatabase($articleId, $command);
       if ($article === null) throw new \Exception('Article not found');
 
       $result = [
@@ -525,7 +592,7 @@ SQL;
     return json_encode($result);
   }
 
-  public static function aiGetGenerationInfo(): false|string {
+  private function aiGetGenerationInfo(): false|string {
     try {
       $data = json_decode(file_get_contents('php://input'), true);
       $generationId = $data['id'];
@@ -551,7 +618,7 @@ SQL;
   /**
    * @throws Exception
    */
-  private static function getOpenRouterModels(): array {
+  private function getOpenRouterModels(): array {
     require_once '../general/OpenRouterAIClient.php';
 
     $openrouter = new OpenRouterAIClient();
@@ -559,12 +626,12 @@ SQL;
     return $openrouter->getAllModels();
   }
 
-  public static function selectAiModel(): false|string {
+  private function selectAiModel(): false|string {
     try {
       $data = json_decode(file_get_contents('php://input'), true);
       $modelId = $data['model_id'];
 
-      $modelsAvailable = self::getOpenRouterModels();
+      $modelsAvailable = $this->getOpenRouterModels();
 
       $models = array_filter($modelsAvailable, fn($m) => $m['id'] === $modelId);
 
@@ -602,12 +669,12 @@ SQL;
     return json_encode($result);
   }
 
-  public static function updateModelsDatabase(): string|false {
+  private function updateModelsDatabase(): string|false {
 
     global $database;
 
     try {
-      $models = self::getOpenRouterModels();
+      $models = $this->getOpenRouterModels();
 
       $SQL = <<<SQL
 UPDATE ai_models SET 
@@ -648,7 +715,7 @@ SQL;
     return json_encode($result);
   }
 
-  public static function removeAiModel(): false|string {
+  private function removeAiModel(): false|string {
     try {
       $data = json_decode(file_get_contents('php://input'), true);
       $modelId = $data['model_id'];
@@ -669,7 +736,7 @@ SQL;
     return json_encode($result);
   }
 
-  private static function getAIModels() {
+  private function getAIModels() {
     $sql = "SELECT * FROM ai_models ORDER BY created DESC;";
     $models = $GLOBALS['database']->fetchAll($sql);
 
@@ -681,12 +748,12 @@ SQL;
     return $models;
   }
 
-  public static function aiInit(): string {
+  private function aiInit(): string {
     try {
       require_once '../general/OpenRouterAIClient.php';
 
       $openrouter = new OpenRouterAIClient();
-      $models = self::getAIModels();
+      $models = $this->getAIModels();
       $credits = $openrouter->getCredits();
 
       $result = [
@@ -701,11 +768,11 @@ SQL;
     return json_encode($result);
   }
 
-  public static function aiGetAvailableModels(): string {
+  private function aiGetAvailableModels(): string {
     try {
       require_once '../general/OpenRouterAIClient.php';
 
-      $models = self::getOpenRouterModels();
+      $models = $this->getOpenRouterModels();
 
       $result = [
         'ok' => true,
