@@ -150,7 +150,7 @@ async function saveUser(){
   if (! user.firstname) {showError(translate('First_name_not_filled_in')); return;}
   if (! user.lastname) {showError(translate('Last_name_not_filled_in')); return;}
 
-  const url      = '/admin/ajaxAdmin.php?function=saveUser';
+  const url= '/admin/ajaxAdmin.php?function=saveUser';
   const response = await fetchFromServer(url, user);
 
   if (response.error) {
@@ -242,7 +242,7 @@ async function saveTranslations() {
     return;
   }
 
-  const url      = '/admin/ajaxModerator.php?function=saveTranslations';
+  const url = '/admin/ajaxModerator.php?function=saveTranslations';
   const response = await fetchFromServer(url, serverData);
 
   if (response.error) showError(response.error);
