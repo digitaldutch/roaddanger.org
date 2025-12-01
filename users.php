@@ -351,16 +351,16 @@ SQL;
   /**
    * @throws Exception
    */
-  public function saveAccount($newUser): void {
+  public function save($newUser): void {
     // Users can only change their own account
-    if ($newUser->id !== $this->id) throw new \Exception('Internal error: User id is not of logged in user');
+    if ($newUser['id'] !== $this->id) throw new \Exception('Internal error: User id is not of logged in user');
 
-    if (empty($newUser->firstName))        throw new \Exception('Geen voornaam ingevuld');
-    if (empty($newUser->lastName))         throw new \Exception('Geen achternaam ingevuld');
-    if (strlen($newUser->firstName) > 100) throw new \Exception('Voornaam te lang (> 100)');
-    if (strlen($newUser->lastName)  > 100) throw new \Exception('Achternaam te lang (> 100)');
-    if (strlen($newUser->email)     > 250) throw new \Exception('Email adres is te lang (> 250)');
-    if (!filter_var($newUser->email, FILTER_VALIDATE_EMAIL)) throw new \Exception('Ongeldig email adres');
+    if (empty($newUser['firstName']))        throw new \Exception('Geen voornaam ingevuld');
+    if (empty($newUser['lastName']))         throw new \Exception('Geen achternaam ingevuld');
+    if (strlen($newUser['firstName']) > 100) throw new \Exception('Voornaam te lang (> 100)');
+    if (strlen($newUser['lastName'])  > 100) throw new \Exception('Achternaam te lang (> 100)');
+    if (strlen($newUser['email'])     > 250) throw new \Exception('Email adres is te lang (> 250)');
+    if (!filter_var($newUser['email'], FILTER_VALIDATE_EMAIL)) throw new \Exception('Ongeldig email adres');
 
     $sql = <<<SQL
 UPDATE users SET
@@ -372,19 +372,19 @@ WHERE id = :id
 SQL;
 
     $params = [
-      ':firstName' => $newUser->firstName,
-      ':lastName'  => $newUser->lastName,
-      ':email'     => $newUser->email,
-      ':language'  => $newUser->language,
+      ':firstName' => $newUser['firstName'],
+      ':lastName'  => $newUser['lastName'],
+      ':email'     => $newUser['email'],
+      ':language'  => $newUser['language'],
       ':id'        => $this->id,
     ];
     $this->database->execute($sql, $params);
 
-    if (strlen($newUser->password) > 0){
-      if (strlen($newUser->password) < 6) throw new \Exception('Wachtwoord moet minimaal 6 karakters lang zijn');
-      if ($newUser->password !== $newUser->passwordConfirm) throw new \Exception('Wachtwoord bevestigen is niet hetzelfde als het wachtwoord');
+    if (strlen($newUser['password']) > 0){
+      if (strlen($newUser['password']) < 6) throw new \Exception('Wachtwoord moet minimaal 6 karakters lang zijn');
+      if ($newUser['password'] !== $newUser['passwordConfirm']) throw new \Exception('Wachtwoord bevestigen is niet hetzelfde als het wachtwoord');
 
-      $passwordHash = password_hash($newUser->password, PASSWORD_DEFAULT);
+      $passwordHash = password_hash($newUser['password'], PASSWORD_DEFAULT);
 
       $sql = "UPDATE users SET passwordhash=:passwordhash, passwordrecoveryid = null WHERE id=:id;";
       $params = [

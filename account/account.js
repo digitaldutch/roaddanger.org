@@ -54,7 +54,7 @@ async function saveUser() {
     passwordConfirm: document.getElementById('profileNewPasswordConfirm').value.trim(),
   }
 
-  const url = '/general/ajaxGeneral.php?function=saveAccount';
+  const url = '/general/ajaxGeneral.php?function=saveUser';
   const response = await fetchFromServer(url, userSave);
 
   if (response.error) showError(response.error);

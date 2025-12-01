@@ -14,7 +14,7 @@ class GeneralHandler extends AjaxHandler {
         'loadUserData' => $this->loadUserData(),
         'sendPasswordResetInstructions' => $this->sendPasswordResetInstructions(),
         'saveNewPassword' => $this->saveNewPassword(),
-        'saveAccount' => $this->saveAccount(),
+        'saveUser' => $this->saveUser(),
         'extractDataFromArticle' => $this->extractDataFromArticle(),
         'loadCountryMapOptions' => $this->loadCountryMapOptions(),
         'loadCrashes' => $this->loadCrashes(),
@@ -133,10 +133,10 @@ SQL;
   /**
    * @throws Exception
    */
-  private function saveAccount(): array {
-    $newUser = json_decode(file_get_contents('php://input'));
+  private function saveUser(): array {
+    $newUser = $this->input;
 
-    $this->user->saveAccount($newUser);
+    $this->user->save($newUser);
 
     return [];
   }
