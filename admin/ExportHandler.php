@@ -1,24 +1,10 @@
 <?php
 
-require_once '../initialize.php';
-
-global $database;
-global $user;
-
-$function = $_REQUEST['function'];
-
-class ExportHandler {
-
-  private Database $database;
-
-  public function __construct() {
-    global $database;
-    $this->database = $database;
-  }
+require_once '../general/AjaxHandler.php';
+class ExportHandler extends AjaxHandler {
 
   public function handleRequest($command): void {
     try {
-
       $response = match ($command) {
         'downloadCrashesData' => $this->downloadCrashesData(),
         'downloadResearchData' => $this->downloadResearchData(),
@@ -31,22 +17,6 @@ class ExportHandler {
     } catch (Exception $e) {
       $this->respondWithError($e->getMessage());
     }
-  }
-
-  private function respondWithError(string $errorMessage): void {
-    http_response_code(500);
-    header('Content-Type: application/json');
-    echo json_encode([
-      'ok' => false,
-      'error' => $errorMessage,
-    ]);
-  }
-
-  private function respondWithSucces(array $response): void {
-    header('Content-Type: application/json');
-
-    $response['ok'] = true;
-    echo json_encode($response);
   }
 
   private function downloadCrashesData(): array {
@@ -147,7 +117,7 @@ SQL;
 
     return [
       'filename' => $filename,
-      ];
+    ];
   }
 
   private function downloadResearchData(): array {
@@ -188,6 +158,3 @@ SQL;
     return ['filename' => $filename];
   }
 }
-
-$handler = new ExportHandler();
-$handler->handleRequest($function);

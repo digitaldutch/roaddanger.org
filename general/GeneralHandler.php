@@ -1,15 +1,9 @@
 <?php
 
-class GeneralHandler {
+require_once 'AjaxHandler.php';
 
-  private Database $database;
-  private User $user;
-   
-  public function __construct(Database $database, User $user) {
-    $this->database = $database;
-    $this->user = $user;
-  }
-  
+class GeneralHandler extends AjaxHandler {
+
   public function handleRequest($command): void {
     try {
 
@@ -49,19 +43,8 @@ class GeneralHandler {
       $this->respondWithError($e->getMessage());
     }
   }
-  
-  private function respondWithSucces(string $response): void {
-    header('Content-Type: application/json');
-    echo $response;
-  }
-  
-  private function respondWithError(string $error): void {
-    header('HTTP/1.1 500 Internal Server Error');
-    header('Content-Type: application/json');
-    echo json_encode(['error' => $error]);
-  }
-  
-  private function login(): string {
+
+  private function login(): array {
     if (is_null($_REQUEST['email']) || is_null($_REQUEST['password'])) dieWithJSONErrorMessage('Invalid AJAX login call.');
 
     $email = $_REQUEST['email'];
@@ -70,30 +53,32 @@ class GeneralHandler {
 
     $this->user->login($email, $password, $stayLoggedIn);
 
-    return json_encode($this->user->info());
+    return $this->user->info();
   }
 
-  private function logout(): string {
+  private function logout(): array {
     $this->user->logout();
 
-    return json_encode($this->user->info());
+    return $this->user->info();
   }
 
-  private function sendPasswordResetInstructions(): string {
-    try {
-      $result = [];
-      if (! isset($_REQUEST['email'])) throw new \Exception('No email adres');
-      $email = trim($_REQUEST['email']);
+  /**
+   * @throws \PHPMailer\PHPMailer\Exception
+   * @throws Exception
+   */
+  private function sendPasswordResetInstructions(): array {
+    if (! isset($_REQUEST['email'])) throw new \Exception('No email adres');
+    $email = trim($_REQUEST['email']);
 
-      $recoveryID = $this->user->resetPasswordRequest($email);
-      if (! $recoveryID) throw new \Exception('Interne fout: Kan geen recoveryID aanmaken');
+    $recoveryID = $this->user->resetPasswordRequest($email);
+    if (! $recoveryID) throw new \Exception('Interne fout: Kan geen recoveryID aanmaken');
 
-      $domain = $_SERVER['SERVER_NAME'];
-      $subject = $domain . ' wachtwoord resetten';
-      $server = $_SERVER['SERVER_NAME'];
-      $emailEncoded = urlencode($email);
-      $recoveryIDEncoded = urlencode($recoveryID);
-      $body = <<<HTML
+    $domain = $_SERVER['SERVER_NAME'];
+    $subject = $domain . ' wachtwoord resetten';
+    $server = $_SERVER['SERVER_NAME'];
+    $emailEncoded = urlencode($email);
+    $recoveryIDEncoded = urlencode($recoveryID);
+    $body = <<<HTML
 <p>Hi,</p>
 
 <p>We received a request to reset the password for $email. To reset your password, click the link below:</p>
@@ -104,147 +89,125 @@ class GeneralHandler {
 $domain</p>
 HTML;
 
-      if (sendEmail($email, $subject, $body)) $result['ok'] = true;
-      else throw new \Exception('Interne server fout: Kan email niet verzenden.');
-    } catch (\Exception $e){
-      $result = ['ok' => false, 'error' => $e->getMessage()];
+    if (! sendEmail($email, $subject, $body)) {
+      throw new \Exception('Interne server fout: Kan email niet verzenden.');
     }
-    return json_encode($result);
+
+    return [];
   }
-  private function saveNewPassword(): string {
-    try {
-      if (! isset($_REQUEST['password'])) throw new \Exception('Geen password opgegeven');
-      if (! isset($_REQUEST['recoveryid'])) throw new \Exception('Geen recoveryid opgegeven');
-      if (! isset($_REQUEST['email'])) throw new \Exception('Geen email opgegeven');
 
-      $password = $_REQUEST['password'];
-      $recoveryId = $_REQUEST['recoveryid'];
-      $email = $_REQUEST['email'];
+  /**
+   * @throws Exception
+   */
+  private function saveNewPassword(): array {
+    if (! isset($_REQUEST['password'])) throw new \Exception('Geen password opgegeven');
+    if (! isset($_REQUEST['recoveryid'])) throw new \Exception('Geen recoveryid opgegeven');
+    if (! isset($_REQUEST['email'])) throw new \Exception('Geen email opgegeven');
 
-      $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-      $sql = <<<SQL
+    $password = $_REQUEST['password'];
+    $recoveryId = $_REQUEST['recoveryid'];
+    $email = $_REQUEST['email'];
+
+    $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+    $sql = <<<SQL
 UPDATE users SET 
-  passwordhash=:passwordhash,
-  passwordrecoveryid = null
+passwordhash=:passwordhash,
+passwordrecoveryid = null
 WHERE email=:email 
-  AND passwordrecoveryid=:passwordrecoveryid;
+AND passwordrecoveryid=:passwordrecoveryid;
 SQL;
 
-      $params = [
-        ':passwordhash'       => $passwordHash,
-        ':email'              => $email,
-        ':passwordrecoveryid' => $recoveryId,
-      ];
+    $params = [
+      ':passwordhash'       => $passwordHash,
+      ':email'              => $email,
+      ':passwordrecoveryid' => $recoveryId,
+    ];
 
-      if (($this->database->execute($sql, $params, true)) && ($this->database->rowCount ===1)) {
-        $result = ['ok' => true];
-      } else $result = ['ok' => false, 'error' => 'Wachtwoord link is verlopen of email is onbekend'];
-    } catch (\Exception $e) {
-      $result = ['ok' => false, 'error' => $e->getMessage()];
+    if (! $this->database->execute($sql, $params, true) || ($this->database->rowCount !== 1)) {
+      throw new Exception('Wachtwoord link is verlopen of email is onbekend');
     }
 
-    return json_encode($result);
+    return [];
   }
 
-  private function saveAccount(): string {
-    try {
-      $newUser = json_decode(file_get_contents('php://input'));
+  /**
+   * @throws Exception
+   */
+  private function saveAccount(): array {
+    $newUser = json_decode(file_get_contents('php://input'));
 
-      $this->user->saveAccount($newUser);
+    $this->user->saveAccount($newUser);
 
-      $result = ['ok' => true];
-    } catch (\Exception $e) {
-      $result = ['ok' => false, 'error' => $e->getMessage()];
+    return [];
+  }
+  private function loadUserData(): array {
+    $this->user->getTranslations();
+
+    $result = [
+      'user' => $this->user->info(),
+      'countries' => $this->database->loadCountries(),
+    ];
+
+    if (isset($this->input['getQuestionnaireCountries']) && $this->input['getQuestionnaireCountries'] === true) {
+      $result['questionnaireCountries'] = $this->database->getQuestionnaireCountries();
     }
 
-    return json_encode($result);
+    return $result;
   }
-  private function loadUserData(): string {
-    try {
-      $data = json_decode(file_get_contents('php://input'));
+  private function register(): array {
+    $this->user->register($this->input['firstname'], $this->input['lastname'],
+      $this->input['email'], $this->input['password']);
 
-      $this->user->getTranslations();
-      $result = [
-        'ok' => true,
-        'user' => $this->user->info(),
-        'countries' => $this->database->loadCountries(),
-      ];
-
-      if (isset($data->getQuestionnaireCountries) && $data->getQuestionnaireCountries === true) {
-        $result['questionnaireCountries'] = $this->database->getQuestionnaireCountries();
-      }
-    } catch (\Exception $e) {
-      $result = ['ok' => false, 'error' => $e->getMessage()];
-    }
-
-    return json_encode($result);
-  }
-  private function register(): string {
-    try {
-      $data = json_decode(file_get_contents('php://input'), true);
-
-      $this->user->register($data['firstname'], $data['lastname'], $data['email'], $data['password']);
-
-      $result = ['ok' => true];
-    } catch (\Exception $e) {
-      $result = ['error' => $e->getMessage()];
-    }
-
-    return json_encode($result);
+    return [];
   }
 
-  private function extractDataFromArticle():false|string {
-    $article = json_decode(file_get_contents('php://input'));
+  /**
+   * @throws Exception
+   */
+  private function extractDataFromArticle(): array {
+    $article = $this->input;
 
-    try {
-      $prompt = $this->database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='article_analist';");
+    $prompt = $this->database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='article_analist';");
 
-      require_once '../general/OpenRouterAIClient.php';
+    require_once '../general/OpenRouterAIClient.php';
 
-      $prompt->user_prompt = replaceArticleTags($prompt->user_prompt, $article);
+    $prompt->user_prompt = replaceArticleTags($prompt->user_prompt, $article);
 
-      $openrouter = new OpenRouterAIClient();
-      $AIResults = $openrouter->chatWithMeta($prompt->user_prompt, $prompt->system_prompt, $prompt->model_id, $prompt->response_format);
+    $openrouter = new OpenRouterAIClient();
+    $AIResults = $openrouter->chatWithMeta($prompt->user_prompt, $prompt->system_prompt, $prompt->model_id, $prompt->response_format);
 
-      $AIResults['response'] = json_decode($AIResults['response']);
+    $AIResults['response'] = json_decode($AIResults['response']);
 
-      // Get coordinates also from geocoder as AI is not very good at it yet
-      $geocoder_prompt = $AIResults['response']->location->geocoder_prompt;
-      $AIResults['response']->location->geocoder_coordinates = geocodeLocation($geocoder_prompt);
+    // Get coordinates also from geocoder as AI is not very good at it yet
+    $geocoder_prompt = $AIResults['response']->location->geocoder_prompt;
+    $AIResults['response']->location->geocoder_coordinates = geocodeLocation($geocoder_prompt);
 
-      $result = ['ok' => true, 'data' => $AIResults['response']];
-    } catch (\Throwable $e){
-      $result = ['ok' => false, 'error' => $e->getMessage()];
-    }
-    return json_encode($result);
+    return ['data' => $AIResults['response']];
   }
 
-  private function loadCountryMapOptions(): false|string {
-    try {
-      $data = json_decode(file_get_contents('php://input'), true);
+  /**
+   * @throws Exception
+   */
+  private function loadCountryMapOptions(): array {
+    $sql = 'SELECT options from countries WHERE id=:id;';
+    $params = [':id' => $this->input['countryId']];
+    $optionsJson = $this->database->fetchSingleValue($sql, $params);
 
-      $sql = 'SELECT options from countries WHERE id=:id;';
-      $params = [':id' => $data['countryId']];
-      $optionsJson = $this->database->fetchSingleValue($sql, $params);
+    if (! isset($optionsJson)) throw new \Exception('No country options found for ' . $this->user->countryId);
+    $options = json_decode($optionsJson);
 
-      if (! isset($optionsJson)) throw new \Exception('No country options found for ' . $this->user->countryId);
-      $options     = json_decode($optionsJson);
-
-      $result = [
-        'ok' => true,
-        'options' => $options,
-      ];
-    } catch (\Exception $e) {
-      $result = ['ok' => false, 'error' => $e->getMessage()];
-    }
-    return json_encode($result);
+    return [
+      'options' => $options,
+    ];
   }
 
-  private function saveArticleCrash(): string {
+  /**
+   * @throws Throwable
+   */
+  private function saveArticleCrash(): array {
     try {
-      $data = json_decode(file_get_contents('php://input'), true);
-      $article = $data['article']?? null;
-      $crash = $data['crash'];
+      $article = $this->input['article']?? null;
+      $crash = $this->input['crash'];
       $isNewCrash = (! isset($crash['id'])) || ($crash['id'] <= 0);
       $moderationRequired = ! $this->user->isModerator();
       $crashIsAwaitingModeration = $moderationRequired && $isNewCrash;
@@ -434,236 +397,187 @@ SQL;
 
     } catch (\Throwable $e){
       $this->database->rollback();
-      $result = ['ok' => false, 'error' => $e->getMessage(), 'errorcode' => $e->getCode()];
+      throw $e;
     }
 
-    return json_encode($result);
+    return $result;
   }
 
-  private function deleteArticle(): string {
-    try{
-      $crashId = (int)$_REQUEST['id'];
-      if ($crashId > 0) {
-        $sqlANDOwnOnly = (! $this->user->isModerator())? ' AND userid=:useridwhere ' : '';
-        $sql    = "DELETE FROM articles WHERE id=:id $sqlANDOwnOnly ;";
-        $params = [':id' => $crashId];
-        if (! $this->user->isModerator()) $params[':useridwhere'] = $this->user->id;
+  private function deleteArticle(): array {
+    $crashId = (int)$_REQUEST['id'];
 
-        $this->database->execute($sql, $params, true);
-        if ($this->database->rowCount === 0) throw new \Exception('Internal error: Cannot delete article.');
-      }
-      $result = ['ok' => true];
-    } catch (\Exception $e){
-      $result = ['ok' => false, 'error' => $e->getMessage()];
+    if ($crashId > 0) {
+      $sqlANDOwnOnly = (! $this->user->isModerator())? ' AND userid=:useridwhere ' : '';
+      $sql    = "DELETE FROM articles WHERE id=:id $sqlANDOwnOnly ;";
+      $params = [':id' => $crashId];
+      if (! $this->user->isModerator()) $params[':useridwhere'] = $this->user->id;
+
+      $this->database->execute($sql, $params, true);
+      if ($this->database->rowCount === 0) throw new \Exception('Internal error: Cannot delete article.');
     }
 
-    return json_encode($result);
+    return [];
   }
-  private function deleteCrash(): string {
-    try{
-      $crashId = (int)$_REQUEST['id'];
-      if ($crashId > 0) {
-        $sqlANDOwnOnly = (! $this->user->isModerator())? ' AND userid=:useridwhere ' : '';
-        $sql = "DELETE FROM crashes WHERE id=:id $sqlANDOwnOnly ;";
-        $params = [':id' => $crashId];
-        if (! $this->user->isModerator()) $params[':useridwhere'] = $this->user->id;
+  private function deleteCrash(): array {
+    $crashId = (int)$_REQUEST['id'];
 
-        $this->database->execute($sql, $params, true);
-        if ($this->database->rowCount === 0) throw new \Exception('Only moderators can delete crashes.');
-      }
+    if ($crashId > 0) {
+      $sqlANDOwnOnly = (! $this->user->isModerator())? ' AND userid=:useridwhere ' : '';
+      $sql = "DELETE FROM crashes WHERE id=:id $sqlANDOwnOnly ;";
+      $params = [':id' => $crashId];
+      if (! $this->user->isModerator()) $params[':useridwhere'] = $this->user->id;
 
-      $result = ['ok' => true];
-    } catch (\Exception $e){
-      $result = ['ok' => false, 'error' => $e->getMessage()];
+      $this->database->execute($sql, $params, true);
+      if ($this->database->rowCount === 0) throw new \Exception('Only moderators can delete crashes.');
     }
 
-    return json_encode($result);
-  }
-  private function crashToStreamTop(): string {
-    try{
-      if (! $this->user->isModerator()) throw new \Exception('Only moderators are allowed to put crashes to top of stream.');
-
-      $crashId = (int)$_REQUEST['id'];
-      if ($crashId > 0) $this->setCrashStreamTop($crashId, $this->user->id, StreamTopType::placedOnTop);
-      $result = ['ok' => true];
-    } catch (\Exception $e){
-      $result = ['ok' => false, 'error' => $e->getMessage()];
-    }
-    return json_encode($result);
+    return [];
   }
 
-  private function crashModerateOK(): string {
-    try{
-      if (! $this->user->isModerator()) throw new \Exception('Only moderators are allowed to moderate crashes.');
+  /**
+   * @throws Exception
+   */
+  private function crashToStreamTop(): array {
+    if (! $this->user->isModerator()) throw new \Exception('Only moderators are allowed to put crashes to top of stream.');
 
-      $crashId = (int)$_REQUEST['id'];
-      if ($crashId > 0){
-        $sql    = "UPDATE crashes SET awaitingmoderation=0 WHERE id=:id;";
-        $params = [':id' => $crashId];
-        $this->database->execute($sql, $params);
-      }
-      $result = ['ok' => true];
-    } catch (\Exception $e){
-      $result = ['ok' => false, 'error' => $e->getMessage()];
-    }
+    $crashId = (int)$_REQUEST['id'];
+    if ($crashId > 0) $this->setCrashStreamTop($crashId, $this->user->id, StreamTopType::placedOnTop);
 
-    return json_encode($result);
-  }
-  private function articleModerateOK(): string {
-    try {
-      if (! $this->user->isModerator()) throw new \Exception('Only moderators are allowed to moderate crashes.');
-
-      $crashId = (int)$_REQUEST['id'];
-      if ($crashId > 0){
-        $sql = "UPDATE articles SET awaitingmoderation=0 WHERE id=:id;";
-        $params = [':id' => $crashId];
-        $this->database->execute($sql, $params);
-      }
-      $result = ['ok' => true];
-    } catch (\Exception $e){
-      $result = ['ok' => false, 'error' => $e->getMessage()];
-    }
-
-    return json_encode($result);
+    return [];
   }
 
-  private function getArticleWebpageMetaData(): string {
-    try{
-      $data = json_decode(file_get_contents('php://input'), true);
-      $url = $data['url'];
-      $newArticle = $data['newArticle'];
+  private function crashModerateOK(): array {
+    if (! $this->user->isModerator()) throw new \Exception('Only moderators are allowed to moderate crashes.');
 
-      require_once 'meta_parser_utils.php';
-      $resultParser = parseMetaDataFromUrl($url);
-
-      // Check if new article url already in the database.
-      if ($newArticle) $urlExists = $this->urlExists($url);
-      else $urlExists = false;
-
-      $result = [
-        'ok' => true,
-        'media' => $resultParser['media'],
-        'tagcount' => $resultParser['tagCount'],
-        'urlExists' => $urlExists,
-      ];
-    } catch (\Exception $e){
-      $result = ['ok' => false, 'error' => $e->getMessage()];
-    }
-
-    return json_encode($result);
-  }
-  private function mergeCrashes(): string {
-    try {
-      if (! $this->user->isModerator()) throw new \Exception('Only moderators are allowed to merge crashes.');
-
-      $idFrom = (int)$_REQUEST['idFrom'];
-      $idTo = (int)$_REQUEST['idTo'];
-
-      // Move articles to the other crash
-      $sql = "UPDATE articles set crashid=:idTo WHERE crashid=:idFrom;";
-      $params = [':idFrom' => $idFrom, ':idTo' => $idTo];
+    $crashId = (int)$_REQUEST['id'];
+    if ($crashId > 0){
+      $sql    = "UPDATE crashes SET awaitingmoderation=0 WHERE id=:id;";
+      $params = [':id' => $crashId];
       $this->database->execute($sql, $params);
-
-      $sql = "DELETE FROM crashes WHERE id=:idFrom;";
-      $params = [':idFrom' => $idFrom];
-      $this->database->execute($sql, $params);
-
-      $sql = "UPDATE crashes SET streamdatetime=current_timestamp, streamtoptype=1, streamtopuserid=:userId WHERE id=:id";
-      $params = [':id' => $idTo, ':userId' => $this->user->id];
-      $this->database->execute($sql, $params);
-
-      $result = ['ok' => true];
-    } catch (\Exception $e){
-      $result = ['ok' => false, 'error' => $e->getMessage()];
-    }
-    return json_encode($result);
-  }
-  private function saveLanguage(): string {
-    try {
-      $languageId = getRequest('id');
-
-      $this->user->saveLanguage($languageId);
-
-      $result = ['ok' => true];
-    } catch (\Exception $e) {
-      $result = ['ok' => false, 'error' => $e->getMessage()];
     }
 
-    return json_encode($result);
+    return [];
   }
-  private function saveAnswer(): string {
-    try {
+  private function articleModerateOK(): array {
+    if (! $this->user->isModerator()) throw new \Exception('Only moderators are allowed to moderate crashes.');
 
-      if (! $this->user->isModerator())  throw new \Exception('Only moderators can save answers');
-
-      $data = json_decode(file_get_contents('php://input'));
-
-      $params = [
-        'articleid'  => $data->articleId,
-        'questionid' => $data->questionId,
-        'answer'     => $data->answer,
-        'answer2'    => $data->answer,
-      ];
-      $sql = "INSERT INTO answers (articleid, questionid, answer) VALUES(:articleid, :questionid, :answer) ON DUPLICATE KEY UPDATE answer=:answer2;";
-
+    $crashId = (int)$_REQUEST['id'];
+    if ($crashId > 0){
+      $sql = "UPDATE articles SET awaitingmoderation=0 WHERE id=:id;";
+      $params = [':id' => $crashId];
       $this->database->execute($sql, $params);
-
-      $result = ['ok' => true];
-    } catch (\Exception $e) {
-      $result = ['ok' => false, 'error' => $e->getMessage()];
     }
 
-    return json_encode($result);
-  }
-  private function saveExplanation(): string {
-    try {
-      if (! $this->user->isModerator())  throw new \Exception('Only moderators can save explanations');
-
-      $data = json_decode(file_get_contents('php://input'));
-
-      $params = [
-        'articleid' => $data->articleId,
-        'questionid' => $data->questionId,
-        'explanation' => $data->explanation,
-      ];
-      $sql = "UPDATE answers SET explanation= :explanation WHERE articleid=:articleid AND questionid=:questionid;";
-      $this->database->execute($sql, $params);
-
-      $result = ['ok' => true];
-    } catch (\Exception $e) {
-      $result = ['ok' => false, 'error' => $e->getMessage()];
-    }
-
-    return json_encode($result);
+    return [];
   }
 
-  private function getArticleQuestionnairesAndText(): string {
-    try {
-      if (! $this->user->isModerator())  throw new \Exception('Only moderators can edit article questions');
+  private function getArticleWebpageMetaData(): array {
 
-      $data = json_decode(file_get_contents('php://input'), true);
+    $url = $this->input['url'];
+    $newArticle = $this->input['newArticle'];
 
-      if (! isset($data['crashCountryId'])) throw new \Exception('No crashCountryId found');
-      if ($data['articleId'] <= 0) throw new \Exception('No article id found');
+    require_once 'meta_parser_utils.php';
+    $resultParser = parseMetaDataFromUrl($url);
 
-      if ($data['crashCountryId'] === 'UN') $whereCountry = " ";
-      else $whereCountry = " AND country_id IN ('UN', '" . $data['crashCountryId'] . "') ";
+    // Check if new article url already in the database.
+    if ($newArticle) $urlExists = $this->urlExists($url);
+    else $urlExists = false;
 
-      $sql = <<<SQL
+    return [
+      'media' => $resultParser['media'],
+      'tagcount' => $resultParser['tagCount'],
+      'urlExists' => $urlExists,
+    ];
+  }
+
+  private function mergeCrashes(): array {
+    if (! $this->user->isModerator()) throw new \Exception('Only moderators are allowed to merge crashes.');
+
+    $idFrom = (int)$_REQUEST['idFrom'];
+    $idTo = (int)$_REQUEST['idTo'];
+
+    // Move articles to the other crash
+    $sql = "UPDATE articles set crashid=:idTo WHERE crashid=:idFrom;";
+    $params = [':idFrom' => $idFrom, ':idTo' => $idTo];
+    $this->database->execute($sql, $params);
+
+    $sql = "DELETE FROM crashes WHERE id=:idFrom;";
+    $params = [':idFrom' => $idFrom];
+    $this->database->execute($sql, $params);
+
+    $sql = "UPDATE crashes SET streamdatetime=current_timestamp, streamtoptype=1, streamtopuserid=:userId WHERE id=:id";
+    $params = [':id' => $idTo, ':userId' => $this->user->id];
+    $this->database->execute($sql, $params);
+
+    return [];
+  }
+
+  /**
+   * @throws Exception
+   */
+  private function saveLanguage(): array {
+    $languageId = getRequest('id');
+
+    $this->user->saveLanguage($languageId);
+
+    return [];
+  }
+  private function saveAnswer(): array {
+    if (! $this->user->isModerator())  throw new \Exception('Only moderators can save answers');
+
+    $params = [
+      'articleid' => $this->input['articleId'],
+      'questionid' => $this->input['questionId'],
+      'answer' => $this->input['answer'],
+      'answer2' => $this->input['answer'],
+    ];
+    $sql = "INSERT INTO answers (articleid, questionid, answer) VALUES(:articleid, :questionid, :answer) ON DUPLICATE KEY UPDATE answer=:answer2;";
+
+    $this->database->execute($sql, $params);
+
+    return [];
+  }
+  private function saveExplanation(): array {
+    if (! $this->user->isModerator())  throw new \Exception('Only moderators can save explanations');
+
+    $params = [
+      'articleid' => $this->input['articleId'],
+      'questionid' => $this->input['questionId'],
+      'explanation' => $this->input['explanation'],
+    ];
+    $sql = "UPDATE answers SET explanation= :explanation WHERE articleid=:articleid AND questionid=:questionid;";
+    $this->database->execute($sql, $params);
+
+    return [];
+  }
+
+  /**
+   * @throws Exception
+   */
+  private function getArticleQuestionnairesAndText(): array {
+    if (! $this->user->isModerator()) throw new \Exception('Only moderators can edit article questions');
+
+    if (! isset($this->input['crashCountryId'])) throw new \Exception('No crashCountryId found');
+    if ($this->input['articleId'] <= 0) throw new \Exception('No article id found');
+
+    if ($this->input['crashCountryId'] === 'UN') $whereCountry = " ";
+    else $whereCountry = " AND country_id IN ('UN', '" . $this->input['crashCountryId'] . "') ";
+
+    $sql = <<<SQL
 SELECT
-  id,
-  title,
-  country_id,
-  type
+id,
+title,
+country_id,
+type
 FROM questionnaires
 WHERE active = 1
-  $whereCountry
+$whereCountry
 ORDER BY id;
 SQL;
 
-      $questionnaires = $this->database->fetchAll($sql);
+    $questionnaires = $this->database->fetchAll($sql);
 
-      $sql = <<<SQL
+    $sql = <<<SQL
 SELECT
 q.id,
 q.text,
@@ -671,307 +585,281 @@ q.explanation,
 a.answer,
 a.explanation AS answerExplanation
 FROM questionnaire_questions qq
-  LEFT JOIN questions q ON q.id = qq.question_id
-  LEFT JOIN answers a ON q.id = a.questionid AND articleid=:articleId
+LEFT JOIN questions q ON q.id = qq.question_id
+LEFT JOIN answers a ON q.id = a.questionid AND articleid=:articleId
 WHERE qq.questionnaire_id = :questionnaire_id
 ORDER BY qq.question_order;
 SQL;
 
-      $statementQuestions = $this->database->prepare($sql);
-      $questionnaire['questions'] = [];
-      foreach ($questionnaires as &$questionnaire) {
-        $params = [':articleId' => $data['articleId'], 'questionnaire_id' => $questionnaire['id']];
+    $statementQuestions = $this->database->prepare($sql);
+    $questionnaire['questions'] = [];
+    foreach ($questionnaires as &$questionnaire) {
+      $params = [':articleId' => $this->input['articleId'], 'questionnaire_id' => $questionnaire['id']];
 
-        $questionnaire['questions'] = $this->database->fetchAllPrepared($statementQuestions, $params);
-      }
-
-      $sql = "SELECT alltext FROM articles WHERE id=:id;";
-      $params = [':id' => $data['articleId']];
-      $articleText = $this->database->fetchSingleValue($sql, $params);
-
-      $result = ['ok' => true, 'text' => $articleText, 'questionnaires' => $questionnaires];
-    } catch (\Exception $e){
-      $result = ['ok' => false, 'error' => $e->getMessage()];
+      $questionnaire['questions'] = $this->database->fetchAllPrepared($statementQuestions, $params);
     }
 
-    return json_encode($result);
+    $sql = "SELECT alltext FROM articles WHERE id=:id;";
+    $params = [':id' => $this->input['articleId']];
+    $articleText = $this->database->fetchSingleValue($sql, $params);
+
+    return [
+      'text' => $articleText,
+      'questionnaires' => $questionnaires
+    ];
   }
-  private function getQuestions(): string {
-    try {
-      if (! $this->user->admin) throw new \Exception('Admins only');
 
-      $questionnaireId = (int)$_REQUEST['questionnaireId'];
+  /**
+   * @throws Exception
+   */
+  private function getQuestions(): array {
+    if (! $this->user->admin) throw new \Exception('Admins only');
 
-      $sql = <<<SQL
+    $questionnaireId = (int)$_REQUEST['questionnaireId'];
+
+    $sql = <<<SQL
 SELECT
-  q.id,
-  q.text
+q.id,
+q.text
 FROM questionnaire_questions qq
 LEFT JOIN questions q ON qq.question_id = q.id
 WHERE qq.questionnaire_id = :questionnaireId
 ORDER BY qq.question_order;
 SQL;
 
-      $params = [':questionnaireId' => $questionnaireId];
-      $questions = $this->database->fetchAll($sql, $params);
+    $params = [':questionnaireId' => $questionnaireId];
+    $questions = $this->database->fetchAll($sql, $params);
 
-      $result = ['ok' => true, 'questions' => $questions];
-    } catch (\Exception $e){
-      $result = ['ok' => false, 'error' => $e->getMessage()];
-    }
-
-    return json_encode($result);
+    return ['questions' => $questions];
   }
 
-  private function getStatistics(): string {
-    try {
-      $data = json_decode(file_get_contents('php://input'), true);
+  /**
+   * @throws Exception
+   */
+  private function getStatistics(): array {
+    $type   = $this->input['type'] ?? '';
+    $filter = $this->input['filter'] ?? '';
 
-      $type   = $data['type'] ?? '';
-      $filter = $data['filter'] ?? '';
+    if ($type === 'general') $stats = $this->getStatsDatabase();
+    else if ($type === 'crashPartners') $stats = $this->getStatsCrashPartners( $filter);
+    else if ($type === 'media_humanization') $stats = $this->getStatsMediaHumanization();
+    else $stats = $this->getStatsTransportation($filter);
 
-      if ($type === 'general') $stats = $this->getStatsDatabase();
-      else if ($type === 'crashPartners') $stats = $this->getStatsCrashPartners( $filter);
-      else if ($type === 'media_humanization') $stats = $this->getStatsMediaHumanization();
-      else $stats = $this->getStatsTransportation($filter);
+    $this->user->getTranslations();
 
-      $this->user->getTranslations();
-      $result = [
-        'ok' => true,
-        'statistics' => $stats,
-        'user' => $this->user->info(),
-      ];
-    } catch (\Exception $e) {
-      $result = ['ok' => false, 'error' => $e->getMessage()];
-    }
-
-    return json_encode($result);
+    return [
+      'statistics' => $stats,
+      'user' => $this->user->info(),
+    ];
   }
 
-  private function getMediaHumanizationData(): string {
-    try {
-      $stats = $this->getStatsMediaHumanization();
+  private function getMediaHumanizationData(): array {
+    $stats = $this->getStatsMediaHumanization();
 
-      $result = ['ok' => true,
-        'statistics' => $stats,
-      ];
-    } catch (\Exception $e) {
-      $result = ['ok' => false, 'error' => $e->getMessage()];
-    }
-
-    return json_encode($result);
+    return [
+      'statistics' => $stats,
+    ];
   }
 
-  private function getArticleText(): string {
-    try{
-      $articleId = (int)$_REQUEST['id'];
+  /**
+   * @throws Exception
+   */
+  private function getArticleText(): array {
+    $articleId = (int)$_REQUEST['id'];
+    if ($articleId <= 0) throw new \Exception('No article id found');
 
-      if ($articleId > 0){
-        $params = [':id' => $articleId];
-        $sql  = "SELECT alltext FROM articles WHERE id=:id;";
+    $params = [':id' => $articleId];
+    $sql  = "SELECT alltext FROM articles WHERE id=:id;";
 
-        $text = $this->database->fetchSingleValue($sql, $params);
-      }
+    $text = $this->database->fetchSingleValue($sql, $params);
 
-      $result = ['ok' => true, 'text' => $text];
-    } catch (\Exception $e){
-      $result = ['ok' => false, 'error' => $e->getMessage()];
+    return ['text' => $text];
+  }
+  private function loadCrashes(): array {
+
+    $offset = $this->input['offset']?? 0;
+    $count = $this->input['count']?? 20;
+    $crashId = $this->input['id']?? null;
+    $moderations = $this->input['moderations']?? 0;
+    $sort = $this->input['sort']?? '';
+    $filter = $this->input['filter'];
+
+    if ($count > 1000) throw new \Exception('Internal error: Count to high.');
+    if ($moderations && (! $this->user->isModerator())) throw new \Exception('Moderaties zijn alleen zichtbaar voor moderators.');
+
+    $crashes = [];
+    $params = [];
+    $sqlModerated = '';
+    if ($moderations) {
+      $sqlModerated = ' (c.awaitingmoderation=1) OR (c.id IN (SELECT crashid FROM articles WHERE awaitingmoderation=1)) ';
+    } else if ($crashId === null) {
+      // Individual pages are always shown and *not* moderated.
+      $sqlModerated = $this->user->isModerator()? '':  ' ((c.awaitingmoderation=0) || (c.userid=:useridModeration)) ';
+      if ($sqlModerated) $params[':useridModeration'] = $this->user->id;
     }
 
-    return json_encode($result);
-  }
-  private function loadCrashes(): string {
-
-    try {
-      $data = json_decode(file_get_contents('php://input'), true);
-
-      $offset = $data['offset']?? 0;
-      $count = $data['count']?? 20;
-      $crashId = $data['id']?? null;
-      $moderations = $data['moderations']?? 0;
-      $sort = $data['sort']?? '';
-      $filter = $data['filter'];
-
-      if ($count > 1000) throw new \Exception('Internal error: Count to high.');
-      if ($moderations && (! $this->user->isModerator())) throw new \Exception('Moderaties zijn alleen zichtbaar voor moderators.');
-
-      $crashes = [];
-      $articles = [];
-      $params = [];
-      $sqlModerated = '';
-      if ($moderations) {
-        $sqlModerated = ' (c.awaitingmoderation=1) OR (c.id IN (SELECT crashid FROM articles WHERE awaitingmoderation=1)) ';
-      } else if ($crashId === null) {
-        // Individual pages are always shown and *not* moderated.
-        $sqlModerated = $this->user->isModerator()? '':  ' ((c.awaitingmoderation=0) || (c.userid=:useridModeration)) ';
-        if ($sqlModerated) $params[':useridModeration'] = $this->user->id;
-      }
-
-      // Sort on dead=3, injured=2, unknown=0, uninjured=1
-      $sql = <<<SQL
+    // Sort on dead=3, injured=2, unknown=0, uninjured=1
+    $sql = <<<SQL
 SELECT 
-  groupid,
-  transportationmode,
-  health,
-  child,
-  underinfluence,
-  hitrun
+groupid,
+transportationmode,
+health,
+child,
+underinfluence,
+hitrun
 FROM crashpersons
 WHERE crashid=:crashid
 ORDER BY health IS NULL, FIELD(health, 3, 2, 0, 1);
 SQL;
 
-      $DbStatementCrashPersons = $this->database->prepare($sql);
+    $DbStatementCrashPersons = $this->database->prepare($sql);
 
-      $sql = <<<SQL
+    $sql = <<<SQL
 SELECT DISTINCT 
-  c.id,
-  c.userid,
-  c.createtime,
-  c.streamdatetime,
-  c.streamtopuserid,     
-  c.streamtoptype,
-  c.awaitingmoderation,
-  c.date,
-  c.countryid,
-  ST_X(c.location) AS longitude,
-  ST_Y(c.location) AS latitude,
-  c.locationdescription,
-  c.unilateral,
-  c.pet, 
-  c.trafficjam, 
-  CONCAT(u.firstname, ' ', u.lastname) AS user, 
-  CONCAT(tu.firstname, ' ', tu.lastname) AS streamtopuser 
+c.id,
+c.userid,
+c.createtime,
+c.streamdatetime,
+c.streamtopuserid,     
+c.streamtoptype,
+c.awaitingmoderation,
+c.date,
+c.countryid,
+ST_X(c.location) AS longitude,
+ST_Y(c.location) AS latitude,
+c.locationdescription,
+c.unilateral,
+c.pet, 
+c.trafficjam, 
+CONCAT(u.firstname, ' ', u.lastname) AS user, 
+CONCAT(tu.firstname, ' ', tu.lastname) AS streamtopuser 
 FROM crashes c
 LEFT JOIN users u  on u.id  = c.userid 
 LEFT JOIN users tu on tu.id = c.streamtopuserid
 SQL;
 
-      $SQLWhere = '';
-      if ($crashId !== null) {
-        // Single crash
-        $params = [':id' => $crashId];
-        $SQLWhere = " WHERE c.id=:id ";
-      } else {
+    $SQLWhere = '';
+    if ($crashId !== null) {
+      // Single crash
+      $params = [':id' => $crashId];
+      $SQLWhere = " WHERE c.id=:id ";
+    } else {
 
-        $joinArticlesTable = false;
-        $joinPersonsTable  = false;
-        $SQLJoin = '';
+      $joinArticlesTable = false;
+      $joinPersonsTable  = false;
+      $SQLJoin = '';
 
-        // Only do full-text search if the text has 3 characters or more
-        if (isset($filter['text']) && strlen($filter['text']) > 2){
-          addSQLWhere($SQLWhere, "(MATCH(c.title, c.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))");
-          $joinArticlesTable = true;
-          $params[':search']  = $filter['text'];
-          $params[':search2'] = $filter['text'];
+      // Only do full-text search if the text has 3 characters or more
+      if (isset($filter['text']) && strlen($filter['text']) > 2){
+        addSQLWhere($SQLWhere, "(MATCH(c.title, c.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))");
+        $joinArticlesTable = true;
+        $params[':search']  = $filter['text'];
+        $params[':search2'] = $filter['text'];
+      }
+
+      $this->addPeriodWhereSql($SQLWhere, $params, $filter);
+
+      if (! empty($filter['country'])){
+        if ($filter['country'] !== 'UN') {
+          addSQLWhere($SQLWhere, "c.countryid=:country");
+          $params[':country'] = $filter['country'];
         }
+      }
 
-        $this->addPeriodWhereSql($SQLWhere, $params, $filter);
+      if (! empty($filter['siteName'])){
+        $joinArticlesTable = true;
+        addSQLWhere($SQLWhere, " LOWER(ar.sitename) LIKE :sitename ");
+        $params[':sitename'] = "%{$filter['siteName']}%";
+      }
 
-        if (! empty($filter['country'])){
-          if ($filter['country'] !== 'UN') {
-            addSQLWhere($SQLWhere, "c.countryid=:country");
-            $params[':country'] = $filter['country'];
-          }
-        }
+      addHealthWhereSql($SQLWhere, $joinPersonsTable, $filter);
 
-        if (! empty($filter['siteName'])){
-          $joinArticlesTable = true;
-          addSQLWhere($SQLWhere, " LOWER(ar.sitename) LIKE :sitename ");
-          $params[':sitename'] = "%{$filter['siteName']}%";
-        }
+      if (isset($filter['child']) && ($filter['child'] === 1)){
+        $joinPersonsTable = true;
+        addSQLWhere($SQLWhere, " cp.child=1 ");
+      }
 
-        addHealthWhereSql($SQLWhere, $joinPersonsTable, $filter);
+      if (isset($filter['area'])) {
+        $sqlArea = "latitude BETWEEN :latMin AND :latMax AND longitude BETWEEN :lonMin AND :lonMax";
 
-        if (isset($filter['child']) && ($filter['child'] === 1)){
-          $joinPersonsTable = true;
-          addSQLWhere($SQLWhere, " cp.child=1 ");
-        }
+        addSQLWhere($SQLWhere, $sqlArea);
+        $params[':latMin'] = $filter['area']['latMin'];
+        $params[':latMax'] = $filter['area']['latMax'];
+        $params[':lonMin'] = $filter['area']['lonMin'];
+        $params[':lonMax'] = $filter['area']['lonMax'];
+      }
 
-        if (isset($filter['area'])) {
-          $sqlArea = "latitude BETWEEN :latMin AND :latMax AND longitude BETWEEN :lonMin AND :lonMax";
+      if (isset($filter['persons']) && (count($filter['persons'])) > 0) {
+        $joinPersonsTable = true;
+        addPersonsWhereSql($SQLWhere, $SQLJoin, $filter['persons']);
+      }
 
-          addSQLWhere($SQLWhere, $sqlArea);
-          $params[':latMin'] = $filter['area']['latMin'];
-          $params[':latMax'] = $filter['area']['latMax'];
-          $params[':lonMin'] = $filter['area']['lonMin'];
-          $params[':lonMax'] = $filter['area']['lonMax'];
-        }
+      if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);
 
-        if (isset($filter['persons']) && (count($filter['persons'])) > 0) {
-          $joinPersonsTable = true;
-          addPersonsWhereSql($SQLWhere, $SQLJoin, $filter['persons']);
-        }
-
-        if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);
-
-        if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
-        if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
+      if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
+      if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
 
 
-        $orderField = match ($sort) {
-          'crashDate'   => 'c.date DESC, c.streamdatetime DESC',
-          'lastChanged' => 'c.streamdatetime DESC',
-          default       => 'c.date DESC, c.streamdatetime DESC',
-        };
+      $orderField = match ($sort) {
+        'crashDate'   => 'c.date DESC, c.streamdatetime DESC',
+        'lastChanged' => 'c.streamdatetime DESC',
+        default       => 'c.date DESC, c.streamdatetime DESC',
+      };
 
-        $SQLWhere = <<<SQL
-   $SQLJoin      
-   $SQLWhere
-  ORDER BY $orderField 
-  LIMIT $offset, $count
+      $SQLWhere = <<<SQL
+ $SQLJoin      
+ $SQLWhere
+ORDER BY $orderField 
+LIMIT $offset, $count
 SQL;
+    }
+
+    $sql .= $SQLWhere;
+    $ids = [];
+    $articles = $this->database->fetchAll($sql, $params);
+    foreach ($articles as $crash) {
+      $crash['createtime'] = datetimeDBToISO8601($crash['createtime']);
+      $crash['streamdatetime'] = datetimeDBToISO8601($crash['streamdatetime']);
+      $crash['awaitingmoderation'] = $crash['awaitingmoderation'] == 1;
+
+      $crash['unilateral'] = $crash['unilateral'] == 1;
+      $crash['pet'] = $crash['pet'] == 1;
+      $crash['trafficjam'] = $crash['trafficjam'] == 1;
+
+      $crash['persons'] = $this->database->fetchAllPrepared($DbStatementCrashPersons, ['crashid' => $crash['id']]);
+
+      $ids[] = $crash['id'];
+      $crashes[] = $crash;
+    }
+
+    if (count($crashes) > 0){
+      $params = [];
+      $sqlModerated = '';
+      // In the moderation and for individual crash pages, all crashes are shown
+      if (! $moderations && ($crashId === null)) {
+        $sqlModerated = $this->user->isModerator()? '':  ' AND ((ar.awaitingmoderation=0) || (ar.userid=:useridModeration)) ';
+        if ($sqlModerated) $params[':useridModeration'] = $this->user->id;
       }
 
-      $sql .= $SQLWhere;
-      $ids = [];
-      $articles = $this->database->fetchAll($sql, $params);
-      foreach ($articles as $crash) {
-        $crash['createtime'] = datetimeDBToISO8601($crash['createtime']);
-        $crash['streamdatetime'] = datetimeDBToISO8601($crash['streamdatetime']);
-        $crash['awaitingmoderation'] = $crash['awaitingmoderation'] == 1;
-
-        $crash['unilateral'] = $crash['unilateral'] == 1;
-        $crash['pet'] = $crash['pet'] == 1;
-        $crash['trafficjam'] = $crash['trafficjam'] == 1;
-
-        $crash['persons'] = $this->database->fetchAllPrepared($DbStatementCrashPersons, ['crashid' => $crash['id']]);
-
-        $ids[] = $crash['id'];
-        $crashes[] = $crash;
-      }
-
-      if (count($crashes) > 0){
-        $params = [];
-        $sqlModerated = '';
-        // In the moderation and for individual crash pages, all crashes are shown
-        if (! $moderations && ($crashId === null)) {
-          $sqlModerated = $this->user->isModerator()? '':  ' AND ((ar.awaitingmoderation=0) || (ar.userid=:useridModeration)) ';
-          if ($sqlModerated) $params[':useridModeration'] = $this->user->id;
-        }
-
-        $commaArrays = implode (", ", $ids);
-        $sqlArticleSelect = $this->getArticleSelect();
-        $sqlArticles = <<<SQL
+      $commaArrays = implode (", ", $ids);
+      $sqlArticleSelect = $this->getArticleSelect();
+      $sqlArticles = <<<SQL
 $sqlArticleSelect
 WHERE ar.crashid IN ($commaArrays)
- $sqlModerated
+$sqlModerated
 ORDER BY ar.streamdatetime DESC
 SQL;
 
-        $articles = $this->database->fetchAll($sqlArticles, $params);
-        foreach ($articles as &$article) {
-          $article = $this->cleanArticleDBRow($article);
-        }
+      $articles = $this->database->fetchAll($sqlArticles, $params);
+      foreach ($articles as &$article) {
+        $article = $this->cleanArticleDBRow($article);
       }
-
-      $result = ['ok' => true, 'crashes' => $crashes, 'articles' => $articles];
-
-    } catch (\Exception $e) {
-      $result = ['ok' => false, 'error' => $e->getMessage()];
     }
 
-    return json_encode($result);
+    return [
+      'crashes' => $crashes,
+      'articles' => $articles
+    ];
   }
 
   // ***** Private functions *****

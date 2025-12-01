@@ -54,7 +54,7 @@ async function saveUser() {
     passwordConfirm: document.getElementById('profileNewPasswordConfirm').value.trim(),
   }
 
-  const url = '/general/ajax.php?function=saveAccount';
+  const url = '/general/ajaxGeneral.php?function=saveAccount';
   const response = await fetchFromServer(url, userSave);
 
   if (response.error) showError(response.error);
@@ -72,7 +72,7 @@ async function saveNewPassword() {
   if (! password) {showError(translate('No_password_filled_in')); return;}
   if (password.length < 6){showError(translate('Password_less_than_6_characters')); return;}
 
-  const url = '/general/ajax.php?function=saveNewPassword' +
+  const url = '/general/ajaxGeneral.php?function=saveNewPassword' +
     '&email=' + encodeURIComponent(email) +
     '&recoveryid=' + encodeURIComponent(recoveryId) +
     '&password=' + encodeURIComponent(password);

@@ -598,7 +598,7 @@ async function loadStatistics() {
       serverData.filter = filter.getFromGUI();
     }
 
-    const url = '/general/ajax.php?function=getStatistics';
+    const url = '/general/ajaxGeneral.php?function=getStatistics';
     const response = await fetchFromServer(url, serverData);
 
     if (response.user) updateLoginGUI(response.user);
@@ -716,7 +716,7 @@ async function loadChildVictims(){
 }
 
 async function loadCrashesFromServer(serverData){
-  const url = '/general/ajax.php?function=loadCrashes';
+  const url = '/general/ajaxGeneral.php?function=loadCrashes';
   const response = await fetchFromServer(url, serverData);
 
   if (response.error) {showError(response.error); return [];}
@@ -821,7 +821,7 @@ async function loadFeaturedGraph() {
   const element = document.getElementById('featuredGraph');
   if (! element || ! d3) return;
 
-  const url = '/general/ajax.php?function=getMediaHumanizationData';
+  const url = '/general/ajaxGeneral.php?function=getMediaHumanizationData';
   const response = await fetchFromServer(url, []);
 
   const title = translate('Media_humanization_test');
@@ -858,7 +858,7 @@ async function loadMapDataFromServer(){
       lonMax: bounds._ne.lng,
     }
 
-    const url = '/general/ajax.php?function=loadCrashes';
+    const url = '/general/ajaxGeneral.php?function=loadCrashes';
     const response = await fetchFromServer(url, serverData);
 
     if (response.user) updateLoginGUI(response.user);
@@ -909,7 +909,7 @@ async function getCountryMapOptions(){
     countryId: user.countryid,
   }
 
-  const urlServer = '/general/ajax.php?function=loadCountryMapOptions';
+  const urlServer = '/general/ajaxGeneral.php?function=loadCountryMapOptions';
   const response  = await fetchFromServer(urlServer, serverData);
 
   if (response.error) {
@@ -1394,7 +1394,7 @@ async function extractDataFromArticle() {
     return;
   }
 
-  const url = '/general/ajax.php?function=extractDataFromArticle';
+  const url = '/general/ajaxGeneral.php?function=extractDataFromArticle';
   const data = {
     text: text,
     title: title,
@@ -1814,7 +1814,7 @@ async function saveAnswer(articleId, questionId, answer) {
     }
   }
 
-  const url = '/general/ajax.php?function=saveAnswer';
+  const url = '/general/ajaxGeneral.php?function=saveAnswer';
   const data = {
     articleId:  articleId,
     questionId: questionId,
@@ -1833,7 +1833,7 @@ function saveExplanationDelayed(articleId, questionId) {
 
 async function saveExplanation(articleId, questionId) {
 
-  const url  = '/general/ajax.php?function=saveExplanation';
+  const url  = '/general/ajaxGeneral.php?function=saveExplanation';
   const data = {
     articleId:   articleId,
     questionId:  questionId,
@@ -1878,7 +1878,7 @@ function nextArticleQuestions(forward=true) {
 async function crashToTopStream(crashID) {
   closeAllPopups();
 
-  const url = '/general/ajax.php?function=crashToStreamTop&id=' + crashID;
+  const url = '/general/ajaxGeneral.php?function=crashToStreamTop&id=' + crashID;
   const response = await fetchFromServer(url);
 
   if (response.error) showError(response.error, 10);
@@ -1886,7 +1886,7 @@ async function crashToTopStream(crashID) {
 }
 
 async function getArticleText(articleId) {
-  const url = '/general/ajax.php?function=getArticleText&id=' + articleId;
+  const url = '/general/ajaxGeneral.php?function=getArticleText&id=' + articleId;
   const response = await fetchFromServer(url);
 
   if (response.error) showError(response.error, 10);
@@ -1894,7 +1894,7 @@ async function getArticleText(articleId) {
 }
 
 async function getArticleQuestionnaires(crashCountryId, articleId) {
-  const url      = '/general/ajax.php?function=getArticleQuestionnairesAndText';
+  const url      = '/general/ajaxGeneral.php?function=getArticleQuestionnairesAndText';
   const response = await fetchFromServer(url, {crashCountryId: crashCountryId, articleId: articleId});
 
   if (response.error) showError(response.error, 10);
@@ -1904,7 +1904,7 @@ async function getArticleQuestionnaires(crashCountryId, articleId) {
 async function crashModerateOK(crash) {
   closeAllPopups();
 
-  const url      = '/general/ajax.php?function=crashModerateOK&id=' + crash;
+  const url      = '/general/ajaxGeneral.php?function=crashModerateOK&id=' + crash;
   const response = await fetchFromServer(url);
 
   if (response.error) showError(response.error, 10);
@@ -1923,7 +1923,7 @@ async function crashModerateOK(crash) {
 async function articleModerateOK(articleID) {
   closeAllPopups();
 
-  const url      = '/general/ajax.php?function=articleModerateOK&id=' + articleID;
+  const url      = '/general/ajaxGeneral.php?function=articleModerateOK&id=' + articleID;
   const response = await fetchFromServer(url);
 
   if (response.error) showError(response.error, 10);
@@ -1989,7 +1989,7 @@ async function getArticleMetaData() {
     newArticle: isNewArticle,
   }
 
-  const url = '/general/ajax.php?function=getArticleWebpageMetaData';
+  const url = '/general/ajaxGeneral.php?function=getArticleWebpageMetaData';
 
   document.getElementById('spinnerMeta').style.display = 'flex';
   document.getElementById('spiderResults').innerHTML = '<img src="/images/spinner_black.svg" style="height: 40px;">';
@@ -2086,7 +2086,7 @@ async function saveArticleCrash(){
   if (crashEdited.persons.length === 0) {showError(translate('No_humans_selected')); return;}
   if (!crashEdited.countryid) {showError(translate('Crash_country_not_filled_in')); return;}
 
-  const url = '/general/ajax.php?function=saveArticleCrash';
+  const url = '/general/ajaxGeneral.php?function=saveArticleCrash';
   const serverData = {
     article: articleEdited,
     crash: crashEdited,
@@ -2213,7 +2213,7 @@ function getCrashArticles(crashID, articles){
 
 async function deleteArticleDirect(articleID) {
   try {
-    const url = '/general/ajax.php?function=deleteArticle&id=' + articleID;
+    const url = '/general/ajaxGeneral.php?function=deleteArticle&id=' + articleID;
     const response = await fetchFromServer(url);
 
     if (response.error) showError(response.error);
@@ -2234,7 +2234,7 @@ async function deleteArticleDirect(articleID) {
 
 async function deleteCrashDirect(crashID) {
   try {
-    const url      = '/general/ajax.php?function=deleteCrash&id=' + crashID;
+    const url      = '/general/ajaxGeneral.php?function=deleteCrash&id=' + crashID;
     const response = await fetchFromServer(url);
 
     if (response.error) showError(response.error);
@@ -2376,7 +2376,7 @@ async function searchMergeCrash() {
       },
     };
 
-    const url      = '/general/ajax.php?function=loadCrashes';
+    const url      = '/general/ajaxGeneral.php?function=loadCrashes';
     const response = await fetchFromServer(url, serverData);
 
     if (response.error) showError(response.error);
@@ -2418,7 +2418,7 @@ function mergeCrash() {
   const crashTo = crashesFound.find(crash => crash.id === toID);
 
   async function mergeCrashesOnServer(fromID, toID){
-    const url= `/general/ajax.php?function=mergeCrashes&idFrom=${fromID}&idTo=${toID}`;
+    const url= `/general/ajaxGeneral.php?function=mergeCrashes&idFrom=${fromID}&idTo=${toID}`;
     const response = await fetchFromServer(url);
 
     if (response.error) showError(response.error);
@@ -2559,7 +2559,7 @@ function downloadCrashesData() {
   async function doDownload(){
     spinnerLoad.style.display = 'block';
     try {
-      const url = '/admin/exportdata.php?function=downloadCrashesData';
+      const url = '/admin/ajaxExport.php?function=downloadCrashesData';
       const response = await fetchFromServer(url);
 
       const urlFile = '/admin/' + response.filename;
@@ -2577,7 +2577,7 @@ function downloadResearchData() {
     const spinner = document.getElementById('spinnerResearch');
     spinner.style.display = 'block';
     try {
-      const url = '/admin/exportdata.php?function=downloadResearchData';
+      const url = '/admin/ajaxExport.php?function=downloadResearchData';
       const response = await fetchFromServer(url);
 
       const urlFile = '/admin/' + response.filename;

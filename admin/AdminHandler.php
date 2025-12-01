@@ -1,18 +1,8 @@
 <?php
 
-class AdminHandler {
+require_once '../general/AjaxHandler.php';
 
-  private Database $database;
-  private User $user;
-  private ?array $input = null;
-
-  public function __construct(Database $database, User $user) {
-    $this->database = $database;
-    $this->user = $user;
-
-    $data = file_get_contents('php://input');
-    if (! empty($data)) $this->input = json_decode($data, true);
-  }
+class AdminHandler extends AjaxHandler {
 
   public function handleRequest($command): void {
     try {
@@ -38,23 +28,6 @@ class AdminHandler {
     } catch (Exception $e) {
       $this->respondWithError($e->getMessage());
     }
-  }
-
-  private function respondWithSucces(array $response): void {
-    header('Content-Type: application/json');
-
-    $response['ok'] = true;
-    echo json_encode($response);
-  }
-
-  private function respondWithError(string $error): void {
-    header('HTTP/1.1 500 Internal Server Error');
-    header('Content-Type: application/json');
-
-    echo json_encode([
-      'ok' => false,
-      'error' => $error
-    ]);
   }
 
   private function loadUsers(): array {

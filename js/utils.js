@@ -295,7 +295,7 @@ function showLoginError(text) {
 
 async function logOut() {
   closeMessage();
-  const url  = "/general/ajax.php?function=logout";
+  const url  = "/general/ajaxGeneral.php?function=logout";
   const user = await fetchFromServer(url);
   if (! user.loggedin) {
     showMessage(translate('Logged_out_successfully'), 1);
@@ -304,7 +304,7 @@ async function logOut() {
 }
 
 async function loginIntern(email, password, stayLoggedIn=0) {
-  const url = "/general/ajax.php?function=login" +
+  const url = "/general/ajaxGeneral.php?function=login" +
     "&email="        + encodeURIComponent(email) +
     "&password="     + encodeURIComponent(password) +
     "&stayLoggedIn=" + stayLoggedIn;
@@ -380,7 +380,7 @@ function updateLoginGUI(userNew){
 }
 
 async function setLanguage(languageId){
-  const url = '/general/ajax.php?function=saveLanguage&id=' + languageId;
+  const url = '/general/ajaxGeneral.php?function=saveLanguage&id=' + languageId;
   const response = await fetchFromServer(url);
 
   if (response.error) {
@@ -476,7 +476,7 @@ async function checkRegistration(){
 
     document.getElementById('spinnerLogin').style.display = 'block';
     try {
-      const url      = '/general/ajax.php?function=register';
+      const url      = '/general/ajaxGeneral.php?function=register';
       const response = await fetchFromServer(url, userNew);
 
       if (response.error) {
@@ -519,7 +519,7 @@ function loginForgotPassword() {
 }
 
 async function sendResetPasswordInstructions(email) {
-  const url = '/general/ajax.php?function=sendPasswordResetInstructions&email=' + encodeURIComponent(email);
+  const url = '/general/ajaxGeneral.php?function=sendPasswordResetInstructions&email=' + encodeURIComponent(email);
   const response = await fetchFromServer(url);
 
   if (response.error) showError(response.error);
@@ -702,7 +702,7 @@ function initPageUser(){
 
 async function loadUserData(options=[]) {
   try {
-    const url = '/general/ajax.php?function=loadUserData';
+    const url = '/general/ajaxGeneral.php?function=loadUserData';
     const response = await fetchFromServer(url, options);
     if (response.user) updateLoginGUI(response.user);
 
@@ -1190,7 +1190,7 @@ function tabBarClick() {
 }
 
 async function getQuestions(questionnaireId) {
-  const url      = '/general/ajax.php?function=getQuestions&questionnaireId=' + questionnaireId;
+  const url      = '/general/ajaxGeneral.php?function=getQuestions&questionnaireId=' + questionnaireId;
   const response = await fetchFromServer(url);
 
   if (response.error) showError(response.error, 10);
