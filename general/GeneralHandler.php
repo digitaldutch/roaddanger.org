@@ -171,7 +171,7 @@ SQL;
 
     require_once '../general/OpenRouterAIClient.php';
 
-    $prompt->user_prompt = replaceArticleTags($prompt->user_prompt, $article);
+    $prompt->user_prompt = replaceArticleTags($prompt->user_prompt, (object)$article);
 
     $openrouter = new OpenRouterAIClient();
     $AIResults = $openrouter->chatWithMeta($prompt->user_prompt, $prompt->system_prompt, $prompt->model_id, $prompt->response_format);

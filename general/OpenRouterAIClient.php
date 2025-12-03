@@ -81,13 +81,6 @@ class OpenRouterAIClient {
     ];
   }
 
-  private function replaceArticleTags(string $text, object $article): string {
-    if (isset($article->date)) $text = str_replace('[article_date]', $article->date, $text);
-    $text = str_replace('[article_text]', $article->text, $text);
-    return str_replace('[article_title]', $article->title, $text);
-  }
-
-
   /**
    * @throws Exception
    */
