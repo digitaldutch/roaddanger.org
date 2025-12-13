@@ -104,7 +104,7 @@ class Database {
     }
   }
 
-  public function fetchSingleValue(string $sql, array|null $params=null): mixed{
+  public function fetchSingleValue(string $sql, ?array $params=null): mixed{
     $statement = $this->pdo->prepare($sql);
     $statement->execute($params);
     return $statement->fetchColumn();

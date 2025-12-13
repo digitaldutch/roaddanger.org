@@ -8,7 +8,7 @@ class OpenRouterAIClient {
   /**
    * @throws Exception
    */
-  private function callServer(string $URL, array $postData = null): array {
+  private function callServer(string $URL, ?array $postData = null): array {
     $ch = curl_init($URL);
 
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
