@@ -23,6 +23,7 @@ require_once 'configsecret.php';
 // *** End settings that belong in configsecret.php ***
 
 const WEBSITE_NAME = 'roaddanger';
+const WEBSITE_DOMAIN = 'roaddanger.org';
 const DEFAULT_COUNTRY_ID = 'UN';
 const DEFAULT_LANGUAGE = 'en';
 

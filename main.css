@@ -1351,9 +1351,14 @@ h3, .pageSubTitleFont {
 .buttonPopupMenu > a:hover,
 .navItem:hover,
 .dataTable tbody tr:hover,
+.dataTable tr:hover a,
 .optionCheckImage:hover {
   color: var(--color-hover);
   background-color: var(--hover-bgcolor);
+}
+
+.dataTable tr:hover a {
+  text-decoration: underline;
 }
 
 .itemSelected, .trSelected td, .trSelected a {

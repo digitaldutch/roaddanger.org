@@ -41,12 +41,18 @@ async function loadUsers(){
   let response;
   const maxLoadCount = 50;
 
-  function showUsers(users){
+  function showUsers(users) {
     let html = '';
-    for (const user of users){
+    for (const user of users) {
       let trClass = '';
-      if      (user.permission === UserPermission.admin)     trClass = ' class="bgRed" ';
+      if (user.permission === UserPermission.admin) trClass = ' class="bgRed" ';
       else if (user.permission === UserPermission.moderator) trClass = ' class="bgOrange" ';
+
+      let articleCountHtml = user.article_count;
+      if (user.article_count > 0) {
+        const userLink = 'https://' + getBaseDomain() + '/?user_id=' + user.id;
+        user.article_count = `<a href="${userLink}">${articleCountHtml}</a>`;
+      }
 
       html += `<tr id="tr0_${user.id}" ${trClass}>
 <td>${user.id}</td>

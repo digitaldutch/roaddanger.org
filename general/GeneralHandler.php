@@ -772,6 +772,12 @@ SQL;
         $params[':sitename'] = "%{$filter['siteName']}%";
       }
 
+      if (! empty($filter['userId'])) {
+        $joinArticlesTable = true;
+        addSQLWhere($SQLWhere, "ar.userid = :userId");
+        $params[':userId'] = $filter['userId'];
+      }
+
       addHealthWhereSql($SQLWhere, $joinPersonsTable, $filter);
 
       if (isset($filter['child']) && ($filter['child'] === 1)){

@@ -191,17 +191,17 @@ function confirmWarning(text, okCallback, buttonOKText=translate('Ok'), header=t
 
 function confirmMessage(text, okCallback, buttonOKText=translate('Ok'), header=translate('Confirm'), isWarning=false){
   if (isWarning) {
-    document.getElementById('buttonConfirmOK').className            = 'button buttonWarning';
-    document.getElementById('formConfirm').style.backgroundColor    = '#ffdb9d';
+    document.getElementById('buttonConfirmOK').className = 'button buttonWarning';
+    document.getElementById('formConfirm').style.backgroundColor = '#ffdb9d';
   } else {
-    document.getElementById('buttonConfirmOK').className            = 'button';
-    document.getElementById('formConfirm').style.backgroundColor    = '#ffffff';
+    document.getElementById('buttonConfirmOK').className = 'button';
+    document.getElementById('formConfirm').style.backgroundColor = '#ffffff';
   }
-  document.getElementById('confirmHeader').innerHTML                = header;
-  document.getElementById('confirmText').innerHTML                  = text;
-  document.getElementById('formConfirmOuter').style.display         = 'flex';
-  document.getElementById('buttonConfirmOK').innerText              = buttonOKText;
-  document.getElementById('buttonConfirmCancel').style.display      = 'inline-block';
+  document.getElementById('confirmHeader').innerHTML = header;
+  document.getElementById('confirmText').innerHTML = text;
+  document.getElementById('formConfirmOuter').style.display = 'flex';
+  document.getElementById('buttonConfirmOK').innerText = buttonOKText;
+  document.getElementById('buttonConfirmCancel').style.display = 'inline-block';
   document.getElementById('buttonConfirmOK').onclick = function(){
     closeConfirm();
     okCallback();
@@ -1474,4 +1474,9 @@ function copyToClipboard(text) {
     console.error('Failed to copy text:', error);
     showError('Failed to copy to clipboard');
   });
+}
+
+function getBaseDomain() {
+  const parts = window.location.hostname.split('.');
+  return parts.length >= 2 ? parts.slice(-2).join('.') : window.location.hostname;
 }

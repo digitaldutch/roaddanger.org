@@ -156,7 +156,7 @@ HTML;
 
   public static function getHtmlSearchBar(string $searchFunction, string $keySearchFunction='', bool $inline=false,
                                           bool $addPersons=true, bool $addHealth=true): string {
-    $texts = translateArray(['Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source', 'Search_text_hint']);
+    $texts = translateArray(['Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source', 'Search_text_hint', 'User_Id']);
 
     $htmlSearchPeriod = self::getSearchPeriodHtml();
     $htmlSearchPersons = $addPersons? self::getSearchPersonsHtml() : '';
@@ -191,9 +191,9 @@ HTML;
     
     $htmlSearchPersons    
            
-    <div class="toolbarItem">
-      <input id="searchSiteName" class="searchInput textInputWidth" type="search" placeholder="{$texts['Source']}" $htmlKeyUp autocomplete="off">
-    </div>
+    <input id="searchSiteName" class="searchInput toolbarItem textInputWidth" type="search" placeholder="{$texts['Source']}" $htmlKeyUp autocomplete="off">
+
+    <input id="searchUserId" class="searchInput toolbarItem" style="display: none; width: 80px;" type="number" placeholder="{$texts['User_Id']}" $htmlKeyUp>
 
     <div class="toolbarItem">
       <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="$searchFunction()">{$texts['Search']}</div>

@@ -14,8 +14,8 @@ class OpenRouterAIClient {
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
       'Authorization: Bearer ' . OPENROUTER_API_KEY,
       'Content-Type: application/json',
-      'HTTP-Referer: https://roaddanger.org',
-      'X-Title: RoadDanger',
+      'HTTP-Referer: https://' . WEBSITE_DOMAIN,
+      'X-Title: ' . WEBSITE_NAME,
     ]);
 
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

@@ -26,7 +26,7 @@ class ExportHandler extends AjaxHandler {
     // NOTE: Everyone can download all data including full texts
     $includeAllText = true;
 
-    $filename = $includeAllText? 'roaddanger_org_data_all_text.json.gz' : 'roaddanger_org_data.json.gz';
+    $filename = $includeAllText? WEBSITE_NAME . '_data_all_text.json.gz' : WEBSITE_NAME . '_data.json.gz';
 
     // Recreate backup if existing backup file older than 24 hours
     if ((!file_exists($filename)) || (time()-filemtime($filename) > 24 * 3600)) {
@@ -121,7 +121,7 @@ SQL;
   }
 
   private function downloadResearchData(): array {
-    $filename = 'roaddanger_org_research_data.json.gz';
+    $filename = WEBSITE_NAME . '_research_data.json.gz';
 
     // Recreate backup if existing backup file older than 24 hours
     if ((!file_exists($filename)) || (time()-filemtime($filename) > 24 * 3600)) {

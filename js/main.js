@@ -43,6 +43,7 @@ class Filter {
     dateTo: null,
     persons: [],
     siteName: '',
+    userId: null,
   }
 
   loadFromUrl() {
@@ -60,6 +61,7 @@ class Filter {
     this.filters.dateFrom = url.searchParams.get('date_from') ?? null;
     this.filters.dateTo = url.searchParams.get('date_to') ?? null;
     this.filters.siteName = url.searchParams.get('siteName') ?? [];
+    this.filters.userId = url.searchParams.get('user_id') ?? null;
 
     const personsParam = url.searchParams.get('persons');
     this.filters.persons = personsParam ? personsParam.split(',') : [];
@@ -75,6 +77,7 @@ class Filter {
 
     if (this.filters.text) url.searchParams.set('search', this.filters.text);
     if (this.filters.siteName) url.searchParams.set('siteName', this.filters.siteName);
+    if (this.filters.userId) url.searchParams.set('user_id', this.filters.userId);
 
     if (this.filters.period) {
       url.searchParams.set('period', this.filters.period);
@@ -98,7 +101,10 @@ class Filter {
 
     function setFilterValue(id, value) {
       const element = document.getElementById(id);
-      if (element && value) element.value = value;
+      if (element && value) {
+        element.style.display = 'block';
+        element.value = value;
+      }
     }
 
     function setFilterDataValue(id, value) {
@@ -117,6 +123,7 @@ class Filter {
     setFilterValue('searchDateFrom', this.filters.dateFrom);
     setFilterValue('searchDateTo', this.filters.dateTo);
     setFilterValue('searchSiteName', this.filters.siteName);
+    setFilterValue('searchUserId', this.filters.userId);
 
     setPersonsFilter(this.filters.persons);
   }
@@ -127,6 +134,7 @@ class Filter {
       const buttonDead = document.getElementById('searchPersonHealthDead');
       const buttonInjured = document.getElementById('searchPersonHealthInjured');
       const searchSiteName = document.getElementById('searchSiteName');
+      const searchUserId = document.getElementById('searchUserId');
 
       this.filters = {
         country:  null,
@@ -141,6 +149,7 @@ class Filter {
         dateTo: document.getElementById('searchDateTo').value,
         persons: getPersonsFromFilter(),
         siteName: (searchSiteName && searchSiteName.value.trim().toLowerCase()) ?? '',
+        userId: (searchUserId && (searchUserId.style.display !== 'none') && searchUserId.value) ?? '',
       }
     } else this.filters = {};
 
@@ -2542,6 +2551,7 @@ function updateBrowserUrl(pushState=false){
 
   if (pageType === PageType.map) {
     const center = mapMain.getCenter();
+
     url.searchParams.set('lat', center.lat);
     url.searchParams.set('lng', center.lng);
     url.searchParams.set('zoom', mapMain.getZoom());
