@@ -1,4 +1,4 @@
-create table ai_models
+create table roaddanger.ai_models
 (
   id                 varchar(50)                       not null
     primary key,
@@ -11,21 +11,22 @@ create table ai_models
   structured_outputs tinyint(1)                        null,
   constraint name
     unique (name)
-);
+)
+  engine = InnoDB;
 
-create table countries
+create table roaddanger.countries
 (
   id                char(2)     not null
     primary key,
   name              varchar(50) null,
-  domain            varchar(50) null,
   options           text        null,
   defaultlanguageid char(2)     null,
   constraint countries_id_uindex
     unique (id)
-);
+)
+  engine = InnoDB;
 
-create table languages
+create table roaddanger.languages
 (
   id           char(2)     not null
     primary key,
@@ -33,18 +34,20 @@ create table languages
   translations mediumtext  null,
   constraint languages_id_uindex
     unique (id)
-);
+)
+  engine = InnoDB;
 
-create table logins
+create table roaddanger.logins
 (
   id        int auto_increment
     primary key,
   userid    int         null,
   tokenhash varchar(60) null,
   lastlogin timestamp   null
-);
+)
+  engine = InnoDB;
 
-create table logs
+create table roaddanger.logs
 (
   id        int auto_increment
     primary key,
@@ -55,17 +58,19 @@ create table logs
   info      varchar(255)                          not null,
   constraint logs_id_uindex
     unique (id)
-);
+)
+  engine = InnoDB;
 
-create table longtexts
+create table roaddanger.longtexts
 (
   id          char(100)            not null,
   language_id char(2) default 'en' not null,
   content     text                 null,
   primary key (id, language_id)
-);
+)
+  engine = InnoDB;
 
-create table questionnaires
+create table roaddanger.questionnaires
 (
   id         int auto_increment
     primary key,
@@ -75,9 +80,10 @@ create table questionnaires
   country_id char(2)              null,
   title      varchar(100)         null,
   public     tinyint(1) default 0 null comment 'Results are publicly available'
-);
+)
+  engine = InnoDB;
 
-create table questions
+create table roaddanger.questions
 (
   id             int auto_increment
     primary key,
@@ -85,23 +91,25 @@ create table questions
   active         tinyint(1) default 0 null,
   question_order smallint             null,
   explanation    varchar(200)         null
-);
+)
+  engine = InnoDB;
 
-create table questionnaire_questions
+create table roaddanger.questionnaire_questions
 (
   questionnaire_id int      not null,
   question_id      int      not null,
   question_order   smallint null,
   primary key (questionnaire_id, question_id),
   constraint quest_questions_questionnaires_id_fk
-    foreign key (questionnaire_id) references questionnaires (id)
+    foreign key (questionnaire_id) references roaddanger.questionnaires (id)
       on update cascade on delete cascade,
   constraint quest_questions_questions_id_fk
-    foreign key (question_id) references questions (id)
+    foreign key (question_id) references roaddanger.questions (id)
       on update cascade
-);
+)
+  engine = InnoDB;
 
-create table users
+create table roaddanger.users
 (
   id                   int auto_increment
     primary key,
@@ -121,14 +129,15 @@ create table users
   constraint users_id_uindex
     unique (id),
   constraint users_FK
-    foreign key (language) references languages (id)
+    foreign key (language) references roaddanger.languages (id)
       on update cascade on delete set null,
   constraint users_FK_country
-    foreign key (countryid) references countries (id)
+    foreign key (countryid) references roaddanger.countries (id)
       on update cascade on delete set null
-);
+)
+  engine = InnoDB;
 
-create table ai_prompts
+create table roaddanger.ai_prompts
 (
   id              int auto_increment
     primary key,
@@ -142,45 +151,48 @@ create table ai_prompts
   constraint web_function
     unique (function),
   constraint ai_prompts_users_id_fk
-    foreign key (user_id) references users (id)
+    foreign key (user_id) references roaddanger.users (id)
       on update cascade
-);
+)
+  engine = InnoDB;
 
-create table crashes
+create table roaddanger.crashes
 (
-  id                 int auto_increment
+  id                  int auto_increment
     primary key,
-  userid             int                                    null,
-  awaitingmoderation tinyint(1) default 1                   null,
-  createtime         timestamp  default current_timestamp() not null,
-  updatetime         timestamp  default current_timestamp() not null,
-  date               date                                   null,
-  streamtopuserid    int                                    null,
-  streamtoptype      smallint                               null comment '1: edited, 2: article added, 3: placed on top',
-  title              varchar(500)                           not null,
-  text               varchar(500)                           null,
-  countryid          char(2)                                null,
-  location           point                                  null,
-  latitude           decimal(9, 6)                          null,
-  longitude          decimal(9, 6)                          null,
-  tree               tinyint(1) default 0                   null,
-  trafficjam         tinyint(1) default 0                   null,
-  unilateral         tinyint(1)                             null,
-  hitrun             tinyint(1) default 0                   null,
-  website            varchar(1000)                          null,
-  pet                tinyint(1) default 0                   null,
-  streamdatetime     timestamp  default current_timestamp() not null,
+  userid              int                                    null,
+  awaitingmoderation  tinyint(1) default 1                   null,
+  createtime          timestamp  default current_timestamp() not null,
+  updatetime          timestamp  default current_timestamp() not null,
+  date                date                                   null,
+  streamtopuserid     int                                    null,
+  streamtoptype       smallint                               null comment '1: edited, 2: article added, 3: placed on top',
+  title               varchar(500)                           null,
+  text                varchar(500)                           null,
+  countryid           char(2)                                null,
+  location            point                                  null,
+  latitude            decimal(9, 6)                          null,
+  longitude           decimal(9, 6)                          null,
+  tree                tinyint(1) default 0                   null,
+  trafficjam          tinyint(1) default 0                   null,
+  unilateral          tinyint(1)                             null,
+  hitrun              tinyint(1) default 0                   null,
+  website             varchar(1000)                          null,
+  pet                 tinyint(1) default 0                   null,
+  streamdatetime      timestamp  default current_timestamp() not null,
+  locationdescription text                                   null,
   constraint posts_id_uindex
     unique (id),
   constraint crashes_countries_id_fk
-    foreign key (countryid) references countries (id)
+    foreign key (countryid) references roaddanger.countries (id)
       on update cascade on delete set null,
   constraint posts___fk_user
-    foreign key (userid) references users (id)
+    foreign key (userid) references roaddanger.users (id)
       on update cascade on delete cascade
-);
+)
+  engine = InnoDB;
 
-create table articles
+create table roaddanger.articles
 (
   id                 int auto_increment
     primary key,
@@ -199,14 +211,15 @@ create table articles
   constraint articles_id_uindex
     unique (id),
   constraint articles___fk_crashes
-    foreign key (crashid) references crashes (id)
+    foreign key (crashid) references roaddanger.crashes (id)
       on update cascade on delete cascade,
   constraint articles___fk_user
-    foreign key (userid) references users (id)
+    foreign key (userid) references roaddanger.users (id)
       on update cascade on delete cascade
-);
+)
+  engine = InnoDB;
 
-create table answers
+create table roaddanger.answers
 (
   questionid  int          not null,
   articleid   int          not null,
@@ -215,32 +228,33 @@ create table answers
   constraint answers_pk
     unique (questionid, articleid),
   constraint answers_articles_id_fk
-    foreign key (articleid) references articles (id)
+    foreign key (articleid) references roaddanger.articles (id)
       on update cascade on delete cascade,
   constraint answers_questions_id_fk
-    foreign key (questionid) references questions (id)
+    foreign key (questionid) references roaddanger.questions (id)
       on update cascade on delete cascade
-);
+)
+  engine = InnoDB;
 
 create index articles__index_crashid
-  on articles (crashid);
+  on roaddanger.articles (crashid);
 
 create fulltext index title
-  on articles (title, text);
+  on roaddanger.articles (title, text);
 
 create index crashes__date_streamdate_index
-  on crashes (date, streamdatetime);
+  on roaddanger.crashes (date, streamdatetime);
 
 create index crashes__index_date
-  on crashes (date);
+  on roaddanger.crashes (date);
 
 create index crashes__index_streamdatetime
-  on crashes (streamdatetime);
+  on roaddanger.crashes (streamdatetime);
 
 create fulltext index title
-  on crashes (title, text);
+  on roaddanger.crashes (title, text);
 
-create table crashpersons
+create table roaddanger.crashpersons
 (
   id                 int auto_increment
     primary key,
@@ -252,13 +266,14 @@ create table crashpersons
   hitrun             tinyint(1)         null,
   groupid            int                null,
   constraint crashpersons___fkcrashes
-    foreign key (crashid) references crashes (id)
+    foreign key (crashid) references roaddanger.crashes (id)
       on update cascade on delete cascade
-);
+)
+  engine = InnoDB;
 
 create index crashpersons___fkcrash
-  on crashpersons (crashid);
+  on roaddanger.crashpersons (crashid);
 
 create index crashpersons___fkgroup
-  on crashpersons (groupid);
+  on roaddanger.crashpersons (groupid);
 

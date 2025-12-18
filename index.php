@@ -62,6 +62,8 @@ HTML;
 
 }
 
+$hasFilters = false;
+
 if ($pageType === PageType::statisticsGeneral) {
   $texts = translateArray(['Statistics', 'General']);
 
@@ -88,7 +90,9 @@ HTML;
   $showButtonAdd = true;
   $searchFunction = 'searchCrashes';
 
-  $mainHTML = '<div id="mapMain"></div>';
+  $htmlFilters = HtmlBuilder::getHtmlSearchBar($searchFunction);
+
+  $mainHTML = "$htmlFilters<div id='mapMain'></div>";
 
 } else if ($pageType === PageType::mosaic) {
   $showButtonAdd = true;
@@ -129,15 +133,34 @@ HTML;
       "<div id='introReadMore' class='readMore' onclick='showFullIntro();'>$readMore</div>";
   }
 
+
+  // Add filters
+  $hasFilters = $searchFunction !== '';
+  if ($searchFunction === 'searchCrashes') {
+    $keySearchFunction = 'keySearchCrashes';
+  } else {
+    $keySearchFunction = '';
+  }
+
+  $htmlFilters = $hasFilters ? HtmlBuilder::getHtmlSearchBar($searchFunction, $keySearchFunction) : '';
+
   $mainHTML = <<<HTML
+
+$htmlFilters
+<div id="filterStatus"></div>
+
 <div id="pageMain">
-  <div class="pageInner">
+
+  <main class="pageInner">
     <a id="largeTitle" href="/">$pageTitle</a>
     $introText
     <div id="featuredGraph"></div>
+       
+    <div id="filterStatus"></div>
     <div id="cards"></div>
     <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
-  </div>
+  </main>  
+  
 </div>
 HTML;
 
@@ -145,7 +168,7 @@ HTML;
 }
 
 $html =
-  HtmlBuilder::getHTMLBeginMain('', $head, 'initMain', $searchFunction,
+  HtmlBuilder::getHTMLBeginMain('', $head, 'initMain', $hasFilters,
     $showButtonAdd) .
   $mainHTML .
   HtmlBuilder::getHTMLEnd();

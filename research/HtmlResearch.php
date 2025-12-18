@@ -170,7 +170,7 @@ HTML;
     $textIntro  
   </div>
 
-  <div id="searchBar" class="searchBarTransparent" style="display: flex;">
+  <div id="searchBar active" class="searchBarTransparent" style="display: flex;">
     <div class="toolbarItem">
       <span id="filterResearchDead" class="menuButton bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
       <span id="filterResearchChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireOption();"></span>      
@@ -246,7 +246,7 @@ HTML;
   
   </div>
   
-  <div id="searchBar" class="searchBarTransparent" style="display: flex;">
+  <div id="searchBar active" class="searchBarTransparent" style="display: flex;">
     <div class="toolbarItem">
       <span id="filterResearchDead" class="menuButton bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
       <span id="filterResearchChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireOption();"></span>      

@@ -3,11 +3,10 @@
 class HtmlBuilder {
 
   public static function getHTMLBeginMain(string $pageTitle='', string $head='', string $initFunction='',
-      string $searchFunction='', bool $showButtonAdd=false): string {
+      bool $addSearchButton=false, bool $showButtonAdd=false): string {
     global $VERSION;
 
     $texts = translateArray(['Cookie_warning', 'More_info', 'Accept', 'Add']);
-    $addSearchBar = $searchFunction !== '';
 
     if (! empty($pageTitle)) $title = $pageTitle . ' | ' . WEBSITE_NAME;
     else $title = WEBSITE_NAME;
@@ -29,7 +28,7 @@ HTML;
     } else $cookieWarning = '';
 
     $buttons = '';
-    if ($addSearchBar) {
+    if ($addSearchButton) {
       $buttons .= '<div id="buttonSearch" class="menuButtonBlack bgSearchWhite" onclick="toggleSearchBar(event);"></div>';
     }
 
@@ -62,14 +61,6 @@ HTML;
     }
 
     $texts = translateArray(['Log_out', 'Log_in', 'Account', 'Location', 'Language']);
-
-    if ($searchFunction === 'searchCrashes') {
-      $keySearchFunction = 'keySearchCrashes';
-    } else {
-      $keySearchFunction = '';
-    }
-
-    $htmlSearchBar = $addSearchBar ? self::getHtmlSearchBar($searchFunction, $keySearchFunction) : '';
 
     return <<<HTML
 <!DOCTYPE html>
@@ -148,44 +139,37 @@ $navigation
     </div>
   </div>
   
-  $htmlSearchBar
-  
   $cookieWarning
 HTML;
   }
 
   public static function getHtmlSearchBar(string $searchFunction, string $keySearchFunction='', bool $inline=false,
                                           bool $addPersons=true, bool $addHealth=true): string {
-    $texts = translateArray(['Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source', 'Search_text_hint', 'User_Id']);
+    $texts = translateArray(['Child', 'Dead_(adjective)', 'Injured', 'Filter', 'Search', 'Source', 'Search_text_hint', 'User_Id']);
 
     $htmlSearchPeriod = self::getSearchPeriodHtml();
     $htmlSearchPersons = $addPersons? self::getSearchPersonsHtml() : '';
 
-    $searchBarClass = $inline ?'searchBarTransparent' : 'searchBar';
-    $htmlCloseSearchBar = $inline ? '' : '<div class="popupCloseCross closeCrossWhite" onclick="toggleSearchBar();"></div>';
+    $searchBarClass = $inline? 'searchBarTransparent' : 'searchBar';
+    $htmlCloseSearchBar = $inline? '' : '<div class="popupCloseCross closeCrossWhite" onclick="toggleSearchBar();"></div>';
     $htmlKeyUp = $keySearchFunction === ''? '' : "onkeyup='{$keySearchFunction}()'";
 
     $htmlHealth = '';
     if ($addHealth) {
       $htmlHealth = <<<HTML
-      <span id="searchPersonHealthDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Dead_(adjective)']}" onclick="selectSearchPersonDead();"></span>      
-      <span id="searchPersonHealthInjured" class="menuButtonBlack bgInjuredWhite" data-tippy-content="{$texts['Injured']}" onclick="selectSearchPersonInjured();"></span>
+      <span id="searchPersonHealthDead" class="menuButtonBlack toolbarItem bgDeadWhite" data-tippy-content="{$texts['Dead_(adjective)']}" onclick="selectSearchPersonDead();"></span>      
+      <span id="searchPersonHealthInjured" class="menuButtonBlack toolbarItem bgInjuredWhite" data-tippy-content="{$texts['Injured']}" onclick="selectSearchPersonInjured();"></span>
 HTML;
-
     }
 
     return <<<HTML
-  <div id="searchBar" class="$searchBarClass">
+  <aside id="searchBar" class="$searchBarClass active">
     $htmlCloseSearchBar
 
-    <div class="toolbarItem">
-      $htmlHealth
-      <span id="searchPersonChild" class="menuButtonBlack bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectSearchPersonChild();"></span>      
-    </div>
+    $htmlHealth
+    <span id="searchPersonChild" class="menuButtonBlack toolbarItem bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectSearchPersonChild();"></span>      
    
-    <div class="toolbarItem">
-       <input id="searchText" class="searchInput textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" $htmlKeyUp autocomplete="off">  
-    </div>
+    <input id="searchText" class="searchInput toolbarItem textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" $htmlKeyUp autocomplete="off">  
 
     $htmlSearchPeriod
     
@@ -195,10 +179,8 @@ HTML;
 
     <input id="searchUserId" class="searchInput toolbarItem" style="display: none; width: 80px;" type="number" placeholder="{$texts['User_Id']}" $htmlKeyUp>
 
-    <div class="toolbarItem">
-      <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="$searchFunction()">{$texts['Search']}</div>
-    </div>
-  </div>      
+    <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="$searchFunction()">{$texts['Filter']}</div>
+  </aside>      
 HTML;
 
   }
@@ -735,7 +717,7 @@ HTML;
     $intro
   </div>
 
-  <div id="searchBar" class="searchBarTransparent" style="display: flex; padding-bottom: 0;">
+  <div id="searchBar active" class="searchBarTransparent" style="display: flex; padding-bottom: 0;">
 
     <div class="toolbarItem">
       <span id="filterChildDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterChildVictims();"></span>      
@@ -896,7 +878,7 @@ HTML;  }
     $texts = translateArray(['Always', 'Today', 'Yesterday', 'days', 'The_correspondent_week', 'Custom_period', 'Period', 'Start_date', 'End_date']);
 
     $onInputFunction = $onInputFunctionName === '' ? '' : $onInputFunctionName . '();';
-    $onInputSelect = 'oninput="setCustomRangeVisibility();' . $onInputFunction . '"';
+    $onInputSelect = 'oninput="setSearchDateFieldsVisibility();' . $onInputFunction . '"';
     $onInputDates = $onInputFunction ? 'oninput="' . $onInputFunction . '"' : '';
 
     return <<<HTML

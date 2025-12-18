@@ -436,7 +436,16 @@ SQL;
     return $result;
   }
 
+  /**
+   * @throws Exception
+   */
   private function aiDeletePrompt(): array {
+
+    // AI prompt with a function cannot be deleted
+    $sql = "SELECT 1 FROM ai_prompts WHERE id=:id AND function IS NOT NULL;";
+    $params = [':id' => $this->input['id']];
+    $dbResult = $this->database->fetchSingleValue($sql, $params);
+    if ($dbResult !== false) throw new \Exception("Cannot delete an AI prompt with a function. Remove the function first.");
 
     if (! $this->mayEditPrompt($this->input['id'])) throw new \Exception("You cannot delete somebody else's prompt");
 
@@ -576,12 +585,20 @@ SQL;
     return [];
   }
 
+  /**
+   * @throws Exception
+   */
   private function removeAiModel(): array {
+    // Check if the model is still used in prompts
     $modelId = $this->input['model_id'];
 
-    $SQL = "DELETE FROM ai_models WHERE id=:id;";
+    $sql = "SELECT COUNT(*) FROM ai_prompts WHERE model_id=:model_id;";
+    $count = $this->database->fetchSingleValue($sql, [':model_id' => $modelId]);
 
-    $this->database->execute($SQL, ['id' => $modelId]);
+    if ($count > 0) throw new \Exception("Model is still used in $count prompts. Remove it from existing prompts first.");
+
+    $SQL = "DELETE FROM ai_models WHERE id=:model_id;";
+    $this->database->execute($SQL, ['model_id' => $modelId]);
 
     return [];
   }

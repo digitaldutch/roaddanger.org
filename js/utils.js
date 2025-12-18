@@ -3,6 +3,7 @@ let countries = [];
 let observerSpinner;
 let tableData = [];
 let selectedTableData = [];
+let filter;
 
 let xTouchDown = null;
 let yTouchDown = null;
@@ -1255,7 +1256,7 @@ function toggleCheckOptions(event, id) {
   }
 }
 
-function initSearchBar(){
+function initFilterPersons(){
   if (! document.getElementById('searchBar')) return;
   if (! document.getElementById('searchPersons')) return;
 
@@ -1278,18 +1279,10 @@ function initSearchBar(){
   }
 
   document.getElementById('searchSearchPersons').innerHTML = html;
-
-  setCustomRangeVisibility();
 }
 
-function setCustomRangeVisibility() {
-  const elementPeriod = document.getElementById('searchPeriod');
-
-  if (elementPeriod) {
-    const custom = elementPeriod.value === 'custom';
-    document.getElementById('searchDateFrom').style.display = custom? 'block' : 'none';
-    document.getElementById('searchDateTo').style.display   = custom? 'block' : 'none';
-  }
+function setSearchDateFieldsVisibility() {
+  filter.setSearchDateFieldsVisibility();
 }
 
 function searchPersonClick(transportationMode) {
@@ -1422,6 +1415,7 @@ function setPersonsFilter(personsCodes){
       elementPerson.classList.remove('itemSelected');
     }
   }
+
   updateTransportationModeFilterInput();
 }
 

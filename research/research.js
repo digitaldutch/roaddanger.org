@@ -1,5 +1,7 @@
 let aiModels;
 let lastGenerationId;
+let aiPrompt = null;
+
 async function initResearch(){
   spinnerLoad = document.getElementById('spinnerLoad');
 
@@ -7,10 +9,11 @@ async function initResearch(){
 
   initPage();
 
-  initSearchBar();
+  initFilterPersons();
 
   const url = new URL(location.href);
-  setupUrlFilters(url);
+
+  setResearchFilterFromUrl(url);
 
   if (url.pathname.startsWith('/research/questionnaires/settings')) {
     if (! user.admin) {showError('Not an administrator'); return;}
@@ -29,7 +32,7 @@ async function initResearch(){
   }
 }
 
-function setupUrlFilters(url) {
+function setResearchFilterFromUrl(url) {
   const searchHealthDead = url.searchParams.get('hd');
   const searchChild = url.searchParams.get('child');
   const searchTimeSpan = url.searchParams.get('timeSpan');
@@ -555,33 +558,33 @@ async function addAiModel() {
 }
 
 async function loadaiPrompt() {
-  const prompt = selectedTableData[1];
+  aiPrompt = selectedTableData[1];
 
-  if (! prompt) {
+  if (! aiPrompt) {
     showError('No AI prompt selected');
     return;
   }
 
-  const model = aiModels.find(m => m.id === prompt.model_id);
+  const model = aiModels.find(m => m.id === aiPrompt.model_id);
   if (! model) {
-    showError(`AI model "${prompt.model_id}" is not available. Add this model or select another one.`);
+    showError(`AI model "${aiPrompt.model_id}" is not available. Add this model or select another one.`);
   }
 
-  document.getElementById('aiPromptId').value = prompt.id;
-  document.getElementById('aiModel').value = prompt.model_id;
-  document.getElementById('aiSystemPrompt').value = prompt.system_prompt;
-  document.getElementById('aiPrompt').value = prompt.user_prompt;
-  document.getElementById('aiResponseFormat').value = prompt.response_format;
+  document.getElementById('aiPromptId').value = aiPrompt.id;
+  document.getElementById('aiModel').value = aiPrompt.model_id;
+  document.getElementById('aiSystemPrompt').value = aiPrompt.system_prompt;
+  document.getElementById('aiPrompt').value = aiPrompt.user_prompt;
+  document.getElementById('aiResponseFormat').value = aiPrompt.response_format;
 
-  document.getElementById('aiArticleId').value = prompt.article_id;
+  document.getElementById('aiArticleId').value = aiPrompt.article_id;
   document.getElementById('aiArticle').innerText = '';
 
-  document.getElementById('promptInfo').innerText = `id: ${prompt.id} | user: ${prompt.user}`;
-  if (prompt.function) document.getElementById('promptInfo').innerText += ` | function: ${prompt.function}`;
+  document.getElementById('promptInfo').innerText = `id: ${aiPrompt.id} | user: ${aiPrompt.user}`;
+  if (aiPrompt.function) document.getElementById('promptInfo').innerText += ` | function: ${aiPrompt.function}`;
 
   document.getElementById('formLoadAiModel').style.display = 'none';
 
-  loadArticle(prompt.article_id);
+  loadArticle(aiPrompt.article_id);
 
   showStructuredOutputSection(model && model.structured_outputs);
 }
@@ -1160,50 +1163,65 @@ async function aiRunPrompt() {
 }
 
 function aiNewPrompt() {
- document.getElementById('aiPromptId').value = null;
- document.getElementById('aiModel').value = null;
- document.getElementById('aiPrompt').value = null;
- document.getElementById('aiSystemPrompt').value = null;
- document.getElementById('aiResponseFormat').value = null;
+  aiPrompt = null;
 
- document.getElementById('promptInfo').innerText = ``;
+  document.getElementById('aiPromptId').value = null;
+  document.getElementById('aiModel').value = null;
+  document.getElementById('aiPrompt').value = null;
+  document.getElementById('aiSystemPrompt').value = null;
+  document.getElementById('aiResponseFormat').value = null;
+
+  document.getElementById('promptInfo').innerText = ``;
 }
 async function aiSavePrompt() {
-  const spinner = document.getElementById('spinnerRunPrompt');
-  try {
-    spinner.style.display = 'flex';
 
-    const model = selectedAiModel();
+  async function savePrompt() {
+    const spinner = document.getElementById('spinnerRunPrompt');
+    try {
+      spinner.style.display = 'flex';
 
-    const data = {
-      id: document.getElementById('aiPromptId').value,
-      modelId: document.getElementById('aiModel').value,
-      userPrompt: document.getElementById('aiPrompt').value,
-      systemPrompt: document.getElementById('aiSystemPrompt').value,
-      responseFormat: model.structured_outputs? document.getElementById('aiResponseFormat').value : '',
-      articleId: document.getElementById('aiArticleId').value,
+      const model = selectedAiModel();
+
+      const data = {
+        id: document.getElementById('aiPromptId').value,
+        modelId: document.getElementById('aiModel').value,
+        userPrompt: document.getElementById('aiPrompt').value,
+        systemPrompt: document.getElementById('aiSystemPrompt').value,
+        responseFormat: model.structured_outputs? document.getElementById('aiResponseFormat').value : '',
+        articleId: document.getElementById('aiArticleId').value,
+      }
+
+      if (data.userPrompt.length < 1) {showError('User prompt is empty'); return;}
+
+      const url = '/research/ajaxResearch.php?function=aiSavePrompt';
+      const response = await fetchFromServer(url, data);
+
+      if (response.error) {
+        showError(response.error);
+        return;
+      }
+
+      if (! data.id) {
+        data.id = response.id;
+        data.user = user.firstname + ' ' + user.lastname;
+        document.getElementById('promptInfo').innerText = `id: ${data.id} | user: ${data.user}`;
+        document.getElementById('aiPromptId').value = data.id;
+      }
+
+    } finally {
+      spinner.style.display = 'none';
     }
-
-    if (data.userPrompt.length < 1) {showError('User prompt is empty'); return;}
-
-    const url = '/research/ajaxResearch.php?function=aiSavePrompt';
-    const response = await fetchFromServer(url, data);
-
-    if (response.error) {
-      showError(response.error);
-      return;
-    }
-
-    if (! data.id) {
-      data.id = response.id;
-      data.user = user.firstname + ' ' + user.lastname;
-      document.getElementById('promptInfo').innerText = `id: ${data.id} | user: ${data.user}`;
-      document.getElementById('aiPromptId').value = data.id;
-    }
-
-  } finally {
-    spinner.style.display = 'none';
   }
+
+  if (aiPrompt) {
+    if (aiPrompt.function) {
+      confirmWarning(`This prompt is actively used on this website.<br><br>Current function: ${aiPrompt.function}<br><br>Are you really, really sure you want to overwrite it?`,
+        savePrompt,
+        `Yes overwrite`
+      );
+    }
+  } else savePrompt();
+
 }
 
 function aiSaveCopyPrompt() {
