@@ -92,12 +92,14 @@ HTML;
 
   $htmlFilters = HtmlBuilder::getHtmlSearchBar($searchFunction);
 
-  $mainHTML = "$htmlFilters<div id='mapMain'></div>";
+  $mainHTML = $htmlFilters . "<div id='mapMain'></div>";
 
 } else if ($pageType === PageType::mosaic) {
   $showButtonAdd = true;
   $searchFunction = 'searchCrashes';
-  $mainHTML = HtmlBuilder::pageMosaic();
+  $htmlFilters = HtmlBuilder::getHtmlSearchBar($searchFunction);
+
+  $mainHTML = $htmlFilters . HtmlBuilder::pageMosaic();
 
 } else if ($pageType === PageType::statisticsHumanizationTest) {
   $mainHTML = HtmlBuilder::pageHumanizationTest();
@@ -132,7 +134,6 @@ HTML;
     $introText .= "<div id='sectionIntro' class='sectionIntro sectionCollapsed'>$websiteInfo</div>" .
       "<div id='introReadMore' class='readMore' onclick='showFullIntro();'>$readMore</div>";
   }
-
 
   // Add filters
   $hasFilters = $searchFunction !== '';
