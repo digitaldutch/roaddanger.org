@@ -1257,7 +1257,7 @@ function toggleCheckOptions(event, id) {
 }
 
 function initFilterPersons(){
-  if (! document.getElementById('searchBar')) return;
+  if (! document.getElementById('filterBar')) return;
   if (! document.getElementById('searchPersons')) return;
 
   let html = '';
@@ -1281,12 +1281,9 @@ function initFilterPersons(){
   document.getElementById('searchSearchPersons').innerHTML = html;
 }
 
-function setSearchDateFieldsVisibility() {
-  filter.setSearchDateFieldsVisibility();
-}
-
 function searchPersonClick(transportationMode) {
   document.getElementById('tm' + transportationMode).classList.toggle('itemSelected');
+
   unselectSingleOnlyOptionsIfMultiplePersonsSelected();
   updateTransportationModeFilterInput();
 }
@@ -1304,7 +1301,7 @@ function unselectSingleOnlyOptionsIfMultiplePersonsSelected(){
   }
 }
 
-function updateTransportationModeFilterInput(){
+function getTransportationModeFilterHtml(white=false) {
   let html = '';
 
   for (const key of Object.keys(TransportationMode)){
@@ -1314,39 +1311,46 @@ function updateTransportationModeFilterInput(){
     const element = document.getElementById(elementId);
 
     if (element.classList.contains('itemSelected')) {
-      let icon = transportationModeImageClassName(transportationMode);
+      let icon = transportationModeImageClassName(transportationMode, white);
       html += `<span class="inputIconGroup"><span class="searchDisplayIcon ${icon}" data-tippy-content="${transportationText}"></span>`;
 
       const deadSelected = document.getElementById('searchDeadTm' + transportationMode).classList.contains('inputSelectButtonSelected');
-      if (deadSelected){
+      if (deadSelected) {
         let icon = healthImageClassName(Health.dead);
         html += `<span class="searchDisplayIcon ${icon}" data-tippy-content="${translate('Dead_(adjective)')}"></span>`;
       }
 
       const injuredSelected = document.getElementById('searchInjuredTm' + transportationMode).classList.contains('inputSelectButtonSelected');
-      if (injuredSelected){
+      if (injuredSelected) {
         let icon = healthImageClassName(Health.injured);
         html += `<span class="searchDisplayIcon ${icon}" data-tippy-content="${translate('Injured')}"></span>`;
       }
 
       const restrictedSelected = document.getElementById('searchRestrictedTm' + transportationMode).classList.contains('inputSelectButtonSelected');
-      if (restrictedSelected){
+      if (restrictedSelected) {
         html += `<span class="searchDisplayIcon  ${icon} mirrorHorizontally" data-tippy-content="${translate('Counterparty_same_mode')}"></span>`;
       }
 
       const unilateralSelected = document.getElementById('searchUnilateralTm' + transportationMode).classList.contains('inputSelectButtonSelected');
-      if (unilateralSelected){
-        html += `<span class="searchDisplayIcon bgUnilateral" data-tippy-content="${translate('One_sided_crash')}"></span>`;
+      if (unilateralSelected) {
+        const iconUnilateral = white? 'bgUnilateralWhite' : 'bgUnilateral';
+        html += `<span class="searchDisplayIcon ${iconUnilateral}" data-tippy-content="${translate('One_sided_crash')}"></span>`;
       }
 
       html += '</span>';
     }
   }
 
+  return html;
+}
+function updateTransportationModeFilterInput(){
+  let html = getTransportationModeFilterHtml();
+
   // Show placeholder text if no persons selected
   if (html === '') html = translate('Humans');
-  document.getElementById('inputSearchPersons').innerHTML = html;
-  tippy('#inputSearchPersons [data-tippy-content]');
+  document.getElementById('inputSearchHumans').innerHTML = html;
+  
+  tippy('#inputSearchHumans [data-tippy-content]');
 }
 
 function getPersonsFromFilter(){
@@ -1381,7 +1385,7 @@ function getPersonsFromFilter(){
 
 function setPersonsFilter(personsCodes){
 
-  if (! document.getElementById('inputSearchPersons')) return;
+  if (! document.getElementById('inputSearchHumans')) return;
 
   let persons = personsCodes.map(p => {
     return {

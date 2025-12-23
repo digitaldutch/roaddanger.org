@@ -110,7 +110,7 @@ HTML;
   <div class="smallFont" style="margin-bottom: 10px; text-align: center;">Help making this website more accessible by translating these texts into your own language.</div>
 
   <div style="margin-bottom: 5px;">
-    <select id="selectLanguage" class="searchInput" oninput="changeUserLanguage();">$languageOptions</select>
+    <select id="selectLanguage" class="filterInput active" oninput="changeUserLanguage();">$languageOptions</select>
 
     <button class="button" onclick="saveTranslations();">{$texts['Save']}</button>
     <button class="button buttonGray" onclick="newTranslation();" data-inline-admin>{$texts['New']}</button>
@@ -158,9 +158,9 @@ HTML;
   <div class="pageSubTitle">{$texts['Admin']} - {$texts['Long_texts']}</div>
   <div class="smallFont" style="margin-bottom: 10px;">Help making this website more accessible by translating these texts into your own language.</div>
 
-  <div style="margin-bottom: 5px;">
-    <select id="selectLongText" class="searchInput" oninput="loadLongText();">$longTextOptions</select>
-    <select id="selectLanguage" class="searchInput" style="margin-left: 5px;" oninput="loadLongText();">$languageOptions</select>
+  <div style="display: flex; margin-bottom: 5px;">
+    <select id="selectLongText" class="filterInput active" oninput="loadLongText();">$longTextOptions</select>
+    <select id="selectLanguage" class="filterInput active" style="margin-left: 5px;" oninput="loadLongText();">$languageOptions</select>
     <button class="button" onclick="saveLongText();">{$texts['Save']}</button>
   </div>
 

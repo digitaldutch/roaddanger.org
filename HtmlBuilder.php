@@ -3,7 +3,7 @@
 class HtmlBuilder {
 
   public static function getHTMLBeginMain(string $pageTitle='', string $head='', string $initFunction='',
-      bool $addSearchButton=false, bool $showButtonAdd=false): string {
+      bool $showButtonAdd=false): string {
     global $VERSION;
 
     $texts = translateArray(['Cookie_warning', 'More_info', 'Accept', 'Add']);
@@ -28,10 +28,6 @@ HTML;
     } else $cookieWarning = '';
 
     $buttons = '';
-    if ($addSearchButton) {
-      $buttons .= '<div id="buttonSearch" class="menuButtonBlack bgSearchWhite" onclick="toggleSearchBar(event);"></div>';
-    }
-
     if ($showButtonAdd) {
       $buttons .= <<<HTML
 <div id="buttonNewCrash" class="buttonHeader buttonImportant" onclick="showNewCrashForm();">
@@ -143,46 +139,45 @@ $navigation
 HTML;
   }
 
-  public static function getHtmlSearchBar(string $searchFunction, string $keySearchFunction='', bool $inline=false,
-                                          bool $addPersons=true, bool $addHealth=true): string {
+  public static function getHtmlFilterBar(bool $inline=false, bool $addStatusbar=false, bool $addPersons=true, bool $addHealth=true): string {
     $texts = translateArray(['Child', 'Dead_(adjective)', 'Injured', 'Filter', 'Search', 'Source', 'Search_text_hint', 'User_Id']);
+
+    $classTransparent = $inline? 'filterBarTransparent' : '';
 
     $htmlSearchPeriod = self::getSearchPeriodHtml();
     $htmlSearchPersons = $addPersons? self::getSearchPersonsHtml() : '';
 
-    $searchBarClass = $inline? 'searchBarTransparent' : 'searchBar';
-    $htmlCloseSearchBar = $inline? '' : '<div class="popupCloseCross closeCrossWhite" onclick="toggleSearchBar();"></div>';
-    $htmlKeyUp = $keySearchFunction === ''? '' : "onkeyup='{$keySearchFunction}()'";
+    $htmlStatusbar = $addStatusbar? "<aside id='filterStatus' class='filterStatus $classTransparent'></aside>" : '';
 
     $htmlHealth = '';
     if ($addHealth) {
       $htmlHealth = <<<HTML
-      <span id="searchPersonHealthDead" class="menuButtonBlack toolbarItem bgDeadWhite" data-tippy-content="{$texts['Dead_(adjective)']}" onclick="selectSearchPersonDead();"></span>      
-      <span id="searchPersonHealthInjured" class="menuButtonBlack toolbarItem bgInjuredWhite" data-tippy-content="{$texts['Injured']}" onclick="selectSearchPersonInjured();"></span>
+      <span id="searchPersonHealthDead" class="menuButtonBlack toolbarItem active bgDeadWhite" data-tippy-content="{$texts['Dead_(adjective)']}" onclick="selectSearchPersonDead();"></span>      
+      <span id="searchPersonHealthInjured" class="menuButtonBlack toolbarItem active bgInjuredWhite" data-tippy-content="{$texts['Injured']}" onclick="selectSearchPersonInjured();"></span>
 HTML;
     }
 
     return <<<HTML
-  <aside id="searchBar" class="$searchBarClass active">
-    $htmlCloseSearchBar
-
+  <aside id="filterBar" class="filterBar $classTransparent active">
+  
     $htmlHealth
-    <span id="searchPersonChild" class="menuButtonBlack toolbarItem bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectSearchPersonChild();"></span>      
+    
+    <span id="searchPersonChild" class="menuButtonBlack active toolbarItem bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="selectSearchPersonChild();"></span>      
    
-    <input id="searchText" class="searchInput toolbarItem textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" $htmlKeyUp autocomplete="off">  
+    <input id="searchText" class="filterInput active toolbarItem textInputWidth"  type="search" data-tippy-content="{$texts['Search_text_hint']}" placeholder="{$texts['Search']}" autocomplete="off">  
 
     $htmlSearchPeriod
     
     $htmlSearchPersons    
            
-    <input id="searchSiteName" class="searchInput toolbarItem textInputWidth" type="search" placeholder="{$texts['Source']}" $htmlKeyUp autocomplete="off">
+    <input id="searchSiteName" class="filterInput active toolbarItem textInputWidth" type="search" placeholder="{$texts['Source']}" autocomplete="off">
 
-    <input id="searchUserId" class="searchInput toolbarItem" style="display: none; width: 80px;" type="number" placeholder="{$texts['User_Id']}" $htmlKeyUp>
+    <input id="searchUserId" class="filterInput toolbarItem" style="width: 100px;" type="number" placeholder="{$texts['User_Id']}">
 
-    <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="$searchFunction()">{$texts['Filter']}</div>
+    <div id="filterButton" class="button buttonMobileSmall buttonImportant" style="margin-left: 0;">{$texts['Filter']}</div>
   </aside>      
+  $htmlStatusbar
 HTML;
-
   }
 
   public static function getHTMLEnd($htmlEnd = ''): string {
@@ -697,6 +692,30 @@ HTML;
 HTML;
   }
 
+  public static function pageMap(): string {
+    $htmlFilters = HtmlBuilder::getHtmlFilterBar(addStatusbar: true);
+
+    return $htmlFilters . "<div id='mapMain'></div>";
+  }
+
+  public static function pageStatsGeneral(): string {
+    $texts = translateArray(['Statistics', 'General']);
+
+    return <<<HTML
+<div id="pageMain">
+  <div class="pageInner pageInnerScroll">    
+    <div class="pageSubTitle">{$texts['Statistics']} - {$texts['General']}</div>
+    
+    <div class="panelTableOverflow">
+       <table id="tableStatistics" class="dataTable"></table>
+      <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>
+    </div>
+    
+  </div>
+</div>
+HTML;
+  }
+
   public static function pageChildVictims(): string {
     global $user;
     $texts = translateArray(['Child_victims', 'Injury', 'Dead_(adjective)', 'Injured', 'Help_improve_data_accuracy']);
@@ -717,7 +736,7 @@ HTML;
     $intro
   </div>
 
-  <div id="searchBar active" class="searchBarTransparent" style="display: flex; padding-bottom: 0;">
+  <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex; padding-bottom: 0;">
 
     <div class="toolbarItem">
       <span id="filterChildDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterChildVictims();"></span>      
@@ -739,7 +758,10 @@ HTML;
   }
 
   public static function pageMosaic(): string {
+    $htmlFilters = HtmlBuilder::getHtmlFilterBar(addStatusbar: true);
+
     return <<<HTML
+$htmlFilters
 <div id="pageMain">
   <div id="cards"></div>
   <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
@@ -792,11 +814,10 @@ HTML;
     global $user;
     $infoText = $user->translateLongText('counter_party_info');
 
-    $htmlSearchBar = self::getHtmlSearchBar(
-      searchFunction: 'searchStatistics',
-      keySearchFunction: 'startStatsSearchKey',
+    $htmlfilterBar = self::getHtmlFilterBar(
       inline: true,
-      addPersons: false
+      addPersons: false,
+      addStatusbar: true,
     );
 
     return <<<HTML
@@ -817,7 +838,7 @@ HTML;
 
   <div id="statistics">
   
-    $htmlSearchBar
+    $htmlfilterBar
 
     <div id="graphWrapper" style="display: none; margin-top: 10px; padding: 5px;">
       <div id="graphPartners" style="position: relative;"></div>  
@@ -836,11 +857,12 @@ HTML;
       'Intoxicated', 'Drive_on_or_fleeing', 'Dead_(adjective)', 'Injured', 'Uninjured', 'Unknown', 'Search_text_hint',
       'Search']);
 
-    $htmlSearchBar = self::getHtmlSearchBar(
-      searchFunction: 'searchStatistics',
+    $htmlfilterBar = self::getHtmlFilterBar(
       inline: true,
       addPersons: false,
-      addHealth: false);
+      addHealth: false,
+      addStatusbar: true,
+    );
 
     return <<<HTML
 <div id="pageMain">
@@ -849,7 +871,7 @@ HTML;
     
     <div id="statistics">
     
-      $htmlSearchBar   
+      $htmlfilterBar   
   
       <table class="dataTable" style="margin-top: 10px;">
         <thead>
@@ -878,12 +900,12 @@ HTML;  }
     $texts = translateArray(['Always', 'Today', 'Yesterday', 'days', 'The_correspondent_week', 'Custom_period', 'Period', 'Start_date', 'End_date']);
 
     $onInputFunction = $onInputFunctionName === '' ? '' : $onInputFunctionName . '();';
-    $onInputSelect = 'oninput="setSearchDateFieldsVisibility();' . $onInputFunction . '"';
+    $onInputSelect = 'oninput="filter.setFilterFieldsVisibility();' . $onInputFunction . '"';
     $onInputDates = $onInputFunction ? 'oninput="' . $onInputFunction . '"' : '';
 
     return <<<HTML
 <div class="toolbarItem">
-  <select id="searchPeriod" class="searchInput" $onInputSelect data-tippy-content="{$texts['Period']}">
+  <select id="searchPeriod" class="filterInput active" $onInputSelect data-tippy-content="{$texts['Period']}">
     <option value="all" selected>{$texts['Always']}</option> 
     <option value="today">{$texts['Today']}</option> 
     <option value="yesterday">{$texts['Yesterday']}</option> 
@@ -894,8 +916,8 @@ HTML;  }
   </select>
 </div>
 
-<input id="searchDateFrom" class="searchInput toolbarItem" type="date" data-tippy-content="{$texts['Start_date']}" $onInputDates>
-<input id="searchDateTo" class="searchInput toolbarItem" type="date" data-tippy-content="{$texts['End_date']}" $onInputDates>
+<input id="searchDateFrom" class="filterInput toolbarItem" type="date" data-tippy-content="{$texts['Start_date']}" $onInputDates>
+<input id="searchDateTo" class="filterInput toolbarItem" type="date" data-tippy-content="{$texts['End_date']}" $onInputDates>
 HTML;
   }
 
@@ -903,10 +925,10 @@ HTML;
     $texts = translateArray(['Humans']);
 
     return <<<HTML
-    <div id="searchPersons" class="toolbarItem">
+    <div id="searchPersons" class="toolbarItem active">
       <div class="dropInputWrapper">
-        <div class="searchInput dropInput" tabindex="0" onclick="toggleSearchPersons(event);">
-          <div id="inputSearchPersons" style="display: flex">{$texts['Humans']}</div>
+        <div class="filterInput dropInput" tabindex="0" onclick="toggleSearchPersons(event);">
+          <div id="inputSearchHumans" style="display: flex">{$texts['Humans']}</div>
           <div id="arrowSearchPersons" class="inputArrowDown"></div>  
         </div>
         
@@ -940,9 +962,49 @@ HTML;
     }
 
     return <<<HTML
-<select id="$elementId" class="searchInput" data-tippy-content="{$texts['Country']}">
+<select id="$elementId" class="filterInput active" data-tippy-content="{$texts['Country']}">
   $countryOptions
 </select>
+HTML;
+  }
+
+  public static function pageRecent($pageType): string {
+    $websiteInfo = translateLongText('website_info');
+
+    $title = '';
+    switch ($pageType){
+      case PageType::lastChanged: $title = translate('Last_modified_crashes'); break;
+      case PageType::deCorrespondent: $title = translate('The_correspondent_week') . '<br>14-20 jan. 2019'; break;
+      case PageType::moderations: $title = translate('Moderations'); break;
+      case PageType::recent: $title = translate('Recent_crashes'); break;
+    }
+
+    $pageTitle = WEBSITE_NAME;
+    $introText = "<div id='pageSubTitle' class='pageSubTitle'>$title</div>";
+
+    if (isset($websiteInfo) && in_array($pageType, [PageType::recent, PageType::lastChanged, PageType::deCorrespondent, PageType::crash])) {
+      $readMore = translate('Read_more');
+      $introText .= "<div id='sectionIntro' class='sectionIntro sectionCollapsed'>$websiteInfo</div>" .
+        "<div id='introReadMore' class='readMore' onclick='showFullIntro();'>$readMore</div>";
+    }
+
+    $htmlFilters = HtmlBuilder::getHtmlFilterBar(addStatusbar: true);
+
+    return <<<HTML
+$htmlFilters
+
+<div id="pageMain">
+
+  <main class="pageInner">
+    <a id="largeTitle" href="/">$pageTitle</a>
+    $introText
+    <div id="featuredGraph"></div>
+       
+    <div id="cards"></div>
+    <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
+  </main>  
+  
+</div>
 HTML;
   }
 

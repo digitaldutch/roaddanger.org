@@ -24,7 +24,8 @@ else $pageType = PageType::recent;
 
 $searchFunction = '';
 $showButtonAdd = false;
-$head = "<script src='/js/main.js?v=$VERSION'></script>";
+$head = "<script src='/js/main.js?v=$VERSION'></script>" .
+  "<script src='/js/Filter.js?v=$VERSION'></script>";
 
 if ($pageType === PageType::statisticsCrashPartners) {
   $head .= "<script src='/scripts/d3.v7.js?v=$VERSION'></script>
@@ -62,115 +63,28 @@ HTML;
 
 }
 
-$hasFilters = false;
-
-if ($pageType === PageType::statisticsGeneral) {
-  $texts = translateArray(['Statistics', 'General']);
-
-  $mainHTML = <<<HTML
-<div id="pageMain">
-  <div class="pageInner pageInnerScroll">    
-    <div class="pageSubTitle">{$texts['Statistics']} - {$texts['General']}</div>
-    
-    <div class="panelTableOverflow">
-       <table id="tableStatistics" class="dataTable"></table>
-      <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>
-    </div>
-    
-  </div>
-</div>
-HTML;
-} else if ($pageType === PageType::childVictims) {
-
-  $showButtonAdd = true;
-
-  $mainHTML = HtmlBuilder::pageChildVictims();
-
-} else if ($pageType === PageType::map) {
-  $showButtonAdd = true;
-  $searchFunction = 'searchCrashes';
-
-  $htmlFilters = HtmlBuilder::getHtmlSearchBar($searchFunction);
-
-  $mainHTML = $htmlFilters . "<div id='mapMain'></div>";
-
-} else if ($pageType === PageType::mosaic) {
-  $showButtonAdd = true;
-  $searchFunction = 'searchCrashes';
-  $htmlFilters = HtmlBuilder::getHtmlSearchBar($searchFunction);
-
-  $mainHTML = $htmlFilters . HtmlBuilder::pageMosaic();
-
-} else if ($pageType === PageType::statisticsHumanizationTest) {
-  $mainHTML = HtmlBuilder::pageHumanizationTest();
-
-} else if ($pageType === PageType::statisticsCrashPartners) {
-  $mainHTML = HtmlBuilder::pageStatsCrashPartners();
-
-} else if ($pageType === PageType::statisticsTransportationModes) {
-  $mainHTML = HtmlBuilder::pageStatsTransportationModes();
-
-} else if ($pageType === PageType::export) {
-  $mainHTML = HtmlBuilder::pageExport();
-
-} else {
-  $searchFunction = 'searchCrashes';
-  $showButtonAdd = true;
-  $websiteInfo = translateLongText('website_info');
-
-  $title = '';
-  switch ($pageType){
-    case PageType::lastChanged: $title = translate('Last_modified_crashes'); break;
-    case PageType::deCorrespondent: $title = translate('The_correspondent_week') . '<br>14-20 jan. 2019'; break;
-    case PageType::moderations: $title = translate('Moderations'); break;
-    case PageType::recent: $title = translate('Recent_crashes'); break;
-  }
-
-  $pageTitle = WEBSITE_NAME;
-  $introText = "<div id='pageSubTitle' class='pageSubTitle'>$title</div>";
-
-  if (isset($websiteInfo) && in_array($pageType, [PageType::recent, PageType::lastChanged, PageType::deCorrespondent, PageType::crash])) {
-    $readMore = translate('Read_more');
-    $introText .= "<div id='sectionIntro' class='sectionIntro sectionCollapsed'>$websiteInfo</div>" .
-      "<div id='introReadMore' class='readMore' onclick='showFullIntro();'>$readMore</div>";
-  }
-
-  // Add filters
-  $hasFilters = $searchFunction !== '';
-  if ($searchFunction === 'searchCrashes') {
-    $keySearchFunction = 'keySearchCrashes';
-  } else {
-    $keySearchFunction = '';
-  }
-
-  $htmlFilters = $hasFilters ? HtmlBuilder::getHtmlSearchBar($searchFunction, $keySearchFunction) : '';
-
-  $mainHTML = <<<HTML
-
-$htmlFilters
-<div id="filterStatus"></div>
-
-<div id="pageMain">
-
-  <main class="pageInner">
-    <a id="largeTitle" href="/">$pageTitle</a>
-    $introText
-    <div id="featuredGraph"></div>
-       
-    <div id="filterStatus"></div>
-    <div id="cards"></div>
-    <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
-  </main>  
-  
-</div>
-HTML;
-
-  $head .= '<script src="/scripts/mark.es6.js"></script>';
-}
+[$mainHTML, $showButtonAdd, $head] = match ($pageType) {
+  PageType::statisticsGeneral => [HtmlBuilder::pageStatsGeneral(), false, $head],
+  PageType::childVictims => [HtmlBuilder::pageChildVictims(), true, $head],
+  PageType::map => [HtmlBuilder::pageMap(), true, $head],
+  PageType::mosaic => [HtmlBuilder::pageMosaic(), true, $head],
+  PageType::statisticsHumanizationTest => [HtmlBuilder::pageHumanizationTest(), false, $head],
+  PageType::statisticsCrashPartners => [HtmlBuilder::pageStatsCrashPartners(), false, $head],
+  PageType::statisticsTransportationModes => [HtmlBuilder::pageStatsTransportationModes(), false, $head],
+  PageType::export => [HtmlBuilder::pageExport(), false, $head],
+  PageType::recent,
+  PageType::lastChanged,
+  PageType::deCorrespondent,
+  PageType::moderations => [
+    HtmlBuilder::pageRecent($pageType),
+    true,
+    $head . '<script src="/scripts/mark.es6.js"></script>'
+  ],
+  default => throw new Exception('Unknown page type'),
+};
 
 $html =
-  HtmlBuilder::getHTMLBeginMain('', $head, 'initMain', $hasFilters,
-    $showButtonAdd) .
+  HtmlBuilder::getHTMLBeginMain('', $head, 'initMain', $showButtonAdd) .
   $mainHTML .
   HtmlBuilder::getHTMLEnd();
 

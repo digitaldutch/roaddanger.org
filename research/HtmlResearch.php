@@ -170,11 +170,11 @@ HTML;
     $textIntro  
   </div>
 
-  <div id="searchBar active" class="searchBarTransparent" style="display: flex;">
+  <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex;">
     <div class="toolbarItem">
-      <span id="filterResearchDead" class="menuButton bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
-      <span id="filterResearchChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireOption();"></span>      
-      <span id="filterResearchNoUnilateral" class="menuButton bgNoUnilateralWhite" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchChild" class="menuButtonBlack bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchNoUnilateral" class="menuButtonBlack bgNoUnilateralWhite" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickQuestionnaireOption();"></span>      
     </div>
   
     $htmlSearchPersons
@@ -220,11 +220,11 @@ HTML;
 <div class="pageInner">
   <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['results']}</div>
   
-  <div class="searchBarTransparent" style="display: flex;">
-    <div class="toolbarItem"><select id="filterQuestionnaire" class="searchInput" oninput="questionnaireFilterChange()">$questionnairesOptions</select></div>
+  <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex;">
+    <div class="toolbarItem"><select id="filterQuestionnaire" class="filterInput active" oninput="questionnaireFilterChange()">$questionnairesOptions</select></div>
     
     <div class="toolbarItem">
-      <select id="filterResearchGroup" class="searchInput" onchange="selectFilterQuestionnaireResults();">
+      <select id="filterResearchGroup" class="filterInput active" onchange="selectFilterQuestionnaireResults();">
         <option value="" selected>No groups</option>
         <option value="year">Group by year</option>
         <option value="month">Group by month</option>
@@ -234,7 +234,7 @@ HTML;
     </div>
   
     <div class="toolbarItem">
-      <select id="filterMinArticles" class="searchInput" onchange="selectFilterQuestionnaireResults();" data-tippy-content="Minimum amount of articles for a group to be visible">
+      <select id="filterMinArticles" class="filterInput active" onchange="selectFilterQuestionnaireResults();" data-tippy-content="Minimum amount of articles for a group to be visible">
         <option value="0">[No minimum]</option>
         <option value="1">Min. 1 article</option>
         <option value="2">Min. 2 articles</option>
@@ -243,14 +243,13 @@ HTML;
         <option value="10">Min. 10 articles</option>
       </select>
     </div>
-  
   </div>
   
-  <div id="searchBar active" class="searchBarTransparent" style="display: flex;">
+  <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex;">
     <div class="toolbarItem">
-      <span id="filterResearchDead" class="menuButton bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
-      <span id="filterResearchChild" class="menuButton bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireOption();"></span>      
-      <span id="filterResearchNoUnilateral" class="menuButton bgNoUnilateralWhite" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchChild" class="menuButtonBlack bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchNoUnilateral" class="menuButtonBlack bgNoUnilateralWhite" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickQuestionnaireOption();"></span>      
     </div>
     
     <div class="toolbarItem">
@@ -258,7 +257,7 @@ HTML;
     </div>
     
     <div class="toolbarItem">
-      <select id="filterResearchTimeSpan" class="searchInput">
+      <select id="filterResearchTimeSpan" class="filterInput active">
         <option value="">[{$texts['Always']}]</option>
         <option value="from2022">From 2022</option>
         <option value="1year">1 year</option>

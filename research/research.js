@@ -1010,28 +1010,28 @@ function onDragRowQuestion(event) {
 }
 
 function clickQuestionnaireOption() {
-  if (event.target.classList.contains('menuButton')) event.target.classList.toggle('menuButtonSelected');
+  if (event.target.classList.contains('menuButtonBlack')) event.target.classList.toggle('menuButtonSelected');
 }
 
 function selectFilterQuestionnaireResults() {
-  const dead         = document.getElementById('filterResearchDead').classList.contains('menuButtonSelected');
-  const child        = document.getElementById('filterResearchChild').classList.contains('menuButtonSelected');
+  const dead = document.getElementById('filterResearchDead').classList.contains('menuButtonSelected');
+  const child = document.getElementById('filterResearchChild').classList.contains('menuButtonSelected');
   const noUnilateral = document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected');
-  const timeSpan             = document.getElementById('filterResearchTimeSpan').value;
-  const country              = document.getElementById('filterResearchCountry').value;
-  const group                = document.getElementById('filterResearchGroup').value;
-  const minArticles          = document.getElementById('filterMinArticles').value;
+  const timeSpan = document.getElementById('filterResearchTimeSpan').value;
+  const country = document.getElementById('filterResearchCountry').value;
+  const group = document.getElementById('filterResearchGroup').value;
+  const minArticles = document.getElementById('filterMinArticles').value;
 
   const searchPersons = getPersonsFromFilter();
 
   const url = new URL(window.location);
-  if (dead)                     url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
-  if (child)                    url.searchParams.set('child', 1); else url.searchParams.delete('child');
-  if (! noUnilateral)           url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
-  if (timeSpan)                 url.searchParams.set('timeSpan', timeSpan); else url.searchParams.delete('timeSpan');
-  if (country)                  url.searchParams.set('country', country); else url.searchParams.delete('country');
-  if (group)                    url.searchParams.set('group', group); else url.searchParams.delete('group');
-  if (minArticles > 0)          url.searchParams.set('minArticles', minArticles); else url.searchParams.delete('minArticles');
+  if (dead) url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
+  if (child) url.searchParams.set('child', 1); else url.searchParams.delete('child');
+  if (! noUnilateral) url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
+  if (timeSpan) url.searchParams.set('timeSpan', timeSpan); else url.searchParams.delete('timeSpan');
+  if (country) url.searchParams.set('country', country); else url.searchParams.delete('country');
+  if (group) url.searchParams.set('group', group); else url.searchParams.delete('group');
+  if (minArticles > 0) url.searchParams.set('minArticles', minArticles); else url.searchParams.delete('minArticles');
   if (searchPersons.length > 0) url.searchParams.set('persons', searchPersons.join()); else url.searchParams.delete('persons');
 
   window.history.pushState(null, null, url.toString());

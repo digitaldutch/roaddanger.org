@@ -29,160 +29,6 @@ const PageType = Object.freeze({
   lastChanged: 13,
 });
 
-class Filter {
-
-  filters = {}
-
-  loadFromUrl() {
-    this.clear();
-
-    const url = new URL(location.href);
-
-    this.filters.country = user.countryid;
-    setFilterCountry(this.filters.country);
-
-    this.filters.healthDead = url.searchParams.get('hd')? parseInt(url.searchParams.get('hd')) : 0;
-    this.filters.healthInjured = url.searchParams.get('hi')? parseInt(url.searchParams.get('hi')) : 0;
-
-    this.filters.child = url.searchParams.get('child')? parseInt(url.searchParams.get('child')) : 0;
-    this.filters.text = url.searchParams.get('search') ?? '';
-    this.filters.period = url.searchParams.get('period') ?? null;
-    this.filters.dateFrom = url.searchParams.get('date_from') ?? null;
-    this.filters.dateTo = url.searchParams.get('date_to') ?? null;
-    this.filters.siteName = url.searchParams.get('siteName') ?? [];
-    this.filters.userId = url.searchParams.get('user_id') ?? null;
-
-    const personsParam = url.searchParams.get('persons');
-    this.filters.persons = personsParam ? personsParam.split(',') : [];
-
-    return this.filters;
-  }
-
-  addSearchParams(url) {
-    this.getFromGUI();
-
-    if (this.filters.healthDead) url.searchParams.set('hd', 1);
-    if (this.filters.healthInjured) url.searchParams.set('hi', 1);
-    if (this.filters.child) url.searchParams.set('child', 1);
-
-    if (this.filters.text) url.searchParams.set('search', this.filters.text);
-    if (this.filters.siteName) url.searchParams.set('siteName', this.filters.siteName);
-    if (this.filters.userId) url.searchParams.set('user_id', this.filters.userId);
-
-    if (this.filters.period) {
-      url.searchParams.set('period', this.filters.period);
-
-      if (this.filters.dateFrom) url.searchParams.set('date_from', this.filters.dateFrom);
-      if (this.filters.dateTo) url.searchParams.set('date_to', this.filters.dateTo);
-    }
-
-    if (this.filters.persons.length > 0) url.searchParams.set('persons', this.filters.persons.join());
-  }
-
-  clear() {
-    this.filters = {
-      healthDead: 0,
-      healthInjured: 0,
-      child: 0,
-
-      text: '',
-      country: '',
-      period: null,
-      dateFrom: null,
-      dateTo: null,
-      persons: [],
-      siteName: '',
-      userId: null,
-    }
-  }
-
-  clearGUI() {
-    this.clear();
-    this.setToGUI();
-  }
-
-  setToGUI() {
-    if (! document.getElementById('searchBar')) return;
-
-    function setSearchButton(id, on) {
-      const button = document.getElementById(id);
-      if (button) {
-        if (on) button.classList.add('menuButtonSelected')
-        else button.classList.remove('menuButtonSelected');
-      }
-    }
-
-    function setFilterValue(id, value) {
-      const element = document.getElementById(id);
-      if (element && value) {
-        element.style.display = 'block';
-        element.value = value;
-      }
-    }
-
-    function setFilterDataValue(id, value) {
-      const element = document.getElementById(id);
-      if (element && value) element.dataset.value = value;
-    }
-
-    setFilterDataValue('filterCountry', this.filters.country);
-
-    setSearchButton('searchPersonHealthDead', this.filters.healthDead);
-    setSearchButton('searchPersonHealthInjured', this.filters.healthInjured);
-    setSearchButton('searchPersonChild', this.filters.child);
-
-    setFilterValue('searchText', this.filters.text);
-    setFilterValue('searchPeriod', this.filters.period);
-    setFilterValue('searchDateFrom', this.filters.dateFrom);
-    setFilterValue('searchDateTo', this.filters.dateTo);
-    setFilterValue('searchSiteName', this.filters.siteName);
-    setFilterValue('searchUserId', this.filters.userId);
-
-    setPersonsFilter(this.filters.persons);
-
-    this.setSearchDateFieldsVisibility();
-  }
-
-  setSearchDateFieldsVisibility() {
-    const elementPeriod = document.getElementById('searchPeriod');
-    if (! elementPeriod) return;
-
-    const custom = elementPeriod.value === 'custom';
-    document.getElementById('searchDateFrom').style.display = custom? 'block' : 'none';
-    document.getElementById('searchDateTo').style.display = custom? 'block' : 'none';
-  }
-
-  getFromGUI() {
-
-    if (searchbarOpen()) {
-      const buttonDead = document.getElementById('searchPersonHealthDead');
-      const buttonInjured = document.getElementById('searchPersonHealthInjured');
-      const searchSiteName = document.getElementById('searchSiteName');
-      const searchUserId = document.getElementById('searchUserId');
-
-      this.filters = {
-        country:  null,
-
-        healthDead: buttonDead && buttonDead.classList.contains('menuButtonSelected')? 1 : 0,
-        healthInjured: buttonInjured && buttonInjured.classList.contains('menuButtonSelected')? 1 : 0,
-        child: document.getElementById('searchPersonChild').classList.contains('menuButtonSelected')? 1 : 0,
-
-        text: document.getElementById('searchText').value.trim().toLowerCase(),
-        period: document.getElementById('searchPeriod').value,
-        dateFrom: document.getElementById('searchDateFrom').value,
-        dateTo: document.getElementById('searchDateTo').value,
-        persons: getPersonsFromFilter(),
-        siteName: (searchSiteName && searchSiteName.value.trim().toLowerCase()) ?? '',
-        userId: (searchUserId && (searchUserId.style.display !== 'none') && searchUserId.value) ?? '',
-      }
-    } else this.clear();
-
-    const filterCountry = document.getElementById('filterCountry');
-    if (filterCountry) this.filters.country = filterCountry.dataset.value;
-
-    return this.filters;
-  }
-}
 
 async function initMain() {
   initPage();
@@ -194,10 +40,6 @@ async function initMain() {
   initFilterPersons();
 
   spinnerLoad = document.getElementById('spinnerLoad');
-
-  filter = new Filter;
-  filter.loadFromUrl();
-  filter.setToGUI();
 
   const url = new URL(location.href);
   const crashID = getCrashNumberFromPath(url.pathname);
@@ -219,6 +61,14 @@ async function initMain() {
   else if (pathName.startsWith('/decorrespondent')) pageType = PageType.deCorrespondent;
   else if (crashID) pageType = PageType.crash;
   else pageType = PageType.recent;
+
+
+  if ([PageType.recent, PageType.lastChanged, PageType.statisticsCrashPartners, PageType.statisticsTransportationModes,
+    PageType.mosaic, PageType.map, PageType.moderations, PageType.deCorrespondent, PageType.crash].includes(pageType))
+  {
+    filter = new Filter(pageType);
+    filter.loadFromUrl();
+  }
 
   addPersonPropertiesHtml();
 
@@ -257,6 +107,9 @@ async function initMain() {
   }
 
 }
+
+// Make initMain globally accessible for DOMContentLoaded event
+window.initMain = initMain;
 
 function initWatchPopStart(){
   // We observer the browser back button, because we do not want to reload if a crash details window is closed
@@ -1013,7 +866,6 @@ function getMosaicHTML(newCrashes){
       const article = crashArticles[0];
       if (article.urlimage) {
         html +=`<div onclick="showCrashDetails(${crash.id}); event.stopPropagation();">
-<div class="mosaicImgBackground"></div>
 <div class="thumbPersons">${htmlPersons}</div>
 <div class="thumbDetails">${article.publishedtime.pretty()}</div>
 <img src="${article.urlimage}" onerror="this.parentElement.style.display = 'none';">
@@ -1381,6 +1233,7 @@ function addPersonPropertiesHtml(){
     const text = healthText(health);
     htmlButtons += `<span id="editPersonHealth${key}" class="menuButton ${bgClass}" data-tippy-content="${text}" onclick="selectPersonHealth(${health}, true);"></span>`;
   }
+
   document.getElementById('personHealthButtons').innerHTML = htmlButtons;
 }
 
@@ -2520,26 +2373,10 @@ function closeCrashDetails(popHistory=true) {
   }
 }
 
-function searchbarOpen(){
-  const element = document.getElementById('searchBar');
+function filterBarOpen(){
+  const element = document.getElementById('filterBar');
 
   return element && element.classList.contains('active');
-}
-
-function toggleSearchBar() {
-  const element = document.getElementById('searchBar');
-
-  element.classList.toggle('active');
-
-  if (searchbarOpen()) document.getElementById('searchText').focus();
-}
-
-function keySearchCrashes() {
-  if (event.key === 'Enter') searchCrashes();
-}
-
-function startStatsSearchKey() {
-  if (event.key === 'Enter') searchStatistics();
 }
 
 function searchCrashes() {

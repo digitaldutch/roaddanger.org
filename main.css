@@ -417,38 +417,85 @@ h3, .pageSubTitleFont {
   white-space: nowrap;
 }
 
-.searchBar {
+.filterBar {
   display: none;
   position: relative;
   flex-wrap: wrap;
+  row-gap: 5px;
   align-items: center;
   justify-content: center;
   padding: 10px 20px 10px 10px;
   background-color: var(--bg-level2);
 }
 
-.searchBar.active {
+.filterBar.active {
   display: flex;
 }
 
-.searchBarTransparent {
+.filterInput {
   display: none;
+  border: 1px solid #ccc;
+  height: 30px;
+  box-sizing: border-box;
+  border-radius: 3px;
+  padding-left: 5px;
+}
+
+.filterInput.active {
+  display: flex;
+}
+
+.filterStatus {
+  display: none;
+  justify-content: center;
+  align-items: center;
   flex-wrap: wrap;
+  row-gap: 5px;
+  padding-bottom: 10px;
+  background-color: var(--bg-level2);
+}
+
+.filterStatus.active {
+  display: flex;
+}
+
+.filterStatusItem {
+  display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 20px;
-}
-
-.searchBarTransparent.active {
-  display: flex;
-}
-
-.searchInput {
-  border:        1px solid #ccc;
-  height:        30px;
-  box-sizing:    border-box;
+  white-space: nowrap;
+  color: #ffffff;
+  height: 30px;
+  box-sizing: border-box;
+  padding-left: 5px;
+  margin: 0 5px;
+  border: 1px solid #ccc;
   border-radius: 3px;
-  padding-left:  5px;
+  cursor: pointer;
+}
+
+.filterBarTransparent {
+  background-color: transparent !important;
+}
+
+.filterStatusItem button {
+  width: 14px;
+  height: 14px;
+  background-image: url('/images/delete_white.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 9px;
+  background-color: transparent;
+
+  border: none;
+  border-radius: 3px;
+  padding: 0;
+  margin: 3px;
+  cursor: pointer;
+}
+
+.filterStatusItem button:hover {
+  background-color: var(--button-selected-bgcolor);
 }
 
 .textInputWidth {
@@ -1227,8 +1274,8 @@ h3, .pageSubTitleFont {
 }
 
 .flexRow {
-  display:         flex;
-  flex-direction:  row;
+  display: flex;
+  flex-direction: row;
 }
 
 .displayNone {
@@ -1236,10 +1283,10 @@ h3, .pageSubTitleFont {
 }
 
 .smallStats {
-  display:         inline-flex;
-  font-size:       10px;
+  display: inline-flex;
+  font-size: 10px;
   justify-content: center;
-  align-items:     center;
+  align-items: center;
 }
 
 #statistics {
@@ -1247,28 +1294,28 @@ h3, .pageSubTitleFont {
 }
 
 #navigation {
-  display:          flex;
-  flex-direction:   column;
-  position:         fixed;
-  z-index:          201;
-  top:              0;
-  left:             -300px;
-  width:            300px;
-  height:           100%;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  z-index: 201;
+  top: 0;
+  left: -300px;
+  width: 300px;
+  height: 100%;
   background-color: #ffffff;
-  transition:       transform 0.3s;
+  transition: transform 0.3s;
 }
 
 .navShadow {
-  display:    block;
-  position:   fixed;
-  left:       0;
-  top:        0;
-  z-index:    200;
+  display: block;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 200;
   background: black;
-  width:      0;
-  height:     0;
-  opacity:    0;
+  width: 0;
+  height: 0;
+  opacity: 0;
 }
 
 .navigationOpen {
@@ -1276,17 +1323,17 @@ h3, .pageSubTitleFont {
 }
 
 .navShadowOpen {
-  animation:                 menu_shadow_open;
-  animation-duration:        0.3s;
+  animation: menu_shadow_open;
+  animation-duration: 0.3s;
   animation-iteration-count: 1;
-  animation-fill-mode:       forwards;
+  animation-fill-mode: forwards;
 }
 
 .navShadowClose {
-  animation:                 menu_shadow_close;
-  animation-duration:        0.3s;
+  animation: menu_shadow_close;
+  animation-duration: 0.3s;
   animation-iteration-count: 1;
-  animation-fill-mode:       forwards;
+  animation-fill-mode: forwards;
 }
 
 @keyframes menu_shadow_open {
@@ -1548,76 +1595,68 @@ h3, .pageSubTitleFont {
 }
 
 .thumbnailWrapper {
-  overflow:                   hidden;
-  min-width:                  120px;
-  border-top-right-radius:    3px;
+  overflow: hidden;
+  min-width: 120px;
+  border-top-right-radius: 3px;
   border-bottom-right-radius: 3px;
 }
 
-.mosaic{
-  display:         flex;
-  flex-wrap:       wrap;
+.mosaic {
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
 }
 
-.mosaic>div {
-  position:         relative;
-  display:          inline-flex;
-  width:            300px;
-  height:           300px;
-  background-color: #dddddd;
-  margin:           10px;
-  cursor:           pointer;
-  box-shadow:       0 2px 10px 0 rgba(0,0,0,0.2);
-  transition:       500ms;
+.mosaic > div {
+  position: relative;
+  display: inline-flex;
+  border: 2px solid #ffffff00;
+  width: 300px;
+  height: 300px;
+  border-radius: 5px;
+  overflow: hidden;
+  margin: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px 0 rgba(0,0,0,0.2);
+  transition: 500ms;
 }
 
-.mosaic>div:hover .mosaicImgBackground {
-  display: flex;
+.mosaic > div:hover {
+  border: 2px solid #ffffff;
 }
 
 .mosaic img {
-  width:      100%;
+  width: 100%;
   object-fit: cover;
-  overflow:   hidden;
-}
-
-.mosaicImgBackground {
-  display:          none;
-  position:         absolute;
-  left:             0;
-  right:            0;
-  top:              0;
-  bottom:           0;
-  background-color: #ffffff88;
+  overflow: hidden;
 }
 
 .thumbPersons {
-  display:          flex;
-  flex-direction:   row;
-  justify-content:  center;
-  position:         absolute;
-  left:             0;
-  right:            0;
-  top:              0;
-  text-align:       center;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  text-align: center;
 }
 
 .thumbDetails {
-  position:         absolute;
-  left:             0;
-  right:            0;
-  bottom:           0;
-  color:            #ffffff;
-  text-align:       center;
-  font-size:        16px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  color: #ffffff;
+  text-align: center;
+  font-size: 16px;
 }
 
 .checkbox {
-  position:   absolute;
-  left:       0;
-  width:      16px;
-  height:     16px;
+  position: absolute;
+  left: 0;
+  width: 16px;
+  height: 16px;
   background: url(/images/checkbox_empty.svg) no-repeat center/16px;
 }
 
@@ -1663,27 +1702,27 @@ h3, .pageSubTitleFont {
 }
 
 .crashIcon:hover {
-  border:        1.5px solid black;
+  border: 1.5px solid black;
   border-radius: 50%;
 }
 
 .editableCell {
-  color:            #000000 !important;
+  color: #000000 !important;
   background-color: #ffffff !important;
   padding: 0 3px;
 }
 
 .translationArea {
-  height:    300px;
-  width:     calc(100% - 10px);
-  resize:    none;
-  padding:   3px;
-  border:    solid 1px #d1d1d1;
-  overflow:  auto;
+  height: 300px;
+  width: calc(100% - 10px);
+  resize: none;
+  padding: 3px;
+  border: solid 1px #d1d1d1;
+  overflow: auto;
 }
 
 .dragOver td  {
-  border-top:    2px dashed #000000 !important;
+  border-top: 2px dashed #000000 !important;
   border-bottom: 2px dashed #000000 !important;
 }
 
@@ -1760,7 +1799,7 @@ table.tableDragging td div {
     display: flex !important;
   }
 
-  #searchBar input[type=search], .dropInput {
+  #filterBar input[type=search], .dropInput {
     max-width: 100px;
   }
 

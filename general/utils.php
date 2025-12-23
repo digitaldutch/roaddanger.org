@@ -151,12 +151,14 @@ function addSQLWhere(&$whereSql, $wherePart): void {
 }
 
 function addHealthWhereSql(&$sqlWhere, &$joinPersonsTable, $filter): void {
-  if ((isset($filter['healthDead'])    && ($filter['healthDead'] === 1)) ||
-    (isset($filter['healthInjured']) && ($filter['healthInjured'] === 1))) {
+  $dead = isset($filter['healthDead']) && ($filter['healthDead'] === 1);
+  $injured = isset($filter['healthInjured']) && ($filter['healthInjured'] === 1);
+
+  if ($dead || $injured) {
     $joinPersonsTable = true;
     $values = [];
-    if ($filter['healthDead']    === 1) $values[] = 3;
-    if ($filter['healthInjured'] === 1) $values[] = 2;
+    if ($dead) $values[] = 3;
+    if ($injured) $values[] = 2;
     $valuesText = implode(", ", $values);
     addSQLWhere($sqlWhere, " cp.health IN ($valuesText) ");
   }
