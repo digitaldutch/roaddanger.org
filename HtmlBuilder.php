@@ -139,15 +139,13 @@ $navigation
 HTML;
   }
 
-  public static function getHtmlFilterBar(bool $inline=false, bool $addStatusbar=false, bool $addPersons=true, bool $addHealth=true): string {
+  public static function getHtmlFilterBar(bool $transparent=false, bool $addPersons=true, bool $addHealth=true): string {
     $texts = translateArray(['Child', 'Dead_(adjective)', 'Injured', 'Filter', 'Search', 'Source', 'Search_text_hint', 'User_Id']);
 
-    $classTransparent = $inline? 'filterBarTransparent' : '';
+    $classTransparent = $transparent? 'filterBarTransparent' : '';
 
     $htmlSearchPeriod = self::getSearchPeriodHtml();
     $htmlSearchPersons = $addPersons? self::getSearchPersonsHtml() : '';
-
-    $htmlStatusbar = $addStatusbar? "<aside id='filterStatus' class='filterStatus $classTransparent'></aside>" : '';
 
     $htmlHealth = '';
     if ($addHealth) {
@@ -176,7 +174,8 @@ HTML;
 
     <div id="filterButton" class="button buttonMobileSmall buttonImportant" style="margin-left: 0;">{$texts['Filter']}</div>
   </aside>      
-  $htmlStatusbar
+  
+  <aside id='filterStatus' class='filterStatus $classTransparent'></aside>
 HTML;
   }
 
@@ -693,7 +692,7 @@ HTML;
   }
 
   public static function pageMap(): string {
-    $htmlFilters = HtmlBuilder::getHtmlFilterBar(addStatusbar: true);
+    $htmlFilters = HtmlBuilder::getHtmlFilterBar();
 
     return $htmlFilters . "<div id='mapMain'></div>";
   }
@@ -758,11 +757,12 @@ HTML;
   }
 
   public static function pageMosaic(): string {
-    $htmlFilters = HtmlBuilder::getHtmlFilterBar(addStatusbar: true);
+    $htmlFilters = HtmlBuilder::getHtmlFilterBar(transparent: true);
 
     return <<<HTML
-$htmlFilters
 <div id="pageMain">
+  $htmlFilters
+  
   <div id="cards"></div>
   <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
 </div>
@@ -815,9 +815,8 @@ HTML;
     $infoText = $user->translateLongText('counter_party_info');
 
     $htmlfilterBar = self::getHtmlFilterBar(
-      inline: true,
+      transparent: true,
       addPersons: false,
-      addStatusbar: true,
     );
 
     return <<<HTML
@@ -858,10 +857,9 @@ HTML;
       'Search']);
 
     $htmlfilterBar = self::getHtmlFilterBar(
-      inline: true,
+      transparent: true,
       addPersons: false,
       addHealth: false,
-      addStatusbar: true,
     );
 
     return <<<HTML
@@ -988,12 +986,12 @@ HTML;
         "<div id='introReadMore' class='readMore' onclick='showFullIntro();'>$readMore</div>";
     }
 
-    $htmlFilters = HtmlBuilder::getHtmlFilterBar(addStatusbar: true);
+    $htmlFilters = HtmlBuilder::getHtmlFilterBar();
 
     return <<<HTML
-$htmlFilters
 
 <div id="pageMain">
+  $htmlFilters
 
   <main class="pageInner">
     <a id="largeTitle" href="/">$pageTitle</a>
