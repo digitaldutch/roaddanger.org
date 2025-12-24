@@ -1169,33 +1169,19 @@ SQL;
     $sql = "SELECT COUNT(*) AS count FROM articles WHERE DATE(`createtime`) = CURDATE()";
     $stats['today']['articlesAdded'] = $this->database->fetchSingleValue($sql);
 
-    $stats['sevenDays'] = [];
-    $sql = "SELECT COUNT(*) AS count FROM crashes WHERE DATE(`date`) >= SUBDATE(CURDATE(), 7)";
-    $stats['sevenDays']['crashes'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) AS count FROM articles WHERE DATE(`publishedtime`) >= SUBDATE(CURDATE(), 7)";
-    $stats['sevenDays']['articles'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE(`date`) >= SUBDATE(CURDATE(), 7) AND a.health=3";
-    $stats['sevenDays']['dead'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE(`date`) >= SUBDATE(CURDATE(), 7) AND a.health=2";
-    $stats['sevenDays']['injured'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) AS count FROM crashes WHERE DATE(`createtime`) >= SUBDATE(CURDATE(), 7)";
-    $stats['sevenDays']['crashesAdded'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) AS count FROM articles WHERE DATE(`createtime`) >= SUBDATE(CURDATE(), 7)";
-    $stats['sevenDays']['articlesAdded'] = $this->database->fetchSingleValue($sql);
-
-    $stats['deCorrespondent'] = [];
-    $sql = "SELECT COUNT(*) FROM crashes WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20'";
-    $stats['deCorrespondent']['crashes'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) FROM articles WHERE DATE (`publishedtime`) >= '2019-01-14' AND DATE (`publishedtime`) <= '2019-01-20'";
-    $stats['deCorrespondent']['articles'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) FROM crashes WHERE DATE (`createtime`) >= '2019-01-14' AND DATE (`createtime`) <= '2019-01-20'";
-    $stats['deCorrespondent']['crashesAdded'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) FROM articles WHERE DATE (`createtime`) >= '2019-01-14' AND DATE (`createtime`) <= '2019-01-20'";
-    $stats['deCorrespondent']['articlesAdded'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' AND a.health=3";
-    $stats['deCorrespondent']['dead'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE (`date`) >= '2019-01-14' AND DATE (`date`) <= '2019-01-20' AND a.health=2";
-    $stats['deCorrespondent']['injured'] = $this->database->fetchSingleValue($sql);
+    $stats['thirtyDays'] = [];
+    $sql = "SELECT COUNT(*) AS count FROM crashes WHERE DATE(`date`) >= SUBDATE(CURDATE(), 30)";
+    $stats['thirtyDays']['crashes'] = $this->database->fetchSingleValue($sql);
+    $sql = "SELECT COUNT(*) AS count FROM articles WHERE DATE(`publishedtime`) >= SUBDATE(CURDATE(), 30)";
+    $stats['thirtyDays']['articles'] = $this->database->fetchSingleValue($sql);
+    $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE(`date`) >= SUBDATE(CURDATE(), 30) AND a.health=3";
+    $stats['thirtyDays']['dead'] = $this->database->fetchSingleValue($sql);
+    $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE(`date`) >= SUBDATE(CURDATE(), 30) AND a.health=2";
+    $stats['thirtyDays']['injured'] = $this->database->fetchSingleValue($sql);
+    $sql = "SELECT COUNT(*) AS count FROM crashes WHERE DATE(`createtime`) >= SUBDATE(CURDATE(), 30)";
+    $stats['thirtyDays']['crashesAdded'] = $this->database->fetchSingleValue($sql);
+    $sql = "SELECT COUNT(*) AS count FROM articles WHERE DATE(`createtime`) >= SUBDATE(CURDATE(), 30)";
+    $stats['thirtyDays']['articlesAdded'] = $this->database->fetchSingleValue($sql);
 
     return $stats;
   }

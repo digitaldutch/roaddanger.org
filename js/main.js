@@ -370,61 +370,33 @@ async function loadStatistics() {
       </tr>`;
 
     html += `
-      <tr class="trHeader"><td colspan="2">7 ${translate('days')}</td></tr>
+      <tr class="trHeader"><td colspan="2">30 ${translate('days')}</td></tr>
 
       <tr>
         <td>${translate('Crashes')}</td>
-        <td style="text-align: right;">${dbStats.sevenDays.crashes}</td>
+        <td style="text-align: right;">${dbStats.thirtyDays.crashes}</td>
       </tr>
       <tr>
         <td>${translate('Articles')}</td>
-        <td style="text-align: right;">${dbStats.sevenDays.articles}</td>
+        <td style="text-align: right;">${dbStats.thirtyDays.articles}</td>
       </tr>
       <tr>
         <td>${translate('Dead_(multiple)')}</td>
-        <td style="text-align: right;">${dbStats.sevenDays.dead}</td>
+        <td style="text-align: right;">${dbStats.thirtyDays.dead}</td>
       </tr>
       <tr>
         <td>${translate('Injured')}</td>
-        <td style="text-align: right;">${dbStats.sevenDays.injured}</td>
+        <td style="text-align: right;">${dbStats.thirtyDays.injured}</td>
       </tr>        
       <tr>
         <td>${translate('Added_crashes')}</td>
-        <td style="text-align: right;">${dbStats.sevenDays.crashesAdded}</td>
+        <td style="text-align: right;">${dbStats.thirtyDays.crashesAdded}</td>
       </tr>
       <tr>
         <td>${translate('Added_articles')}</td>
-        <td style="text-align: right;">${dbStats.sevenDays.articlesAdded}</td>
+        <td style="text-align: right;">${dbStats.thirtyDays.articlesAdded}</td>
       </tr>    
     `;
-
-    html += `
-      <tr class="trHeader"><td colspan="2">${translate('The_correspondent_week')} (14-20 jan. 2019)</td></tr>
-      
-      <tr>
-        <td>${translate('Crashes')}</td>
-        <td style="text-align: right;">${dbStats.deCorrespondent.crashes}</td>
-      </tr>
-      <tr>
-        <td>${translate('Articles')}</td>
-        <td style="text-align: right;">${dbStats.deCorrespondent.articles}</td>
-      </tr>
-      <tr>
-        <td>${translate('Dead_(multiple)')}</td>
-        <td style="text-align: right;">${dbStats.deCorrespondent.dead}</td>
-      </tr>
-      <tr>
-        <td>${translate('Injured')}</td>
-        <td style="text-align: right;">${dbStats.deCorrespondent.injured}</td>
-      </tr>
-      <tr>
-        <td>${translate('Added_crashes')}</td>
-        <td style="text-align: right;">${dbStats.deCorrespondent.crashesAdded}</td>
-      </tr>
-      <tr>
-        <td>${translate('Added_articles')}</td>
-        <td style="text-align: right;">${dbStats.deCorrespondent.articlesAdded}</td>
-      </tr>`;
 
     html += `
       <tr class="trHeader"><td colspan="2">${translate('Total')}</td></tr>
