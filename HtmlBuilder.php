@@ -139,7 +139,7 @@ $navigation
 HTML;
   }
 
-  public static function getHtmlFilterBar(bool $transparent=false, bool $addPersons=true, bool $addHealth=true): string {
+  public static function getHtmlFilterBar(bool $transparent=true, bool $addPersons=true, bool $addHealth=true): string {
     $texts = translateArray(['Child', 'Dead_(adjective)', 'Injured', 'Filter', 'Search', 'Source', 'Search_text_hint', 'User_Id']);
 
     $classTransparent = $transparent? 'filterBarTransparent' : '';
@@ -692,7 +692,7 @@ HTML;
   }
 
   public static function pageMap(): string {
-    $htmlFilters = HtmlBuilder::getHtmlFilterBar();
+    $htmlFilters = HtmlBuilder::getHtmlFilterBar(transparent: false);
 
     return $htmlFilters . "<div id='mapMain'></div>";
   }
@@ -757,7 +757,7 @@ HTML;
   }
 
   public static function pageMosaic(): string {
-    $htmlFilters = HtmlBuilder::getHtmlFilterBar(transparent: true);
+    $htmlFilters = HtmlBuilder::getHtmlFilterBar();
 
     return <<<HTML
 <div id="pageMain">
@@ -814,10 +814,7 @@ HTML;
     global $user;
     $infoText = $user->translateLongText('counter_party_info');
 
-    $htmlfilterBar = self::getHtmlFilterBar(
-      transparent: true,
-      addPersons: false,
-    );
+    $htmlfilterBar = self::getHtmlFilterBar(addPersons: false);
 
     return <<<HTML
 <div id="pageMain">
@@ -856,11 +853,7 @@ HTML;
       'Intoxicated', 'Drive_on_or_fleeing', 'Dead_(adjective)', 'Injured', 'Uninjured', 'Unknown', 'Search_text_hint',
       'Search']);
 
-    $htmlfilterBar = self::getHtmlFilterBar(
-      transparent: true,
-      addPersons: false,
-      addHealth: false,
-    );
+    $htmlfilterBar = self::getHtmlFilterBar(addPersons: false, addHealth: false);
 
     return <<<HTML
 <div id="pageMain">
@@ -986,7 +979,7 @@ HTML;
         "<div id='introReadMore' class='readMore' onclick='showFullIntro();'>$readMore</div>";
     }
 
-    $htmlFilters = HtmlBuilder::getHtmlFilterBar();
+    $htmlFilters = HtmlBuilder::getHtmlFilterBar(transparent: false);
 
     return <<<HTML
 
