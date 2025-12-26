@@ -156,7 +156,7 @@ HTML;
     }
 
     return <<<HTML
-  <aside id="filterBar" class="filterBar $classTransparent active">
+  <aside id="filterBar" class="filterBar $classTransparent">
   
     $htmlHealth
     

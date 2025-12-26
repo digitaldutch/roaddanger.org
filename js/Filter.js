@@ -18,6 +18,8 @@ class Filter {
     document.getElementById('searchText').addEventListener('keydown', this.onEnterKey);
     document.getElementById('searchSiteName').addEventListener('keydown', this.onEnterKey);
     document.getElementById('searchUserId').addEventListener('keydown', this.onEnterKey);
+
+    this.showFilterBar();
   }
 
   #onEnterKey(event) {
@@ -167,8 +169,19 @@ class Filter {
     if (elUserId.value) elUserId.classList.add('active');
   }
 
+  filterBarActive(){
+    const element = document.getElementById('filterBar');
+
+    return element && element.classList.contains('active');
+  }
+  showFilterBar(){
+    const element = document.getElementById('filterBar');
+
+    if (element) element.classList.add('active');
+  }
+
   getFromGUI() {
-    if (filterBarOpen()) {
+    if (this.filterBarActive()) {
       const buttonDead = document.getElementById('searchPersonHealthDead');
       const buttonInjured = document.getElementById('searchPersonHealthInjured');
       const searchSiteName = document.getElementById('searchSiteName');

@@ -30,6 +30,88 @@ const PageType = Object.freeze({
 });
 
 
+function determinePageType(pathName, crashID) {
+  if (pathName.startsWith('/moderations')) return PageType.moderations;
+  if (pathName.startsWith('/last_changed')) return PageType.lastChanged;
+  if (pathName.startsWith('/mosaic')) return PageType.mosaic;
+  if (pathName.startsWith('/child_victims')) return PageType.childVictims;
+  if (pathName.startsWith('/map')) return PageType.map;
+  if (pathName.startsWith('/statistics/general')) return PageType.statisticsGeneral;
+  if (pathName.startsWith('/statistics/counterparty')) return PageType.statisticsCrashPartners;
+  if (pathName.startsWith('/statistics/transportation_modes')) return PageType.statisticsTransportationModes;
+  if (pathName.startsWith('/statistics/media_humanization')) return PageType.statisticsMediaHumanization;
+  if (pathName.startsWith('/statistics')) return PageType.statisticsGeneral;
+  if (pathName.startsWith('/export')) return PageType.export;
+  if (pathName.startsWith('/decorrespondent')) return PageType.deCorrespondent;
+  if (crashID) return PageType.crash;
+  return PageType.recent;
+}
+
+function initializeFilter(pageType) {
+  const pageTypesWithFilter = [
+    PageType.recent,
+    PageType.lastChanged,
+    PageType.statisticsCrashPartners,
+    PageType.statisticsTransportationModes,
+    PageType.mosaic,
+    PageType.map,
+    PageType.moderations,
+    PageType.deCorrespondent
+  ];
+
+  if (pageTypesWithFilter.includes(pageType)) {
+    filter = new Filter(pageType);
+    filter.loadFromUrl();
+  }
+}
+
+function initChildVictims(url) {
+  initObserver(loadChildVictims);
+
+  const searchHealthDead = parseInt(url.searchParams.get('hd') ?? 0);
+  const searchHealthInjured = parseInt(url.searchParams.get('hi') ?? 0);
+
+  if (searchHealthDead) document.getElementById('filterChildDead').classList.add('menuButtonSelected');
+  if (searchHealthInjured) document.getElementById('filterChildInjured').classList.add('menuButtonSelected');
+
+  loadChildVictims();
+}
+
+function initCrashList(pageType, crashID, articleID) {
+  if (pageType === PageType.crash) {
+    // Single crash details page. Maybe this should be a popup over the recent crashes feed
+    loadCrashes(crashID, articleID);
+  } else if (pageIsCrashList()) {
+    initObserver(loadCrashes);
+    if (pageType === PageType.mosaic) document.getElementById('cards').classList.add('mosaic');
+    showReadMoreLink();
+    loadCrashes();
+
+    if (pageType === PageType.recent) loadFeaturedGraph();
+  }
+}
+
+function loadPageContent(pageType, url, crashID, articleID) {
+  const statisticsPages = [
+    PageType.statisticsTransportationModes,
+    PageType.statisticsGeneral,
+    PageType.statisticsCrashPartners,
+    PageType.statisticsMediaHumanization
+  ];
+
+  if (statisticsPages.includes(pageType)) {
+    loadStatistics();
+  } else if (pageType === PageType.childVictims) {
+    initChildVictims(url);
+  } else if (pageType === PageType.export) {
+    initExport();
+  } else if (pageType === PageType.map) {
+    loadMap();
+  } else {
+    initCrashList(pageType, crashID, articleID);
+  }
+}
+
 async function initMain() {
   initPage();
 
@@ -44,75 +126,24 @@ async function initMain() {
   const url = new URL(location.href);
   const crashID = getCrashNumberFromPath(url.pathname);
   const articleID = url.searchParams.get('articleid');
-
   const pathName = decodeURIComponent(url.pathname);
 
-  if      (pathName.startsWith('/moderations')) pageType = PageType.moderations;
-  else if (pathName.startsWith('/last_changed')) pageType = PageType.lastChanged;
-  else if (pathName.startsWith('/mosaic')) pageType = PageType.mosaic;
-  else if (pathName.startsWith('/child_victims')) pageType = PageType.childVictims;
-  else if (pathName.startsWith('/map')) pageType = PageType.map;
-  else if (pathName.startsWith('/statistics/general')) pageType = PageType.statisticsGeneral;
-  else if (pathName.startsWith('/statistics/counterparty')) pageType = PageType.statisticsCrashPartners;
-  else if (pathName.startsWith('/statistics/transportation_modes')) pageType = PageType.statisticsTransportationModes;
-  else if (pathName.startsWith('/statistics/media_humanization')) pageType = PageType.statisticsMediaHumanization;
-  else if (pathName.startsWith('/statistics')) pageType = PageType.statisticsGeneral;
-  else if (pathName.startsWith('/export')) pageType = PageType.export;
-  else if (pathName.startsWith('/decorrespondent')) pageType = PageType.deCorrespondent;
-  else if (crashID) pageType = PageType.crash;
-  else pageType = PageType.recent;
+  pageType = determinePageType(pathName, crashID);
 
-
-  if ([PageType.recent, PageType.lastChanged, PageType.statisticsCrashPartners, PageType.statisticsTransportationModes,
-    PageType.mosaic, PageType.map, PageType.moderations, PageType.deCorrespondent, PageType.crash].includes(pageType))
-  {
-    filter = new Filter(pageType);
-    filter.loadFromUrl();
-  }
+  initializeFilter(pageType);
 
   addPersonPropertiesHtml();
 
   initWatchPopStart();
 
-  if ([PageType.statisticsTransportationModes, PageType.statisticsGeneral, PageType.statisticsCrashPartners,
-       PageType.statisticsMediaHumanization].includes(pageType)) {
-    loadStatistics();
-  } else if (pageType === PageType.statisticsMediaHumanization) {
-    loadGraphMediaHumanzation();
-  } else if (pageType === PageType.childVictims) {
-    initObserver(loadChildVictims);
-
-    const searchHealthDead = parseInt(url.searchParams.get('hd')?? 0);
-    const searchHealthInjured = parseInt(url.searchParams.get('hi')?? 0);
-
-    if (searchHealthDead) document.getElementById('filterChildDead').classList.add('menuButtonSelected');
-    if (searchHealthInjured) document.getElementById('filterChildInjured').classList.add('menuButtonSelected');
-
-    loadChildVictims();
-  } else if (pageType === PageType.export){
-    initExport();
-  } else if (pageType === PageType.map){
-    initWatchPopStart();
-    loadMap();
-  } else if (pageType === PageType.crash){
-    // Single crash details page
-    loadCrashes(crashID, articleID);
-  } else if (pageIsCrashList() || (pageType === PageType.crash)) {
-    initObserver(loadCrashes);
-    if (pageType === PageType.mosaic) document.getElementById('cards').classList.add('mosaic');
-    showReadMoreLink();
-    loadCrashes();
-
-    if (pageType === PageType.recent) loadFeaturedGraph();
-  }
-
+  loadPageContent(pageType, url, crashID, articleID);
 }
 
 // Make initMain globally accessible for DOMContentLoaded event
 window.initMain = initMain;
 
 function initWatchPopStart(){
-  // We observer the browser back button, because we do not want to reload if a crash details window is closed
+  // We observe the browser back-button as we do not want to reload if a crash details window is closed
   window.onpopstate = function(event) {
     const crashId = (event.state && event.state.lastCrashId)? event.state.lastCrashId : null;
 
@@ -607,9 +638,13 @@ async function loadCrashes(crashId=null, articleId=null){
       offset: crashes.length,
     };
 
-    serverData.filter = filter.getFromGUI();
-
-    if (crashId) serverData.id = crashId;
+    if (crashId) {
+      serverData.id = crashId;
+      serverData.filter = {};
+      document.getElementById('filterBar').style.display = 'none';
+    } else {
+      serverData.filter = filter.getFromGUI();
+    }
 
     if (pageType  === PageType.moderations) {
       serverData.moderations=1;
@@ -2344,12 +2379,6 @@ function closeCrashDetails(popHistory=true) {
     formCrashDetails.style.display = 'none';
     if (popHistory) window.history.back();
   }
-}
-
-function filterBarOpen(){
-  const element = document.getElementById('filterBar');
-
-  return element && element.classList.contains('active');
 }
 
 function searchCrashes() {
