@@ -160,10 +160,10 @@ h3, .pageSubTitleFont {
 }
 
 .pageInnerScroll {
-  display:        flex;
+  display: flex;
   flex-direction: column;
-  flex-grow:      1;
-  overflow:       auto;
+  flex-grow: 1;
+  overflow: auto;
 }
 
 #pageMain {
@@ -187,9 +187,9 @@ h3, .pageSubTitleFont {
 }
 
 .scrollPage {
-  display:        flex;
+  display: flex;
   flex-direction: column;
-  overflow:       auto;
+  overflow: auto;
 }
 
 .flexToFullPage {
@@ -199,12 +199,16 @@ h3, .pageSubTitleFont {
 }
 
 .cardCrash {
-  position:         relative;
+  position: relative;
   background-color: #ffffff;
-  color:            #000;
-  padding:          10px;
-  border:           1px solid #eee;
-  margin-top:       10px;
+  color: #000;
+  padding: 10px;
+  border: 1px solid #eee;
+  margin-top: 10px;
+}
+
+.cardCrashDetails {
+  margin-top: 0 !important;
 }
 
 .cardCrashClickable {
@@ -1043,6 +1047,19 @@ h3, .pageSubTitleFont {
   border-radius: 3px;
 }
 
+.formFixedBack {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  width: 700px;
+  max-width: 100%;
+  max-height: 100%;
+  min-height: 100px;
+  padding: 5px 15px 10px 15px;
+  background-color: #ffffff;
+  box-sizing: border-box;
+}
+
 .formFullPage label, .labelDiv, .formPage label {
   margin-top: 5px;
   margin-bottom: 1px;
@@ -1075,21 +1092,29 @@ h3, .pageSubTitleFont {
   background: url("/images/closewhite.svg") no-repeat center;
 }
 
-  .popupCloseCrossWhiteFullScreen {
-  position:        fixed;
-  right:           23px;
-  top:             4px;
-  background:      url("/images/closewhite.svg") no-repeat center;
-  background-size: 28px;
-  height:          25px;
-  width:           25px;
-  border-radius:   50%;
-  padding:         5px;
-  cursor:          pointer;
+.popupBackHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: 20px;
+  font-weight: 500;
+  border-bottom: 1px solid #eee;
 }
 
-.popupCloseCrossWhiteFullScreen:hover{
-  background-color: #999999;
+.buttonBack {
+  background: url("/images/back.svg") no-repeat center;
+  background-size: 20px;
+  height: 33px;
+  width: 33px;
+  margin-right: 10px;
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.buttonBack:hover {
+  opacity: 1;
+  background-color: #eee;
+  border-radius: 50%;
 }
 
 .crossWhite {
@@ -1259,20 +1284,20 @@ h3, .pageSubTitleFont {
 }
 
 .statsRow {
-  display:         flex;
-  flex-direction:  row;
+  display: flex;
+  flex-direction: row;
   justify-content: space-around;
 }
 
 .statsIcons {
-  display:         flex;
+  display: flex;
   flex-direction:  row;
   justify-content: center;
-  padding:         5px 0;
+  padding: 5px 0;
 }
 
 .flexColumn {
-  display:         flex;
+  display: flex;
   flex-direction:  column;
   justify-content: flex-start;
 }

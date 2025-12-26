@@ -937,9 +937,10 @@ ${translate('Approval_required')}
 
   const crashClick = detailsPage? '' : `onclick="showCrashDetails(${crash.id});"`;
   const htmlClassClickable = detailsPage? '' : 'cardCrashClickable';
+  const classCrashDetails = detailsPage? 'cardCrashDetails' : '';
 
   return `
-<div id="crash${crashElId}" class="cardCrash ${htmlClassClickable}" ${crashClick}>
+<div id="crash${crashElId}" class="cardCrash ${classCrashDetails} ${htmlClassClickable}" ${crashClick}>
   <span class="postButtonArea" onclick="event.stopPropagation();">
     <span style="position: relative;">
       <span class="buttonEditPost bgTripleDots"  data-userid="${crash.userid}" onclick="showCrashMenu('${crashElId}');"></span>

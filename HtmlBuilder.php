@@ -486,17 +486,19 @@ HTML;
   }
 
   public static function getFormCrash(): string {
+    $crashDetails = translate('Crash');
     return <<<HTML
-<div id="formCrash" class="popupOuter" onclick="closeCrashDetails();">
-    <div class="popupCloseCrossWhiteFullScreen hideOnMobile" onclick="closeCrashDetails();"></div>
+<div id="formCrash" class="popupOuter" style="background-color: #ffffff">
 
-  <div class="formFullPage" onclick="event.stopPropagation();">    
-    <div class="showOnMobile" style="height: 15px"></div>
-    <div class="popupCloseCross showOnMobile" onclick="closeCrashDetails();"></div>
-    
-    <div style="overflow-y: auto;">
-      <div id="crashDetails" class="flexColumn"></div>
+  <div class="formFixedBack" onclick="event.stopPropagation();">    
+    <div onclick="closeCrashDetails()" class="popupBackHeader">
+      <div class="buttonBack"></div>
+      <div>$crashDetails</div>
     </div>
+    
+    <div style="overflow-y: auto">
+      <div id="crashDetails" class="flexColumn"></div>    
+    </div>      
   </div>
   
 </div>
