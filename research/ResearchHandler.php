@@ -253,26 +253,14 @@ SQL;
 
       $SQLJoin = '';
       $SQLWhereAnd = ' ';
-      $joinPersonsTable = false;
 
-      addHealthWhereSql($SQLWhereAnd, $joinPersonsTable, $filter);
-
-      if (isset($filter['persons']) && (count($filter['persons'])) > 0) $joinPersonsTable = true;
-
-      if (isset($filter['child']) && ($filter['child'] === 1)){
-        $joinPersonsTable = true;
-        addSQLWhere($SQLWhereAnd, "cp.child=1 ");
-      }
+      addPersonsWhereSql2($SQLWhereAnd, $filter);
 
       if (isset($filter['noUnilateral']) && ($filter['noUnilateral'] === 1)){
         addSQLWhere($SQLWhereAnd, " c.unilateral !=1 ");
       }
 
-      addPersonsWhereSql($SQLWhereAnd, $SQLJoin, $filter['persons']);
-
       $SQLWhereAnd .= $this->user->countryId === 'UN'? '' : " AND c.countryid='" . $this->user->countryId . "'";
-
-      if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
 
       /** @noinspection SqlIdentifier */
       $sql = <<<SQL

@@ -75,11 +75,8 @@ SQL;
 
     $SQLJoin = '';
     $SQLWhereAnd = ' ';
-    $joinPersonsTable = false;
 
-    addHealthWhereSql($SQLWhereAnd, $joinPersonsTable, $filter);
-
-    if (isset($filter['persons']) && (count($filter['persons'])) > 0) $joinPersonsTable = true;
+    addPersonsWhereSql2($SQLWhereAnd, $filter);
 
     if (! empty($filter['country']) and ($filter['country'] !== 'UN')){
       addSQLWhere($SQLWhereAnd, 'c.countryid="' . $filter['country'] . '"');
@@ -109,18 +106,9 @@ SQL;
 
     }
 
-    if (isset($filter['child']) && ($filter['child'] === 1)){
-      $joinPersonsTable = true;
-      addSQLWhere($SQLWhereAnd, "cp.child=1 ");
-    }
-
     if (isset($filter['noUnilateral']) && ($filter['noUnilateral'] === 1)){
       addSQLWhere($SQLWhereAnd, " c.unilateral !=1 ");
     }
-
-    if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
-
-    addPersonsWhereSql($SQLWhereAnd, $SQLJoin, $filter['persons']);
 
     // Get questionnaire answers
     if ($questionnaire['type'] === QuestionnaireType::standard->value) {

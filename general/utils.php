@@ -150,20 +150,6 @@ function addSQLWhere(&$whereSql, $wherePart): void {
   $whereSql .= ' ' . $wherePart . ' ';
 }
 
-function addHealthWhereSql(&$sqlWhere, &$joinPersonsTable, $filter): void {
-  $dead = isset($filter['healthDead']) && ($filter['healthDead'] === 1);
-  $injured = isset($filter['healthInjured']) && ($filter['healthInjured'] === 1);
-
-  if ($dead || $injured) {
-    $joinPersonsTable = true;
-    $values = [];
-    if ($dead) $values[] = 3;
-    if ($injured) $values[] = 2;
-    $valuesText = implode(", ", $values);
-    addSQLWhere($sqlWhere, " cp.health IN ($valuesText) ");
-  }
-}
-
 function addPersonsWhereSql2(&$sqlWhere, $filter): void {
   $dead = isset($filter['healthDead']) && ($filter['healthDead'] === 1);
   $injured = isset($filter['healthInjured']) && ($filter['healthInjured'] === 1);
@@ -189,10 +175,10 @@ function addPersonsWhereSql2(&$sqlWhere, $filter): void {
   if ($persons) {
     foreach ($filter['persons'] as $person){
       $transportationMode = (int)$person;
-      $personDead         = str_contains($person, 'd');
-      $personInjured      = str_contains($person, 'i');
-      $restricted         = str_contains($person, 'r');
-      $unilateral         = str_contains($person, 'u');
+      $personDead = str_contains($person, 'd');
+      $personInjured = str_contains($person, 'i');
+      $restricted = str_contains($person, 'r');
+      $unilateral = str_contains($person, 'u');
 
       if ($restricted) addSQLWhere($sqlWhere, "(c.unilateral is null OR c.unilateral != 1) AND (c.id not in (select au.id from crashes au LEFT JOIN crashpersons apu ON au.id = apu.crashid WHERE apu.transportationmode != $transportationMode))");
       if ($unilateral) addSQLWhere($sqlWhere, "c.unilateral = 1");
@@ -209,29 +195,6 @@ function addPersonsWhereSql2(&$sqlWhere, $filter): void {
 
       $where = "EXISTS(SELECT 1 FROM crashpersons WHERE $wherePersons)";
       addSQLWhere($sqlWhere, $where);
-    }
-  }
-}
-
-function addPersonsWhereSql(&$sqlWhere, &$sqlJoin, $filterPersons): void {
-  if (isset($filterPersons) && (count($filterPersons) > 0)) {
-    foreach ($filterPersons as $person){
-      $tableName          = 'p' . $person;
-      $transportationMode = (int)$person;
-      $personDead         = str_contains($person, 'd');
-      $personInjured      = str_contains($person, 'i');
-      $restricted         = str_contains($person, 'r');
-      $unilateral         = str_contains($person, 'u');
-      $sqlJoin .= " JOIN crashpersons $tableName ON c.id = $tableName.crashid AND $tableName.transportationmode=$transportationMode ";
-      if ($personDead || $personInjured ) {
-        $healthValues = [];
-        if ($personDead)    $healthValues[] = 3;
-        if ($personInjured) $healthValues[] = 2;
-        $healthValues = implode(',', $healthValues);
-        $sqlJoin .= " AND $tableName.health IN ($healthValues) ";
-      }
-      if ($restricted) addSQLWhere($sqlWhere, "(c.unilateral is null OR c.unilateral != 1) AND (c.id not in (select au.id from crashes au LEFT JOIN crashpersons apu ON au.id = apu.crashid WHERE apu.transportationmode != $transportationMode))");
-      if ($unilateral) addSQLWhere($sqlWhere, "c.unilateral = 1");
     }
   }
 }
