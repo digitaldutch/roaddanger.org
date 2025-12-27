@@ -746,7 +746,6 @@ SQL;
     } else {
 
       $joinArticlesTable = false;
-      $joinPersonsTable  = false;
       $SQLJoin = '';
 
       // Only do full-text search if the text has 3 characters or more
@@ -778,12 +777,7 @@ SQL;
         $params[':userId'] = $filter['userId'];
       }
 
-      addHealthWhereSql($SQLWhere, $joinPersonsTable, $filter);
-
-      if (isset($filter['child']) && ($filter['child'] === 1)){
-        $joinPersonsTable = true;
-        addSQLWhere($SQLWhere, " cp.child=1 ");
-      }
+      addPersonsWhereSql2($SQLWhere, $filter);
 
       if (isset($filter['area'])) {
         $sqlArea = "latitude BETWEEN :latMin AND :latMax AND longitude BETWEEN :lonMin AND :lonMax";
@@ -795,16 +789,9 @@ SQL;
         $params[':lonMax'] = $filter['area']['lonMax'];
       }
 
-      if (isset($filter['persons']) && (count($filter['persons'])) > 0) {
-        $joinPersonsTable = true;
-        addPersonsWhereSql($SQLWhere, $SQLJoin, $filter['persons']);
-      }
-
       if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);
 
       if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
-      if ($joinPersonsTable) $SQLJoin .= ' JOIN crashpersons cp on c.id = cp.crashid ';
-
 
       $orderField = match ($sort) {
         'crashDate' => 'c.date DESC, c.streamdatetime DESC',
@@ -945,7 +932,6 @@ SQL;
     $SQLJoin = '';
     $params = [];
     $joinArticlesTable = false;
-    $joinPersonsTable = true;
 
     // Only do full-text search if the text has 3 characters or more
     if (isset($filter['text']) && strlen($filter['text']) > 2){
@@ -955,10 +941,9 @@ SQL;
       $params[':search2'] = $filter['text'];
     }
 
-    addHealthWhereSql($SQLWhere, $joinPersonsTable, $filter);
-    $this->addPeriodWhereSql($SQLWhere, $params, $filter);
+    addPersonsWhereSql2($SQLWhere, $filter);
 
-    if ($filter['child'] === 1) addSQLWhere($SQLWhere, " cp.child=1 ");
+    $this->addPeriodWhereSql($SQLWhere, $params, $filter);
 
     if ($filter['country'] !== 'UN'){
       addSQLWhere($SQLWhere, "c.countryid=:country");
@@ -1011,13 +996,14 @@ SQL;
 
         if ($person['health'] === 3) $crashInjured[] = $person;
         else if (($filter['healthInjured'] === 1) && ($person['health'] === 2)) $crashInjured[] = $person;
+
         if (! in_array($person['transportationmode'], $crashTransportationModes)) $crashTransportationModes[] = $person['transportationmode'];
       }
 
       foreach ($crashInjured as $personInjured){
         if (! isset($crashVictims[$personInjured['transportationmode']])) $crashVictims[$personInjured['transportationmode']] = [];
 
-        // Add crash partner
+        // Add the crash partner
         if ($unilateralCrash){
           // Unilateral transportationMode = -1
           if (! isset($crashVictims[$personInjured['transportationmode']][-1])) $crashVictims[$personInjured['transportationmode']][-1] = 0;

@@ -1361,7 +1361,7 @@ function getPersonsFromFilter(){
       const transportationMode =  TransportationMode[key];
       const buttonProfile = document.getElementById('tm' + transportationMode);
       if (buttonProfile.classList.contains('itemSelected')) {
-        let person = transportationMode;
+        let person = transportationMode.toString();
 
         const deadSelected = document.getElementById('searchDeadTm' + transportationMode).classList.contains('inputSelectButtonSelected');
         if (deadSelected) person += 'd';

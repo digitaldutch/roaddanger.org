@@ -280,6 +280,12 @@ class TMetaParser {
 
     $result = '';
     foreach ($tags as $tag) {
+      // Sometimes the tag is an array. In that case we use the first element.
+      if (is_array($tag)) {
+        if (count($tag) > 0) $tag = $tag[0];
+        else $tag = null;
+      }
+
       if (isset($tag)) {
         $tag = trim($tag);
         if ((! empty($tag)) && (strlen($tag) > strlen($result))) $result = $tag;

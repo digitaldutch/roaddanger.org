@@ -164,6 +164,55 @@ function addHealthWhereSql(&$sqlWhere, &$joinPersonsTable, $filter): void {
   }
 }
 
+function addPersonsWhereSql2(&$sqlWhere, $filter): void {
+  $dead = isset($filter['healthDead']) && ($filter['healthDead'] === 1);
+  $injured = isset($filter['healthInjured']) && ($filter['healthInjured'] === 1);
+  $child = isset($filter['child']) && ($filter['child'] === 1);
+  $persons = isset($filter['persons']) && (count($filter['persons']) > 0);
+
+  if ($dead || $injured || $child) {
+    $values = [];
+    if ($dead) $values[] = 3;
+    if ($injured) $values[] = 2;
+    $valuesText = implode(", ", $values);
+
+    $wherePersons = 'c.id = crashid';
+    if (! empty($valuesText)) addSQLWhere($wherePersons, "health IN ($valuesText)");
+
+    if ($child) addSQLWhere($wherePersons, "child = 1");
+
+    $where = "EXISTS(SELECT 1 FROM crashpersons WHERE $wherePersons)";
+
+    addSQLWhere($sqlWhere, $where);
+  }
+
+  if ($persons) {
+    foreach ($filter['persons'] as $person){
+      $transportationMode = (int)$person;
+      $personDead         = str_contains($person, 'd');
+      $personInjured      = str_contains($person, 'i');
+      $restricted         = str_contains($person, 'r');
+      $unilateral         = str_contains($person, 'u');
+
+      if ($restricted) addSQLWhere($sqlWhere, "(c.unilateral is null OR c.unilateral != 1) AND (c.id not in (select au.id from crashes au LEFT JOIN crashpersons apu ON au.id = apu.crashid WHERE apu.transportationmode != $transportationMode))");
+      if ($unilateral) addSQLWhere($sqlWhere, "c.unilateral = 1");
+
+      $wherePersons = "c.id = crashid AND transportationmode=$transportationMode";
+
+      $healthValues = [];
+      if ($personDead) $healthValues[] = 3;
+      if ($personInjured) $healthValues[] = 2;
+      $healthValues = implode(',', $healthValues);
+
+      if (! empty($healthValues)) addSQLWhere($wherePersons, "health IN ($healthValues)");
+
+
+      $where = "EXISTS(SELECT 1 FROM crashpersons WHERE $wherePersons)";
+      addSQLWhere($sqlWhere, $where);
+    }
+  }
+}
+
 function addPersonsWhereSql(&$sqlWhere, &$sqlJoin, $filterPersons): void {
   if (isset($filterPersons) && (count($filterPersons) > 0)) {
     foreach ($filterPersons as $person){
