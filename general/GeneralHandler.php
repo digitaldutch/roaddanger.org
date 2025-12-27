@@ -688,7 +688,7 @@ SQL;
     if ($moderations && (! $this->user->isModerator())) throw new \Exception('Moderaties zijn alleen zichtbaar voor moderators.');
 
     $crashes = [];
-    $params = [];
+    $params = [':offset' => $offset, ':count' => $count];
     $sqlModerated = '';
     if ($moderations) {
       $sqlModerated = ' (c.awaitingmoderation=1) OR (c.id IN (SELECT crashid FROM articles WHERE awaitingmoderation=1)) ';
@@ -807,16 +807,16 @@ SQL;
 
 
       $orderField = match ($sort) {
-        'crashDate'   => 'c.date DESC, c.streamdatetime DESC',
+        'crashDate' => 'c.date DESC, c.streamdatetime DESC',
         'lastChanged' => 'c.streamdatetime DESC',
-        default       => 'c.date DESC, c.streamdatetime DESC',
+        default => 'c.date DESC, c.streamdatetime DESC',
       };
 
       $SQLWhere = <<<SQL
  $SQLJoin      
  $SQLWhere
 ORDER BY $orderField 
-LIMIT $offset, $count
+LIMIT :offset, :count
 SQL;
     }
 

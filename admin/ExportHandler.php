@@ -70,7 +70,7 @@ SQL;
       $DBStatementArticles = $this->database->prepare($sql);
 
       $sql = <<<SQL
-SELECT DISTINCT 
+SELECT 
 ac.id,
 ac.title,
 ac.text,

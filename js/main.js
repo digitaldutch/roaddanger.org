@@ -743,8 +743,8 @@ async function loadMapDataFromServer(){
     for (const crash of response.crashes) {
       if (! crashes.find(c => c.id === crash.id)) {
         const markerElement = document.createElement('div');
-        const personDied    = crash.persons.find(p => p.health === Health.dead);
-        let   personInjured = false;
+        const personDied = crash.persons.find(p => p.health === Health.dead);
+        let personInjured = false;
         if (! personDied) personInjured = crash.persons.find(p => p.health === Health.injured);
 
         const imgSrc = personDied? 'persondead_red.svg' : personInjured? 'person_injured_red.svg' : 'crash_icon.svg';

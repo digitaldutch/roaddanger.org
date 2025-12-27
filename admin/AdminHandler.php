@@ -44,13 +44,18 @@ SELECT
   email,
   permission,
   registrationtime,
-  (select count(*) from articles where articles.userid = users.id) AS article_count
+  (SELECT COUNT(*) FROM articles WHERE articles.userid = users.id) AS article_count
 FROM users
 ORDER BY lastactive DESC
-LIMIT $offset, $count
+LIMIT :offset, :count
 SQL;
 
-    $users = $this->database->fetchAll($sql);
+    $params = [
+      ':offset' => $offset,
+      ':count' => $count,
+    ];
+
+    $users = $this->database->fetchAll($sql, $params);
     foreach ($users as &$dbUser) {
       $dbUser['lastactive'] = datetimeDBToISO8601($dbUser['lastactive']);
       $dbUser['registrationtime'] = datetimeDBToISO8601($dbUser['registrationtime']);
