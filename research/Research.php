@@ -76,7 +76,7 @@ SQL;
     $SQLJoin = '';
     $SQLWhereAnd = ' ';
 
-    addPersonsWhereSql2($SQLWhereAnd, $filter);
+    addPersonsWhereSql($SQLWhereAnd, $filter);
 
     if (! empty($filter['country']) and ($filter['country'] !== 'UN')){
       addSQLWhere($SQLWhereAnd, 'c.countryid="' . $filter['country'] . '"');

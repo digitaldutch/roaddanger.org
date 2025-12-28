@@ -715,7 +715,7 @@ SQL;
     $DbStatementCrashPersons = $this->database->prepare($sql);
 
     $sql = <<<SQL
-SELECT DISTINCT 
+SELECT
 c.id,
 c.userid,
 c.createtime,
@@ -777,7 +777,7 @@ SQL;
         $params[':userId'] = $filter['userId'];
       }
 
-      addPersonsWhereSql2($SQLWhere, $filter);
+      addPersonsWhereSql($SQLWhere, $filter);
 
       if (isset($filter['area'])) {
         $sqlArea = "latitude BETWEEN :latMin AND :latMax AND longitude BETWEEN :lonMin AND :lonMax";
@@ -941,7 +941,7 @@ SQL;
       $params[':search2'] = $filter['text'];
     }
 
-    addPersonsWhereSql2($SQLWhere, $filter);
+    addPersonsWhereSql($SQLWhere, $filter);
 
     $this->addPeriodWhereSql($SQLWhere, $params, $filter);
 

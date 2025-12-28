@@ -150,7 +150,7 @@ function addSQLWhere(&$whereSql, $wherePart): void {
   $whereSql .= ' ' . $wherePart . ' ';
 }
 
-function addPersonsWhereSql2(&$sqlWhere, $filter): void {
+function addPersonsWhereSql(&$sqlWhere, $filter): void {
   $dead = isset($filter['healthDead']) && ($filter['healthDead'] === 1);
   $injured = isset($filter['healthInjured']) && ($filter['healthInjured'] === 1);
   $child = isset($filter['child']) && ($filter['child'] === 1);
@@ -163,11 +163,11 @@ function addPersonsWhereSql2(&$sqlWhere, $filter): void {
     $valuesText = implode(", ", $values);
 
     $wherePersons = 'c.id = crashid';
-    if (! empty($valuesText)) addSQLWhere($wherePersons, "health IN ($valuesText)");
+    if (! empty($valuesText)) addSQLWhere($wherePersons, "cp.health IN ($valuesText)");
 
-    if ($child) addSQLWhere($wherePersons, "child = 1");
+    if ($child) addSQLWhere($wherePersons, "cp.child = 1");
 
-    $where = "EXISTS(SELECT 1 FROM crashpersons WHERE $wherePersons)";
+    $where = "EXISTS(SELECT 1 FROM crashpersons cp WHERE $wherePersons)";
 
     addSQLWhere($sqlWhere, $where);
   }
@@ -183,17 +183,17 @@ function addPersonsWhereSql2(&$sqlWhere, $filter): void {
       if ($restricted) addSQLWhere($sqlWhere, "(c.unilateral is null OR c.unilateral != 1) AND (c.id not in (select au.id from crashes au LEFT JOIN crashpersons apu ON au.id = apu.crashid WHERE apu.transportationmode != $transportationMode))");
       if ($unilateral) addSQLWhere($sqlWhere, "c.unilateral = 1");
 
-      $wherePersons = "c.id = crashid AND transportationmode=$transportationMode";
+      $wherePersons = "cp.crashid = c.id AND cp.transportationmode=$transportationMode";
 
       $healthValues = [];
       if ($personDead) $healthValues[] = 3;
       if ($personInjured) $healthValues[] = 2;
       $healthValues = implode(',', $healthValues);
 
-      if (! empty($healthValues)) addSQLWhere($wherePersons, "health IN ($healthValues)");
+      if (! empty($healthValues)) addSQLWhere($wherePersons, "cp.health IN ($healthValues)");
 
 
-      $where = "EXISTS(SELECT 1 FROM crashpersons WHERE $wherePersons)";
+      $where = "EXISTS(SELECT 1 FROM crashpersons cp WHERE $wherePersons)";
       addSQLWhere($sqlWhere, $where);
     }
   }

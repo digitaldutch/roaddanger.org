@@ -254,7 +254,7 @@ SQL;
       $SQLJoin = '';
       $SQLWhereAnd = ' ';
 
-      addPersonsWhereSql2($SQLWhereAnd, $filter);
+      addPersonsWhereSql($SQLWhereAnd, $filter);
 
       if (isset($filter['noUnilateral']) && ($filter['noUnilateral'] === 1)){
         addSQLWhere($SQLWhereAnd, " c.unilateral !=1 ");
