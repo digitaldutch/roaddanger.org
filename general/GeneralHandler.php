@@ -780,13 +780,29 @@ SQL;
       addPersonsWhereSql($SQLWhere, $filter);
 
       if (isset($filter['area'])) {
-        $sqlArea = "latitude BETWEEN :latMin AND :latMax AND longitude BETWEEN :lonMin AND :lonMax";
+        $sqlArea = <<<SQL
+MBRContains(
+  ST_GeomFromText(:bboxWkt),
+  c.location
+)
+
+SQL;
 
         addSQLWhere($SQLWhere, $sqlArea);
-        $params[':latMin'] = $filter['area']['latMin'];
-        $params[':latMax'] = $filter['area']['latMax'];
-        $params[':lonMin'] = $filter['area']['lonMin'];
-        $params[':lonMax'] = $filter['area']['lonMax'];
+
+        $latMin = (float)$filter['area']['latMin'];
+        $latMax = (float)$filter['area']['latMax'];
+        $lonMin = (float)$filter['area']['lonMin'];
+        $lonMax = (float)$filter['area']['lonMax'];
+
+        $params[':bboxWkt'] = sprintf(
+          'POLYGON((%F %F, %F %F, %F %F, %F %F, %F %F))',
+          $lonMin, $latMin,
+          $lonMax, $latMin,
+          $lonMax, $latMax,
+          $lonMin, $latMax,
+          $lonMin, $latMin
+        );
       }
 
       if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);

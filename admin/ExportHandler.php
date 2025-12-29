@@ -75,8 +75,8 @@ ac.id,
 ac.title,
 ac.text,
 ac.date,
-ac.latitude,
-ac.longitude,
+st_x(ac.location) AS longitude,
+st_y(ac.location) AS latitude,
 ac.countryid,
 ac.unilateral, 
 ac.pet, 
@@ -88,8 +88,6 @@ SQL;
 
       $DBResults = $this->database->fetchAll($sql);
       foreach ($DBResults as $crash) {
-        $crash['latitude'] = isset($crash['latitude'])? (float) $crash['latitude'] : null;
-        $crash['longitude'] = isset($crash['longitude'])? (float) $crash['longitude'] : null;
         $crash['date'] = datetimeDBToISO8601($crash['date']);
 
         // Load persons

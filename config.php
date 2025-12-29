@@ -1,5 +1,5 @@
 <?php
-$VERSION = 660;
+$VERSION = 661;
 $VERSION_DATE = '29 December 2025';
 
 require_once 'configsecret.php';
@@ -14,7 +14,7 @@ require_once 'configsecret.php';
 //
 // const DB_HOST = 'localhost';
 // const DB_NAME = 'database_name';
-// const DB_USER = 'database_user';
+// const DB_USER = 'database_user';ZF
 // const DB_PASSWORD = 'database_password';
 // const EMAIL_FOR_ERRORS = 'you@your_domain.com';
 // CONST OPENROUTER_API_KEY = 'your_openrouter_api_key';
