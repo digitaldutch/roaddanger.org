@@ -11,8 +11,7 @@ create table roaddanger.ai_models
   structured_outputs tinyint(1)                        null,
   constraint name
     unique (name)
-)
-  engine = InnoDB;
+);
 
 create table roaddanger.countries
 (
@@ -20,22 +19,16 @@ create table roaddanger.countries
     primary key,
   name              varchar(50) null,
   options           text        null,
-  defaultlanguageid char(2)     null,
-  constraint countries_id_uindex
-    unique (id)
-)
-  engine = InnoDB;
+  defaultlanguageid char(2)     null
+);
 
 create table roaddanger.languages
 (
   id           char(2)     not null
     primary key,
   name         varchar(50) null,
-  translations mediumtext  null,
-  constraint languages_id_uindex
-    unique (id)
-)
-  engine = InnoDB;
+  translations mediumtext  null
+);
 
 create table roaddanger.logins
 (
@@ -44,8 +37,7 @@ create table roaddanger.logins
   userid    int         null,
   tokenhash varchar(60) null,
   lastlogin timestamp   null
-)
-  engine = InnoDB;
+);
 
 create table roaddanger.logs
 (
@@ -55,11 +47,8 @@ create table roaddanger.logs
   timestamp timestamp default current_timestamp() null,
   level     tinyint                               null,
   ip        varchar(45)                           null,
-  info      varchar(255)                          not null,
-  constraint logs_id_uindex
-    unique (id)
-)
-  engine = InnoDB;
+  info      varchar(255)                          not null
+);
 
 create table roaddanger.longtexts
 (
@@ -67,8 +56,7 @@ create table roaddanger.longtexts
   language_id char(2) default 'en' not null,
   content     text                 null,
   primary key (id, language_id)
-)
-  engine = InnoDB;
+);
 
 create table roaddanger.questionnaires
 (
@@ -80,8 +68,7 @@ create table roaddanger.questionnaires
   country_id char(2)              null,
   title      varchar(100)         null,
   public     tinyint(1) default 0 null comment 'Results are publicly available'
-)
-  engine = InnoDB;
+);
 
 create table roaddanger.questions
 (
@@ -91,8 +78,7 @@ create table roaddanger.questions
   active         tinyint(1) default 0 null,
   question_order smallint             null,
   explanation    varchar(200)         null
-)
-  engine = InnoDB;
+);
 
 create table roaddanger.questionnaire_questions
 (
@@ -106,8 +92,7 @@ create table roaddanger.questionnaire_questions
   constraint quest_questions_questions_id_fk
     foreign key (question_id) references roaddanger.questions (id)
       on update cascade
-)
-  engine = InnoDB;
+);
 
 create table roaddanger.users
 (
@@ -126,16 +111,13 @@ create table roaddanger.users
   lastactive           timestamp default current_timestamp() not null,
   constraint users_email_uindex
     unique (email),
-  constraint users_id_uindex
-    unique (id),
   constraint users_FK
     foreign key (language) references roaddanger.languages (id)
       on update cascade on delete set null,
   constraint users_FK_country
     foreign key (countryid) references roaddanger.countries (id)
       on update cascade on delete set null
-)
-  engine = InnoDB;
+);
 
 create table roaddanger.ai_prompts
 (
@@ -153,8 +135,7 @@ create table roaddanger.ai_prompts
   constraint ai_prompts_users_id_fk
     foreign key (user_id) references roaddanger.users (id)
       on update cascade
-)
-  engine = InnoDB;
+);
 
 create table roaddanger.crashes
 (
@@ -173,7 +154,6 @@ create table roaddanger.crashes
   location            point                                  null,
   latitude            decimal(9, 6)                          null,
   longitude           decimal(9, 6)                          null,
-  tree                tinyint(1) default 0                   null,
   trafficjam          tinyint(1) default 0                   null,
   unilateral          tinyint(1)                             null,
   hitrun              tinyint(1) default 0                   null,
@@ -181,16 +161,13 @@ create table roaddanger.crashes
   pet                 tinyint(1) default 0                   null,
   streamdatetime      timestamp  default current_timestamp() not null,
   locationdescription text                                   null,
-  constraint posts_id_uindex
-    unique (id),
   constraint crashes_countries_id_fk
     foreign key (countryid) references roaddanger.countries (id)
       on update cascade on delete set null,
   constraint posts___fk_user
     foreign key (userid) references roaddanger.users (id)
       on update cascade on delete cascade
-)
-  engine = InnoDB;
+);
 
 create table roaddanger.articles
 (
@@ -208,16 +185,13 @@ create table roaddanger.articles
   url                varchar(1000)                                not null,
   urlimage           varchar(1000)                                not null,
   sitename           varchar(200)                                 not null,
-  constraint articles_id_uindex
-    unique (id),
   constraint articles___fk_crashes
     foreign key (crashid) references roaddanger.crashes (id)
       on update cascade on delete cascade,
   constraint articles___fk_user
     foreign key (userid) references roaddanger.users (id)
       on update cascade on delete cascade
-)
-  engine = InnoDB;
+);
 
 create table roaddanger.answers
 (
@@ -233,8 +207,7 @@ create table roaddanger.answers
   constraint answers_questions_id_fk
     foreign key (questionid) references roaddanger.questions (id)
       on update cascade on delete cascade
-)
-  engine = InnoDB;
+);
 
 create index articles__index_crashid
   on roaddanger.articles (crashid);
@@ -268,12 +241,17 @@ create table roaddanger.crashpersons
   constraint crashpersons___fkcrashes
     foreign key (crashid) references roaddanger.crashes (id)
       on update cascade on delete cascade
-)
-  engine = InnoDB;
+);
 
 create index crashpersons___fkcrash
   on roaddanger.crashpersons (crashid);
 
 create index crashpersons___fkgroup
   on roaddanger.crashpersons (groupid);
+
+create index idx_cp_mode_crashid
+  on roaddanger.crashpersons (transportationmode, crashid);
+
+create index idx_cp_mode_health_crashid
+  on roaddanger.crashpersons (transportationmode, health, crashid);
 
