@@ -1724,6 +1724,31 @@ h3, .pageSubTitleFont {
   cursor: pointer;
 }
 
+.binMarker {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+
+  background: rgba(220, 38, 38, 0.9); /* red-ish */
+  color: white;
+
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1;
+
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+
+  cursor: pointer;
+  user-select: none;
+}
+
 .crashIcon {
   height: 18px;
   width:  18px;

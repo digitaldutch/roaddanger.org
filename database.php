@@ -94,7 +94,7 @@ class Database {
     }
   }
 
-  public function fetch($sql, $params=null){
+  public function fetch($sql, $params=null) {
     try {
       $statement = $this->pdo->prepare($sql);
       $statement->execute($params);

@@ -7,6 +7,7 @@ let spinnerLoad;
 let pageType;
 let graph;
 let mapMain;
+let mapMarkersBins = [];
 let mapEdit;
 let mapCrash;
 let markerEdit;
@@ -713,6 +714,74 @@ function delayedLoadMapData(){
   delayedLoadMapData.timeout = setTimeout(loadMapDataFromServer, 1000);
 }
 
+function clearMapMarkers() {
+  // Remove crash markers
+  for (const crash of crashes) {
+    if (crash.marker) {
+      crash.marker.remove();
+      crash.marker = null;
+    }
+  }
+
+  crashes.length = 0;
+  articles.length = 0;
+
+  // Remove bin markers
+  mapMarkersBins.forEach(m => m.remove());
+  mapMarkersBins.length = 0;
+}
+
+function drawCrashMapBins(bins) {
+  clearMapMarkers();
+
+  for (const bin of bins) {
+    const el = document.createElement('div');
+    el.className = 'binMarker';
+    el.textContent = bin.count;
+
+    // Optional: zoom in when clicking a bin
+    el.onclick = () => {
+      mapMain.easeTo({
+        center: [bin.longitude, bin.latitude],
+        zoom: Math.min(mapMain.getZoom() + 2, 18)
+      });
+    };
+
+    const marker = new mapboxgl.Marker(el)
+      .setLngLat([bin.longitude, bin.latitude])
+      .addTo(mapMain);
+
+    mapMarkersBins.push(marker);
+  }
+}
+
+function showCrashesOnMap(response) {
+  clearMapMarkers();
+
+  for (const crash of response.crashes) {
+    if (! crashes.find(c => c.id === crash.id)) {
+      const markerElement = document.createElement('div');
+      const personDied = crash.persons.find(p => p.health === Health.dead);
+      let personInjured = false;
+      if (! personDied) personInjured = crash.persons.find(p => p.health === Health.injured);
+
+      const imgSrc = personDied? 'persondead_red.svg' : personInjured? 'person_injured_red.svg' : 'crash_icon.svg';
+
+      markerElement.innerHTML = `<img class="crashIcon" src="/images/${imgSrc}">`;
+      markerElement.onclick = () => {showCrashDetails(crash.id)};
+
+      crash.marker = (new mapboxgl.Marker(markerElement)
+        .setLngLat([crash.longitude, crash.latitude])
+        .addTo(mapMain));
+
+      crashes.push(crash);
+      const crashArticles = response.articles.filter(a => a.crashid === crash.id);
+      articles = articles.concat(crashArticles);
+    }
+  }
+}
+
+
 async function loadMapDataFromServer(){
 
   try {
@@ -720,11 +789,13 @@ async function loadMapDataFromServer(){
 
     const bounds = mapMain.getBounds();
     const serverData  = {
-      count:   200,
-      sort:    'crashDate',
+      count: 200,
+      sort: 'crashDate',
     };
 
     serverData.filter = filter.getFromGUI();
+    // We want data from the whole world to show up
+    serverData.filter.country = 'UN';
 
     serverData.filter.area = {
       latMin: bounds._sw.lat,
@@ -733,39 +804,17 @@ async function loadMapDataFromServer(){
       lonMax: bounds._ne.lng,
     }
 
-    const url = '/general/ajaxGeneral.php?function=loadCrashes';
+    const url = '/general/ajaxGeneral.php?function=loadMapCrashes';
     const response = await fetchFromServer(url, serverData);
 
     if (response.user) updateLoginGUI(response.user);
 
-    prepareCrashesServerData(response);
+    if (response.bins) {
+      drawCrashMapBins(response.bins);
+    } else {
+      prepareCrashesServerData(response);
 
-    for (const crash of response.crashes) {
-      if (! crashes.find(c => c.id === crash.id)) {
-        const markerElement = document.createElement('div');
-        const personDied = crash.persons.find(p => p.health === Health.dead);
-        let personInjured = false;
-        if (! personDied) personInjured = crash.persons.find(p => p.health === Health.injured);
-
-        const imgSrc = personDied? 'persondead_red.svg' : personInjured? 'person_injured_red.svg' : 'crash_icon.svg';
-
-        markerElement.innerHTML = `<img class="crashIcon" src="/images/${imgSrc}">`;
-        markerElement.onclick = () => {showCrashDetails(crash.id)};
-
-        crash.marker = (new mapboxgl.Marker(markerElement)
-          .setLngLat([crash.longitude, crash.latitude])
-          .addTo(mapMain));
-
-        crashes.push(crash);
-        const crashArticles = response.articles.filter(a => a.crashid === crash.id);
-        articles = articles.concat(crashArticles);
-      }
-    }
-
-    if (crashes.length > 500) {
-      for (const crash of crashes) {
-// TODO Clean up markers that are out of the view
-      }
+      showCrashesOnMap(response);
     }
 
     if (response.error) {showError(response.error); return [];}
@@ -825,21 +874,21 @@ async function loadMap() {
 }
 
 function prepareArticleServerData(article){
-  article.publishedtime  = new Date(article.publishedtime);
-  article.createtime     = new Date(article.createtime);
+  article.publishedtime = new Date(article.publishedtime);
+  article.createtime = new Date(article.createtime);
   article.streamdatetime = new Date(article.streamdatetime);
 }
 
 function prepareCrashServerData(crash) {
-  crash.date           = new Date(crash.date);
-  crash.createtime     = new Date(crash.createtime);
+  crash.date = new Date(crash.date);
+  crash.createtime = new Date(crash.createtime);
   crash.streamdatetime = new Date(crash.streamdatetime);
 
   let id = 1;
   crash.persons.forEach(person => person.id = id++);
 }
 
-  function prepareCrashesServerData(data){
+function prepareCrashesServerData(data){
   data.crashes.forEach(crash => prepareCrashServerData(crash));
   data.articles.forEach(article => prepareArticleServerData(article));
 }
@@ -1144,7 +1193,7 @@ function highlightSearchText() {
   if (search) {
     let options = {
       "accuracy": {
-        "value":    "exactly",
+        "value": "exactly",
         "limiters": [",", "."]
       },
       "wildcards": "enabled",
@@ -2130,10 +2179,7 @@ async function deleteCrashDirect(crashID) {
 
 function reloadCrashes(){
   if (pageType === PageType.map) {
-    // Delete all markers
-    crashes.forEach(c => {c.marker.remove(); c.marker = null;});
-    crashes  = [];
-    articles = [];
+    clearMapMarkers();
 
     loadMapDataFromServer();
   } else {

@@ -18,6 +18,7 @@ class GeneralHandler extends AjaxHandler {
         'extractDataFromArticle' => $this->extractDataFromArticle(),
         'loadCountryMapOptions' => $this->loadCountryMapOptions(),
         'loadCrashes' => $this->loadCrashes(),
+        'loadMapCrashes' => $this->loadMapCrashes(),
         'getArticleText' => $this->getArticleText(),
         'saveArticleCrash' => $this->saveArticleCrash(),
         'deleteArticle' => $this->deleteArticle(),
@@ -745,69 +746,9 @@ SQL;
       $SQLWhere = " WHERE c.id=:id ";
     } else {
 
-      $joinArticlesTable = false;
-      $SQLJoin = '';
-
-      // Only do full-text search if the text has 3 characters or more
-      if (isset($filter['text']) && strlen($filter['text']) > 2){
-        addSQLWhere($SQLWhere, "(MATCH(c.title, c.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))");
-        $joinArticlesTable = true;
-        $params[':search']  = $filter['text'];
-        $params[':search2'] = $filter['text'];
-      }
-
-      $this->addPeriodWhereSql($SQLWhere, $params, $filter);
-
-      if (! empty($filter['country'])){
-        if ($filter['country'] !== 'UN') {
-          addSQLWhere($SQLWhere, "c.countryid=:country");
-          $params[':country'] = $filter['country'];
-        }
-      }
-
-      if (! empty($filter['siteName'])){
-        $joinArticlesTable = true;
-        addSQLWhere($SQLWhere, " LOWER(ar.sitename) LIKE :sitename ");
-        $params[':sitename'] = "%{$filter['siteName']}%";
-      }
-
-      if (! empty($filter['userId'])) {
-        $joinArticlesTable = true;
-        addSQLWhere($SQLWhere, "ar.userid = :userId");
-        $params[':userId'] = $filter['userId'];
-      }
-
-      addPersonsWhereSql($SQLWhere, $filter);
-
-      if (isset($filter['area'])) {
-        $sqlArea = <<<SQL
-MBRContains(
-  ST_GeomFromText(:bboxWkt),
-  c.location
-)
-
-SQL;
-
-        addSQLWhere($SQLWhere, $sqlArea);
-
-        $latMin = (float)$filter['area']['latMin'];
-        $latMax = (float)$filter['area']['latMax'];
-        $lonMin = (float)$filter['area']['lonMin'];
-        $lonMax = (float)$filter['area']['lonMax'];
-
-        $params[':bboxWkt'] = sprintf(
-          'POLYGON((%F %F, %F %F, %F %F, %F %F, %F %F))',
-          $lonMin, $latMin,
-          $lonMax, $latMin,
-          $lonMax, $latMax,
-          $lonMin, $latMax,
-          $lonMin, $latMin
-        );
-      }
+      [$SQLWhere, $params] = $this->getCrashesWhere($filter, $SQLWhere, $params);
 
       if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);
-
-      if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
 
       $orderField = match ($sort) {
         'crashDate' => 'c.date DESC, c.streamdatetime DESC',
@@ -816,7 +757,6 @@ SQL;
       };
 
       $SQLWhere = <<<SQL
- $SQLJoin      
  $SQLWhere
 ORDER BY $orderField 
 LIMIT :offset, :count
@@ -871,7 +811,202 @@ SQL;
     ];
   }
 
+  public function loadMapCrashes(): array {
+    $startTime = microtime(true);
+    $filter = $this->input['filter'];
+
+    // Get the number of crashes in the bounding box
+    $SQLWhere = '';
+    $params = [];
+    [$SQLWhere, $params] = $this->getCrashesWhere($filter, $SQLWhere, $params);
+
+    $sql = <<<SQL
+SELECT COUNT(*) AS count 
+FROM crashes c
+$SQLWhere;
+SQL;
+
+    $count = $this->database->fetchSingleValue($sql, $params);
+
+    // Show crashes if there are less than 200
+    if ($count < 200) {
+      $result = $this->loadCrashes();
+      $result['crash_count'] = count($result['crashes']);
+      return $result;
+    } else {
+      // Show aggregates if too many crashes
+      return [
+        'crash_count' => $count,
+        'crashes' => [],
+        'articles' => [],
+        'bins' => $this->fetchCrashMapAggregateBins($filter),
+      ];
+    }
+  }
+
   // ***** Private functions *****
+  private function initialCellFromBbox(
+    float $lonMin, float $lonMax,
+    float $latMin, float $latMax,
+    int $cols = 25, int $rows = 15
+  ): float {
+    $w = max(1e-9, $lonMax - $lonMin);
+    $h = max(1e-9, $latMax - $latMin);
+    return max($w / $cols, $h / $rows);
+  }
+
+
+  private function makeBinsLatLonCount(array $rows, float $cell, int $targetBins = 300): array {
+    while (true) {
+      $bins = [];
+
+      foreach ($rows as $r) {
+        if ($r['longitude'] === null || $r['latitude'] === null) continue;
+
+        $lon = (float)$r['longitude'];
+        $lat = (float)$r['latitude'];
+
+        $ix = (int)floor($lon / $cell);
+        $iy = (int)floor($lat / $cell);
+        $key = $ix . ':' . $iy;
+
+        if (!isset($bins[$key])) {
+          $bins[$key] = ['count' => 0, 'sumLon' => 0.0, 'sumLat' => 0.0];
+        }
+
+        $bins[$key]['count']++;
+        $bins[$key]['sumLon'] += $lon;
+        $bins[$key]['sumLat'] += $lat;
+      }
+
+      // If too many bins, coarsen (bigger cells) and retry
+      if (count($bins) > $targetBins) {
+        $cell *= 1.6;
+        continue;
+      }
+
+      // Convert to minimal payload
+      $out = [];
+      foreach ($bins as $b) {
+        $cnt = $b['count'];
+        $out[] = [
+          'latitude' => $b['sumLat'] / $cnt,
+          'longitude' => $b['sumLon'] / $cnt,
+          'count' => $cnt,
+        ];
+      }
+
+      return $out;
+    }
+  }
+
+  private function fetchCrashMapAggregateBins($filter): array {
+
+    $SQLWhere = '';
+    $params = [];
+
+    [$SQLWhere, $params] = $this->getCrashesWhere($filter, $SQLWhere, $params);
+
+    $sql = <<<SQL
+SELECT 
+  ST_X(c.location) AS longitude, 
+  ST_Y(c.location) AS latitude
+FROM crashes c
+$SQLWhere
+SQL;
+
+    $rows = $this->database->fetchAll($sql, $params);
+
+    $latMin = (float)$filter['area']['latMin'];
+    $latMax = (float)$filter['area']['latMax'];
+    $lonMin = (float)$filter['area']['lonMin'];
+    $lonMax = (float)$filter['area']['lonMax'];
+    $cell = $this->initialCellFromBbox($lonMin, $lonMax, $latMin, $latMax);
+    $bins = $this->makeBinsLatLonCount($rows, $cell, 150);
+
+    return $bins;
+  }
+
+  private function getCrashesWhere($filter, $SQLWhere, $params): array {
+
+    // Only do full-text search if the text has 3 characters or more
+    if (isset($filter['text']) && strlen($filter['text']) > 2) {
+      $sqlLocal = <<<SQL
+(MATCH(c.title, c.text) AGAINST (:search IN BOOLEAN MODE) 
+    OR EXISTS (
+      SELECT 1
+      FROM articles ar
+      WHERE ar.crashid = c.id
+        AND MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))
+)
+SQL;
+
+      addSQLWhere($SQLWhere, $sqlLocal);
+      $params[':search']  = $filter['text'];
+      $params[':search2'] = $filter['text'];
+    }
+
+    $this->addPeriodWhereSql($SQLWhere, $params, $filter);
+
+    if (! empty($filter['country'])){
+      if ($filter['country'] !== 'UN') {
+        addSQLWhere($SQLWhere, "c.countryid=:country");
+        $params[':country'] = $filter['country'];
+      }
+    }
+
+    if (! empty($filter['siteName'])) {
+      $sqlLocal = <<<SQL
+EXISTS (
+  SELECT 1
+  FROM articles ar
+  WHERE ar.crashid = c.id
+    AND (LOWER(ar.sitename) LIKE :sitename))
+SQL;
+      addSQLWhere($SQLWhere, $sqlLocal);
+      $params[':sitename'] = "%{$filter['siteName']}%";
+    }
+
+    if (! empty($filter['userId'])) {
+      $sqlLocal = <<<SQL
+((c.userid = :userId) 
+OR
+  EXISTS (
+    SELECT 1
+    FROM articles ar
+    WHERE ar.crashid = c.id
+      AND (ar.userid = :userId2)))
+SQL;
+      addSQLWhere($SQLWhere, $sqlLocal);
+      $params[':userId'] = $filter['userId'];
+      $params[':userId2'] = $filter['userId'];
+    }
+
+    addPersonsWhereSql($SQLWhere, $filter);
+
+    if (isset($filter['area'])) {
+      $sqlArea = "MBRContains(ST_GeomFromText(:bboxWkt), c.location)";
+
+      addSQLWhere($SQLWhere, $sqlArea);
+
+      $latMin = (float)$filter['area']['latMin'];
+      $latMax = (float)$filter['area']['latMax'];
+      $lonMin = (float)$filter['area']['lonMin'];
+      $lonMax = (float)$filter['area']['lonMax'];
+
+      $params[':bboxWkt'] = sprintf(
+        'POLYGON((%F %F, %F %F, %F %F, %F %F, %F %F))',
+        $lonMin, $latMin,
+        $lonMax, $latMin,
+        $lonMax, $latMax,
+        $lonMin, $latMax,
+        $lonMin, $latMin
+      );
+    }
+
+    return [$SQLWhere, $params];
+  }
+
   private function cleanArticleDBRow($article): array {
     $article['awaitingmoderation'] = $article['awaitingmoderation'] == 1;
     $article['hasalltext'] = ($article['hasalltext'] ?? 0) == 1;
@@ -945,7 +1080,6 @@ SQL;
 
   private function getStatsCrashPartners(array $filter): array{
     $SQLWhere = '';
-    $SQLJoin = '';
     $params = [];
     $joinArticlesTable = false;
 
@@ -972,6 +1106,7 @@ SQL;
       $params[':sitename'] = "%{$filter['siteName']}%";
     }
 
+    $SQLJoin = '';
     if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
 
     $sqlCrashesWithDeath = <<<SQL
