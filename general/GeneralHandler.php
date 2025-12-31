@@ -812,14 +812,10 @@ SQL;
   }
 
   public function loadMapCrashes(): array {
-    $startTime = microtime(true);
     $filter = $this->input['filter'];
 
     // Get the number of crashes in the bounding box
-    $SQLWhere = '';
-    $params = [];
-    [$SQLWhere, $params] = $this->getCrashesWhere($filter, $SQLWhere, $params);
-
+    [$SQLWhere, $params] = $this->getCrashesWhere($filter);
     $sql = <<<SQL
 SELECT COUNT(*) AS count 
 FROM crashes c
@@ -902,10 +898,7 @@ SQL;
 
   private function fetchCrashMapAggregateBins($filter): array {
 
-    $SQLWhere = '';
-    $params = [];
-
-    [$SQLWhere, $params] = $this->getCrashesWhere($filter, $SQLWhere, $params);
+    [$SQLWhere, $params] = $this->getCrashesWhere($filter);
 
     $sql = <<<SQL
 SELECT 
@@ -927,7 +920,7 @@ SQL;
     return $bins;
   }
 
-  private function getCrashesWhere($filter, $SQLWhere, $params): array {
+  private function getCrashesWhere($filter, $SQLWhere='', $params=[]): array {
 
     // Only do full-text search if the text has 3 characters or more
     if (isset($filter['text']) && strlen($filter['text']) > 2) {
@@ -1079,42 +1072,13 @@ SQL;
   }
 
   private function getStatsCrashPartners(array $filter): array{
-    $SQLWhere = '';
-    $params = [];
-    $joinArticlesTable = false;
-
-    // Only do full-text search if the text has 3 characters or more
-    if (isset($filter['text']) && strlen($filter['text']) > 2){
-      addSQLWhere($SQLWhere, "(MATCH(c.title, c.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))");
-      $joinArticlesTable = true;
-      $params[':search']  = $filter['text'];
-      $params[':search2'] = $filter['text'];
-    }
-
-    addPersonsWhereSql($SQLWhere, $filter);
-
-    $this->addPeriodWhereSql($SQLWhere, $params, $filter);
-
-    if ($filter['country'] !== 'UN'){
-      addSQLWhere($SQLWhere, "c.countryid=:country");
-      $params[':country'] = $filter['country'];
-    }
-
-    if (! empty($filter['siteName'])){
-      $joinArticlesTable = true;
-      addSQLWhere($SQLWhere, " LOWER(ar.sitename) LIKE :sitename ");
-      $params[':sitename'] = "%{$filter['siteName']}%";
-    }
-
-    $SQLJoin = '';
-    if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
+    [$SQLWhere, $params] = $this->getCrashesWhere($filter);
 
     $sqlCrashesWithDeath = <<<SQL
   SELECT
     c.id
   FROM crashpersons cp
   JOIN crashes c ON cp.crashid = c.id
-  $SQLJoin
   $SQLWhere
 SQL;
 
@@ -1135,9 +1099,9 @@ SQL;
     $crashVictims = [];
     $crashes = $this->database->fetchAllGroup($sql, $params);
     foreach ($crashes as $crashPersons) {
-      $crashInjured             = [];
+      $crashInjured = [];
       $crashTransportationModes = [];
-      $unilateralCrash          = false;
+      $unilateralCrash = false;
 
       // get crash dead persons
       foreach ($crashPersons as $person){
@@ -1192,14 +1156,30 @@ SQL;
     $params = [];
     $SQLJoin = '';
     $SQLWhere = '';
-    $joinArticlesTable = false;
 
-    // Only do full-text search if text has 3 characters or more
-    if (isset($filter['text']) && strlen($filter['text']) > 2){
-      addSQLWhere($SQLWhere, "(MATCH(c.title, c.text) AGAINST (:search IN BOOLEAN MODE) OR MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))");
-      $joinArticlesTable = true;
+    // Only do full-text search if the text has 3 characters or more
+    if (isset($filter['text']) && strlen($filter['text']) > 2) {
+      $sqlLocal = <<<SQL
+EXISTS (SELECT 1 FROM articles ar 
+  WHERE ar.crashid = cp.crashid
+  AND MATCH(ar.title, ar.text) AGAINST (:search IN BOOLEAN MODE)
+)
+SQL;
+
+      addSQLWhere($SQLWhere, $sqlLocal);
       $params[':search']  = $filter['text'];
-      $params[':search2'] = $filter['text'];
+    }
+
+    if (! empty($filter['siteName'])) {
+      $sqlLocal = <<<SQL
+EXISTS (
+  SELECT 1
+  FROM articles ar
+  WHERE ar.crashid = cp.crashid
+    AND (LOWER(ar.sitename) LIKE :sitename))
+SQL;
+      addSQLWhere($SQLWhere, $sqlLocal);
+      $params[':sitename'] = "%{$filter['siteName']}%";
     }
 
     $this->addPeriodWhereSql($SQLWhere, $params, $filter);
@@ -1208,12 +1188,11 @@ SQL;
       addSQLWhere($SQLWhere, " cp.child=1 ");
     }
 
-    if ($filter['country'] !== 'UN'){
-      addSQLWhere($SQLWhere, "c.countryid=:country");
+    if ($filter['country'] !== 'UN') {
+      $sqlLocal = "EXISTS(SELECT 1 FROM crashes c WHERE c.id=cp.crashid AND c.countryid=:country)";
+      addSQLWhere($SQLWhere, $sqlLocal);
       $params[':country'] = $filter['country'];
     }
-
-    if ($joinArticlesTable) $SQLJoin .= ' JOIN articles ar ON c.id = ar.crashid ';
 
     $sql = <<<SQL
 SELECT
@@ -1227,7 +1206,6 @@ SELECT
   sum(cp.health=0)         AS healthunknown,
   COUNT(*) AS total
 FROM crashpersons cp
-JOIN crashes c ON cp.crashid = c.id
   $SQLJoin
   $SQLWhere
 GROUP BY transportationmode
