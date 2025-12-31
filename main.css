@@ -1724,6 +1724,26 @@ h3, .pageSubTitleFont {
   cursor: pointer;
 }
 
+.crashDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 2px solid #fff;                 /* thin white outline */
+  box-shadow: 0 1px 3px rgba(0,0,0,.35);   /* subtle */
+  cursor: pointer;
+}
+
+.crashDot--normal  { background: rgb(92, 140, 250); }
+.crashDot--injured { background: rgba(245,158,11,.95); }
+.crashDot--dead    { background: rgba(220,38,38,.95); }
+
+/* optional: make severe cases slightly bigger */
+.crashDot--injured, .crashDot--dead { width: 14px; height: 14px; }
+
+.crashDot:hover {
+  transform: scale(1.2);
+}
+
 .binMarker {
   min-width: 28px;
   height: 28px;
@@ -1747,17 +1767,6 @@ h3, .pageSubTitleFont {
 
   cursor: pointer;
   user-select: none;
-}
-
-.crashIcon {
-  height: 18px;
-  width:  18px;
-  cursor: pointer;
-}
-
-.crashIcon:hover {
-  border: 1.5px solid black;
-  border-radius: 50%;
 }
 
 .editableCell {

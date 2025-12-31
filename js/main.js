@@ -759,27 +759,27 @@ function showCrashesOnMap(response) {
   clearMapMarkers();
 
   for (const crash of response.crashes) {
-    if (! crashes.find(c => c.id === crash.id)) {
-      const markerElement = document.createElement('div');
-      const personDied = crash.persons.find(p => p.health === Health.dead);
-      let personInjured = false;
-      if (! personDied) personInjured = crash.persons.find(p => p.health === Health.injured);
+    const el = document.createElement('div');
 
-      const imgSrc = personDied? 'persondead_red.svg' : personInjured? 'person_injured_red.svg' : 'crash_icon.svg';
+    const personDied = crash.persons.some(p => p.health === Health.dead);
+    const personInjured = !personDied && crash.persons.some(p => p.health === Health.injured);
 
-      markerElement.innerHTML = `<img class="crashIcon" src="/images/${imgSrc}">`;
-      markerElement.onclick = () => {showCrashDetails(crash.id)};
+    el.className =
+      'crashDot ' + (personDied ? 'crashDot--dead' : personInjured ? 'crashDot--injured' : 'crashDot--normal');
 
-      crash.marker = (new mapboxgl.Marker(markerElement)
-        .setLngLat([crash.longitude, crash.latitude])
-        .addTo(mapMain));
+    el.onclick = () => showCrashDetails(crash.id);
 
-      crashes.push(crash);
-      const crashArticles = response.articles.filter(a => a.crashid === crash.id);
-      articles = articles.concat(crashArticles);
-    }
+    crash.marker = new mapboxgl.Marker(el)
+      .setLngLat([crash.longitude, crash.latitude])
+      .addTo(mapMain);
+
+    crashes.push(crash);
+    const crashArticles = response.articles.filter(a => a.crashid === crash.id);
+    articles = articles.concat(crashArticles);
   }
 }
+
+
 
 
 async function loadMapDataFromServer(){
