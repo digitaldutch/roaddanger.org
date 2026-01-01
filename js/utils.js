@@ -1146,7 +1146,8 @@ function getSelectedTableData(id, tableIndex=0) {
 }
 
 function flagIconPath(countryId) {
-  return `/images/flags/${countryId.toLowerCase()}.svg`;
+  if (countryId) return `/images/flags/${countryId.toLowerCase()}.svg`;
+  else return `/images/flags/un.svg`;
 }
 
 function onDragEnter(event) {
