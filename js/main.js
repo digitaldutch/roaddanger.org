@@ -732,7 +732,6 @@ function clearMapMarkers() {
 }
 
 function drawCrashMapBins(bins) {
-  clearMapMarkers();
 
   for (const bin of bins) {
     const el = document.createElement('div');
@@ -756,7 +755,6 @@ function drawCrashMapBins(bins) {
 }
 
 function showCrashesOnMap(response) {
-  clearMapMarkers();
 
   for (const crash of response.crashes) {
     const el = document.createElement('div');
@@ -779,9 +777,6 @@ function showCrashesOnMap(response) {
   }
 }
 
-
-
-
 async function loadMapDataFromServer(){
 
   try {
@@ -794,8 +789,11 @@ async function loadMapDataFromServer(){
     };
 
     serverData.filter = filter.getFromGUI();
+
     // We want data from the whole world to show up
     serverData.filter.country = 'UN';
+
+    serverData.filter.map_mode = loadMapDataFromServer.map_mode?? 'points';
 
     serverData.filter.area = {
       latMin: bounds._sw.lat,
@@ -808,14 +806,16 @@ async function loadMapDataFromServer(){
     const response = await fetchFromServer(url, serverData);
 
     if (response.user) updateLoginGUI(response.user);
+    loadMapDataFromServer.map_mode = response.bins? 'bins' : 'points';
+
+    clearMapMarkers();
 
     if (response.bins) {
       drawCrashMapBins(response.bins);
-    } else {
-      prepareCrashesServerData(response);
-
-      showCrashesOnMap(response);
     }
+
+    prepareCrashesServerData(response);
+    showCrashesOnMap(response);
 
     if (response.error) {showError(response.error); return [];}
   } catch (error) {

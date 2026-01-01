@@ -676,8 +676,7 @@ SQL;
 
     return ['text' => $text];
   }
-  private function loadCrashes(): array {
-
+  private function loadCrashes($crashIds = []): array {
     $offset = $this->input['offset']?? 0;
     $count = $this->input['count']?? 20;
     $crashId = $this->input['id']?? null;
@@ -689,15 +688,6 @@ SQL;
     if ($moderations && (! $this->user->isModerator())) throw new \Exception('Moderaties zijn alleen zichtbaar voor moderators.');
 
     $crashes = [];
-    $params = [':offset' => $offset, ':count' => $count];
-    $sqlModerated = '';
-    if ($moderations) {
-      $sqlModerated = ' (c.awaitingmoderation=1) OR (c.id IN (SELECT crashid FROM articles WHERE awaitingmoderation=1)) ';
-    } else if ($crashId === null) {
-      // Individual pages are always shown and *not* moderated.
-      $sqlModerated = $this->user->isModerator()? '':  ' ((c.awaitingmoderation=0) || (c.userid=:useridModeration)) ';
-      if ($sqlModerated) $params[':useridModeration'] = $this->user->id;
-    }
 
     // Sort on dead=3, injured=2, unknown=0, uninjured=1
     $sql = <<<SQL
@@ -739,8 +729,13 @@ LEFT JOIN users u  on u.id  = c.userid
 LEFT JOIN users tu on tu.id = c.streamtopuserid
 SQL;
 
+    $params = [];
     $SQLWhere = '';
-    if ($crashId !== null) {
+    if (count($crashIds) > 0) {
+      // Search on crash IDs
+      $IdsString = implode(', ', $crashIds);
+      $SQLWhere = " WHERE c.id IN ($IdsString) ";
+    } else if ($crashId !== null) {
       // Single crash
       $params = [':id' => $crashId];
       $SQLWhere = " WHERE c.id=:id ";
@@ -748,19 +743,29 @@ SQL;
 
       [$SQLWhere, $params] = $this->getCrashesWhere($filter, $SQLWhere, $params);
 
+      $sqlModerated = '';
+      if ($moderations) {
+        $sqlModerated = ' (c.awaitingmoderation=1) OR (c.id IN (SELECT crashid FROM articles WHERE awaitingmoderation=1)) ';
+      } else if ($crashId === null) {
+        // Individual pages are always shown and *not* moderated.
+        $sqlModerated = $this->user->isModerator()? '':  ' ((c.awaitingmoderation=0) || (c.userid=:useridModeration)) ';
+        if ($sqlModerated) $params[':useridModeration'] = $this->user->id;
+      }
+
       if ($sqlModerated) addSQLWhere($SQLWhere, $sqlModerated);
 
-      $orderField = match ($sort) {
-        'crashDate' => 'c.date DESC, c.streamdatetime DESC',
-        'lastChanged' => 'c.streamdatetime DESC',
-        default => 'c.date DESC, c.streamdatetime DESC',
-      };
+      if (! isset($filter['area'])) {
+        $orderField = match ($sort) {
+          'crashDate' => 'c.date DESC, c.streamdatetime DESC',
+          'lastChanged' => 'c.streamdatetime DESC',
+          default => 'c.date DESC, c.streamdatetime DESC',
+        };
+        $SQLWhere .= " ORDER BY $orderField ";
 
-      $SQLWhere = <<<SQL
- $SQLWhere
-ORDER BY $orderField 
-LIMIT :offset, :count
-SQL;
+        $params[':offset'] = $offset;
+        $params[':count'] = $count;
+        $SQLWhere .= " LIMIT :offset, :count ";
+      }
     }
 
     $sql .= $SQLWhere;
@@ -824,24 +829,38 @@ SQL;
 
     $count = $this->database->fetchSingleValue($sql, $params);
 
-    // Show crashes if there are less than 200
-    if ($count < 200) {
-      $result = $this->loadCrashes();
-      $result['crash_count'] = count($result['crashes']);
-      return $result;
-    } else {
+    $mode = $filter['map_mode'] ?? 'points';
+
+    // Using hysteresis to avoid jumping quickly between points and bins.
+    $toBinsThreshold = 600;
+    $toPointsThreshold = 350;
+
+    if ($mode === 'points') {
+      $useBins = ($count > $toBinsThreshold);
+    } else { // mode === 'bins'
+      $useBins = ($count > $toPointsThreshold);
+    }
+
+    if ($useBins) {
       // Show aggregates if too many crashes
+      $binResults = $this->fetchCrashMapAggregateBins($filter);
+      $crashIds = array_column($binResults['crashes'], 'id');
+      $crashesResults = $this->loadCrashes($crashIds);
       return [
         'crash_count' => $count,
-        'crashes' => [],
-        'articles' => [],
-        'bins' => $this->fetchCrashMapAggregateBins($filter),
+        'crashes' => $crashesResults['crashes'],
+        'articles' => $crashesResults['articles'],
+        'bins' => $binResults['bins'],
       ];
+    } else {
+      $binResults = $this->loadCrashes();
+      $binResults['crash_count'] = count($binResults['crashes']);
+      return $binResults;
     }
   }
 
   // ***** Private functions *****
-  private function initialCellFromBbox(
+  private function getBinCellSizeFromBbox(
     float $lonMin, float $lonMax,
     float $latMin, float $latMax,
     int $cols = 25, int $rows = 15
@@ -852,49 +871,83 @@ SQL;
   }
 
 
-  private function makeBinsLatLonCount(array $rows, float $cell, int $targetBins = 300): array {
+  private function makeBinsLatLonCount(array $crashes, float $cell, int $targetBins = 300, int $minBinCount = 3): array {
     while (true) {
       $bins = [];
 
-      foreach ($rows as $r) {
-        if ($r['longitude'] === null || $r['latitude'] === null) continue;
+      foreach ($crashes as $crash) {
+        if ($crash['longitude'] === null || $crash['latitude'] === null) {
+          continue;
+        }
 
-        $lon = (float)$r['longitude'];
-        $lat = (float)$r['latitude'];
+        $id  = (int)$crash['id'];
+        $lon = (float)$crash['longitude'];
+        $lat = (float)$crash['latitude'];
 
-        $ix = (int)floor($lon / $cell);
-        $iy = (int)floor($lat / $cell);
+        $ix  = (int)floor($lon / $cell);
+        $iy  = (int)floor($lat / $cell);
         $key = $ix . ':' . $iy;
 
         if (!isset($bins[$key])) {
-          $bins[$key] = ['count' => 0, 'sumLon' => 0.0, 'sumLat' => 0.0];
+          $bins[$key] = [
+            'count'  => 0,
+            'sumLon' => 0.0,
+            'sumLat' => 0.0,
+            'points' => [], // store up to ($minBinCount - 1) points for small bins
+          ];
         }
 
         $bins[$key]['count']++;
         $bins[$key]['sumLon'] += $lon;
         $bins[$key]['sumLat'] += $lat;
+
+        // Keep a few raw points so we can return them as individual crashes
+        // when the bin is too small to be meaningful (e.g. count 1-2).
+        $keep = max(0, $minBinCount - 1);
+        if ($keep > 0 && count($bins[$key]['points']) < $keep) {
+          $bins[$key]['points'][] = ['id' => $id, 'longitude' => $lon, 'latitude' => $lat];
+        }
       }
 
-      // If too many bins, coarsen (bigger cells) and retry
+      // Too many bins? Make cells larger and retry.
       if (count($bins) > $targetBins) {
         $cell *= 1.6;
         continue;
       }
 
-      // Convert to minimal payload
-      $out = [];
-      foreach ($bins as $b) {
-        $cnt = $b['count'];
-        $out[] = [
-          'latitude' => $b['sumLat'] / $cnt,
-          'longitude' => $b['sumLon'] / $cnt,
-          'count' => $cnt,
-        ];
+      $outBins = [];
+      $outCrashes = [];
+
+      foreach ($bins as $bin) {
+        $count = $bin['count'];
+
+        // For small bins, return the original crash points (exact coords)
+        if ($count > 0 && $count < $minBinCount) {
+          foreach ($bin['points'] as $p) {
+            $outCrashes[] = $p; // {id, longitude, latitude}
+          }
+          continue;
+        }
+
+        // Otherwise return an aggregate bin (centroid + count)
+        if ($count > 0) {
+          $outBins[] = [
+            'latitude'  => $bin['sumLat'] / $count,
+            'longitude' => $bin['sumLon'] / $count,
+            'count'     => $count,
+          ];
+        }
       }
 
-      return $out;
+      return [
+        'bins'    => $outBins,
+        'crashes' => $outCrashes,
+        'cell'    => $cell, // optional debug
+      ];
     }
   }
+
+
 
   private function fetchCrashMapAggregateBins($filter): array {
 
@@ -902,6 +955,7 @@ SQL;
 
     $sql = <<<SQL
 SELECT 
+  c.id,
   ST_X(c.location) AS longitude, 
   ST_Y(c.location) AS latitude
 FROM crashes c
@@ -914,10 +968,15 @@ SQL;
     $latMax = (float)$filter['area']['latMax'];
     $lonMin = (float)$filter['area']['lonMin'];
     $lonMax = (float)$filter['area']['lonMax'];
-    $cell = $this->initialCellFromBbox($lonMin, $lonMax, $latMin, $latMax);
-    $bins = $this->makeBinsLatLonCount($rows, $cell, 150);
 
-    return $bins;
+    $cell = $this->getBinCellSizeFromBbox($lonMin, $lonMax, $latMin, $latMax);
+
+    $result = $this->makeBinsLatLonCount($rows, $cell, 150);
+
+    return [
+      'bins' => $result['bins'],
+      'crashes' => $result['crashes'], // singleton crash markers (with id)
+    ];
   }
 
   private function getCrashesWhere($filter, $SQLWhere='', $params=[]): array {
