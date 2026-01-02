@@ -48,7 +48,8 @@ class TMetaParser {
       'twitter' => [],
       'article' => [],
       'itemprop' => [],
-      'other' => []
+      'other' => [],
+      'cloudflare' => false,
     ];
 
     // Convert to UTF-8 as some websites do not use it. We need it for parsing.
@@ -145,6 +146,8 @@ class TMetaParser {
     }
 
     $metaOut['other']['domain'] = $this->extractDomain($url);
+
+    $metaOut['cloudflare'] = str_contains(strtolower($html), 'cloudflare') !== false;
 
     return $metaOut;
   }
@@ -336,6 +339,8 @@ class TMetaParser {
       }
     }
 
+    $media['cloudflare'] = $metaData['cloudflare'];
+
     return $media;
   }
 }
@@ -346,7 +351,7 @@ function parseMetaDataFromUrl(string $url): array {
   $urlDownload = $url;
   $pageHtml = $parser->downloadWebpage($urlDownload);
   if ($pageHtml === false) {
-    // Use headless browser if CURL fails. This happens if CURL is blocked
+    // Use a headless browser if CURL fails. This happens if CURL is blocked
     $pageHtml = $parser->downloadUsingHeadlessBrowser($urlDownload);
     $metaData = $parser->getPageMediaMetaData($pageHtml, $url);
     $tagCount = $parser->getTagStats($metaData);
@@ -354,7 +359,7 @@ function parseMetaDataFromUrl(string $url): array {
     $metaData = $parser->getPageMediaMetaData($pageHtml, $url);
     $tagCount = $parser->getTagStats($metaData);
 
-    // if no tags found, try headless browser
+    // if no tags found, try the headless browser
     if ($tagCount['total'] <= 0) {
       $pageHtml = $parser->downloadUsingHeadlessBrowser($urlDownload);
       $metaData = $parser->getPageMediaMetaData($pageHtml, $url);

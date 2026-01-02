@@ -1925,7 +1925,8 @@ async function getArticleMetaData() {
       if (response.urlExists) {
         showMessage(translate('article_has_already_been_added') + `<br><a href='/${response.urlExists.crashId}' style='text-decoration: underline;'>${translate('Article')}</a>`, 30);
       } else if (response.tagcount.total === 0) {
-        showMessage(translate('no_data_found_on_web_page'), 30);
+        if (response.media.cloudflare) showMessage(translate('No_data_found_cloudflare'), 30);
+        else showMessage(translate('No_data_found_on_web_page'), 30);
       } else showMetaData(response.media);
 
       document.getElementById('spiderResults').innerHTML = `
