@@ -101,8 +101,8 @@ class HtmlResearch {
        
     <label for="questionnaireType">Type</label>
     <select id="questionnaireType">
-      <option value="0">Standard</option>
-      <option value="1">Bechdel test</option>
+      <option value="0">Question list</option>
+      <option value="1">Bechdel</option>
     </select>    
        
     <label for="questionnaireCountryId">Country</label>
@@ -208,7 +208,7 @@ HTML;
 
     $questionnairesOptions = '';
     foreach ($questionnaires as $questionnaire) {
-      $publicText = (! $publicOnly) && $questionnaire['public'] === 0? ' (admin only)' : ' (public)';
+      $publicText = ($user->admin && $questionnaire['public'] === 0)? '' : ' (public)';
       $questionnairesOptions .= "<option value='{$questionnaire['id']}'>{$questionnaire['title']}$publicText</option>";
     }
 
@@ -278,11 +278,12 @@ HTML;
 
   <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
 
-  <div id="questionnaireInfo" class="smallFont" style="margin-bottom: 10px;"></div>
+  <h1 id="questionnaireHeader"></h1>
+  <p id="questionnaireInfo"></p>
 
   <div id="questionnaireBechdelIntro" style="width: 100%; margin-bottom: 10px; display: none;">
-    <div style="font-weight: bold;">An article passes this test if all questions below are answered 'Yes':</div>
-    <div id="questionnaireBechdelQuestions"></div>
+    <p>The article’s score is determined by the number of questions answered with “Yes” in sequence. The score ends at the first “No”.</p>
+    <p id="questionnaireBechdelQuestions"></p>
   </div>
      
   <div id="questionnaireBars"></div>

@@ -665,8 +665,8 @@ function permissionToText(permission) {
 
 function questionnaireTypeToText(type) {
   switch (type) {
-    case QuestionnaireType.standard: return 'Standard';
-    case QuestionnaireType.bechdel:  return 'Bechdel test';
+    case QuestionnaireType.standard: return 'Question list';
+    case QuestionnaireType.bechdel:  return 'Bechdel';
     default: return 'Unknown';
   }
 }

@@ -283,8 +283,11 @@ async function loadQuestionnaireResults() {
 
     if (response.error) showError(response.error);
     else if (response.ok) {
-      document.getElementById('questionnaireInfo').innerHTML = 'Questionnaire type: ' + questionnaireTypeToText(response.questionnaire.type) +
-        ` | Questions country: ` + response.questionnaire.country;
+      document.getElementById('questionnaireHeader').innerText = response.questionnaire.title;
+      document.getElementById('questionnaireInfo').innerHTML =
+        'Type: ' + questionnaireTypeToText(response.questionnaire.type) +
+        '<br>Country: ' + response.questionnaire.country +
+        '<br>Public: ' + (response.questionnaire.public? 'Yes' : 'No');
 
       let htmlQuestions = '';
       let htmlHead = '';
@@ -298,14 +301,17 @@ async function loadQuestionnaireResults() {
           htmlBody += `<tr><td>${question.question_id} ${question.question}<td style="text-align: right;">${question.yes}</td><td style="text-align: right;">${question.no}</td><td style="text-align: right;">${question.not_determinable}</td></tr>`;
         }
 
+        document.getElementById('questionnaireBechdelIntro').style.display = 'none';
+        document.getElementById('questionnaireBechdelQuestions').innerHTML = '';
       } else if (response.questionnaire.type === QuestionnaireType.bechdel) {
 
         let i=1;
         for (const question of response.questionnaire.questions) {
-          htmlQuestions += `<div>${i}) ${question.text}</div>`;
+          htmlQuestions += `<tr><td style="vertical-align: top;">Q${i}:</td><td style="font-style: italic;">${question.text}</td></tr>`;
           i += 1;
         }
 
+        if (htmlQuestions) htmlQuestions = '<table>' + htmlQuestions + '</table>';
         document.getElementById('questionnaireBechdelIntro').style.display = 'block';
         document.getElementById('questionnaireBechdelQuestions').innerHTML = htmlQuestions;
 
@@ -1028,6 +1034,7 @@ function selectFilterQuestionnaireResults() {
   if (dead) url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
   if (child) url.searchParams.set('child', 1); else url.searchParams.delete('child');
   if (! noUnilateral) url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
+
   if (timeSpan) url.searchParams.set('timeSpan', timeSpan); else url.searchParams.delete('timeSpan');
   if (country) url.searchParams.set('country', country); else url.searchParams.delete('country');
   if (group) url.searchParams.set('group', group); else url.searchParams.delete('group');

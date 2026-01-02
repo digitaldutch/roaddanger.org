@@ -111,7 +111,9 @@ SQL;
     }
 
     // Get questionnaire answers
+    // ***** Standard questionnaire type *****
     if ($questionnaire['type'] === QuestionnaireType::standard->value) {
+
       $sql = <<<SQL
 SELECT
   a.questionid AS id,
@@ -146,7 +148,7 @@ SQL;
       $result['questions'] = $questions;
 
     } else {
-      // Bechdel type
+      // ***** Bechdel type questionnaire *****
 
       // Get questionnaire questions
       $sql = <<<SQL
@@ -232,7 +234,7 @@ SQL;
         $articleBechdel = self::getBechdelResult($article['questions']);
         $articleBechdel['total_questions'] = count($article['questions']);
 
-        // Get group where the article belongs to
+        // Get the group where the article belongs to
         switch ($group) {
           case 'year': {
             $bechdelResultsGroup = &$bechdelResults[$article['article_year']];
@@ -257,7 +259,7 @@ SQL;
           default: $bechdelResultsGroup = &$bechdelResults;
         }
 
-        // Initialize every to zero if first article in group
+        // Initialize every group to zero if the first article in the group
         if (! isset($bechdelResultsGroup)) $bechdelResultsGroup = getInitBechdelResults($questionnaire['questions']);
 
         if ($articleBechdel['result'] !== null) {
@@ -333,17 +335,17 @@ SQL;
       } else {
         $result['bechdelResults'][] = $bechdelResults;
       }
-    }
 
-    if (! empty($filter['minArticles'])) {
-      $filtered = [];
-      foreach ($result['bechdelResults'] as $row) {
-        if ($row['total_articles'] >= $filter['minArticles']) {
-          $filtered[] = $row;
+      if (! empty($filter['minArticles'])) {
+        $filtered = [];
+        foreach ($result['bechdelResults'] as $row) {
+          if ($row['total_articles'] >= $filter['minArticles']) {
+            $filtered[] = $row;
+          }
         }
-      }
 
-      $result['bechdelResults'] = $filtered;
+        $result['bechdelResults'] = $filtered;
+      }
     }
 
     if (! empty($articleFilter['getArticles'])) {
@@ -352,7 +354,9 @@ SQL;
         'crashes' => $crashes,
         'articles' => array_slice($articles, $articleFilter['offset'], 1000),
       ];
-    } else $result['questionnaire'] = $questionnaire;
+    } else {
+      $result['questionnaire'] = $questionnaire;
+    }
 
     return $result;
   }
