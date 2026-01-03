@@ -1635,67 +1635,65 @@ async function showQuestionsForm(crashId, articleId) {
   closeCrashDetails();
 
   const article = getArticleFromId(articleId);
-  const crash   = getCrashFromId(crashId);
+  const crash = getCrashFromId(crashId);
 
-  const onFillInPage = window.location.href.includes('fill_in');
   const htmlUnilateral = crash.unilateral? getIconUnilateral() : '';
 
   document.getElementById('buttonEditCrash').addEventListener('click', () => viewCrashInTab(crashId));
 
-  document.getElementById('questionsArticleId').value        = article.id;
+  document.getElementById('questionsArticleId').value = article.id;
   document.getElementById('questionsArticleTitle').innerText = article.title;
-  document.getElementById('questionsArticle').innerHTML      = `<a href="${article.url}" target="article">${article.sitename}</a>`;
+  document.getElementById('questionsArticle').innerHTML = `<a href="${article.url}" target="article">${article.sitename}</a>`;
   document.getElementById('questionsCrashButtons').innerHTML = getCrashHumansIcons(crash) + htmlUnilateral;
   document.getElementById('questionsArticleText').innerText  = '⌛';
 
   document.getElementById('articleQuestions').innerHTML  = '⌛';
   document.getElementById('formQuestions').style.display = 'flex';
 
-  getArticleQuestionnaires(crash.countryid, article.id).then(
-    response => {
-      let htmlQuestionnaires = '';
-      article.questionnaires = response.questionnaires;
-      for (const questionnaire of article.questionnaires) {
-        htmlQuestionnaires += `<tr><td colspan="2" class="sectionHeader">${questionnaire.title}</td></tr>`;
+  const response = await getArticleQuestionnaires(article.id);
 
-        let i = 1;
-        for (const question of questionnaire.questions) {
-          const yesChecked        = question.answer === 1? 'checked' : '';
-          const noChecked         = question.answer === 0? 'checked' : '';
-          const ndChecked         = question.answer === 2? 'checked' : '';
-          const tooltip           = question.explanation? `<span class="iconTooltip" data-tippy-content="${question.explanation}"></span>` : '';
-          const answerExplanation = question.answerExplanation? escapeHtml(question.answerExplanation) : '';
+  let htmlQuestionnaires = '';
+  article.questionnaires = response.questionnaires;
+  for (const questionnaire of article.questionnaires) {
+    htmlQuestionnaires += `<tr><td colspan="2" class="sectionHeader">${questionnaire.title}</td></tr>`;
 
-          htmlQuestionnaires +=
+    let i = 1;
+    for (const question of questionnaire.questions) {
+      const yesChecked        = question.answer === 1? 'checked' : '';
+      const noChecked         = question.answer === 0? 'checked' : '';
+      const ndChecked         = question.answer === 2? 'checked' : '';
+      const tooltip           = question.explanation? `<span class="iconTooltip" data-tippy-content="${question.explanation}"></span>` : '';
+      const answerExplanation = question.answerExplanation? escapeHtml(question.answerExplanation) : '';
+
+      htmlQuestionnaires +=
 `<tr id="q${questionnaire.id}_${question.id}">
-  <td>${i}) ${question.text} ${tooltip}</td>
-  <td style="white-space: nowrap;">
-    <label><input name="answer${question.id}" type="radio" ${yesChecked} onclick="saveAnswer(${article.id}, ${question.id}, 1)">Yes</label>
-    <label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${article.id}, ${question.id}, 0)">No</label>
-    <label data-tippy-content="Not determinable"><input name="answer${question.id}" type="radio" ${ndChecked} onclick="saveAnswer(${article.id}, ${question.id}, 2)">n.d.</label>
-  </td>
+<td>${i}) ${question.text} ${tooltip}</td>
+<td style="white-space: nowrap;">
+<label><input name="answer${question.id}" type="radio" ${yesChecked} onclick="saveAnswer(${article.id}, ${question.id}, 1)">Yes</label>
+<label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${article.id}, ${question.id}, 0)">No</label>
+<label data-tippy-content="Not determinable"><input name="answer${question.id}" type="radio" ${ndChecked} onclick="saveAnswer(${article.id}, ${question.id}, 2)">n.d.</label>
+</td>
 </tr>
 <tr id="trExplanation${question.id}" style="display: none;"><td colspan="2"><input id="explanation${question.id}" type="text" value="${answerExplanation}" placeholder="Explanation" class="inputForm" oninput="saveExplanationDelayed(${article.id}, ${question.id});"></td></tr>
 `;
-          i += 1;
-        }
-
-        htmlQuestionnaires += `<tr id="questionnaireCompleted${questionnaire.id}" class="ready" style="display: none;"><td colspan="2">
-All questions answered 🙏🏼</td></tr>`;
-        htmlQuestionnaires += '<tr><td colspan="2" style="border: none; height: 10px;"></td></tr>'
-      }
-
-      if (htmlQuestionnaires) htmlQuestionnaires = `<table class="dataTable">${htmlQuestionnaires}</table>`;
-      else htmlQuestionnaires = '<div>No questionnaires found</div>';
-
-      document.getElementById('articleQuestions').innerHTML      = htmlQuestionnaires;
-      document.getElementById('questionsArticleText').innerHTML  = response.text? formatText(response.text) : '[Full text is not available in database]';
-
-      for (const questionnaire of article.questionnaires) setQuestionnaireGUI(questionnaire);
-
-      tippy('[data-tippy-content]', {allowHTML: true});
+      i += 1;
     }
-  );
+
+    htmlQuestionnaires += `<tr id="questionnaireCompleted${questionnaire.id}" class="ready" style="display: none;"><td colspan="2">
+All questions answered 🙏🏼</td></tr>`;
+    htmlQuestionnaires += '<tr><td colspan="2" style="border: none; height: 10px;"></td></tr>'
+  }
+
+  if (htmlQuestionnaires) htmlQuestionnaires = `<table class="dataTable">${htmlQuestionnaires}</table>`;
+  else htmlQuestionnaires = '<div>No questionnaires found</div>';
+
+  document.getElementById('articleQuestions').innerHTML      = htmlQuestionnaires;
+  document.getElementById('questionsArticleText').innerHTML  = response.text? formatText(response.text) : '[Full text is not available in database]';
+
+  for (const questionnaire of article.questionnaires) setQuestionnaireGUI(questionnaire);
+
+  tippy('[data-tippy-content]', {allowHTML: true});
+
 }
 
 function setQuestionnaireGUI(questionnaire) {
@@ -1817,9 +1815,9 @@ async function getArticleText(articleId) {
   else return response.text;
 }
 
-async function getArticleQuestionnaires(crashCountryId, articleId) {
-  const url      = '/general/ajaxGeneral.php?function=getArticleQuestionnairesAndText';
-  const response = await fetchFromServer(url, {crashCountryId: crashCountryId, articleId: articleId});
+async function getArticleQuestionnaires(articleId) {
+  const url = '/general/ajaxGeneral.php?function=getArticleQuestionnairesAndText';
+  const response = await fetchFromServer(url, {articleId: articleId});
 
   if (response.error) showError(response.error, 10);
   else return response;

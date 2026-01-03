@@ -220,10 +220,11 @@ HTML;
 <div class="pageInner">
   <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['results']}</div>
   
+  <div>Questionnaire settings</div>
   <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex;">
     <div class="toolbarItem"><select id="filterQuestionnaire" class="filterInput active" oninput="questionnaireFilterChange()">$questionnairesOptions</select></div>
     
-    <div class="toolbarItem">
+    <div class="toolbarItem" data-bechdel-option="true">
       <select id="filterResearchGroup" class="filterInput active" onchange="selectFilterQuestionnaireResults();">
         <option value="" selected>No groups</option>
         <option value="year">Group by year</option>
@@ -233,7 +234,7 @@ HTML;
       </select>
     </div>
   
-    <div class="toolbarItem">
+    <div class="toolbarItem" data-bechdel-option="true">
       <select id="filterMinArticles" class="filterInput active" onchange="selectFilterQuestionnaireResults();" data-tippy-content="Minimum amount of articles for a group to be visible">
         <option value="0">[No minimum]</option>
         <option value="1">Min. 1 article</option>
@@ -245,6 +246,7 @@ HTML;
     </div>
   </div>
   
+  <div>Article filters</div>
   <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex;">
     <div class="toolbarItem">
       <span id="filterResearchDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
@@ -290,22 +292,22 @@ HTML;
 
   <div id="headerStatistics" style="display: none; width: 100%; margin-top: 10px; font-weight: bold; text-align: left;">Statistics</div>
   
-  <table id="tableStatistics" class="dataTable" onclick="onClickStatisticsTable();">
-    <thead id="tableStatisticsHead"></thead>  
-    <tbody id="tableStatisticsBody" style="cursor: pointer;"></tbody>
+  <table id="tableStatistics" class="dataTable" onclick="onClickQuestionnaireStatisticsTable();">
+    <thead id="tableQStatsHead"></thead>  
+    <tbody id="tableQStatsBody" style="cursor: pointer;"></tbody>
   </table>  
       
 </div>
 </div>
 
-<div id="formResultArticles" class="popupOuter">
+<div id="formQuestionnaireArticles" class="popupOuter">
 
   <div class="formFixed" onclick="event.stopPropagation();">
    
-    <div id="headerResultArticles" class="popupHeader">Result articles</div>
+    <div id="headerQuestionnaireArticles" class="popupHeader">Result articles</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
     
-    <div id="resultArticles" class="flexColumn" style="overflow: auto;">Loading...</div>
+    <div id="questionnaireArticles" class="flexColumn" style="overflow: auto;">Loading...</div>
                             
   </div>
   

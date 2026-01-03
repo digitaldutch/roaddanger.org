@@ -665,18 +665,27 @@ function permissionToText(permission) {
 
 function questionnaireTypeToText(type) {
   switch (type) {
-    case QuestionnaireType.standard: return 'Question list';
-    case QuestionnaireType.bechdel:  return 'Bechdel';
+    case QuestionnaireType.standard: return 'Standard list';
+    case QuestionnaireType.bechdel: return 'Bechdel';
     default: return 'Unknown';
   }
 }
 
 function bechdelAnswerToText(answer) {
   switch (answer) {
-    case QuestionAnswer.no:              return 'Failed';
-    case QuestionAnswer.yes:             return 'Passed';
+    case QuestionAnswer.no: return 'Failed';
+    case QuestionAnswer.yes: return 'Passed';
     case QuestionAnswer.notDeterminable: return 'Not determinable';
     default: return 'Niet alle vragen beantwoord';
+  }
+}
+
+function answerToText(answer) {
+  switch (answer) {
+    case QuestionAnswer.no: return 'No';
+    case QuestionAnswer.yes: return 'Yes';
+    case QuestionAnswer.notDeterminable: return 'Not determinable';
+    default: return 'Undefined';
   }
 }
 

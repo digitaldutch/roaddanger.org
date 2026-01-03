@@ -558,11 +558,7 @@ SQL;
   private function getArticleQuestionnairesAndText(): array {
     if (! $this->user->isModerator()) throw new \Exception('Only moderators can edit article questions');
 
-    if (! isset($this->input['crashCountryId'])) throw new \Exception('No crashCountryId found');
     if ($this->input['articleId'] <= 0) throw new \Exception('No article id found');
-
-    if ($this->input['crashCountryId'] === 'UN') $whereCountry = " ";
-    else $whereCountry = " AND country_id IN ('UN', '" . $this->input['crashCountryId'] . "') ";
 
     $sql = <<<SQL
 SELECT
@@ -572,7 +568,6 @@ country_id,
 type
 FROM questionnaires
 WHERE active = 1
-$whereCountry
 ORDER BY id;
 SQL;
 

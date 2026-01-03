@@ -71,11 +71,7 @@ SQL;
       throw new \Exception("Questionnaire " . $filter['questionnaireId'] . " is not public");
     }
 
-    $result['questionnaire'] = $questionnaire;
-
-    $SQLJoin = '';
     $SQLWhereAnd = ' ';
-
     addPersonsWhereSql($SQLWhereAnd, $filter);
 
     if (! empty($filter['country']) and ($filter['country'] !== 'UN')){
@@ -125,7 +121,6 @@ FROM answers a
   LEFT JOIN crashes c                  ON ar.crashid = c.id
   LEFT JOIN questionnaire_questions qq ON qq.question_id = a.questionid
   LEFT JOIN questions q                ON a.questionid = q.id
-  $SQLJoin
 WHERE qq.questionnaire_id=:questionnaire_id
   $SQLWhereAnd
 GROUP BY qq.question_order, answer
@@ -144,8 +139,46 @@ SQL;
           'yes'              => $dbQuestion[1]['aantal'] ?? 0,
           'not_determinable' => $dbQuestion[2]['aantal'] ?? 0,
         ];
+
       }
+
       $result['questions'] = $questions;
+
+      if (isset($articleFilter['getArticles']) && $articleFilter['getArticles'] === true) {
+        $sql = <<<SQL
+SELECT
+  a.answer,
+  ar.crashid,
+  c.countryid,
+  c.unilateral AS crash_unilateral,
+  c.date AS crash_date,
+  ar.id,
+  ar.title,
+  ar.publishedtime,
+  ar.sitename
+FROM answers a
+LEFT JOIN articles ar                ON ar.id = a.articleid
+LEFT JOIN crashes c                  ON ar.crashid = c.id
+LEFT JOIN questionnaire_questions qq ON qq.question_id = a.questionid
+LEFT JOIN questions q                ON a.questionid = q.id
+WHERE a.questionid=:questionId;
+SQL;
+        $params = [':questionId' => $articleFilter['questionId']];
+        $articles = $database->fetchAll($sql, $params);
+
+        $result['articles'] = $articles;
+
+        $result['crashes'] = [];
+        foreach ($articles as $article) {
+          $result['crashes'][] = [
+            'id' => $article['crashid'],
+            'countryid' => $article['countryid'],
+            'date' => $article['crash_date'],
+            'unilateral' => $article['crash_unilateral'] === 1,
+          ];
+        }
+
+      }
 
     } else {
       // ***** Bechdel type questionnaire *****
@@ -198,7 +231,6 @@ FROM answers a
   LEFT JOIN articles ar                ON ar.id = a.articleid
   LEFT JOIN crashes c                  ON ar.crashid = c.id
   LEFT JOIN questionnaire_questions qq ON qq.question_id = a.questionid
-  $SQLJoin
 WHERE a.questionid in (SELECT question_id FROM questionnaire_questions WHERE questionnaire_id=:questionnaire_id)
   $SQLWhereAnd
 GROUP BY a.articleid
@@ -293,9 +325,9 @@ SQL;
             if (self::passesArticleFilter($article, $articleFilter)) {
               $articles[] = $article;
               $crashes[] = [
-                'id'         => $article['crashid'],
-                'date'       => $article['crash_date'],
-                'countryid'  => $article['crash_countryid'],
+                'id' => $article['crashid'],
+                'date' => $article['crash_date'],
+                'countryid' => $article['crash_countryid'],
                 'unilateral' => $article['crash_unilateral'] === 1,
               ];
             }
@@ -346,17 +378,17 @@ SQL;
 
         $result['bechdelResults'] = $filtered;
       }
+
+      if (! empty($articleFilter['getArticles'])) {
+        $result = [
+          'ok' => true,
+          'crashes' => $crashes,
+          'articles' => array_slice($articles, $articleFilter['offset'], 1000),
+        ];
+      }
     }
 
-    if (! empty($articleFilter['getArticles'])) {
-      $result = [
-        'ok' => true,
-        'crashes' => $crashes,
-        'articles' => array_slice($articles, $articleFilter['offset'], 1000),
-      ];
-    } else {
-      $result['questionnaire'] = $questionnaire;
-    }
+    $result['questionnaire'] = $questionnaire;
 
     return $result;
   }
