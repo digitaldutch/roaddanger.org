@@ -161,7 +161,8 @@ LEFT JOIN articles ar                ON ar.id = a.articleid
 LEFT JOIN crashes c                  ON ar.crashid = c.id
 LEFT JOIN questionnaire_questions qq ON qq.question_id = a.questionid
 LEFT JOIN questions q                ON a.questionid = q.id
-WHERE a.questionid=:questionId;
+WHERE a.questionid=:questionId
+ORDER BY ar.publishedtime DESC;
 SQL;
         $params = [':questionId' => $articleFilter['questionId']];
         $articles = $database->fetchAll($sql, $params);
@@ -234,7 +235,7 @@ FROM answers a
 WHERE a.questionid in (SELECT question_id FROM questionnaire_questions WHERE questionnaire_id=:questionnaire_id)
   $SQLWhereAnd
 GROUP BY a.articleid
-ORDER BY ar.publishedtime;
+ORDER BY ar.publishedtime DESC;
 SQL;
 
       $params = [

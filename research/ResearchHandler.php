@@ -250,7 +250,6 @@ SQL;
     $dBStatementCrashPersons = $this->database->prepare($sql);
 
     if (count($questionnaires) > 0) {
-
       $SQLJoin = '';
       $SQLWhereAnd = ' ';
 

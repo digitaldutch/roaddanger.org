@@ -1115,7 +1115,7 @@ async function onClickQuestionnaireStatisticsTable() {
       </tr>`;
     }
 
-    if (html) html = `<table class="dataTable"><tr><th>Crash Id</th><th>Article Id</th><th>Bechdel result</th><th>Published</th><th>Country</th><th>Source</th></tr>${html}</table>`;
+    if (html) html = `<table class="dataTable tableWhiteHeader"><tr><th>Crash Id</th><th>Article Id</th><th>Bechdel result</th><th>Published</th><th>Country</th><th>Source</th></tr>${html}</table>`;
 
   } else {
     for (const article of response.articles) {
@@ -1133,7 +1133,7 @@ async function onClickQuestionnaireStatisticsTable() {
     }
 
     if (html) html = `
-<table class="dataTable">
+<table class="dataTable tableWhiteHeader">
 <tr>
   <th>Article title</th>
   <th>Answer</th>
