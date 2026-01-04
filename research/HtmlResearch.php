@@ -196,12 +196,11 @@ HTML;
   }
 
   public static function pageResults(): string {
-
     global $database;
     global $user;
 
-    $texts = translateArray(['Filter', 'Questionnaires', 'results', 'Injury', 'Dead_(adjective)', 'Child',
-      'Exclude_unilateral', 'Always']);
+    $texts = translateArray(['Filter', 'Questionnaires', 'Export_data', 'results', 'Injury', 'Dead_(adjective)', 'Child',
+      'Exclude_unilateral', 'Always', 'Period']);
 
     $publicOnly = ! $user->admin;
     $questionnaires = $database->getQuestionnaires($publicOnly);
@@ -263,8 +262,8 @@ HTML;
     </div>
     
     <div class="toolbarItem">
-      <select id="filterResearchTimeSpan" class="filterInput active">
-        <option value="">[{$texts['Always']}]</option>
+      <select id="filterResearchTimeSpan" class="filterInput active" data-tippy-content="{$texts['Period']}">
+        <option value="">{$texts['Always']}</option>
         <option value="from2022">From 2022</option>
         <option value="1year">1 year</option>
         <option value="2year">2 years</option>
@@ -284,22 +283,29 @@ HTML;
 
   <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
 
-  <h1 id="questionnaireHeader"></h1>
-  <p id="questionnaireInfo"></p>
-
-  <div id="questionnaireBechdelIntro" style="width: 100%; margin-bottom: 10px; display: none;">
-    <p>The article’s score is determined by the number of questions answered with “Yes” in sequence. The score ends at the first “No”.</p>
-    <p id="questionnaireBechdelQuestions"></p>
-  </div>
-     
-  <div id="questionnaireBars"></div>
-
-  <div id="headerStatistics" style="display: none; width: 100%; margin-top: 10px; font-weight: bold; text-align: left;">Statistics</div>
+  <div id="questionnaireResults" style="display: none;">
+    <h1 id="questionnaireHeader"></h1>
+    <div style="display: flex; justify-content: space-between;">
+      <div id="questionnaireInfo"></div>
+      <button class="button buttonImportant" style="display: none;" onclick="exportQuestionnaire();">{$texts['Export_data']} (JSON)</button>
   
-  <table id="tableStatistics" class="dataTable" onclick="onClickQuestionnaireStatisticsTable();">
-    <thead id="tableQStatsHead"></thead>  
-    <tbody id="tableQStatsBody" style="cursor: pointer;"></tbody>
-  </table>  
+    </div>
+  
+    <div id="questionnaireBechdelIntro" style="width: 100%; margin-bottom: 10px; display: none;">
+      <p>The article’s score is determined by the number of questions answered with “Yes” in sequence. The score ends at the first “No”.</p>
+      <p id="questionnaireBechdelQuestions"></p>
+    </div>
+       
+    <div id="questionnaireBars"></div>
+  
+    <div id="headerStatistics" style="display: none; width: 100%; margin-top: 10px; font-weight: bold; text-align: left;">Statistics</div>
+    
+    <table id="tableStatistics" class="dataTable" onclick="onClickQuestionnaireStatisticsTable();">
+      <thead id="tableQStatsHead"></thead>  
+      <tbody id="tableQStatsBody" style="cursor: pointer;"></tbody>
+    </table>  
+  </div>
+  
       
 </div>
 </div>

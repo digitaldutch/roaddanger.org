@@ -269,14 +269,20 @@ async function downloadQuestionnaireResults(articleFilter={}) {
     articleFilter: articleFilter,
   }
 
+  if (! data.filter.questionnaireId) {
+    throw new Error('No questionnaire selected');
+  }
+
   const url = '/research/ajaxResearch.php?function=loadQuestionnaireResults';
   return await fetchFromServer(url, data);
 }
 
 async function loadQuestionnaireResults() {
 
+  const elResults = document.getElementById('questionnaireResults');
   try {
     spinnerLoad.style.display = 'block';
+    elResults.style.display = 'none';
 
     const group = document.getElementById('filterResearchGroup').value;
 
@@ -402,9 +408,18 @@ async function loadQuestionnaireResults() {
   } catch (error) {
     showError(error.message);
   } finally {
+    elResults.style.display = 'block';
     spinnerLoad.style.display = 'none';
   }
+
 }
+
+function exportQuestionnaire(asJSON=true) {
+  confirmWarning('Download questionnaire data in JSON format?', async () => {
+
+  });
+}
+
 
 function selectedAiModel() {
   const modelId = document.getElementById('aiModel').value;

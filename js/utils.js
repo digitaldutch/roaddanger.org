@@ -186,19 +186,23 @@ function closeMessage() {
   document.getElementById('messageText').innerHTML = '';
 }
 
-function confirmWarning(text, okCallback, buttonOKText=translate('Ok'), header=translate('Confirm')){
-  confirmMessage(text, okCallback, buttonOKText, header, true);
+function confirmWarning(text, okCallback, buttonOKText=translate('Ok')){
+  confirmMessage(text, okCallback, buttonOKText, true);
 }
 
-function confirmMessage(text, okCallback, buttonOKText=translate('Ok'), header=translate('Confirm'), isWarning=false){
+function confirmMessage(text, okCallback, buttonOKText=translate('Ok'), isWarning=false){
+  const divForm = document.getElementById('formConfirm');
+
+  let headerCaption = '';
   if (isWarning) {
-    document.getElementById('buttonConfirmOK').className = 'button buttonWarning';
-    document.getElementById('formConfirm').style.backgroundColor = '#ffdb9d';
+    headerCaption = translate('Warning');
+    divForm.classList.add('warningMessage');
   } else {
-    document.getElementById('buttonConfirmOK').className = 'button';
-    document.getElementById('formConfirm').style.backgroundColor = '#ffffff';
+    headerCaption = translate('Confirm');
+    divForm.classList.remove('warningMessage');
   }
-  document.getElementById('confirmHeader').innerHTML = header;
+
+  document.getElementById('confirmHeader').innerHTML = headerCaption;
   document.getElementById('confirmText').innerHTML = text;
   document.getElementById('formConfirmOuter').style.display = 'flex';
   document.getElementById('buttonConfirmOK').innerText = buttonOKText;
@@ -1353,13 +1357,14 @@ function getTransportationModeFilterHtml(white=false) {
 
   return html;
 }
+
 function updateTransportationModeFilterInput(){
   let html = getTransportationModeFilterHtml();
 
   // Show placeholder text if no persons selected
   if (html === '') html = translate('Humans');
   document.getElementById('inputSearchHumans').innerHTML = html;
-  
+
   tippy('#inputSearchHumans [data-tippy-content]');
 }
 

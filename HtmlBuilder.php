@@ -228,7 +228,7 @@ HTML;
     $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
       'Child_victims', 'Mosaic', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
       'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
-      'Version', 'Questionnaires', 'fill_in', 'settings', 'results', 'AI_prompt_builder', 'Research',
+      'Version', 'Questionnaires', 'Fill_in', 'Settings', 'Results', 'AI_prompt_builder', 'Research',
       'Graphs_and_statistics', 'Media_humanization_test', 'Tools', 'Reframe']);
 
     $websiteTitle = WEBSITE_NAME;
@@ -260,9 +260,9 @@ HTML;
 
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Research']}</div>
-      <a href="/research/questionnaires/settings" class="navItem" data-admin>{$texts['Questionnaires']} | {$texts['settings']}</a>
-      <a href="/research/questionnaires/" class="navItem">{$texts['Questionnaires']} | {$texts['results']}</a>
-      <a href="/research/questionnaires/fill_in" class="navItem" data-moderator>{$texts['Questionnaires']} | {$texts['fill_in']}</a>
+      <a href="/research/questionnaires/settings" class="navItem" data-admin>{$texts['Questionnaires']} · {$texts['Settings']}</a>
+      <a href="/research/questionnaires/" class="navItem">{$texts['Questionnaires']} · {$texts['Results']}</a>
+      <a href="/research/questionnaires/fill_in" class="navItem" data-moderator>{$texts['Questionnaires']} · {$texts['Fill_in']}</a>
       <a href="/research/ai_prompt_builder/" class="navItem" data-moderator>{$texts['AI_prompt_builder']}</a>
     </div>
 
@@ -292,7 +292,7 @@ HTML;
     </div>
     
     <div class="navFooter">
-     {$texts['Version']} $VERSION • $VERSION_DATE 
+     {$texts['Version']} $VERSION · $VERSION_DATE 
     </div>   
  
   </div>  
@@ -920,7 +920,7 @@ HTML;
     return <<<HTML
     <div id="searchPersons" class="toolbarItem active">
       <div class="dropInputWrapper">
-        <div class="filterInput dropInput" tabindex="0" onclick="toggleSearchPersons(event);">
+        <div class="filterInput dropInput" tabindex="0" onclick="toggleSearchPersons(event);" data-tippy-content="{$texts['Humans']}">
           <div id="inputSearchHumans" style="display: flex">{$texts['Humans']}</div>
           <div id="arrowSearchPersons" class="inputArrowDown"></div>  
         </div>
