@@ -58,7 +58,8 @@ SELECT
   q.country_id,
   c.name AS country,
   q.type,
-  q.public
+  q.public,
+  q.active
 FROM questionnaires q
 LEFT JOIN countries c ON q.country_id = c.id
 WHERE q.id=:questionnaire_id;

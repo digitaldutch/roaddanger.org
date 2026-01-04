@@ -208,8 +208,12 @@ HTML;
 
     $questionnairesOptions = '';
     foreach ($questionnaires as $questionnaire) {
-      $publicText = ($user->admin && $questionnaire['public'] === 0)? '' : ' (public)';
-      $questionnairesOptions .= "<option value='{$questionnaire['id']}'>{$questionnaire['title']}$publicText</option>";
+      $extraInfoParts = [];
+      if ($user->admin && $questionnaire['public'] === 1) $extraInfoParts[] = 'public';
+      if ($user->admin && $questionnaire['active'] === 1) $extraInfoParts[] = 'active';
+      $extraInfo = !empty($extraInfoParts) ? ' (' . implode(', ', $extraInfoParts) . ')' : '';
+
+      $questionnairesOptions .= "<option value='{$questionnaire['id']}'>{$questionnaire['title']}$extraInfo</option>";
     }
 
     $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml();

@@ -290,7 +290,8 @@ async function loadQuestionnaireResults() {
       document.getElementById('questionnaireInfo').innerHTML =
         'Type: ' + questionnaireTypeToText(questionnaire.type) +
         '<br>Country: ' + questionnaire.country +
-        '<br>Public: ' + (questionnaire.public? 'Yes' : 'No');
+        '<br>Public: ' + (questionnaire.public? 'Yes' : 'No') +
+        '<br>Active: ' + (questionnaire.active? 'Yes' : 'No');
 
       let htmlQuestions = '';
       let htmlTableHead = '';
