@@ -417,6 +417,23 @@ async function loadQuestionnaireResults() {
 function exportQuestionnaire(asJSON=true) {
   confirmWarning('Download questionnaire data in JSON format?', async () => {
 
+    const response = await downloadQuestionnaireResults();
+    let output = {
+      questionnaire:  response.questionnaire,
+    }
+    if (questionnaire.type === QuestionnaireType.standard) {
+      output.questions = response.questions;
+    } else {
+      output.bechdelResults = response.bechdelResults;
+    }
+
+    const blob = new Blob([JSON.stringify(output, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `questionnaire_data_${questionnaire.id}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   });
 }
 
@@ -1206,15 +1223,25 @@ async function aiRunPrompt() {
     divResponse.innerText = '...';
 
     const url = '/research/ajaxResearch.php?function=aiRunPrompt';
-    const response = await fetchFromServer(url, data);
+    const serverResponse = await fetchFromServer(url, data);
 
-    if (response.error) {
-      divResponse.innerText = 'ERROR: ' + response.error;
+    if (serverResponse.error) {
+      divResponse.innerText = 'ERROR: ' + serverResponse.error;
     } else {
-      divResponse.innerText = response.response;
-      lastGenerationId = response.id;
+      // Add the AI model to the response
+      let AIResponse;
+      try {
+        const parsedResponse = JSON.parse(serverResponse.response);
+        AIResponse = {model: model.name, ...parsedResponse};
+      } catch (e) {
+        // If the response is not valid JSON, display as plain text
+        AIResponse = {model: model.name, response: serverResponse.response};
+      }
+      divResponse.innerText = JSON.stringify(AIResponse);
 
-      // Wait for a second, otherwise the meta info is not yet available
+      lastGenerationId = serverResponse.id;
+
+      // Wait for a second, otherwise the meta-info is not yet available
       divMeta.innerText = 'Checking prompt meta info...';
       setTimeout(() => {showGenerationSummary();}, 2000);
     }

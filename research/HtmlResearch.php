@@ -287,7 +287,7 @@ HTML;
     <h1 id="questionnaireHeader"></h1>
     <div style="display: flex; justify-content: space-between;">
       <div id="questionnaireInfo"></div>
-      <button class="button buttonImportant" style="display: none;" onclick="exportQuestionnaire();">{$texts['Export_data']} (JSON)</button>
+      <button class="button buttonImportant" onclick="exportQuestionnaire();">{$texts['Export_data']} (JSON)</button>
   
     </div>
   
