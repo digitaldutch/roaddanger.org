@@ -757,13 +757,18 @@ function drawCrashMapBins(bins) {
 function showCrashesOnMap(response) {
 
   for (const crash of response.crashes) {
-    const el = document.createElement('div');
 
     const personDied = crash.persons.some(p => p.health === Health.dead);
     const personInjured = !personDied && crash.persons.some(p => p.health === Health.injured);
 
-    el.className =
-      'crashDot ' + (personDied ? 'crashDot--dead' : personInjured ? 'crashDot--injured' : 'crashDot--normal');
+    let el = document.createElement('div');
+    el.className = 'crashDot ' + (personDied ? 'crashDot--dead' : personInjured ? 'crashDot--injured' : 'crashDot--normal');
+
+    if (personDied) {
+      el.innerHTML = '<img src="/images/persondead_white.svg">';
+    } else if (personInjured) {
+      el.innerHTML = '<img src="/images/person_injured_white.svg">';
+    }
 
     el.onclick = () => showCrashDetails(crash.id);
 

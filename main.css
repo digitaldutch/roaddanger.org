@@ -1730,6 +1730,9 @@ h3, .pageSubTitleFont {
 }
 
 .crashDot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 12px;
   height: 12px;
   border-radius: 999px;
@@ -1738,15 +1741,31 @@ h3, .pageSubTitleFont {
   cursor: pointer;
 }
 
-.crashDot--normal  { background: rgb(92, 140, 250); }
-.crashDot--injured { background: rgba(245,158,11,.95); }
-.crashDot--dead    { background: rgba(220,38,38,.95); }
+.crashDot--normal {
+  background-color: #f59e0b;
+  z-index: 10;
+}
+
+.crashDot--injured {
+  background-color: #f23825;
+  z-index: 20;
+}
+
+.crashDot--dead {
+  background-color: #f23825;
+  z-index: 30;
+}
 
 /* optional: make severe cases slightly bigger */
 .crashDot--injured, .crashDot--dead { width: 14px; height: 14px; }
 
 .crashDot:hover {
   transform: scale(1.2);
+}
+
+.crashCross {
+  width: 20px;
+  height: 20px;
 }
 
 .binMarker {
@@ -1760,7 +1779,7 @@ h3, .pageSubTitleFont {
 
   border-radius: 999px;
 
-  background: rgba(220, 38, 38, 0.9); /* red-ish */
+  background-color:  #f23825;
   color: white;
 
   font-weight: 700;
