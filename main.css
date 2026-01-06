@@ -1813,7 +1813,7 @@ table.tableDragging td div {
 #questionnaireBars {
   display: grid;
   grid-template-columns: 1fr 5fr;
-  gap: 5px;
+  gap: 2px;
   white-space: nowrap;
 }
 
@@ -1829,8 +1829,9 @@ table.tableDragging td div {
 }
 
 .questionnaireBar > div {
-  padding:   2px 0;
+  padding: 2px 0;
   font-size: 12px;
+  cursor: pointer;
 }
 
 .questionnaireBar > div > span {

@@ -20,14 +20,6 @@ class Research {
 
   static function passesArticleFilter($article, $articleFilter): bool {
 
-    if ($articleFilter['questionsPassed'] === 'nd') {
-      if ($article['bechdelResult']['result']->value != Answer::notDeterminable->value) return false;
-    } else {
-      if ($article['bechdelResult']['result']->value === Answer::notDeterminable->value) return false;
-
-      if ($article['bechdelResult']['total_questions_passed'] !== (int)$articleFilter['questionsPassed']) return false;
-    }
-
     if ($articleFilter['group'] === 'year') {
       if ($articleFilter['groupData'] != $article['article_year']) return false;
     } else if ($articleFilter['group'] === 'month') {
@@ -143,7 +135,7 @@ SQL;
 
       }
 
-      $result['questions'] = $questions;
+      $questionnaire['questions'] = $questions;
 
       if (isset($articleFilter['getArticles']) && $articleFilter['getArticles'] === true) {
         $sql = <<<SQL
@@ -379,6 +371,19 @@ SQL;
         }
 
         $result['bechdelResults'] = $filtered;
+      }
+
+      // Calculate average score
+      foreach ($result['bechdelResults'] as &$bResults) {
+        $total = 0;
+        $weightedSum = 0;
+
+        foreach ($bResults['total_questions_passed'] as $score => $count) {
+          $total += $count;
+          $weightedSum += $score * $count;
+        }
+
+        $bResults['average'] = $total > 0 ? $weightedSum / $total : 0;
       }
 
       if (! empty($articleFilter['getArticles'])) {

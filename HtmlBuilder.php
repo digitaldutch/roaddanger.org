@@ -534,7 +534,7 @@ HTML;
     <div id="questionsArticleTitle" class="readOnlyInput"></div>
     
     <div class="sectionHeader">Article text</div>
-    <div id="questionsArticleText" class="readOnlyInput"></div>
+    <div id="questionsArticleText" class="readOnlyInput" style="overflow-y: auto;"></div>
         
   </div>
   
