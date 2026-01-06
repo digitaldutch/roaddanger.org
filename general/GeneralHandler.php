@@ -812,6 +812,10 @@ SQL;
   }
 
   public function loadMapCrashes(): array {
+    // Using hysteresis to avoid jumping quickly between points and bins.
+    $toBinsThreshold = 3000;
+    $toPointsThreshold = 2500;
+
     $filter = $this->input['filter'];
 
     // Get the number of crashes in the bounding box
@@ -826,10 +830,6 @@ SQL;
 
     $mode = $filter['map_mode'] ?? 'points';
 
-    // Using hysteresis to avoid jumping quickly between points and bins.
-    $toBinsThreshold = 600;
-    $toPointsThreshold = 350;
-
     if ($mode === 'points') {
       $useBins = ($count > $toBinsThreshold);
     } else { // mode === 'bins'
@@ -837,7 +837,7 @@ SQL;
     }
 
     if ($useBins) {
-      // Show aggregates if too many crashes
+      // Show aggregate bins if too many crashes
       $binResults = $this->fetchCrashMapAggregateBins($filter);
       $crashIds = array_column($binResults['crashes'], 'id');
       $crashesResults = $this->loadCrashes($crashIds);
@@ -966,7 +966,7 @@ SQL;
 
     $cell = $this->getBinCellSizeFromBbox($lonMin, $lonMax, $latMin, $latMax);
 
-    $result = $this->makeBinsLatLonCount($rows, $cell, 150);
+    $result = $this->makeBinsLatLonCount($rows, $cell, 200, 10);
 
     return [
       'bins' => $result['bins'],
