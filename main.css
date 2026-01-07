@@ -1707,7 +1707,7 @@ h3, .pageSubTitleFont {
 }
 
 #mapEdit {
-  height:     350px;
+  height: 350px;
   margin-top: 10px;
 }
 
@@ -1718,9 +1718,14 @@ h3, .pageSubTitleFont {
 }
 
 #mapMain {
-  display:        flex;
+  display: flex;
   flex-direction: column;
-  flex-grow:      1;
+  flex-grow: 1;
+}
+
+/* Geocoder should stay above icons */
+.mapboxgl-ctrl-top-right {
+  z-index: 10 !important;
 }
 
 .mapMarker {
@@ -1743,24 +1748,17 @@ h3, .pageSubTitleFont {
 
 .crashDot--normal {
   background-color: #f59e0b;
-  z-index: 10;
+  z-index: 1;
 }
 
 .crashDot--injured {
   background-color: #f23825;
-  z-index: 20;
+  z-index: 2;
 }
 
 .crashDot--dead {
   background-color: #f23825;
-  z-index: 30;
-}
-
-/* optional: make severe cases slightly bigger */
-.crashDot--injured, .crashDot--dead { width: 14px; height: 14px; }
-
-.crashDot:hover {
-  transform: scale(1.2);
+  z-index: 3;
 }
 
 .crashCross {
