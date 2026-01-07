@@ -966,7 +966,7 @@ SQL;
 
     $cell = $this->getBinCellSizeFromBbox($lonMin, $lonMax, $latMin, $latMax);
 
-    $result = $this->makeBinsLatLonCount($rows, $cell, 200, 10);
+    $result = $this->makeBinsLatLonCount($rows, $cell, 200, 20);
 
     return [
       'bins' => $result['bins'],
