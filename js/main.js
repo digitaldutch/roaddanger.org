@@ -867,6 +867,7 @@ async function loadMap() {
       new MapboxGeocoder({
         accessToken: mapboxgl.accessToken,
         mapboxgl: mapboxgl,
+        collapsed: true,
         clearOnBlur: true,
       })
     )
