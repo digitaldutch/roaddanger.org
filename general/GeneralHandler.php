@@ -1260,7 +1260,7 @@ SELECT
   sum(cp.health=0)         AS healthunknown,
   COUNT(*) AS total
 FROM crashpersons cp
-  $SQLJoin
+LEFT JOIN crashes c ON cp.crashid = c.id
   $SQLWhere
 GROUP BY transportationmode
 ORDER BY dead DESC, injured DESC

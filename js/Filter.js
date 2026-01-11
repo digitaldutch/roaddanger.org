@@ -14,12 +14,13 @@ class Filter {
     // Attach event handlers
     this.onEnterKey = this.#onEnterKey.bind(this);
     this.onFilter = this.#doFilter.bind(this);
+    this.onClearGui = this.clearGUI.bind(this);
+
     document.getElementById('filterButton').addEventListener('click', this.onFilter);
+    document.getElementById('filterButtonClear').addEventListener('click', this.onClearGui);
     document.getElementById('searchText').addEventListener('keydown', this.onEnterKey);
     document.getElementById('searchSiteName').addEventListener('keydown', this.onEnterKey);
     document.getElementById('searchUserId').addEventListener('keydown', this.onEnterKey);
-
-    this.showFilterBar();
   }
 
   #onEnterKey(event) {
@@ -31,6 +32,11 @@ class Filter {
   #doFilter() {
     this.#filterFunction();
     this.#updateStatusBar();
+    closeFilters();
+  }
+
+  #doClearGui() {
+    this.clearGUI();
   }
 
   loadFromUrl() {
@@ -106,7 +112,7 @@ class Filter {
   }
 
   setToGUI() {
-    if (! document.getElementById('filterBar')) return;
+    if (! document.getElementById('filters')) return;
 
     function setSearchButton(id, on) {
       const button = document.getElementById(id);
@@ -169,44 +175,44 @@ class Filter {
     if (elUserId.value) elUserId.classList.add('active');
   }
 
-  filterBarActive(){
-    const element = document.getElementById('filterBar');
+  filtersOpen(){
+    const element = document.getElementById('filters');
 
-    return element && element.classList.contains('active');
+    return element && element.classList.contains('filtersOpen');
   }
-  showFilterBar(){
-    const element = document.getElementById('filterBar');
+  showFilters(){
+    openFilters();
+  }
 
-    if (element) element.classList.add('active');
+  hideFilters(){
+    const element = document.getElementById('filters');
+    if (element) element.classList.remove('filtersOpen');
   }
 
   getFromGUI() {
-    if (this.filterBarActive()) {
-      const buttonDead = document.getElementById('searchPersonHealthDead');
-      const buttonInjured = document.getElementById('searchPersonHealthInjured');
-      const searchSiteName = document.getElementById('searchSiteName');
-      const searchUserId = document.getElementById('searchUserId');
+    const buttonDead = document.getElementById('searchPersonHealthDead');
+    const buttonInjured = document.getElementById('searchPersonHealthInjured');
+    const searchSiteName = document.getElementById('searchSiteName');
+    const searchUserId = document.getElementById('searchUserId');
 
-      this.#resetFilters();
+    this.#resetFilters();
 
-      this.filters = {
-        healthDead: buttonDead && buttonDead.classList.contains('menuButtonSelected')? 1 : 0,
-        healthInjured: buttonInjured && buttonInjured.classList.contains('menuButtonSelected')? 1 : 0,
-        child: document.getElementById('searchPersonChild').classList.contains('menuButtonSelected')? 1 : 0,
+    this.filters = {
+      healthDead: buttonDead && buttonDead.classList.contains('menuButtonSelected')? 1 : 0,
+      healthInjured: buttonInjured && buttonInjured.classList.contains('menuButtonSelected')? 1 : 0,
+      child: document.getElementById('searchPersonChild').classList.contains('menuButtonSelected')? 1 : 0,
 
-        text: document.getElementById('searchText').value.trim().toLowerCase(),
-        period: document.getElementById('searchPeriod').value,
-        persons: getPersonsFromFilter(),
-        siteName: (searchSiteName && searchSiteName.value.trim().toLowerCase()) ?? '',
-        userId: (searchUserId && (searchUserId.style.display !== 'none') && searchUserId.value) ?? '',
-      }
+      text: document.getElementById('searchText').value.trim().toLowerCase(),
+      period: document.getElementById('searchPeriod').value,
+      persons: getPersonsFromFilter(),
+      siteName: (searchSiteName && searchSiteName.value.trim().toLowerCase()) ?? '',
+      userId: (searchUserId && (searchUserId.style.display !== 'none') && searchUserId.value) ?? '',
+    }
 
-      if (this.filters.period === 'custom') {
-        this.filters.dateFrom = document.getElementById('searchDateFrom').value;
-        this.filters.dateTo = document.getElementById('searchDateTo').value;
-      }
-
-    } else this.#resetFilters();
+    if (this.filters.period === 'custom') {
+      this.filters.dateFrom = document.getElementById('searchDateFrom').value;
+      this.filters.dateTo = document.getElementById('searchDateTo').value;
+    }
 
     const filterCountry = document.getElementById('filterCountry');
     if (filterCountry) this.filters.country = filterCountry.dataset.value;
@@ -218,7 +224,6 @@ class Filter {
     const filterStatus = document.getElementById('filterStatus');
     if (! filterStatus) return;
 
-    const textClearFilters = translate('Clear_filters');
     let html = '';
 
     this.getFromGUI();
@@ -252,12 +257,6 @@ class Filter {
       for (const [key, filter] of activeFilters) {
         html += `<div class="filterStatusItem">${filter.label}<button onclick="filter.removeFilter('${key}');"></button></div>`;
       }
-
-      html += `<button class="button buttonImportant buttonMobileSmall" onclick="filter.clearGUI()">${textClearFilters}</button>`;
-      filterStatus.classList.add('active');
-    } else {
-      html = '';
-      filterStatus.classList.remove('active');
     }
 
     filterStatus.innerHTML = html;

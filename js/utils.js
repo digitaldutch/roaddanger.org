@@ -785,6 +785,22 @@ function closeNavigation() {
   document.getElementById('navShadow').classList.add('navShadowClose');
 }
 
+function filtersIsOpen() {
+  return document.getElementById('filters').classList.contains('filtersOpen');
+}
+
+function openFilters() {
+  document.getElementById('filters').classList.add('filtersOpen');
+  document.getElementById('filtersShadow').classList.add('navShadowOpen');
+  document.getElementById('filtersShadow').classList.remove('navShadowClose');
+}
+
+function closeFilters() {
+  document.getElementById('filters').classList.remove('filtersOpen');
+  document.getElementById('filtersShadow').classList.remove('navShadowOpen');
+  document.getElementById('filtersShadow').classList.add('navShadowClose');
+}
+
 function transportationModeText(transportationMode) {
   switch (transportationMode) {
     case TransportationMode.unknown:          return translate('Unknown');
@@ -1271,8 +1287,7 @@ function toggleCheckOptions(event, id) {
 }
 
 function initFilterPersons(){
-  if (! document.getElementById('filterBar')) return;
-  if (! document.getElementById('searchPersons')) return;
+  if (! document.getElementById('searchSearchPersons')) return;
 
   let html = '';
   for (const key of Object.keys(TransportationMode)){

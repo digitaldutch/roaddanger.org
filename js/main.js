@@ -642,7 +642,7 @@ async function loadCrashes(crashId=null, articleId=null){
     if (crashId) {
       serverData.id = crashId;
       serverData.filter = {};
-      document.getElementById('filterBar').style.display = 'none';
+      closeFilters();
     } else {
       serverData.filter = filter.getFromGUI();
     }
@@ -2565,6 +2565,7 @@ async function showMapEdit(latitude, longitude) {
       new MapboxGeocoder({
         accessToken: mapboxgl.accessToken,
         mapboxgl: mapboxgl,
+        collapsed: true,
         clearOnBlur: true,
       })
     ).on('click', (e) => {

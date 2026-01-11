@@ -157,10 +157,10 @@ HTML;
 
   public static function pageFillIn(): string {
     $texts = translateArray(['Questionnaires', 'fill_in', 'Injury', 'Dead_(adjective)', 'Child', 'Exclude_unilateral',
-      'Filter']);
+      'Show_results']);
 
     $textIntro = translateLongText('questionnaires_fill_in');
-    $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml();
+    $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml(widthPixels: 140);
 
     return <<<HTML
 <div id="pageMain">
@@ -180,7 +180,7 @@ HTML;
     $htmlSearchPersons
 
     <div class="toolbarItem">
-      <div class="button buttonMobileSmall buttonImportant" onclick="selectFilterQuestionnaireFillIn(event)">{$texts['Filter']}</div>
+      <div class="button buttonMobileSmall buttonImportant" onclick="selectFilterQuestionnaireFillIn(event)">{$texts['Show_results']}</div>
     </div>
     
   </div>
@@ -215,7 +215,7 @@ HTML;
       $questionnairesOptions .= "<option value='{$questionnaire['id']}'>{$questionnaire['title']}$extraInfo</option>";
     }
 
-    $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml();
+    $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml(widthPixels: 140);
     $htmlSearchCountry = HtmlBuilder::getSearchLocationHtml('filterResearchCountry', 'UN');
 
     return <<<HTML
@@ -225,10 +225,10 @@ HTML;
   
   <div>Questionnaire settings</div>
   <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex;">
-    <div class="toolbarItem"><select id="filterQuestionnaire" class="filterInput active" oninput="questionnaireFilterChange()">$questionnairesOptions</select></div>
+    <div class="toolbarItem"><select id="filterQuestionnaire" class="filterBarInput active" oninput="questionnaireFilterChange()">$questionnairesOptions</select></div>
     
     <div class="toolbarItem" data-bechdel-option="true">
-      <select id="filterResearchGroup" class="filterInput active" onchange="selectFilterQuestionnaireResults();">
+      <select id="filterResearchGroup" class="filterBarInput active" onchange="selectFilterQuestionnaireResults();">
         <option value="" selected>No groups</option>
         <option value="year">Group by year</option>
         <option value="month">Group by month</option>
@@ -238,7 +238,7 @@ HTML;
     </div>
   
     <div class="toolbarItem" data-bechdel-option="true">
-      <select id="filterMinArticles" class="filterInput active" onchange="selectFilterQuestionnaireResults();" data-tippy-content="Minimum amount of articles for a group to be visible">
+      <select id="filterMinArticles" class="filterBarInput active" onchange="selectFilterQuestionnaireResults();" data-tippy-content="Minimum amount of articles for a group to be visible">
         <option value="0">[No minimum]</option>
         <option value="1">Min. 1 article</option>
         <option value="2">Min. 2 articles</option>
@@ -262,7 +262,7 @@ HTML;
     </div>
     
     <div class="toolbarItem">
-      <select id="filterResearchTimeSpan" class="filterInput active" data-tippy-content="{$texts['Period']}">
+      <select id="filterResearchTimeSpan" class="filterBarInput active" data-tippy-content="{$texts['Period']}">
         <option value="">{$texts['Always']}</option>
         <option value="from2022">From 2022</option>
         <option value="1year">1 year</option>
@@ -276,7 +276,7 @@ HTML;
     $htmlSearchPersons
     
     <div class="toolbarItem">
-      <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="selectFilterQuestionnaireResults()">{$texts['Filter']}</div>
+      <div class="button buttonMobileSmall buttonImportant" style="margin-left: 5px;" onclick="selectFilterQuestionnaireResults()">{$texts['Filter']}</div>
     </div>
 
   </div>
