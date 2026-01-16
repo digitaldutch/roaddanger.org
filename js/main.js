@@ -1773,36 +1773,6 @@ async function saveExplanation(articleId, questionId) {
   if (response.error) showError(response.error, 10);
 }
 
-function nextArticleQuestions(forward=true) {
-  event.preventDefault();
-  event.stopPropagation();
-
-  const articleId = parseInt(document.getElementById('questionsArticleId').value);
-
-  const index = articles.findIndex(article => article.id === articleId);
-  let newArticle;
-  if (forward) {
-    if (index < articles.length - 1) newArticle = articles[index + 1];
-    else {
-      // Check if we are on the fill_in page.
-      const onFillInPage = window.location.href.includes('fill_in');
-
-      if (onFillInPage) window.location.reload();
-      else showMessage('This is the last article');
-    }
-
-  } else {
-    if (index > 0) newArticle = articles[index -1];
-    else showMessage('This is the first article');
-  }
-
-  if (newArticle) {
-    selectArticle(newArticle.id);
-  }
-
-  showQuestionsForm(newArticle.crashid, newArticle.id);
-}
-
 async function crashToTopStream(crashID) {
   closeAllPopups();
 

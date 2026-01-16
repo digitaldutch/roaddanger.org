@@ -577,7 +577,7 @@ async function addAiModel() {
   }
 }
 
-async function loadaiPrompt() {
+async function loadAiPrompt() {
   aiPrompt = selectedTableData[1];
 
   if (! aiPrompt) {
@@ -595,6 +595,7 @@ async function loadaiPrompt() {
   document.getElementById('aiSystemPrompt').value = aiPrompt.system_prompt;
   document.getElementById('aiPrompt').value = aiPrompt.user_prompt;
   document.getElementById('aiResponseFormat').value = aiPrompt.response_format;
+  document.getElementById('aiFunction').value = aiPrompt.function;
 
   document.getElementById('aiArticleId').value = aiPrompt.article_id;
   document.getElementById('aiArticle').innerText = '';
@@ -861,21 +862,24 @@ function editQuestionnaire() {
   document.getElementById('questionnaireTitle').focus();
 
   document.getElementById('questionnaireSpinner').style.display = 'block';
-  getQuestions(selectedTableData[1].id).then(
-    response => {
-      tableData[2] = response.questions;
-      let html = '';
-      for (const question of response.questions) {
-        html += getQuestionnaireQuestionRow(question);
-      }
 
-      document.getElementById('tbodyQuestionnaireQuestions').innerHTML = html;
-      document.getElementById('questionnaireNoneFound').style.display  = html? 'none' : 'block';
-      document.getElementById('questionnaireSpinner').style.display        = 'none';
+  const questionnaire = selectedTableData[1];
+  let html = '';
+  let questionnaireQuestions = [];
+  for (const question_id of questionnaire.question_ids) {
+    const question = tableData[0].find(q => q.id === question_id);
+    questionnaireQuestions.push(question);
 
-      if (! selectedTableData[2]) selectFirstTableRow(2);
-    }
-  );
+    html += getQuestionnaireQuestionRow(question);
+  }
+
+  tableData[2] = questionnaireQuestions;
+
+  document.getElementById('tbodyQuestionnaireQuestions').innerHTML = html;
+  document.getElementById('questionnaireNoneFound').style.display = html? 'none' : 'block';
+  document.getElementById('questionnaireSpinner').style.display = 'none';
+
+  if (! selectedTableData[2]) selectFirstTableRow(2);
 }
 
 async function addQuestionToQuestionnaire() {
@@ -1269,6 +1273,7 @@ function aiNewPrompt() {
   document.getElementById('aiPrompt').value = null;
   document.getElementById('aiSystemPrompt').value = null;
   document.getElementById('aiResponseFormat').value = null;
+  document.getElementById('aiFunction').value = '';
 
   document.getElementById('promptInfo').innerText = ``;
 }
@@ -1280,12 +1285,14 @@ async function aiSavePrompt() {
       spinner.style.display = 'flex';
 
       const model = selectedAiModel();
+      if (! model) {showError('No model selected'); return;}
 
       const data = {
         id: document.getElementById('aiPromptId').value,
         modelId: document.getElementById('aiModel').value,
         userPrompt: document.getElementById('aiPrompt').value,
         systemPrompt: document.getElementById('aiSystemPrompt').value,
+        function: document.getElementById('aiFunction').value,
         responseFormat: model.structured_outputs? document.getElementById('aiResponseFormat').value : '',
         articleId: document.getElementById('aiArticleId').value,
       }
@@ -1300,6 +1307,7 @@ async function aiSavePrompt() {
         return;
       }
 
+      showMessage('Prompt saved');
       if (! data.id) {
         data.id = response.id;
         data.user = user.firstname + ' ' + user.lastname;
@@ -1442,4 +1450,63 @@ async function showFullGenerationInfo(generationId) {
   } finally {
     spinner.style.display = 'none';
   }
+}
+
+function nextArticleQuestions(forward=true) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const articleId = parseInt(document.getElementById('questionsArticleId').value);
+
+  const index = articles.findIndex(article => article.id === articleId);
+  let newArticle;
+  if (forward) {
+    if (index < articles.length - 1) newArticle = articles[index + 1];
+    else {
+      // Check if we are on the fill_in page.
+      const onFillInPage = window.location.href.includes('fill_in');
+
+      if (onFillInPage) window.location.reload();
+      else showMessage('This is the last article');
+    }
+
+  } else {
+    if (index > 0) newArticle = articles[index -1];
+    else showMessage('This is the first article');
+  }
+
+  if (newArticle) {
+    selectArticle(newArticle.id);
+  }
+
+  showQuestionsForm(newArticle.crashid, newArticle.id);
+}
+
+async function aiAnswerQuestionnaire() {
+  showMessage('Coming soon');
+  return;
+  const spinner = document.getElementById('spinnerAI');
+
+  const articleId = document.getElementById('questionsArticleId').value;
+
+  if (! articleId) {
+    showError(translate('No article ID found'));
+    return;
+  }
+
+  const url = '/research/ajaxResearch.php?function=aiAnswerQuestionnaire';
+  const data = {
+    articleId: articleId,
+  };
+
+  try {
+    spinner.style.display = 'inline-flex';
+
+    const response = await fetchFromServer(url, data);
+
+    if (response.error) showError(response.error, 10);
+  } finally {
+    spinner.style.display = 'none';
+  }
+
 }

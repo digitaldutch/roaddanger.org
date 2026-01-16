@@ -382,6 +382,14 @@ function replaceArticleTags(string $text, object $article): string {
   return str_replace('[article_title]', $article->title, $text);
 }
 
+function replaceAI_QuestionnaireTags(string $text, $questionnaires): string {
+  if (str_contains('[questionnaires]', $text)) {
+//    $text = str_replace('[questionnaires]', $article->questionnaires, $text);
+  }
+
+  return $text;
+}
+
 function geocodeLocation($locationPrompt): ?array {
   if (! defined('HERE_API_KEY')) return null;
 

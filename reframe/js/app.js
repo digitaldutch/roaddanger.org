@@ -87,7 +87,7 @@ class ReFrameApp {
         
         this.setAnalyzing(true);
         
-        // Clear previous analysis to ensure UI updates to loading state
+        // Clear previous analysis to ensure UI updates to the loading state
         if (this.analysis !== null) {
             this.analysis = null;
             this.hideResults();
@@ -101,7 +101,7 @@ class ReFrameApp {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    function: 'analyzeHeadline',
+                    function: 'analyzeArticle',
                     headline: headline,
                     articleBody: articleBody
                 })

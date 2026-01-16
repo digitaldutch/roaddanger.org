@@ -181,11 +181,6 @@ h3, .pageSubTitleFont {
   background-image: radial-gradient(farthest-corner at 0 0, #f23825 0%, black 60%);
 }
 
-.blackOnWhite {
-  background-color: #ffffff;
-  color: #000;
-}
-
 .scrollPage {
   display: flex;
   flex-direction: column;
@@ -1264,6 +1259,7 @@ h3, .pageSubTitleFont {
 
 #spinnerLoad, #spinnerLoad, .spinnerLine {
   display: none;
+  justify-content: center;
   margin-top: 5px;
   text-align: center;
 }

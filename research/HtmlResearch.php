@@ -187,7 +187,7 @@ HTML;
   
   <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>
   
-  <div id="tableWrapper" class="panelTableOverflow blackOnWhite" style="display: none;">
+  <div id="tableWrapper" class="panelTableOverflow" style="display: none;">
     <table class="dataTable">
       <tbody id="dataTableArticles"></tbody>
     </table>
@@ -348,7 +348,20 @@ HTML;
       
       <input type="hidden" id="aiPromptId" value="">
       <input type="hidden" id="aiCrashId" value="">
-      
+
+      <div>
+        <div class="labelDiv">System function</div>
+        <div class="smallFont">AI queries with a system function are used in the website. Do not change if you don't know what you're doing.</div>
+        <select id="aiFunction">
+          <option value="">[none]</option>
+          <option value="article_analyst">Article analyst</option>
+          <option value="translator">Translator</option>
+          <option value="questionnaire_agent">Questionnaire Agent</option>
+          <option value="article_reframe_UVA">Article reframe (UVA)</option>
+          <option value="article_reframe">Article reframe</option>
+        </select>
+      </div>
+            
       <div class="labelDiv">System prompt</div>
       <textarea id="aiSystemPrompt" class="inputForm" style="height: 100px; resize: vertical;"></textarea> 
     
@@ -359,10 +372,11 @@ HTML;
       </div>
       
       <div class="labelDiv">User prompt <span class="smallFont" id="promptInfo"></span></div>
-      <div class="smallFont">Available tags:
-      <button class="buttonTiny" onclick="insertAITag('article_title');">[article_title]</button>, 
-      <button class="buttonTiny" onclick="insertAITag('article_text');">[article_text]</button>. 
-      These are replaced by the media article title and full text.</div>
+      <div class="smallFont">Tags:
+      <button class="buttonTiny" onclick="insertAITag('article_title');">[article_title]</button> 
+      <button class="buttonTiny" onclick="insertAITag('article_text');">[article_text]</button> 
+      <button class="buttonTiny" onclick="insertAITag('questionnaires');">[questionnaires]</button> 
+      These are replaced by the media article title, full text and questionnaire questions.</div>
       <textarea id="aiPrompt" class="inputForm" style="height: 100px; resize: vertical;"></textarea>
       
       <div id="articleSection">
@@ -469,14 +483,14 @@ HTML;
             <th>Article Id</th>
           </tr>
         </thead>
-        <tbody id="loadAiQueriesBody" onclick="clickaiPromptRow()" ondblclick="loadaiPrompt();"></tbody>
+        <tbody id="loadAiQueriesBody" onclick="clickaiPromptRow()" ondblclick="loadAiPrompt();"></tbody>
       </table>      
     </div>
 
     <div id="spinnerLoadQueries" style="margin: 5px 0;justify-content: center;"><img alt="Spinner" src="/images/spinner.svg"></div>
           
     <div class="popupFooter">
-      <button class="button" style="margin-left: 0;" onclick="loadaiPrompt();">Load</button>
+      <button class="button" style="margin-left: 0;" onclick="loadAiPrompt();">Load</button>
       <button class="button buttonRed" onclick="deleteAiPrompt();">Delete</button>
       <button class="button buttonGray" onclick="closePopupForm();">Cancel</button>
     </div>

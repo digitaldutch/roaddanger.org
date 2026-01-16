@@ -19,6 +19,7 @@ class ResearchHandler extends AjaxHandler {
           'aiInit' => $this->aiInit(),
           'aiGetAvailableModels' => $this->aiGetAvailableModels(),
           'aiGetGenerationInfo' => $this->aiGetGenerationInfo(),
+          'aiAnswerQuestionnaire' => $this->aiAnswerQuestionnaire(),
           'loadArticle' => $this->loadArticle(),
           'selectAiModel' => $this->selectAiModel(),
           'removeAiModel' => $this->removeAiModel(),
@@ -53,24 +54,22 @@ class ResearchHandler extends AjaxHandler {
 
   private function loadQuestionnaires(): array {
 
-    $sql = <<<SQL
-SELECT 
-id,
-title, 
-type,
-country_id,
-active,
-public
-FROM questionnaires;
-SQL;
+    $questionnaires = $this->database->fetchAll("SELECT id, title, type, country_id, active, public FROM questionnaires;");
 
-    $questionnaires = $this->database->fetchAll($sql);
+    $relations = $this->database->fetchAll("SELECT questionnaire_id, question_id FROM questionnaire_questions ORDER BY question_order;");
+
+    foreach ($questionnaires as &$questionnaire) {
+      $questionnaire['question_ids'] = array_column(
+        array_filter($relations, fn($r) => $r['questionnaire_id'] == $questionnaire['id']),
+        'question_id'
+      );
+    }
 
     $sql = <<<SQL
 SELECT 
-id,
-text, 
-explanation 
+  id,
+  text, 
+  explanation 
 FROM questions 
 ORDER BY question_order;
 SQL;
@@ -85,37 +84,36 @@ SQL;
   private function saveQuestion(): array {
     $question = $this->input;
 
-    $isNew = (empty($question->id));
+    $isNew = (empty($question['id']));
     if ($isNew) {
       $sql = "INSERT INTO questions (text, explanation) VALUES (:text, :explanation);";
 
       $params = [
-        ':text' => $question->text,
-        ':explanation' => $question->explanation,
+        ':text' => $question['text'],
+        ':explanation' => $question['explanation'],
       ];
       $this->database->execute($sql, $params);
-      $question->id = (int)$this->database->lastInsertID();
+      $question['id'] = (int)$this->database->lastInsertID();
 
     } else {
       $sql = "UPDATE questions SET text=:text, explanation=:explanation WHERE id=:id;";
       $params = [
-        ':id' => $question->id,
-        ':text' => $question->text,
-        ':explanation' => $question->explanation,
+        ':id' => $question['id'],
+        ':text' => $question['text'],
+        ':explanation' => $question['explanation'],
       ];
 
       $this->database->execute($sql, $params);
     }
 
-    return ['id' => $question->id];
+    return ['id' => $question['id']];
   }
 
   private function deleteQuestion(): array {
-
     $question = $this->input;
 
     $sql = "SELECT questionnaire_id FROM questionnaire_questions WHERE question_id=:question_id;";
-    $params = [':question_id' => $question->id];
+    $params = [':question_id' => $question['id']];
     $dbIds = $this->database->fetchAll($sql, $params);
     $ids = [];
     foreach ($dbIds as $dbId) $ids[] = $dbId['questionnaire_id'];
@@ -127,7 +125,7 @@ SQL;
 
     $sql = "DELETE FROM questions WHERE id=:id;";
 
-    $params = [':id' => $question->id];
+    $params = [':id' => $question['id']];
     $this->database->execute($sql, $params);
 
     return [];
@@ -149,16 +147,16 @@ SQL;
   private function saveQuestionnaire(): array {
     $questionnaire = $this->input;
 
-    $isNew = (empty($questionnaire->id));
+    $isNew = (empty($questionnaire['id']));
     if ($isNew) {
       $sql = "INSERT INTO questionnaires (title, type, country_id, active, public) VALUES (:title, :type, :country_id, :active, :public);";
 
       $params = [
-        ':title'      => $questionnaire->title,
-        ':type'       => $questionnaire->type,
-        ':country_id' => $questionnaire->countryId,
-        ':active'     => intval($questionnaire->active),
-        ':public'     => intval($questionnaire->public),
+        ':title'      => $questionnaire['title'],
+        ':type'       => $questionnaire['type'],
+        ':country_id' => $questionnaire['countryId'],
+        ':active'     => intval($questionnaire['active']),
+        ':public'     => intval($questionnaire['public']),
       ];
       $this->database->execute($sql, $params);
       $questionnaire->id = (int)$this->database->lastInsertID();
@@ -166,38 +164,38 @@ SQL;
       $sql = "UPDATE questionnaires SET title=:title, type=:type, country_id=:country_id, active=:active, public=:public WHERE id=:id;";
 
       $params = [
-        ':id'         => $questionnaire->id,
-        ':title'      => $questionnaire->title,
-        ':type'       => $questionnaire->type,
-        ':country_id' => $questionnaire->countryId,
-        ':active'     => intval($questionnaire->active),
-        ':public'     => intval($questionnaire->public),
+        ':id'         => $questionnaire['id'],
+        ':title'      => $questionnaire['title'],
+        ':type'       => $questionnaire['type'],
+        ':country_id' => $questionnaire['countryId'],
+        ':active'     => intval($questionnaire['active']),
+        ':public'     => intval($questionnaire['public']),
       ];
       $this->database->execute($sql, $params);
     }
 
     // Save questionnaire questions
     $sql = "DELETE FROM questionnaire_questions WHERE questionnaire_id=:questionnaire_id;";
-    $params = [':questionnaire_id' => $questionnaire->id];
+    $params = [':questionnaire_id' => $questionnaire['id']];
     $this->database->execute($sql, $params);
 
     $sql = "INSERT INTO questionnaire_questions (questionnaire_id, question_id, question_order) VALUES (:questionnaire_id, :question_id, :question_order);";
     $statement = $this->database->prepare($sql);
     $order = 1;
-    foreach ($questionnaire->questionIds as $questionId){
-      $params = [':questionnaire_id' => $questionnaire->id, ':question_id' => $questionId, ':question_order' => $order];
+    foreach ($questionnaire['questionIds'] as $questionId){
+      $params = [':questionnaire_id' => $questionnaire['id'], ':question_id' => $questionId, ':question_order' => $order];
       $this->database->executePrepared($statement, $params);
       $order += 1;
     }
 
-    return ['id' => $questionnaire->id];
+    return ['id' => $questionnaire['id']];
   }
 
   private function deleteQuestionnaire(): array {
     $questionnaire = $this->input;
 
     $sql = "DELETE FROM questionnaires WHERE id=:id;";
-    $params = [':id' => $questionnaire->id];
+    $params = [':id' => $questionnaire['id']];
 
     $this->database->execute($sql, $params);
 
@@ -339,8 +337,13 @@ SQL;
       $articleId = intval($this->input['articleId']);
 
       $article = $this->loadArticleFromDatabase($articleId);
-
       $userPrompt = replaceArticleTags($userPrompt, $article);
+
+      // Load questionnaires if required
+      if (str_contains('[questionnaires]', $userPrompt)) {
+        $questionnaires = $this->loadQuestionnaires();
+        $userPrompt = replaceAI_QuestionnaireTags($userPrompt, $questionnaires);
+      }
     }
 
     require_once '../general/OpenRouterAIClient.php';
@@ -382,6 +385,7 @@ model_id = :model_id,
 user_prompt = :user_prompt,
 system_prompt = :system_prompt,
 response_format = :response_format,
+function = :function,
 article_id = :article_id
 WHERE id = :id;                                                                                              ;                                                                                              
 SQL;
@@ -392,6 +396,7 @@ SQL;
         ':user_prompt' => $this->input['userPrompt'],
         ':system_prompt' => $this->input['systemPrompt'],
         ':response_format' => $this->input['responseFormat'],
+        ':function' => $this->input['function'],
         ':article_id' => $this->input['articleId'],
       ];
 
@@ -401,16 +406,17 @@ SQL;
       if (! $this->user->isModerator()) throw new \Exception("You have no permission to save a prompt");
 
       $SQL = <<<SQL
-INSERT INTO ai_prompts (user_id, model_id, user_prompt, system_prompt, response_format, article_id) 
-VALUES (:user_id, :model_id, :user_prompt, :system_prompt, :response_format, :article_id);                                                                                              ;                                                                                              
+INSERT INTO ai_prompts (user_id, model_id, user_prompt, system_prompt, response_format, function, article_id) 
+VALUES (:user_id, :model_id, :user_prompt, :system_prompt, :response_format, :function, :article_id);                                                                                              ;                                                                                              
 SQL;
 
       $params = [
         ':user_id' => $this->user->id,
         ':model_id' => $this->input['modelId'],
-        ':user_prompt' => $this->input['user_prompt'],
+        ':user_prompt' => $this->input['userPrompt'],
         ':system_prompt' => $this->input['systemPrompt'],
         ':response_format' => $this->input['responseFormat'],
+        ':function' => $this->input['function'],
         ':article_id' => $this->input['articleId'],
       ];
 
@@ -429,10 +435,10 @@ SQL;
   private function aiDeletePrompt(): array {
 
     // AI prompt with a function cannot be deleted
-    $sql = "SELECT 1 FROM ai_prompts WHERE id=:id AND function IS NOT NULL;";
+    $sql = "SELECT function FROM ai_prompts WHERE id=:id;";
     $params = [':id' => $this->input['id']];
-    $dbResult = $this->database->fetchSingleValue($sql, $params);
-    if ($dbResult !== false) throw new \Exception("Cannot delete an AI prompt with a function. Remove the function first.");
+    $function = $this->database->fetchSingleValue($sql, $params);
+    if (! empty($function)) throw new \Exception("Cannot delete an AI prompt with a function. Remove the function first.");
 
     if (! $this->mayEditPrompt($this->input['id'])) throw new \Exception("You cannot delete somebody else's prompt");
 
@@ -489,6 +495,12 @@ SQL;
       'generation' => $generation,
       'credits' => $openrouter->getCredits(),
     ];
+  }
+
+  private function aiAnswerQuestionnaire(): array {
+    $articleId = intval($this->input['articleId']);
+
+    return [];
   }
 
   /**

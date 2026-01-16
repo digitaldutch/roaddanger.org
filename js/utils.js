@@ -1220,14 +1220,6 @@ function tabBarClick() {
   document.getElementById(idContent).style.display = 'block';
 }
 
-async function getQuestions(questionnaireId) {
-  const url      = '/general/ajaxGeneral.php?function=getQuestions&questionnaireId=' + questionnaireId;
-  const response = await fetchFromServer(url);
-
-  if (response.error) showError(response.error, 10);
-  else return response;
-}
-
 function tableDataClick(event, tableIndex=0){
   event.stopPropagation();
 

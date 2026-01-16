@@ -26,8 +26,8 @@ class ReframeHandler {
 
     switch ($this->input['function']) {
 
-      case 'analyzeHeadline':
-        $response = $this->analyzeHeadline(
+      case 'analyzeArticle':
+        $response = $this->analyzeArticle(
           $this->input['headline'] ?? '',
           $this->input['articleBody'] ?? ''
         );
@@ -47,7 +47,7 @@ class ReframeHandler {
 
   }
 
-  private function analyzeHeadline($title, $text): array {
+  private function analyzeArticle($title, $text): array {
 
     try {
       // Create unique ID for article title and text
@@ -66,7 +66,7 @@ class ReframeHandler {
         ];
 
         // Use the existing client to make the API call
-        $llmOutputContent = $openrouterClient->chatUsingPromptFunction('article_reframe', $article);
+        $llmOutputContent = $openrouterClient->chatUsingPromptFunction('article_reframe_UVA', $article);
 
         $llmAnalysis = json_decode($llmOutputContent, true);
 

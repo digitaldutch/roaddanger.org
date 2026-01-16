@@ -32,7 +32,6 @@ class GeneralHandler extends AjaxHandler {
         'saveAnswer' => $this->saveAnswer(),
         'saveExplanation' => $this->saveExplanation(),
         'getArticleQuestionnairesAndText' => $this->getArticleQuestionnairesAndText(),
-        'getQuestions' => $this->getQuestions(),
         'getStatistics' => $this->getStatistics(),
         'getMediaHumanizationData' => $this->getMediaHumanizationData(),
         default => throw new Exception('Invalid command'),
@@ -168,7 +167,7 @@ SQL;
   private function extractDataFromArticle(): array {
     $article = $this->input;
 
-    $prompt = $this->database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='article_analist';");
+    $prompt = $this->database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='article_analyst';");
 
     require_once '../general/OpenRouterAIClient.php';
 
@@ -562,10 +561,10 @@ SQL;
 
     $sql = <<<SQL
 SELECT
-id,
-title,
-country_id,
-type
+  id,
+  title,
+  country_id,
+  type
 FROM questionnaires
 WHERE active = 1
 ORDER BY id;
@@ -575,11 +574,11 @@ SQL;
 
     $sql = <<<SQL
 SELECT
-q.id,
-q.text,
-q.explanation,
-a.answer,
-a.explanation AS answerExplanation
+  q.id,
+  q.text,
+  q.explanation,
+  a.answer,
+  a.explanation AS answerExplanation
 FROM questionnaire_questions qq
 LEFT JOIN questions q ON q.id = qq.question_id
 LEFT JOIN answers a ON q.id = a.questionid AND articleid=:articleId
@@ -603,30 +602,6 @@ SQL;
       'text' => $articleText,
       'questionnaires' => $questionnaires
     ];
-  }
-
-  /**
-   * @throws Exception
-   */
-  private function getQuestions(): array {
-    if (! $this->user->admin) throw new \Exception('Admins only');
-
-    $questionnaireId = (int)$_REQUEST['questionnaireId'];
-
-    $sql = <<<SQL
-SELECT
-q.id,
-q.text
-FROM questionnaire_questions qq
-LEFT JOIN questions q ON qq.question_id = q.id
-WHERE qq.questionnaire_id = :questionnaireId
-ORDER BY qq.question_order;
-SQL;
-
-    $params = [':questionnaireId' => $questionnaireId];
-    $questions = $this->database->fetchAll($sql, $params);
-
-    return ['questions' => $questions];
   }
 
   /**

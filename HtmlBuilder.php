@@ -537,7 +537,10 @@ HTML;
     <div style="text-align: right;">
       <div class="button buttonGray" onclick="nextArticleQuestions(false);">Previous article</div>
       <div class="button buttonGray" onclick="nextArticleQuestions(true);">Next article</div>
+      <div class="button" onclick="aiAnswerQuestionnaire();">Answer with AI</div>
     </div>    
+    
+    <div id="spinnerAI" class="spinnerLine"><img src="/images/spinner_black.svg"></div>
 
     <div id="articleQuestions" class="flexColumn">Loading...</div>
                     
