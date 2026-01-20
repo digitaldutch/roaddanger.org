@@ -188,6 +188,28 @@ SQL;
   /**
    * @throws Exception
    */
+  private function answerQuestionnairesForArticle(): array {
+    $article = $this->input;
+
+    $prompt = $this->database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='questionnaire_agent';");
+
+    require_once '../general/OpenRouterAIClient.php';
+
+    $prompt->user_prompt = replaceArticleTags($prompt->user_prompt, (object)$article);
+    $questionnaires = $this->database->loadQuestionnaires();
+    $prompt->user_prompt = replaceAI_QuestionnaireTags($prompt->user_prompt, $questionnaires);
+
+    $openrouter = new OpenRouterAIClient();
+    $AIResults = $openrouter->chatWithMeta($prompt->user_prompt, $prompt->system_prompt, $prompt->model_id, $prompt->response_format);
+
+    $AIResults['response'] = json_decode($AIResults['response']);
+
+    return ['data' => $AIResults['response']];
+  }
+
+  /**
+   * @throws Exception
+   */
   private function loadCountryMapOptions(): array {
     $sql = 'SELECT options from countries WHERE id=:id;';
     $params = [':id' => $this->input['countryId']];

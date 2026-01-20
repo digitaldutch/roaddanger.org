@@ -382,13 +382,49 @@ function replaceArticleTags(string $text, object $article): string {
   return str_replace('[article_title]', $article->title, $text);
 }
 
-function replaceAI_QuestionnaireTags(string $text, $questionnaires): string {
-  if (str_contains('[questionnaires]', $text)) {
-//    $text = str_replace('[questionnaires]', $article->questionnaires, $text);
+function replaceAI_QuestionnaireTags(string $text, array $questionnaireData): string {
+  if (str_contains($text, '[questionnaires]')) {
+    $questionnaires = $questionnaireData['questionnaires'];
+    $questions = $questionnaireData['questions'];
+
+    $output = [
+      'questionnaires' => []
+    ];
+
+    foreach ($questionnaires as $questionnaire) {
+      if ($questionnaire['active'] === 1) {
+        $qBlock = [
+          'id' => $questionnaire['id'],
+          'type' => $questionnaire['type'] === 1 ? 'bechdel' : 'standard',
+          'questions' => []
+        ];
+
+        foreach ($questionnaire['question_ids'] as $questionId) {
+          $question = array_values(array_filter(
+            $questions,
+            fn($q) => $q['id'] === $questionId
+          ))[0] ?? null;
+
+          if ($question) {
+            $qBlock['questions'][] = [
+              'id' => $question['id'],
+              'text' => $question['text'],
+              'explanation' => $question['explanation']
+            ];
+          }
+        }
+
+        $output['questionnaires'][] = $qBlock;
+      }
+    }
+
+    $json = json_encode($output, JSON_UNESCAPED_UNICODE);
+    $text = str_replace('[questionnaires]', $json, $text);
   }
 
   return $text;
 }
+
 
 function geocodeLocation($locationPrompt): ?array {
   if (! defined('HERE_API_KEY')) return null;

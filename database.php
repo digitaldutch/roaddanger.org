@@ -151,6 +151,30 @@ class Database {
     return $this->execute($sql, $params);
   }
 
+  public function loadQuestionnaires(): array {
+
+    $sql = "SELECT id, title, type, country_id, active, public FROM questionnaires ORDER BY id;";
+    $questionnaires = $this->fetchAll($sql);
+
+    // Get question ids for each questionnaire
+    $sql = "SELECT questionnaire_id, question_id FROM questionnaire_questions ORDER BY question_order;";
+    $relations = $this->fetchAll($sql);
+
+    foreach ($questionnaires as &$questionnaire) {
+      $questionnaire['question_ids'] = array_column(
+        array_filter($relations, fn($r) => $r['questionnaire_id'] == $questionnaire['id']),
+        'question_id'
+      );
+    }
+
+    $sql = "SELECT id, text, explanation FROM questions ORDER BY question_order;";
+    $questions = $this->fetchAll($sql);
+
+    return [
+      'questionnaires' => $questionnaires,
+      'questions' => $questions];
+  }
+
   public function loadCountries(): array {
     if (empty($this->countries)) {
       $sql = "SELECT id, name, defaultlanguageid FROM countries ORDER BY CASE WHEN id='UN' THEN 0 ELSE 1 END, name;";

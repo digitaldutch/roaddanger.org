@@ -52,35 +52,6 @@ class ResearchHandler extends AjaxHandler {
     }
   }
 
-  private function loadQuestionnaires(): array {
-
-    $questionnaires = $this->database->fetchAll("SELECT id, title, type, country_id, active, public FROM questionnaires;");
-
-    $relations = $this->database->fetchAll("SELECT questionnaire_id, question_id FROM questionnaire_questions ORDER BY question_order;");
-
-    foreach ($questionnaires as &$questionnaire) {
-      $questionnaire['question_ids'] = array_column(
-        array_filter($relations, fn($r) => $r['questionnaire_id'] == $questionnaire['id']),
-        'question_id'
-      );
-    }
-
-    $sql = <<<SQL
-SELECT 
-  id,
-  text, 
-  explanation 
-FROM questions 
-ORDER BY question_order;
-SQL;
-
-    $questions = $this->database->fetchAll($sql);
-
-    return [
-      'questionnaires' => $questionnaires,
-      'questions' => $questions];
-  }
-
   private function saveQuestion(): array {
     $question = $this->input;
 
@@ -339,9 +310,9 @@ SQL;
       $article = $this->loadArticleFromDatabase($articleId);
       $userPrompt = replaceArticleTags($userPrompt, $article);
 
-      // Load questionnaires if required
-      if (str_contains('[questionnaires]', $userPrompt)) {
-        $questionnaires = $this->loadQuestionnaires();
+      // Load questionnaires if needed
+      if (str_contains($userPrompt, '[questionnaires]')) {
+        $questionnaires = $this->database->loadQuestionnaires();
         $userPrompt = replaceAI_QuestionnaireTags($userPrompt, $questionnaires);
       }
     }
