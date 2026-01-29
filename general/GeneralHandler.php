@@ -16,6 +16,7 @@ class GeneralHandler extends AjaxHandler {
         'saveNewPassword' => $this->saveNewPassword(),
         'saveUser' => $this->saveUser(),
         'extractDataFromArticle' => $this->extractDataFromArticle(),
+        'answerQuestionnairesForArticle' => $this->answerQuestionnairesForArticle(),
         'loadCountryMapOptions' => $this->loadCountryMapOptions(),
         'loadCrashes' => $this->loadCrashes(),
         'loadMapCrashes' => $this->loadMapCrashes(),
@@ -30,7 +31,7 @@ class GeneralHandler extends AjaxHandler {
         'mergeCrashes' => $this->mergeCrashes(),
         'saveLanguage' => $this->saveLanguage(),
         'saveAnswer' => $this->saveAnswer(),
-        'saveExplanation' => $this->saveExplanation(),
+        'saveJustification' => $this->saveJustification(),
         'getArticleQuestionnairesAndText' => $this->getArticleQuestionnairesAndText(),
         'getStatistics' => $this->getStatistics(),
         'getMediaHumanizationData' => $this->getMediaHumanizationData(),
@@ -189,7 +190,10 @@ SQL;
    * @throws Exception
    */
   private function answerQuestionnairesForArticle(): array {
-    $article = $this->input;
+    $articleId = $this->input['articleId'];
+
+    $sql = "SELECT title, text, publishedtime FROM articles WHERE id = :id";
+    $article = $this->database->fetchObject($sql, ['id' => $articleId]);
 
     $prompt = $this->database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='questionnaire_agent';");
 
@@ -203,8 +207,19 @@ SQL;
     $AIResults = $openrouter->chatWithMeta($prompt->user_prompt, $prompt->system_prompt, $prompt->model_id, $prompt->response_format);
 
     $AIResults['response'] = json_decode($AIResults['response']);
+    $questionnaires = $AIResults['response']->questionnaires;
 
-    return ['data' => $AIResults['response']];
+    foreach ($questionnaires AS &$questionnaire) {
+      foreach ($questionnaire->questions AS &$question) {
+        $question->answer_id = aiAnswerToAnswerId($question->answer);
+        $question->justification = 'AI: ' . $question->justification;
+
+        // Save answer to the database
+        $this->database->saveAnswer($articleId, $question->id, $question->answer_id, $question->justification);
+      }
+    }
+
+    return ['questionnaires' => $questionnaires];
   }
 
   /**
@@ -544,30 +559,31 @@ SQL;
 
     return [];
   }
+
+  /**
+   * @throws Exception
+   */
   private function saveAnswer(): array {
     if (! $this->user->isModerator())  throw new \Exception('Only moderators can save answers');
 
-    $params = [
-      'articleid' => $this->input['articleId'],
-      'questionid' => $this->input['questionId'],
-      'answer' => $this->input['answer'],
-      'answer2' => $this->input['answer'],
-    ];
-    $sql = "INSERT INTO answers (articleid, questionid, answer) VALUES(:articleid, :questionid, :answer) ON DUPLICATE KEY UPDATE answer=:answer2;";
-
-    $this->database->execute($sql, $params);
+    $this->database->saveAnswer(
+      $this->input['articleId'],
+      $this->input['questionId'],
+      $this->input['answer'],
+      $this->input['justification'],
+    );
 
     return [];
   }
-  private function saveExplanation(): array {
-    if (! $this->user->isModerator())  throw new \Exception('Only moderators can save explanations');
+  private function saveJustification(): array {
+    if (! $this->user->isModerator())  throw new \Exception('Only moderators can save justifications');
 
     $params = [
       'articleid' => $this->input['articleId'],
       'questionid' => $this->input['questionId'],
-      'explanation' => $this->input['explanation'],
+      'justification' => $this->input['justification'],
     ];
-    $sql = "UPDATE answers SET explanation= :explanation WHERE articleid=:articleid AND questionid=:questionid;";
+    $sql = "UPDATE answers SET explanation= :justification WHERE articleid=:articleid AND questionid=:questionid;";
     $this->database->execute($sql, $params);
 
     return [];
@@ -600,7 +616,7 @@ SELECT
   q.text,
   q.explanation,
   a.answer,
-  a.explanation AS answerExplanation
+  a.explanation AS answerJustification
 FROM questionnaire_questions qq
 LEFT JOIN questions q ON q.id = qq.question_id
 LEFT JOIN answers a ON q.id = a.questionid AND articleid=:articleId

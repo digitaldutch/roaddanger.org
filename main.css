@@ -1474,8 +1474,8 @@ h3, .pageSubTitleFont {
 .buttonPopupMenu > div:not(.navigationSectionHeader):hover,
 .buttonPopupMenu > a:hover,
 .navItem:hover,
-.dataTable tbody tr:hover,
-.dataTable tr:hover a,
+.dataTable:not(.noHoverStyle) tbody tr:hover,
+.dataTable:not(.noHoverStyle) tr:hover a,
 .optionCheckImage:hover {
   color: var(--color-hover);
   background-color: var(--hover-bgcolor);
@@ -1520,9 +1520,12 @@ h3, .pageSubTitleFont {
 }
 
 .dataTable td {
-  border-bottom:   solid 1px var(--table-data-border-color);
-  vertical-align:  top;
-  padding:         5px;
+  vertical-align: top;
+  padding: 5px;
+}
+
+.dataTable:not(.noBorder) td {
+  border-bottom: solid 1px var(--table-data-border-color);
 }
 
 .dataTable th {

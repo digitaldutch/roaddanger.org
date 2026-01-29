@@ -1500,3 +1500,20 @@ function getBaseDomain() {
   const parts = window.location.hostname.split('.');
   return parts.length >= 2 ? parts.slice(-2).join('.') : window.location.hostname;
 }
+
+function getRadioGroupValue(name) {
+  return document.querySelector(`input[name="${name}"]:checked`)?.value ?? null;
+}
+
+function setRadioGroupValue(name, value) {
+  const el = document.querySelector(`input[name="${name}"][value="${value}"]`);
+  if (el) el.checked = true;
+}
+
+function answerToInt(answer) {
+  if (answer === 'yes') return 1;
+  if (answer === 'no') return 0;
+  if (answer === 'not determinable') return 2;
+
+  return null;
+}

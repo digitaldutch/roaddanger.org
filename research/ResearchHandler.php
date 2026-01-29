@@ -19,7 +19,6 @@ class ResearchHandler extends AjaxHandler {
           'aiInit' => $this->aiInit(),
           'aiGetAvailableModels' => $this->aiGetAvailableModels(),
           'aiGetGenerationInfo' => $this->aiGetGenerationInfo(),
-          'aiAnswerQuestionnaire' => $this->aiAnswerQuestionnaire(),
           'loadArticle' => $this->loadArticle(),
           'selectAiModel' => $this->selectAiModel(),
           'removeAiModel' => $this->removeAiModel(),
@@ -50,6 +49,10 @@ class ResearchHandler extends AjaxHandler {
     } catch (Exception $e) {
       $this->respondWithError($e->getMessage());
     }
+  }
+
+  private function loadQuestionnaires() {
+    return $this->database->loadQuestionnaires();
   }
 
   private function saveQuestion(): array {
@@ -466,12 +469,6 @@ SQL;
       'generation' => $generation,
       'credits' => $openrouter->getCredits(),
     ];
-  }
-
-  private function aiAnswerQuestionnaire(): array {
-    $articleId = intval($this->input['articleId']);
-
-    return [];
   }
 
   /**

@@ -51,7 +51,7 @@ class HtmlResearch {
   
     <table id="table_questions" class="dataTable" style="min-width: 500px;">
       <thead>
-        <tr><th>Id</th><th>Question</th><th>Explanation</th></tr>
+        <tr><th>Id</th><th>Question</th><th>Explanation <span style="font-weight: normal;">(For humans and AI. Be explicit!)</span></th></tr>
       </thead>
       <tbody id="tableBodyQuestions" onclick="tableDataClick(event);" ondblclick="editQuestion();">    
      </tbody>
@@ -75,7 +75,7 @@ class HtmlResearch {
     <label for="questionText">Question text</label>
     <input id="questionText" class="popupInput" type="text" maxlength="200">
        
-    <label for="questionExplanation">Explanation</label>
+    <label for="questionExplanation">Explanation for both humans and AI. Be explicit or AI fails</span></label>
     <input id="questionExplanation" class="popupInput" type="text" maxlength="200">
        
     <div class="popupFooter">

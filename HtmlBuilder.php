@@ -535,9 +535,9 @@ HTML;
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
     
     <div style="text-align: right;">
-      <div class="button buttonGray" onclick="nextArticleQuestions(false);">Previous article</div>
-      <div class="button buttonGray" onclick="nextArticleQuestions(true);">Next article</div>
-      <div class="button" onclick="aiAnswerQuestionnaire();">Answer with AI</div>
+      <div class="button buttonGray" onclick="nextArticleQuestion(false);">Previous article</div>
+      <div class="button buttonGray" onclick="nextArticleQuestion(true);">Next article</div>
+      <div class="button" onclick="aiAnswerQuestionnaires();">Answer with AI</div>
     </div>    
     
     <div id="spinnerAI" class="spinnerLine"><img src="/images/spinner_black.svg"></div>

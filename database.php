@@ -219,4 +219,32 @@ class Database {
     return $this->fetchAllValues("SELECT DISTINCT country_id FROM questionnaires WHERE active=1 ORDER BY country_id;");
   }
 
+  public function saveAnswer($articleId, $questionId, $answer, $answerJustification=null): void {
+    $params = [
+      ':articleid' => $articleId,
+      ':questionid' => $questionId,
+      ':answer' => $answer,
+      ':answer2' => $answer,
+    ];
+    $sql = <<<SQL
+INSERT INTO answers (articleid, questionid, answer) 
+VALUES(:articleid, :questionid, :answer) 
+ON DUPLICATE KEY UPDATE 
+  answer=:answer2;
+SQL;
+
+    $this->execute($sql, $params);
+
+    if ($answerJustification !== null) {
+      $params = [
+        ':articleid' => $articleId,
+        ':questionid' => $questionId,
+        ':justification' => substr($answerJustification ?? '', 0, 200),
+      ];
+
+      $sql = "UPDATE answers SET explanation=:justification WHERE articleid=:articleid AND questionid=:questionid;";
+      $this->execute($sql, $params);
+    }
+  }
+
 }

@@ -466,3 +466,14 @@ function geocodeLocation($locationPrompt): ?array {
     return null;
   }
 }
+
+/**
+ * @throws Exception
+ */
+function aiAnswerToAnswerId (string $answer): int {
+  if ($answer === 'yes') return 1;
+  if ($answer === 'no') return 0;
+  if ($answer === 'not_determinable') return 2;
+
+  throw new Exception("Invalid AI answer: $answer");
+}

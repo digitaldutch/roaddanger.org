@@ -1663,49 +1663,53 @@ async function showQuestionsForm(crashId, articleId) {
   for (const questionnaire of article.questionnaires) {
     htmlQuestionnaires += `<tr><td colspan="2" class="sectionHeader">${questionnaire.title}</td></tr>`;
 
-    let i = 1;
+    let iQuestion = 1;
     for (const question of questionnaire.questions) {
-      const yesChecked        = question.answer === 1? 'checked' : '';
-      const noChecked         = question.answer === 0? 'checked' : '';
-      const ndChecked         = question.answer === 2? 'checked' : '';
-      const tooltip           = question.explanation? `<span class="iconTooltip" data-tippy-content="${question.explanation}"></span>` : '';
-      const answerExplanation = question.answerExplanation? escapeHtml(question.answerExplanation) : '';
+      const yesChecked = question.answer === 1? 'checked' : '';
+      const noChecked = question.answer === 0? 'checked' : '';
+      const ndChecked = question.answer === 2? 'checked' : '';
+      const tooltip = question.explanation? `<span class="iconTooltip" data-tippy-content="${escapeHtml(question.explanation)}"></span>` : '';
+      const answerJustification = question.answerJustification? escapeHtml(question.answerJustification) : '';
 
       htmlQuestionnaires +=
 `<tr id="q${questionnaire.id}_${question.id}">
-<td>${i}) ${question.text} ${tooltip}</td>
+<td>${iQuestion}) ${question.text} ${tooltip}</td>
 <td style="white-space: nowrap;">
-<label><input name="answer${question.id}" type="radio" ${yesChecked} onclick="saveAnswer(${article.id}, ${question.id}, 1)">Yes</label>
-<label><input name="answer${question.id}" type="radio" ${noChecked} onclick="saveAnswer(${article.id}, ${question.id}, 0)">No</label>
-<label data-tippy-content="Not determinable"><input name="answer${question.id}" type="radio" ${ndChecked} onclick="saveAnswer(${article.id}, ${question.id}, 2)">n.d.</label>
+<label><input name="answer${question.id}" value="1" type="radio" ${yesChecked} onclick="saveAnswer(${article.id}, ${question.id})">Yes</label>
+<label><input name="answer${question.id}" value="0" type="radio" ${noChecked} onclick="saveAnswer(${article.id}, ${question.id})">No</label>
+<label data-tippy-content="Not determinable"><input name="answer${question.id}" value="2" type="radio" ${ndChecked} onclick="saveAnswer(${article.id}, ${question.id})">n.d.</label>
 </td>
 </tr>
-<tr id="trExplanation${question.id}" style="display: none;"><td colspan="2"><input id="explanation${question.id}" type="text" value="${answerExplanation}" placeholder="Explanation" class="inputForm" oninput="saveExplanationDelayed(${article.id}, ${question.id});"></td></tr>
+<tr id="trJustification${question.id}" style="display: none;"><td colspan="2">
+  <div class="smallFont">Justication</div>
+  <input id="justification${question.id}" type="text" value="${answerJustification}" class="inputForm" oninput="saveJustificationDelayed(${article.id}, ${question.id});">
+</td></tr>
 `;
-      i += 1;
+      iQuestion += 1;
     }
 
-    htmlQuestionnaires += `<tr id="questionnaireCompleted${questionnaire.id}" class="ready" style="display: none;"><td colspan="2">
-All questions answered 🙏🏼</td></tr>`;
-    htmlQuestionnaires += '<tr><td colspan="2" style="border: none; height: 10px;"></td></tr>'
+    htmlQuestionnaires += `
+<tr id="questionnaireCompleted${questionnaire.id}" class="ready" style="display: none;"><td colspan="2">All questions answered 🙏🏼</td></tr>
+<tr><td colspan="2" style="border: none; height: 10px;"></td></tr>`;
   }
 
-  if (htmlQuestionnaires) htmlQuestionnaires = `<table class="dataTable">${htmlQuestionnaires}</table>`;
+  if (htmlQuestionnaires) htmlQuestionnaires = `<table class="dataTable noBorder noHoverStyle">${htmlQuestionnaires}</table>`;
   else htmlQuestionnaires = '<div>No questionnaires found</div>';
 
   document.getElementById('articleQuestions').innerHTML      = htmlQuestionnaires;
   document.getElementById('questionsArticleText').innerHTML  = response.text? formatText(response.text) : '[Full text is not available in database]';
 
-  for (const questionnaire of article.questionnaires) setQuestionnaireGUI(questionnaire);
+  for (const questionnaire of article.questionnaires) setQuestionnaireGUIVisibility(questionnaire);
 
   tippy('[data-tippy-content]', {allowHTML: true});
 
 }
 
-function setQuestionnaireGUI(questionnaire) {
+function setQuestionnaireGUIVisibility(questionnaire) {
 
   document.getElementById('questionnaireCompleted' + questionnaire.id).style.display = allQuestionsAnswered(questionnaire) ? 'table-row' : 'none';
 
+  // Set visibility for Bechdel questions. After the first no they are hidden.
   if (questionnaire.type === QuestionnaireType.bechdel) {
     let iFirstNotYesQuestion = null;
     for (let i=0; i < questionnaire.questions.length; i++) {
@@ -1718,35 +1722,62 @@ function setQuestionnaireGUI(questionnaire) {
 
       const id = 'q' + questionnaire.id + '_' + question.id;
       document.getElementById(id).style.display = questionVisible? 'table-row' : 'none';
-    }
-  }
 
-  // Show explantion field if not determinable answered
-  for (let question of questionnaire.questions) {
-    document.getElementById('trExplanation' + question.id).style.display = question.answer === QuestionAnswer.notDeterminable? 'table-row' : 'none';
+      // Show the justification field if "not determinable" answered or not empty
+      const visible = questionVisible && (question.answer === QuestionAnswer.notDeterminable || question.answerJustification);
+      document.getElementById('trJustification' + question.id).style.display = visible? 'table-row' : 'none';
+    }
   }
 
 }
 
-async function saveAnswer(articleId, questionId, answer) {
+async function saveAnswer(articleId, questionId) {
+  const name = 'answer' + questionId;
+  const answer = Number(getRadioGroupValue(name));
+
   const article = getArticleFromId(articleId);
 
   for (const questionnaire of article.questionnaires) {
-    for (const question of questionnaire.questions) {
-      if (question.id  === questionId) {
-        question.answer = answer;
 
-        setQuestionnaireGUI(questionnaire);
-        break;
-      }
+    const question = questionnaire.questions.find(q => q.id === questionId);
+
+    if (question) {
+      question.answer = answer;
+
+      // Empty justification if the user selects another answer. This also removes AI justifications
+      question.answerJustification = '';
+
+      document.getElementById('justification' + questionId).value = question.answerJustification = '';
+
+      setQuestionnaireGUIVisibility(questionnaire);
+
+      const url = '/general/ajaxGeneral.php?function=saveAnswer';
+      const data = {
+        articleId: articleId,
+        questionId: question.id,
+        answer: question.answer,
+        justification: question.answerJustification,
+      };
+
+      const response = await fetchFromServer(url, data);
+
+      if (response.error) showError(response.error, 10);
     }
   }
+}
 
-  const url = '/general/ajaxGeneral.php?function=saveAnswer';
+function saveJustificationDelayed(articleId, questionId) {
+  clearTimeout(saveJustification.timeout);
+  saveJustification.timeout = setTimeout(function () {saveJustification(articleId, questionId);},500);
+}
+
+async function saveJustification(articleId, questionId) {
+
+  const url  = '/general/ajaxGeneral.php?function=saveJustification';
   const data = {
-    articleId:  articleId,
+    articleId: articleId,
     questionId: questionId,
-    answer:     answer,
+    justification: document.getElementById('justification' + questionId).value.trim(),
   };
 
   const response = await fetchFromServer(url, data);
@@ -1754,23 +1785,84 @@ async function saveAnswer(articleId, questionId, answer) {
   if (response.error) showError(response.error, 10);
 }
 
-function saveExplanationDelayed(articleId, questionId) {
-  clearTimeout(saveExplanation.timeout);
-  saveExplanation.timeout = setTimeout(function () {saveExplanation(articleId, questionId);},500);
+function nextArticleQuestion(forward=true) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const articleId = parseInt(document.getElementById('questionsArticleId').value);
+
+  const index = articles.findIndex(article => article.id === articleId);
+  let newArticle;
+  if (forward) {
+    if (index < articles.length - 1) newArticle = articles[index + 1];
+    else {
+      // Check if we are on the fill_in page.
+      const onFillInPage = window.location.href.includes('fill_in');
+
+      if (onFillInPage) window.location.reload();
+      else showMessage('This is the last article');
+    }
+
+  } else {
+    if (index > 0) newArticle = articles[index -1];
+    else showMessage('This is the first article');
+  }
+
+  if (newArticle) {
+    selectArticle(newArticle.id);
+  }
+
+  showQuestionsForm(newArticle.crashid, newArticle.id);
 }
 
-async function saveExplanation(articleId, questionId) {
+async function aiAnswerQuestionnaires() {
+  const spinner = document.getElementById('spinnerAI');
 
-  const url  = '/general/ajaxGeneral.php?function=saveExplanation';
+  const articleId = Number(document.getElementById('questionsArticleId').value);
+
+  if (! articleId) {
+    showError(translate('No article ID found'));
+    return;
+  }
+
+  const url = '/general/ajaxGeneral.php?function=answerQuestionnairesForArticle';
   const data = {
-    articleId:   articleId,
-    questionId:  questionId,
-    explanation: document.getElementById('explanation' + questionId).value.trim(),
+    articleId: articleId,
   };
 
-  const response = await fetchFromServer(url, data);
+  try {
+    spinner.style.display = 'inline-flex';
 
-  if (response.error) showError(response.error, 10);
+    const response = await fetchFromServer(url, data);
+
+    if (response.error) showError(response.error, 10);
+
+    const article = getArticleFromId(articleId);
+
+    for (const responseQuestionnaire of response.questionnaires) {
+      const questionnaire = article.questionnaires.find(qn => qn.id === responseQuestionnaire.id);
+
+      for (const responseQuestion of responseQuestionnaire.questions) {
+        const question = questionnaire.questions.find(q => q.id === responseQuestion.id);
+
+        if (question) {
+          question.answer = responseQuestion.answer_id;
+          question.answerJustification = responseQuestion.justification ?? '';
+
+          document.getElementById('justification' + question.id).value = question.answerJustification;
+
+          const radioGroupName = 'answer' + question.id;
+          setRadioGroupValue(radioGroupName, question.answer);
+        }
+      }
+
+      setQuestionnaireGUIVisibility(questionnaire);
+    }
+
+  } finally {
+    spinner.style.display = 'none';
+  }
+
 }
 
 async function crashToTopStream(crashID) {
