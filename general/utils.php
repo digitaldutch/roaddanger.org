@@ -15,6 +15,7 @@ enum PageType {
   case statisticsCrashPartners;
   case recent;
   case deCorrespondent;
+  case research_uva_2026;
   case mosaic;
   case export;
   case map;

@@ -209,7 +209,7 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
   }
 
   let htmlBar = '';
-  const itemColors = d3.schemeRdYlGn[bechdelItems.length].slice().reverse();;
+  const itemColors = d3.schemeRdYlGn[bechdelItems.length].slice().reverse();
 
   let i = 0;
   bechdelItems.forEach(item => {
@@ -219,7 +219,7 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
     const colorText = textColorFor(colorBarSegment);
 
     if ((item.amount) && (total > 0)) {
-      const tooltip = 'Humane score: ' + item.passed + ' / ' + questions.length + ' (' + item.amountPercentage.toFixed(1) + '%)';
+      const tooltip = `Humane score: ${item.passed} of ${questions.length} • ${item.amount} articles • ${item.amountPercentage.toFixed(1)} %`;
       htmlBar += getBarSegment(item.amountPercentage, colorBarSegment, colorText, item.passed, tooltip);
     }
 
@@ -315,7 +315,9 @@ async function loadQuestionnaireResults() {
           for (const groupResults of response.bechdelResults) {
             htmlBar = getBechdelBarHtml(groupResults, questionnaire.questions, group);
 
-            const htmlBarLabel = `<div>${groupResults.year}</div>`;
+            const textAverage = groupResults.average.toFixed(2);
+            const textTotal = groupResults.total_articles.toString();
+            const htmlBarLabel = `<div data-tippy-content="Average score: ${textAverage} Articles: ${textTotal}">${groupResults.year}</div>`;
 
             htmlBars += htmlBarLabel + htmlBar;
           }
@@ -331,7 +333,9 @@ async function loadQuestionnaireResults() {
             const tempDate = new Date(groupYear, groupMonth-1, 1);
             const monthText = tempDate.toLocaleString('default', { month: 'short' });
 
-            const htmlBarLabel = `<div>${groupYear + ' ' +  monthText}</div>`;
+            const textAverage = groupResults.average.toFixed(2);
+            const textTotal = groupResults.total_articles.toString();
+            const htmlBarLabel = `<div data-tippy-content="Average score: ${textAverage} Articles: ${textTotal}">${groupYear + ' ' +  monthText}</div>`;
 
             htmlBars += htmlBarLabel + htmlBar;
           }
@@ -355,14 +359,18 @@ async function loadQuestionnaireResults() {
           for (const groupResults of response.bechdelResults) {
             htmlBar = getBechdelBarHtml(groupResults, questionnaire.questions, group);
 
-            const htmlBarLabel = `<div>${groupResults.countryid}</div>`;
+            const textAverage = groupResults.average.toFixed(2);
+            const textTotal = groupResults.total_articles.toString();
+            const htmlBarLabel = `<div data-tippy-content="Average score: ${textAverage} Articles: ${textTotal}">${groupResults.countryid}</div>`;
 
             htmlBars += htmlBarLabel + htmlBar;
           }
 
         } else {
+          const textTotal = response.bechdelResults[0].total_articles.toString();
+
           htmlBar = getBechdelBarHtml(response.bechdelResults[0], questionnaire.questions);
-          htmlBars += '<div>All articles</div>' + htmlBar;
+          htmlBars += `<div data-tippy-content="Articles: ${textTotal}">All articles</div>` + htmlBar;
         }
 
         htmlTableHead = '';

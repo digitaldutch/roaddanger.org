@@ -193,7 +193,7 @@ HTML;
     global $VERSION_DATE;
 
     $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
-      'Child_victims', 'Mosaic', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
+      'Child_victims', 'Mosaic', 'Research_uva_2026', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
       'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
       'Version', 'Questionnaires', 'Fill_in', 'Settings', 'Results', 'AI_prompt_builder', 'Research',
       'Graphs_and_statistics', 'Media_humanization_test', 'Tools', 'Reframe']);
@@ -230,7 +230,6 @@ HTML;
       <a href="/research/questionnaires/settings" class="navItem" data-admin>{$texts['Questionnaires']} · {$texts['Settings']}</a>
       <a href="/research/questionnaires/" class="navItem">{$texts['Questionnaires']} · {$texts['Results']}</a>
       <a href="/research/questionnaires/fill_in" class="navItem" data-moderator>{$texts['Questionnaires']} · {$texts['Fill_in']}</a>
-      <a href="/research/ai_prompt_builder/" class="navItem" data-moderator>{$texts['AI_prompt_builder']}</a>
     </div>
 
     <div class="navigationSection">
@@ -241,6 +240,7 @@ HTML;
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Other']}</div>
       
+      <a href="/research_uva_2026" class="navItem">{$texts['Research_uva_2026']}</a>
       <a href="/decorrespondent" class="navItem">{$texts['The_correspondent_week']}</a>
       <a href="/export/" class="navItem">{$texts['Export_data']}</a>
       <a href="/aboutthissite/" class="navItem">{$texts['About_this_site']}</a>
@@ -254,7 +254,8 @@ HTML;
         <a href="/moderations/" class="navItem">{$texts['Moderations']}</a>
         <a href="/admin/translations/" class="navItem" data-moderator>{$texts['Translations']}</a>
         <a href="/admin/longtexts/" class="navItem" data-moderator>{$texts['Long_texts']}</a>
-        <a href="/last_changed" class="navItem">{$texts['Last_modified_crashes']}</a>
+        <a href="/research/ai_prompt_builder/" class="navItem" data-moderator>{$texts['AI_prompt_builder']}</a>        
+        <a href="/last_changed" class="navItem" data-moderator>{$texts['Last_modified_crashes']}</a>
       </div>      
     </div>
     
@@ -727,6 +728,24 @@ HTML;
 <div id="pageMain">
   <div class="pageInner pageInnerScroll">    
     <div class="pageSubTitle">{$texts['Statistics']} - {$texts['General']}</div>
+    
+    <div class="panelTableOverflow">
+       <table id="tableStatistics" class="dataTable"></table>
+      <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>
+    </div>
+    
+  </div>
+</div>
+HTML;
+  }
+
+  public static function pageResearch_UVA_2026(): string {
+    $texts = translateArray(['Research_uva_2026']);
+
+    return <<<HTML
+<div id="pageMain">
+  <div class="pageInner pageInnerScroll">    
+    <div class="pageSubTitle">{$texts['Research_uva_2026']}</div>
     
     <div class="panelTableOverflow">
        <table id="tableStatistics" class="dataTable"></table>
