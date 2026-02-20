@@ -14,6 +14,7 @@ if (str_starts_with($uri, '/research/questionnaires/settings')) $pageType = Page
 else if (str_starts_with($uri, '/research/questionnaires/fill_in')) $pageType = PageType::questionnaireFillIn;
 else if (str_starts_with($uri, '/research/questionnaires')) $pageType = PageType::questionnaireResults;
 else if (str_starts_with($uri, '/research/ai_prompt_builder')) $pageType = PageType::ai_prompt_builder;
+else if (str_starts_with($uri, '/research/research_uva_2026')) $pageType = PageType::research_uva_2026;
 else die('Internal error: Unknown page type');
 
 $htmlEnd = '';
@@ -28,6 +29,8 @@ if ($pageType === PageType::questionnaireSettings) {
   $mainHTML = HtmlResearch::pageResults();
 } else if ($pageType === PageType::ai_prompt_builder) {
   $mainHTML = HtmlResearch::pageAITest();
+} else if ($pageType === PageType::research_uva_2026) {
+  $mainHTML = HtmlResearch::pageResearch_UVA_2026();
 }
 
 $html =

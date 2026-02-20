@@ -218,6 +218,10 @@ HTML;
     $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml(widthPixels: 140);
     $htmlSearchCountry = HtmlBuilder::getSearchLocationHtml('filterResearchCountry', 'UN');
 
+    $lastYears = array_reverse(getLastYears(7));
+    $optionsYears = '';
+    foreach ($lastYears as $year) $optionsYears .= "<option value='{$year}'>{$year}</option>";
+
     return <<<HTML
 <div id="pageMain">
 <div class="pageInner">
@@ -264,12 +268,12 @@ HTML;
     <div class="toolbarItem">
       <select id="filterResearchTimeSpan" class="filterBarInput active" data-tippy-content="{$texts['Period']}">
         <option value="">{$texts['Always']}</option>
-        <option value="from2022">From 2022</option>
-        <option value="1year">1 year</option>
-        <option value="2year">2 years</option>
-        <option value="3year">3 years</option>
-        <option value="5year">5 years</option>
-        <option value="10year">10 years</option>
+        $optionsYears
+        <option value="1_year">Last 12 months</option>
+        <option value="2_year">Last 2 years</option>
+        <option value="3_year">Last 3 years</option>
+        <option value="5_year">Last 5 years</option>
+        <option value="10_year">Last 10 years</option>
       </select>
     </div>
     
@@ -500,5 +504,22 @@ HTML;
 HTML;
   }
 
+  public static function pageResearch_UVA_2026(): string {
+    $texts = translateArray(['Research_uva_2026']);
+
+    return <<<HTML
+<div id="pageMain">
+<div class="pageInner pageInnerScroll">    
+  <div class="pageSubTitle">{$texts['Research_uva_2026']}</div>
+  
+  <div class="panelTableOverflow">
+     <table id="tableStatistics" class="dataTable"></table>
+    <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>
+  </div>
+  
+</div>
+</div>
+HTML;
+  }
 
 }

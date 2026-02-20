@@ -10,7 +10,6 @@ global $user;
 $uri = urldecode($_SERVER['REQUEST_URI']);
 if      (str_starts_with($uri, '/last_changed'))                    $pageType = PageType::lastChanged;
 else if (str_starts_with($uri, '/decorrespondent'))                 $pageType = PageType::deCorrespondent;
-else if (str_starts_with($uri, '/research_uva_2026'))               $pageType = PageType::research_uva_2026;
 else if (str_starts_with($uri, '/map'))                             $pageType = PageType::map;
 else if (str_starts_with($uri, '/moderations'))                     $pageType = PageType::moderations;
 else if (str_starts_with($uri, '/mosaic'))                          $pageType = PageType::mosaic;
@@ -66,7 +65,6 @@ HTML;
 
 [$mainHTML, $showButtonAdd, $head] = match ($pageType) {
   PageType::statisticsGeneral => [HtmlBuilder::pageStatsGeneral(), false, $head],
-  PageType::research_uva_2026 => [HtmlBuilder::pageResearch_UVA_2026(), false, $head],
   PageType::childVictims => [HtmlBuilder::pageChildVictims(), true, $head],
   PageType::map => [HtmlBuilder::pageMap(), true, $head],
   PageType::mosaic => [HtmlBuilder::pageMosaic(), true, $head],

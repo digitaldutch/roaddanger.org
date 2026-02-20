@@ -230,6 +230,8 @@ HTML;
       <a href="/research/questionnaires/settings" class="navItem" data-admin>{$texts['Questionnaires']} · {$texts['Settings']}</a>
       <a href="/research/questionnaires/" class="navItem">{$texts['Questionnaires']} · {$texts['Results']}</a>
       <a href="/research/questionnaires/fill_in" class="navItem" data-moderator>{$texts['Questionnaires']} · {$texts['Fill_in']}</a>
+
+      <a href="/research/research_uva_2026" class="navItem">{$texts['Research_uva_2026']}</a>
     </div>
 
     <div class="navigationSection">
@@ -238,9 +240,7 @@ HTML;
     </div>
 
     <div class="navigationSection">
-      <div class="navigationSectionHeader">{$texts['Other']}</div>
-      
-      <a href="/research_uva_2026" class="navItem">{$texts['Research_uva_2026']}</a>
+      <div class="navigationSectionHeader">{$texts['Other']}</div>      
       <a href="/decorrespondent" class="navItem">{$texts['The_correspondent_week']}</a>
       <a href="/export/" class="navItem">{$texts['Export_data']}</a>
       <a href="/aboutthissite/" class="navItem">{$texts['About_this_site']}</a>
@@ -728,24 +728,6 @@ HTML;
 <div id="pageMain">
   <div class="pageInner pageInnerScroll">    
     <div class="pageSubTitle">{$texts['Statistics']} - {$texts['General']}</div>
-    
-    <div class="panelTableOverflow">
-       <table id="tableStatistics" class="dataTable"></table>
-      <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>
-    </div>
-    
-  </div>
-</div>
-HTML;
-  }
-
-  public static function pageResearch_UVA_2026(): string {
-    $texts = translateArray(['Research_uva_2026']);
-
-    return <<<HTML
-<div id="pageMain">
-  <div class="pageInner pageInnerScroll">    
-    <div class="pageSubTitle">{$texts['Research_uva_2026']}</div>
     
     <div class="panelTableOverflow">
        <table id="tableStatistics" class="dataTable"></table>

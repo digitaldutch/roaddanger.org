@@ -478,3 +478,15 @@ function aiAnswerToAnswerId (string $answer): int {
 
   throw new Exception("Invalid AI answer: $answer");
 }
+
+function getLastYears($amount): array {
+  $currentYear = (int)date('Y');
+
+  $years = [];
+  for ($i = $amount - 1; $i >= 0; $i--) {
+    $years[] = $currentYear - $i;
+  }
+
+  return $years;
+}
+

@@ -28,7 +28,6 @@ const PageType = Object.freeze({
   map: 10,
   childVictims: 11,
   lastChanged: 14,
-  research_UVA_2026: 13,
 });
 
 
@@ -45,7 +44,6 @@ function determinePageType(pathName, crashID) {
   if (pathName.startsWith('/statistics')) return PageType.statisticsGeneral;
   if (pathName.startsWith('/export')) return PageType.export;
   if (pathName.startsWith('/decorrespondent')) return PageType.deCorrespondent;
-  if (pathName.startsWith('/research_uva_2026')) return PageType.research_UVA_2026;
   if (crashID) return PageType.crash;
   return PageType.recent;
 }
@@ -104,8 +102,6 @@ function loadPageContent(pageType, url, crashID, articleID) {
 
   if (statisticsPages.includes(pageType)) {
     loadStatistics();
-  } else if (pageType === PageType.research_UVA_2026) {
-    loadResearch_UVA_2026(url);
   } else if (pageType === PageType.childVictims) {
     initChildVictims(url);
   } else if (pageType === PageType.export) {
@@ -516,44 +512,6 @@ async function loadStatistics() {
   }
 }
 
-async function loadResearch_UVA_2026() {
-
-  try {
-
-    const serverData = [];
-    const url = '/general/ajaxGeneral.php?function=getResearch_UVA_2026';
-    const response = await fetchFromServer(url, serverData);
-
-    if (response.user) updateLoginGUI(response.user);
-
-    if (response.error) {
-      showError(response.error);
-      return;
-    }
-
-    let html = `
-    <tr class="trHeader"><td colspan="2">2025</td></tr>
-    
-    <tr>
-      <td>Crashes 2025</td>
-      <td style="text-align: right;">${response.stats.crashes}</td>
-    </tr>
-    <tr>
-      <td>Articles 2025</td>
-      <td style="text-align: right;">${response.stats.articles}</td>
-    </tr>`;
-
-    document.getElementById('tableStatistics').innerHTML = html;
-
-``
-
-
-  } catch (error) {
-    showError(error.message);
-  } finally {
-    spinnerLoad.style.display = 'none';
-  }
-}
 
 function clearTable(){
   document.getElementById('dataTableBody').innerHTML = '';

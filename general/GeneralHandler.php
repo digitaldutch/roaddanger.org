@@ -34,7 +34,6 @@ class GeneralHandler extends AjaxHandler {
         'saveJustification' => $this->saveJustification(),
         'getArticleQuestionnairesAndText' => $this->getArticleQuestionnairesAndText(),
         'getStatistics' => $this->getStatistics(),
-        'getResearch_UVA_2026' => $this->getResearch_UVA_2026(),
         'getMediaHumanizationData' => $this->getMediaHumanizationData(),
         default => throw new Exception('Invalid command'),
       };
@@ -659,21 +658,6 @@ SQL;
 
     return [
       'statistics' => $stats,
-      'user' => $this->user->info(),
-    ];
-  }
-
-  private function getResearch_UVA_2026(): array {
-    $stats = [];
-
-    $sql = "SELECT COUNT(*) FROM crashes WHERE EXTRACT(YEAR FROM date) = 2025;";
-    $stats['crashes'] = $this->database->fetchSingleValue($sql);
-
-    $sql = "SELECT COUNT(*) FROM articles a LEFT JOIN crashes c ON a.crashid = c.id WHERE EXTRACT(YEAR FROM c.date) = 2025;";
-    $stats['articles'] = $this->database->fetchSingleValue($sql);
-
-    return [
-      'stats' => $stats,
       'user' => $this->user->info(),
     ];
   }

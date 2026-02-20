@@ -36,7 +36,7 @@ class Research {
   /**
    * @throws Exception
    */
-  static function loadQuestionnaireResults(array $filter, string $group, array $articleFilter): array {
+  static function loadQuestionnaireResults(array $filter, string $group='', array $articleFilter=[]): array {
     global $database;
 
     $bechdelResults = null;
@@ -64,33 +64,28 @@ SQL;
       throw new \Exception("Questionnaire " . $filter['questionnaireId'] . " is not public");
     }
 
+    $params = [];
     $SQLWhereAnd = ' ';
     addPersonsWhereSql($SQLWhereAnd, $filter);
 
     if (! empty($filter['country']) and ($filter['country'] !== 'UN')){
-      addSQLWhere($SQLWhereAnd, 'c.countryid="' . $filter['country'] . '"');
+      $params[':country'] = $filter['country'];
+      addSQLWhere($SQLWhereAnd, 'c.countryid=:country');
     }
 
     if (! empty($filter['timeSpan'])) {
 
       $timeSpan = $filter['timeSpan'];
-      if ($timeSpan === 'from2022') {
-        addSQLWhere($SQLWhereAnd, "EXTRACT(YEAR FROM c.date) >= 2022");
-      } else {
-        $yearOffset = match ($timeSpan) {
-          '1year' => 1,
-          '2year' => 2,
-          '3year' => 3,
-          '5year' => 5,
-          '10year' => 10,
-          default => null
-        };
 
-        if ($yearOffset !== null) {
+      if (is_numeric($timeSpan) && ctype_digit((string)$timeSpan)) {
+        $params[':year'] = $timeSpan;
+        addSQLWhere($SQLWhereAnd, "EXTRACT(YEAR FROM c.date) = :year");
+      } else if (str_ends_with($timeSpan, '_year')) {
+          $yearOffset = (int)substr($timeSpan, 0, -5);
+
           $startYear = date("Y") - $yearOffset + 1;
-          addSQLWhere($SQLWhereAnd, "EXTRACT(YEAR FROM c.date) >= $startYear");
-        }
-
+          $params[':startYear'] = $startYear;
+          addSQLWhere($SQLWhereAnd, "EXTRACT(YEAR FROM c.date) >= :startYear");
       }
 
     }
@@ -120,7 +115,7 @@ GROUP BY qq.question_order, answer
 ORDER BY qq.question_order
 SQL;
 
-      $params = [':questionnaire_id' => $filter['questionnaireId']];
+      $params[':questionnaire_id'] = $filter['questionnaireId'];
       $dbQuestions = $database->fetchAllGroup($sql, $params);
 
       $questions = [];
@@ -140,6 +135,7 @@ SQL;
       if (isset($articleFilter['getArticles']) && $articleFilter['getArticles'] === true) {
         $sql = <<<SQL
 SELECT
+  a.questionid,
   a.answer,
   ar.crashid,
   c.countryid,
@@ -148,16 +144,18 @@ SELECT
   ar.id,
   ar.title,
   ar.publishedtime,
-  ar.sitename
+  ar.sitename,
+  q.text AS question
 FROM answers a
-LEFT JOIN articles ar                ON ar.id = a.articleid
-LEFT JOIN crashes c                  ON ar.crashid = c.id
-LEFT JOIN questionnaire_questions qq ON qq.question_id = a.questionid
-LEFT JOIN questions q                ON a.questionid = q.id
+LEFT JOIN articles ar ON ar.id = a.articleid
+LEFT JOIN crashes c ON ar.crashid = c.id
+LEFT JOIN questions q ON a.questionid = q.id
 WHERE a.questionid=:questionId
+$SQLWhereAnd
 ORDER BY ar.publishedtime DESC;
 SQL;
-        $params = [':questionId' => $articleFilter['questionId']];
+        $params[':questionId'] = $articleFilter['questionId'];
+        unset($params[':questionnaire_id']);
         $articles = $database->fetchAll($sql, $params);
 
         $result['articles'] = $articles;
@@ -187,14 +185,14 @@ LEFT JOIN questions q ON q.id = qq.question_id
 WHERE qq.questionnaire_id=:questionnaire_id
 ORDER BY qq.question_order
 SQL;
-      $questionnaire['questions'] = $database->fetchAll($sql, $params);
+      $questionnaire['questions'] = $database->fetchAll($sql, [':questionnaire_id' => $filter['questionnaireId']]);
 
-      function getInitBechdelResults($questions) {
+      function getInitBechdelResults($questions): array {
         $results = [
-          'yes'                    => 0,
-          'no'                     => 0,
-          'not_determinable'       => 0,
-          'total_articles'         => 0,
+          'yes' => 0,
+          'no' => 0,
+          'not_determinable' => 0,
+          'total_articles' => 0,
           'total_questions_passed' => [],
         ];
 
@@ -231,9 +229,7 @@ GROUP BY a.articleid
 ORDER BY ar.publishedtime DESC;
 SQL;
 
-      $params = [
-        ':questionnaire_id' => $filter['questionnaireId'],
-      ];
+      $params[':questionnaire_id'] = $filter['questionnaireId'];
 
       $articles = [];
       $crashes = [];

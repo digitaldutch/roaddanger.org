@@ -30,6 +30,8 @@ async function initResearch(){
     await loadQuestionnaireResults();
   } else if (url.pathname.startsWith('/research/ai_prompt_builder')) {
     await initAITest();
+  } else if (url.pathname.startsWith('/research/research_uva_2026')) {
+    await initResearch_UVA_2026();
   }
 }
 
@@ -738,6 +740,42 @@ async function initAITest() {
     aiModelChange();
 
     if (response.error) showError(response.error);
+  } finally {
+    spinnerLoad.style.display = 'none';
+  }
+}
+
+async function initResearch_UVA_2026() {
+
+  try {
+
+    const serverData = [];
+    const url = '/research/ajaxResearch.php?function=getResearch_UVA_2026';
+    const response = await fetchFromServer(url, serverData);
+
+    if (response.user) updateLoginGUI(response.user);
+
+    if (response.error) {
+      showError(response.error);
+      return;
+    }
+
+    let html = `
+<tr class="trHeader"><td colspan="2">2025</td></tr>
+
+<tr>
+  <td>Crashes 2025</td>
+  <td style="text-align: right;">${response.stats.crashes}</td>
+</tr>
+<tr>
+  <td>Articles 2025</td>
+  <td style="text-align: right;">${response.stats.articles}</td>
+</tr>`;
+
+    document.getElementById('tableStatistics').innerHTML = html;
+
+  } catch (error) {
+    showError(error.message);
   } finally {
     spinnerLoad.style.display = 'none';
   }
