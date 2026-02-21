@@ -73,15 +73,15 @@ SQL;
       addSQLWhere($SQLWhereAnd, 'c.countryid=:country');
     }
 
-    if (! empty($filter['timeSpan'])) {
+    if (! empty($filter['period'])) {
 
-      $timeSpan = $filter['timeSpan'];
+      $period = $filter['period'];
 
-      if (is_numeric($timeSpan) && ctype_digit((string)$timeSpan)) {
-        $params[':year'] = $timeSpan;
+      if (filter_var($period, FILTER_VALIDATE_INT)) {
+        $params[':year'] = $period;
         addSQLWhere($SQLWhereAnd, "EXTRACT(YEAR FROM c.date) = :year");
-      } else if (str_ends_with($timeSpan, '_year')) {
-          $yearOffset = (int)substr($timeSpan, 0, -5);
+      } else if (str_ends_with($period, '_year')) {
+          $yearOffset = (int)substr($period, 0, -5);
 
           $startYear = date("Y") - $yearOffset + 1;
           $params[':startYear'] = $startYear;

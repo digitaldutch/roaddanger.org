@@ -283,19 +283,27 @@ SQL;
    * @throws Exception
    */
   private function getResearch_UVA_2026(): array {
+    $filter = $this->input['filter'];
+
     $stats = [];
 
-    $sql = "SELECT COUNT(*) FROM crashes WHERE EXTRACT(YEAR FROM date) = 2025;";
-    $stats['crashes'] = $this->database->fetchSingleValue($sql);
+    $year = $filter['period'];
 
-    $sql = "SELECT COUNT(*) FROM articles a LEFT JOIN crashes c ON a.crashid = c.id WHERE EXTRACT(YEAR FROM c.date) = 2025;";
-    $stats['articles'] = $this->database->fetchSingleValue($sql);
+    $sqlWhere = '';
+    $params = [];
+    if (! empty($filter['period'])) {
+      $params = ['year' => $year];
+      addSQLWhere($sqlWhere, " EXTRACT(YEAR FROM c.date) = :year");
+    }
+
+    $sql = "SELECT COUNT(*) FROM crashes c $sqlWhere;";
+    $stats['crashes'] = $this->database->fetchSingleValue($sql, $params);
+
+    $sql = "SELECT COUNT(*) FROM articles a LEFT JOIN crashes c ON a.crashid = c.id $sqlWhere;";
+    $stats['articles'] = $this->database->fetchSingleValue($sql, $params);
 
     // Load questionnaire results
-    $filter = [
-      'questionnaireId' => 1,
-      'public' => ! $this->user->admin,
-    ];
+    $filter['public'] = ! $this->user->admin;
 
     require_once 'Research.php';
     $questionnaire = Research::loadQuestionnaireResults($filter);

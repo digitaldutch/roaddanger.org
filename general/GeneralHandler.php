@@ -1295,7 +1295,7 @@ SQL;
       "child" => 0,
       "noUnilateral" =>  1,
       "year" => "",
-      "timeSpan" => "from2022",
+      "period" => "from2022",
       "country" => "NL",
       "persons" => [],
       "minArticles" => 5,

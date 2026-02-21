@@ -266,7 +266,7 @@ HTML;
     </div>
     
     <div class="toolbarItem">
-      <select id="filterResearchTimeSpan" class="filterBarInput active" data-tippy-content="{$texts['Period']}">
+      <select id="filterResearchPeriod" class="filterBarInput active" data-tippy-content="{$texts['Period']}">
         <option value="">{$texts['Always']}</option>
         $optionsYears
         <option value="1_year">Last 12 months</option>
@@ -505,13 +505,46 @@ HTML;
   }
 
   public static function pageResearch_UVA_2026(): string {
-    $texts = translateArray(['Research_uva_2026']);
+    $texts = translateArray(['Research_uva_2026', 'Questionnaire', 'Period', 'Always']);
+
+    global $database;
+
+    $optionsQuestionnaires = '';
+    $questionnaires = $database->getQuestionnaires(true);
+    foreach ($questionnaires as $questionnaire) {
+      // Only Bechdel questionnaires are shown
+      if ($questionnaire['type'] == 1) {
+        $optionsQuestionnaires .= '<option value="' . $questionnaire['id'] . '">' . $questionnaire['title'] . '</option>';
+      }
+    }
+
+    $lastYears = array_reverse(getLastYears(7));
+    $optionsYears = '';
+    foreach ($lastYears as $year) $optionsYears .= "<option value='{$year}'>{$year}</option>";
 
     return <<<HTML
 <div id="pageMain">
 <div class="pageInner pageInnerScroll">    
   <div class="pageSubTitle">{$texts['Research_uva_2026']}</div>
+
+  <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex;">
+
+    <div class="toolbarItem">
+      <select id="filterQuestionnaire" class="filterBarInput active" data-tippy-content="{$texts['Questionnaire']}" oninput="loadResearch_UVA_2026();">
+        $optionsQuestionnaires
+      </select>
+    </div>  
+
+    <div class="toolbarItem">
+      <select id="filterPeriod" class="filterBarInput active" data-tippy-content="{$texts['Period']}" oninput="loadResearch_UVA_2026();">
+        $optionsYears
+      </select>
+    </div>  
+
+  </div>
   
+  <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>
+
   <div class="panelTableOverflow">
      <table id="tableStatistics" class="dataTable"></table>
     <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>

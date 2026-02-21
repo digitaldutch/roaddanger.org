@@ -31,14 +31,14 @@ async function initResearch(){
   } else if (url.pathname.startsWith('/research/ai_prompt_builder')) {
     await initAITest();
   } else if (url.pathname.startsWith('/research/research_uva_2026')) {
-    await initResearch_UVA_2026();
+    await loadResearch_UVA_2026();
   }
 }
 
 function setResearchFilterFromUrl(url) {
   const searchHealthDead = url.searchParams.get('hd');
   const searchChild = url.searchParams.get('child');
-  const searchTimeSpan = url.searchParams.get('timeSpan');
+  const searchPeriod = url.searchParams.get('period');
   const searchCountry = url.searchParams.get('country');
   const searchGroup = url.searchParams.get('group');
   const searchMinArticles = url.searchParams.get('minArticles');
@@ -47,7 +47,7 @@ function setResearchFilterFromUrl(url) {
 
   const filterResearchDead = document.getElementById('filterResearchDead');
   const filterResearchChild = document.getElementById('filterResearchChild');
-  const filterResearchTimeSpan = document.getElementById('filterResearchTimeSpan');
+  const filterResearchPeriod = document.getElementById('filterResearchPeriod');
   const filterResearchCountry = document.getElementById('filterResearchCountry');
   const filterResearchGroup = document.getElementById('filterResearchGroup');
   const filterMinArticles = document.getElementById('filterMinArticles');
@@ -55,7 +55,7 @@ function setResearchFilterFromUrl(url) {
 
   if (searchHealthDead && filterResearchDead) filterResearchDead.classList.add('menuButtonSelected');
   if (searchChild && filterResearchChild) filterResearchChild.classList.add('menuButtonSelected');
-  if (searchTimeSpan && filterResearchTimeSpan) filterResearchTimeSpan.value = searchTimeSpan;
+  if (searchPeriod && filterResearchPeriod) filterResearchPeriod.value = searchPeriod;
   if (searchCountry && filterResearchCountry) filterResearchCountry.value = searchCountry;
   if (searchGroup && filterResearchGroup) filterResearchGroup.value = searchGroup;
   if (searchMinArticles && filterMinArticles) filterMinArticles.value = searchMinArticles;
@@ -241,7 +241,7 @@ async function downloadQuestionnaireResults(articleFilter={}) {
       healthDead: document.getElementById('filterResearchDead').classList.contains('menuButtonSelected')? 1 : 0,
       child: document.getElementById('filterResearchChild').classList.contains('menuButtonSelected')? 1 : 0,
       noUnilateral: document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected')? 1 : 0,
-      timeSpan: document.getElementById('filterResearchTimeSpan').value,
+      period: document.getElementById('filterResearchPeriod').value,
       country: document.getElementById('filterResearchCountry').value,
       minArticles: parseInt(document.getElementById('filterMinArticles').value),
       persons: getPersonsFromFilter(),
@@ -255,7 +255,8 @@ async function downloadQuestionnaireResults(articleFilter={}) {
   }
 
   const url = '/research/ajaxResearch.php?function=loadQuestionnaireResults';
-  return await fetchFromServer(url, data);
+
+  return fetchFromServer(url, data);
 }
 
 async function loadQuestionnaireResults() {
@@ -745,11 +746,21 @@ async function initAITest() {
   }
 }
 
-async function initResearch_UVA_2026() {
+async function loadResearch_UVA_2026() {
+  const tableStatistics = document.getElementById('tableStatistics');
 
   try {
+    spinnerLoad.style.display = 'block';
+    tableStatistics.innerHTML = '';
 
-    const serverData = [];
+    const period = document.getElementById('filterPeriod').value;
+    const serverData = {
+      filter: {
+        questionnaireId: document.getElementById('filterQuestionnaire').value,
+        period: period,
+      }
+    };
+
     const url = '/research/ajaxResearch.php?function=getResearch_UVA_2026';
     const response = await fetchFromServer(url, serverData);
 
@@ -760,19 +771,26 @@ async function initResearch_UVA_2026() {
       return;
     }
 
+    const articlesAnswered = response.questionnaire.bechdelResults[0].total_articles;
+    const answeredPercentage = Math.round(articlesAnswered / response.stats.articles * 100).toFixed(1);
+
     let html = `
-<tr class="trHeader"><td colspan="2">2025</td></tr>
+<tr class="trHeader"><td colspan="2">${period}</td></tr>
 
 <tr>
-  <td>Crashes 2025</td>
+  <td>Crashes</td>
   <td style="text-align: right;">${response.stats.crashes}</td>
 </tr>
 <tr>
-  <td>Articles 2025</td>
+  <td>Articles</td>
   <td style="text-align: right;">${response.stats.articles}</td>
+</tr>
+<tr>
+  <td>Articles answered</td>
+  <td style="text-align: right;">${articlesAnswered} (${answeredPercentage}%)</td>
 </tr>`;
 
-    document.getElementById('tableStatistics').innerHTML = html;
+    tableStatistics.innerHTML = html;
 
   } catch (error) {
     showError(error.message);
@@ -1087,7 +1105,7 @@ function selectFilterQuestionnaireResults() {
   const dead = document.getElementById('filterResearchDead').classList.contains('menuButtonSelected');
   const child = document.getElementById('filterResearchChild').classList.contains('menuButtonSelected');
   const noUnilateral = document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected');
-  const timeSpan = document.getElementById('filterResearchTimeSpan').value;
+  const period = document.getElementById('filterResearchPeriod').value;
   const country = document.getElementById('filterResearchCountry').value;
   const group = document.getElementById('filterResearchGroup').value;
   const minArticles = document.getElementById('filterMinArticles').value;
@@ -1099,7 +1117,7 @@ function selectFilterQuestionnaireResults() {
   if (child) url.searchParams.set('child', 1); else url.searchParams.delete('child');
   if (! noUnilateral) url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
 
-  if (timeSpan) url.searchParams.set('timeSpan', timeSpan); else url.searchParams.delete('timeSpan');
+  if (period) url.searchParams.set('period', period); else url.searchParams.delete('period');
   if (country) url.searchParams.set('country', country); else url.searchParams.delete('country');
   if (group) url.searchParams.set('group', group); else url.searchParams.delete('group');
   if (minArticles > 0) url.searchParams.set('minArticles', minArticles); else url.searchParams.delete('minArticles');
