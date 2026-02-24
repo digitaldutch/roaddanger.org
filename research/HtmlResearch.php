@@ -200,7 +200,7 @@ HTML;
     global $user;
 
     $texts = translateArray(['Filter', 'Questionnaires', 'Export_data', 'results', 'Injury', 'Dead_(adjective)', 'Child',
-      'Exclude_unilateral', 'Always', 'Crash_date']);
+      'Exclude_unilateral', 'Always', 'Custom_period', 'Crash_date']);
 
     $publicOnly = ! $user->admin;
     $questionnaires = $database->getQuestionnaires($publicOnly);
@@ -229,10 +229,10 @@ HTML;
   
   <div>Questionnaire settings</div>
   <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex;">
-    <div class="toolbarItem"><select id="filterQuestionnaire" class="filterBarInput active" oninput="questionnaireFilterChange()">$questionnairesOptions</select></div>
+    <div class="toolbarItem"><select id="filterQuestionnaire" class="filterBarInput active" oninput="questionnaireResultsFilterChange()">$questionnairesOptions</select></div>
     
     <div class="toolbarItem" data-bechdel-option="true">
-      <select id="filterResearchGroup" class="filterBarInput active" onchange="selectFilterQuestionnaireResults();">
+      <select id="filterResearchGroup" class="filterBarInput active" onchange="questionnaireResultsFilterChange();">
         <option value="" selected>No groups</option>
         <option value="year">Group by year</option>
         <option value="month">Group by month</option>
@@ -242,7 +242,7 @@ HTML;
     </div>
   
     <div class="toolbarItem" data-bechdel-option="true">
-      <select id="filterMinArticles" class="filterBarInput active" onchange="selectFilterQuestionnaireResults();" data-tippy-content="Minimum amount of articles for a group to be visible">
+      <select id="filterMinArticles" class="filterBarInput active" onchange="questionnaireResultsFilterChange();" data-tippy-content="Minimum amount of articles for a group to be visible">
         <option value="0">[No minimum]</option>
         <option value="1">Min. 1 article</option>
         <option value="2">Min. 2 articles</option>
@@ -256,9 +256,9 @@ HTML;
   <div>Article filters</div>
   <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex;">
     <div class="toolbarItem">
-      <span id="filterResearchDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
-      <span id="filterResearchChild" class="menuButtonBlack bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireOption();"></span>      
-      <span id="filterResearchNoUnilateral" class="menuButtonBlack bgNoUnilateralWhite" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireResultsOption();"></span>      
+      <span id="filterResearchChild" class="menuButtonBlack bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireResultsOption();"></span>      
+      <span id="filterResearchNoUnilateral" class="menuButtonBlack bgNoUnilateralWhite" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickQuestionnaireResultsOption();"></span>      
     </div>
     
     <div class="toolbarItem">
@@ -266,7 +266,7 @@ HTML;
     </div>
     
     <div class="toolbarItem">
-      <select id="filterResearchPeriod" class="filterBarInput active" data-tippy-content="{$texts['Crash_date']}">
+      <select id="filterResearchPeriod" class="filterBarInput active" data-tippy-content="{$texts['Crash_date']}" oninput="questionnaireResultsFilterChange();">
         <option value="">{$texts['Always']}</option>
         $optionsYears
         <option value="1_year">Last 12 months</option>
@@ -274,13 +274,24 @@ HTML;
         <option value="3_year">Last 3 years</option>
         <option value="5_year">Last 5 years</option>
         <option value="10_year">Last 10 years</option>
+        <option value="custom">{$texts['Custom_period']}</option>        
       </select>
     </div>
     
+    <div id="groupPeriodCustom" style="display: none;">
+      <div class="toolbarItem">
+        <input id="searchDateFrom" class="filterItem active" type="date" data-tippy-content="Start date" oninput="questionnaireResultsFilterChange();">
+      </div>
+  
+      <div class="toolbarItem">
+        <input id="searchDateTo" class="filterItem active" type="date" data-tippy-content="End date" oninput="questionnaireResultsFilterChange();">
+      </div>    
+    </div>  
+
     $htmlSearchPersons
     
     <div class="toolbarItem">
-      <div class="button buttonMobileSmall buttonImportant" style="margin-left: 5px;" onclick="selectFilterQuestionnaireResults()">{$texts['Filter']}</div>
+      <div class="button buttonMobileSmall buttonImportant" style="margin-left: 5px;" onclick="loadQuestionnaireResults()">Load data</div>
     </div>
 
   </div>
@@ -289,11 +300,10 @@ HTML;
 
   <div id="questionnaireResults" style="display: none;">
     <h1 id="questionnaireHeader"></h1>
-    <div style="display: flex; justify-content: space-between;">
-      <div id="questionnaireInfo"></div>
-      <button class="button buttonImportant" onclick="exportQuestionnaire();">{$texts['Export_data']} (JSON)</button>
-  
-    </div>
+
+    <div id="questionnaireInfo"></div>
+    
+    <button class="button" style="margin: 5px 0;" onclick="exportQuestionnaire();">{$texts['Export_data']} (JSON)</button>
   
     <div id="questionnaireBechdelIntro" style="width: 100%; margin-bottom: 10px; display: none;">
       <p>The article’s score is determined by the number of questions answered with “Yes” in sequence. The score ends at the first “No”.</p>
@@ -549,12 +559,12 @@ HTML;
       </div>
   
       <div class="toolbarItem">
-        <input id="searchDateTo" class="filterItem active" type="date" data-tippy-content="End_date">
+        <input id="searchDateTo" class="filterItem active" type="date" data-tippy-content="End date">
       </div>    
     </div>  
 
     <div class="toolbarItem">
-      <div class="button buttonMobileSmall buttonImportant" onclick="loadResearch_UVA_2026()">Load data</div>
+      <div class="button buttonMobileSmall buttonImportant" style="margin-left: 0;" onclick="loadResearch_UVA_2026()">Load data</div>
     </div>
 
   </div>

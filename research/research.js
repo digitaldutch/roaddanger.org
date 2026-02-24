@@ -27,7 +27,7 @@ async function initResearch(){
   } else if (url.pathname.startsWith('/research/questionnaires')) {
     const idQuestionnaire = url.searchParams.get('id');
     if (idQuestionnaire) document.getElementById('filterQuestionnaire').value = idQuestionnaire;
-    await loadQuestionnaireResults();
+    // Data is loaded when the Load data is pressed
   } else if (url.pathname.startsWith('/research/ai_prompt_builder')) {
     await initAITest();
   } else if (url.pathname.startsWith('/research/research_uva_2026')) {
@@ -173,16 +173,16 @@ async function loadArticlesUnanswered() {
   }
 }
 
-function questionnaireFilterChange() {
-  const url = new URL(location.href);
+function questionnaireResultsFilterChange() {
+  updateFilterPeriodCustomGUI();
 
-  const questionnaireId = parseInt(document.getElementById('filterQuestionnaire').value);
+  document.getElementById('questionnaireResults').style.display = 'none';
+}
 
-  url.searchParams.set('id', questionnaireId);
+function changeFilterUVA2026() {
+  updateFilterPeriodCustomGUI();
 
-  window.history.replaceState(null, null, url);
-
-  loadQuestionnaireResults();
+  document.getElementById('tableStatistics').innerHTML = '';
 }
 
 function getBarSegment(widthPercentage, backgroundColor, textColor, text='', tooltip='') {
@@ -269,12 +269,40 @@ async function downloadQuestionnaireResults(articleFilter={}) {
     throw new Error('No questionnaire selected');
   }
 
+  if (data.filter.period === 'custom') {
+    data.filter.dateFrom = document.getElementById('searchDateFrom').value;
+    data.filter.dateTo = document.getElementById('searchDateTo').value;
+  }
+
   const url = '/research/ajaxResearch.php?function=loadQuestionnaireResults';
 
   return fetchFromServer(url, data);
 }
 
 async function loadQuestionnaireResults() {
+
+  const dead = document.getElementById('filterResearchDead').classList.contains('menuButtonSelected');
+  const child = document.getElementById('filterResearchChild').classList.contains('menuButtonSelected');
+  const noUnilateral = document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected');
+  const period = document.getElementById('filterResearchPeriod').value;
+  const country = document.getElementById('filterResearchCountry').value;
+  const group = document.getElementById('filterResearchGroup').value;
+  const minArticles = document.getElementById('filterMinArticles').value;
+
+  const searchPersons = getPersonsFromFilter();
+
+  const url = new URL(window.location);
+  if (dead) url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
+  if (child) url.searchParams.set('child', 1); else url.searchParams.delete('child');
+  if (! noUnilateral) url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
+
+  if (period) url.searchParams.set('period', period); else url.searchParams.delete('period');
+  if (country) url.searchParams.set('country', country); else url.searchParams.delete('country');
+  if (group) url.searchParams.set('group', group); else url.searchParams.delete('group');
+  if (minArticles > 0) url.searchParams.set('minArticles', minArticles); else url.searchParams.delete('minArticles');
+  if (searchPersons.length > 0) url.searchParams.set('persons', searchPersons.join()); else url.searchParams.delete('persons');
+
+  window.history.pushState(null, null, url.toString());
 
   const elResults = document.getElementById('questionnaireResults');
   try {
@@ -761,12 +789,6 @@ async function initAITest() {
   }
 }
 
-function changeFilterUVA2026() {
-  updateFilterPeriodCustomGUI();
-
-  document.getElementById('tableStatistics').innerHTML = '';
-}
-
 async function loadResearch_UVA_2026() {
   const tableStatistics = document.getElementById('tableStatistics');
 
@@ -1131,35 +1153,14 @@ function onDragRowQuestion(event) {
   onDragEnd(event);
 }
 
-function clickQuestionnaireOption() {
-  if (event.target.classList.contains('menuButtonBlack')) event.target.classList.toggle('menuButtonSelected');
+function clickQuestionnaireResultsOption() {
+  questionnaireResultsFilterChange();
+  clickQuestionnaireOption();
 }
 
-function selectFilterQuestionnaireResults() {
-  const dead = document.getElementById('filterResearchDead').classList.contains('menuButtonSelected');
-  const child = document.getElementById('filterResearchChild').classList.contains('menuButtonSelected');
-  const noUnilateral = document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected');
-  const period = document.getElementById('filterResearchPeriod').value;
-  const country = document.getElementById('filterResearchCountry').value;
-  const group = document.getElementById('filterResearchGroup').value;
-  const minArticles = document.getElementById('filterMinArticles').value;
-
-  const searchPersons = getPersonsFromFilter();
-
-  const url = new URL(window.location);
-  if (dead) url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
-  if (child) url.searchParams.set('child', 1); else url.searchParams.delete('child');
-  if (! noUnilateral) url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
-
-  if (period) url.searchParams.set('period', period); else url.searchParams.delete('period');
-  if (country) url.searchParams.set('country', country); else url.searchParams.delete('country');
-  if (group) url.searchParams.set('group', group); else url.searchParams.delete('group');
-  if (minArticles > 0) url.searchParams.set('minArticles', minArticles); else url.searchParams.delete('minArticles');
-  if (searchPersons.length > 0) url.searchParams.set('persons', searchPersons.join()); else url.searchParams.delete('persons');
-
-  window.history.pushState(null, null, url.toString());
-
-  loadQuestionnaireResults();
+function clickQuestionnaireOption() {
+  questionnaireResultsFilterChange();
+  if (event.target.classList.contains('menuButtonBlack')) event.target.classList.toggle('menuButtonSelected');
 }
 
 function selectFilterQuestionnaireFillIn() {
