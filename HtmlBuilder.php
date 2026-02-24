@@ -918,10 +918,10 @@ $htmlFilters
 HTML;  }
 
   public static function getSearchPeriodHtml(): string {
-    $texts = translateArray(['Always', 'Today', 'Yesterday', 'days', 'The_correspondent_week', 'Custom_period', 'Period', 'Start_date', 'End_date']);
+    $texts = translateArray(['Always', 'Today', 'Yesterday', 'days', 'The_correspondent_week', 'Custom_period', 'Crash_date', 'Start_date', 'End_date']);
 
     return <<<HTML
-<select id="searchPeriod" class="filterItem active" oninput="filter.setFilterFieldsVisibility();" data-tippy-content="{$texts['Period']}">
+<select id="searchPeriod" class="filterItem active" oninput="filter.setFilterFieldsVisibility();" data-tippy-content="{$texts['Crash_date']}">
   <option value="all" selected>{$texts['Always']}</option> 
   <option value="today">{$texts['Today']}</option> 
   <option value="yesterday">{$texts['Yesterday']}</option> 

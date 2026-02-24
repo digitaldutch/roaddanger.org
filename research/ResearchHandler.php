@@ -291,10 +291,8 @@ SQL;
 
     $sqlWhere = '';
     $params = [];
-    if (! empty($filter['period'])) {
-      $params = ['year' => $year];
-      addSQLWhere($sqlWhere, " EXTRACT(YEAR FROM c.date) = :year");
-    }
+
+    addPeriodWhereSql($sqlWhere, $params, $filter);
 
     $sql = "SELECT COUNT(*) FROM crashes c $sqlWhere;";
     $stats['crashes'] = $this->database->fetchSingleValue($sql, $params);

@@ -1,6 +1,6 @@
 <?php
-$VERSION = 693;
-$VERSION_DATE = '21 February 2026';
+$VERSION = 694;
+$VERSION_DATE = '24 February 2026';
 
 require_once 'configsecret.php';
 
@@ -9,7 +9,7 @@ require_once 'configsecret.php';
 // - Create a new file named configsecret.php and copy and fill in the settings below there.
 // - Exclude configsecret.php from checking into your source code repository.
 // - This is to:
-//    - prevent passwords from e`ntering the source code repository (e.g. git)
+//    - prevent passwords from entering the source code repository (e.g. git)
 //    - prevent local settings on your server from being overwritten.
 //
 // const DB_HOST = 'localhost';

@@ -1006,7 +1006,7 @@ SQL;
       $params[':search2'] = $filter['text'];
     }
 
-    $this->addPeriodWhereSql($SQLWhere, $params, $filter);
+    addPeriodWhereSql($SQLWhere, $params, $filter);
 
     if (! empty($filter['country'])){
       if ($filter['country'] !== 'UN') {
@@ -1098,44 +1098,6 @@ SELECT
 FROM articles ar
 JOIN users u on u.id = ar.userid
 SQL;
-  }
-
-  private function addPeriodWhereSql(&$sqlWhere, &$params, $filter): void {
-    if ((! isset($filter['period'])) || ($filter['period'] === '')) return;
-
-    switch ($filter['period']) {
-      case 'today':
-        addSQLWhere($sqlWhere, ' DATE(c.date) = CURDATE() ');
-        break;
-      case 'yesterday':
-        addSQLWhere($sqlWhere, ' DATE(c.date) = SUBDATE(CURDATE(), 1) ');
-        break;
-      case '7days':
-        addSQLWhere($sqlWhere, ' DATE(c.date) > SUBDATE(CURDATE(), 7) ');
-        break;
-      case '30days':
-        addSQLWhere($sqlWhere, ' DATE(c.date) > SUBDATE(CURDATE(), 30) ');
-        break;
-      case '365days':
-        addSQLWhere($sqlWhere, ' DATE(c.date) > SUBDATE(CURDATE(), 365) ');
-        break;
-      case 'decorrespondent':
-        addSQLWhere($sqlWhere, " DATE(c.date) >= '2019-01-14' AND DATE (c.date) <= '2019-01-20' ");
-        break;
-      case 'custom': {
-        if ($filter['dateFrom'] !== '') {
-          addSQLWhere($sqlWhere, " DATE(c.date) >= :searchDateFrom ");
-          $params[':searchDateFrom'] = date($filter['dateFrom']);
-        }
-
-        if ($filter['dateTo'] !== '') {
-          addSQLWhere($sqlWhere, " DATE(c.date) <= :searchDateTo ");
-          $params[':searchDateTo'] = date($filter['dateTo']);
-        }
-
-        break;
-      }
-    }
   }
 
   private function getStatsCrashPartners(array $filter): array{
@@ -1249,7 +1211,7 @@ SQL;
       $params[':sitename'] = "%{$filter['siteName']}%";
     }
 
-    $this->addPeriodWhereSql($SQLWhere, $params, $filter);
+    addPeriodWhereSql($SQLWhere, $params, $filter);
 
     if ($filter['child'] === 1){
       addSQLWhere($SQLWhere, " cp.child=1 ");

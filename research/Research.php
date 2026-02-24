@@ -73,22 +73,7 @@ SQL;
       addSQLWhere($SQLWhereAnd, 'c.countryid=:country');
     }
 
-    if (! empty($filter['period'])) {
-
-      $period = $filter['period'];
-
-      if (filter_var($period, FILTER_VALIDATE_INT)) {
-        $params[':year'] = $period;
-        addSQLWhere($SQLWhereAnd, "EXTRACT(YEAR FROM c.date) = :year");
-      } else if (str_ends_with($period, '_year')) {
-          $yearOffset = (int)substr($period, 0, -5);
-
-          $startYear = date("Y") - $yearOffset + 1;
-          $params[':startYear'] = $startYear;
-          addSQLWhere($SQLWhereAnd, "EXTRACT(YEAR FROM c.date) >= :startYear");
-      }
-
-    }
+    addPeriodWhereSql($SQLWhereAnd, $params, $filter);
 
     if (isset($filter['noUnilateral']) && ($filter['noUnilateral'] === 1)){
       addSQLWhere($SQLWhereAnd, " c.unilateral !=1 ");

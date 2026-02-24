@@ -31,7 +31,7 @@ async function initResearch(){
   } else if (url.pathname.startsWith('/research/ai_prompt_builder')) {
     await initAITest();
   } else if (url.pathname.startsWith('/research/research_uva_2026')) {
-    await loadResearch_UVA_2026();
+    // Data is loaded when the Load data is pressed
   }
 }
 
@@ -65,12 +65,27 @@ function setResearchFilterFromUrl(url) {
     setPersonsFilter(personsCodes);
   }
 
+  if (filterResearchPeriod) {
+    updateFilterPeriodCustomGUI();
+  }
+
   if (filterNoUnilateral) {
     if (searchNoUnilateral && (searchNoUnilateral === "0")) filterNoUnilateral.classList.add('menuButtonSelected');
     else filterNoUnilateral.classList.add('menuButtonSelected');
   }
 }
 
+function updateFilterPeriodCustomGUI() {
+  const filterPeriod = document.getElementById('filterResearchPeriod');
+  if (filterPeriod) {
+    const period = filterPeriod.value;
+
+    const groupPeriodCustom = document.getElementById('groupPeriodCustom');
+    if (groupPeriodCustom) {
+      groupPeriodCustom.style.display = period === 'custom' ? 'flex' : 'none';
+    }
+  }
+}
 
 async function loadQuestionnaires() {
 
@@ -746,6 +761,12 @@ async function initAITest() {
   }
 }
 
+function changeFilterUVA2026() {
+  updateFilterPeriodCustomGUI();
+
+  document.getElementById('tableStatistics').innerHTML = '';
+}
+
 async function loadResearch_UVA_2026() {
   const tableStatistics = document.getElementById('tableStatistics');
 
@@ -753,16 +774,31 @@ async function loadResearch_UVA_2026() {
     spinnerLoad.style.display = 'block';
     tableStatistics.innerHTML = '';
 
-    const period = document.getElementById('filterPeriod').value;
+    const period = document.getElementById('filterResearchPeriod').value;
+    const filter = {
+      questionnaireId: document.getElementById('filterQuestionnaire').value,
+      period: period,
+    }
+
+    if (filter.period === 'custom') {
+      filter.dateFrom = document.getElementById('searchDateFrom').value;
+      filter.dateTo = document.getElementById('searchDateTo').value;
+    }
+
+    // Set browser URL
+    const url = new URL(window.location);
+    if (filter.period) url.searchParams.set('period', filter.period); else url.searchParams.delete('period');
+    if (filter.dateFrom) url.searchParams.set('dateFrom', filter.dateFrom); else url.searchParams.delete('dateFrom');
+    if (filter.dateTo) url.searchParams.set('dateTo', filter.dateTo); else url.searchParams.delete('dateTo');
+    if (filter.questionnaireId) url.searchParams.set('questionnaire', filter.questionnaireId); else url.searchParams.delete('questionnaire');
+    window.history.pushState(null, null, url.toString());
+
     const serverData = {
-      filter: {
-        questionnaireId: document.getElementById('filterQuestionnaire').value,
-        period: period,
-      }
+      filter: filter,
     };
 
-    const url = '/research/ajaxResearch.php?function=getResearch_UVA_2026';
-    const response = await fetchFromServer(url, serverData);
+    const urlServer = '/research/ajaxResearch.php?function=getResearch_UVA_2026';
+    const response = await fetchFromServer(urlServer, serverData);
 
     if (response.user) updateLoginGUI(response.user);
 
@@ -775,8 +811,6 @@ async function loadResearch_UVA_2026() {
     const answeredPercentage = Math.round(articlesAnswered / response.stats.articles * 100).toFixed(1);
 
     let html = `
-<tr class="trHeader"><td colspan="2">${period}</td></tr>
-
 <tr>
   <td>Crashes</td>
   <td style="text-align: right;">${response.stats.crashes}</td>
@@ -877,7 +911,7 @@ function deleteQuestion() {
         id: selectedTableData[0].id,
       };
 
-      const url      = '/research/ajaxResearch.php?function=deleteQuestion';
+      const url = '/research/ajaxResearch.php?function=deleteQuestion';
       const response = await fetchFromServer(url, serverData);
 
       if (response.error) showError(response.error);
@@ -1036,7 +1070,7 @@ function deleteQuestionnaire() {
             id: selectedTableData[1].id,
           };
 
-          const url      = '/research/ajaxResearch.php?function=deleteQuestionnaire';
+          const url = '/research/ajaxResearch.php?function=deleteQuestionnaire';
           const response = await fetchFromServer(url, serverData);
 
           if (response.error) showError(response.error);
@@ -1067,8 +1101,8 @@ function onDragRowStart(event, id){
 
 async function saveQuestionOrder(){
   const questionIds = tableData[0].map(item => item.id);
-  const url         = '/research/ajaxResearch.php?function=saveQuestionsOrder';
-  const response    = await fetchFromServer(url, questionIds);
+  const url = '/research/ajaxResearch.php?function=saveQuestionsOrder';
+  const response = await fetchFromServer(url, questionIds);
 
   if (response.error) {
     showError(response.error);
@@ -1129,16 +1163,16 @@ function selectFilterQuestionnaireResults() {
 }
 
 function selectFilterQuestionnaireFillIn() {
-  const dead          = document.getElementById('filterResearchDead').classList.contains('menuButtonSelected');
-  const child         = document.getElementById('filterResearchChild').classList.contains('menuButtonSelected');
-  const noUnilateral  = document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected');
+  const dead = document.getElementById('filterResearchDead').classList.contains('menuButtonSelected');
+  const child = document.getElementById('filterResearchChild').classList.contains('menuButtonSelected');
+  const noUnilateral = document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected');
 
   const searchPersons = getPersonsFromFilter();
 
   const url = new URL(window.location);
-  if (dead)                     url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
-  if (child)                    url.searchParams.set('child', 1); else url.searchParams.delete('child');
-  if (! noUnilateral)           url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
+  if (dead) url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
+  if (child) url.searchParams.set('child', 1); else url.searchParams.delete('child');
+  if (! noUnilateral) url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
   if (searchPersons.length > 0) url.searchParams.set('persons', searchPersons.join()); else url.searchParams.delete('persons');
 
   window.history.pushState(null, null, url.toString());

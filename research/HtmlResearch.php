@@ -200,7 +200,7 @@ HTML;
     global $user;
 
     $texts = translateArray(['Filter', 'Questionnaires', 'Export_data', 'results', 'Injury', 'Dead_(adjective)', 'Child',
-      'Exclude_unilateral', 'Always', 'Period']);
+      'Exclude_unilateral', 'Always', 'Crash_date']);
 
     $publicOnly = ! $user->admin;
     $questionnaires = $database->getQuestionnaires($publicOnly);
@@ -266,7 +266,7 @@ HTML;
     </div>
     
     <div class="toolbarItem">
-      <select id="filterResearchPeriod" class="filterBarInput active" data-tippy-content="{$texts['Period']}">
+      <select id="filterResearchPeriod" class="filterBarInput active" data-tippy-content="{$texts['Crash_date']}">
         <option value="">{$texts['Always']}</option>
         $optionsYears
         <option value="1_year">Last 12 months</option>
@@ -505,7 +505,7 @@ HTML;
   }
 
   public static function pageResearch_UVA_2026(): string {
-    $texts = translateArray(['Research_uva_2026', 'Questionnaire', 'Period', 'Always']);
+    $texts = translateArray(['Research_uva_2026', 'Questionnaire', 'Crash_date', 'Always', 'Custom_period']);
 
     global $database;
 
@@ -530,16 +530,32 @@ HTML;
   <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex;">
 
     <div class="toolbarItem">
-      <select id="filterQuestionnaire" class="filterBarInput active" data-tippy-content="{$texts['Questionnaire']}" oninput="loadResearch_UVA_2026();">
+      <select id="filterQuestionnaire" class="filterBarInput active" data-tippy-content="Questionnaire" oninput="changeFilterUVA2026();">
         $optionsQuestionnaires
       </select>
     </div>  
 
     <div class="toolbarItem">
-      <select id="filterPeriod" class="filterBarInput active" data-tippy-content="{$texts['Period']}" oninput="loadResearch_UVA_2026();">
+      <select id="filterResearchPeriod" class="filterBarInput active" data-tippy-content="Crash date" oninput="changeFilterUVA2026();">
+        <option value="">{$texts['Always']}</option>
         $optionsYears
+        <option value="custom">{$texts['Custom_period']}</option>
       </select>
+    </div>
+      
+    <div id="groupPeriodCustom" style="display: none;">
+      <div class="toolbarItem">
+        <input id="searchDateFrom" class="filterItem active" type="date" data-tippy-content="Start date">
+      </div>
+  
+      <div class="toolbarItem">
+        <input id="searchDateTo" class="filterItem active" type="date" data-tippy-content="End_date">
+      </div>    
     </div>  
+
+    <div class="toolbarItem">
+      <div class="button buttonMobileSmall buttonImportant" onclick="loadResearch_UVA_2026()">Load data</div>
+    </div>
 
   </div>
   
