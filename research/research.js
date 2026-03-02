@@ -27,11 +27,11 @@ async function initResearch(){
   } else if (url.pathname.startsWith('/research/questionnaires')) {
     const idQuestionnaire = url.searchParams.get('id');
     if (idQuestionnaire) document.getElementById('filterQuestionnaire').value = idQuestionnaire;
-    // Data is loaded when the Load data is pressed
+    loadQuestionnaireResults();
   } else if (url.pathname.startsWith('/research/ai_prompt_builder')) {
     await initAITest();
   } else if (url.pathname.startsWith('/research/research_uva_2026')) {
-    // Data is loaded when the Load data is pressed
+    loadResearch_UVA_2026();
   }
 }
 

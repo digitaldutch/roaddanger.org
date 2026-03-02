@@ -177,17 +177,23 @@ function initExport(){
 function showMediaHumanizationGraph(stats, elementId, title='', addClickText=false) {
 
   const questionCount = stats.questionnaire.questions.length;
-  let data = [];
+  let dataQuestions = [];
+  let dataAverage = [];
   for (const serverItem of stats.bechdelResults) {
+
+    const groupYear = parseInt(serverItem.yearmonth.substring(0,4));
+    const groupMonth = parseInt(serverItem.yearmonth.substring(4, 6));
+    const itemDate = new Date(groupYear, groupMonth-1, 1);
+
+    let pointAverage = {
+      date: itemDate,
+      total: serverItem.total_articles,
+      average: serverItem.total_articles > 10? serverItem.average : null,
+    };
 
     const totalQuestions = serverItem.total_questions_passed.length - 1;
     let passed = 0;
     for (const value of serverItem.total_questions_passed) {
-
-      const groupYear = parseInt(serverItem.yearmonth.substring(0,4));
-      const groupMonth = parseInt(serverItem.yearmonth.substring(4, 6));
-      const itemDate = new Date(groupYear, groupMonth-1, 1);
-
       const dataRow = {
         date: itemDate,
         yearmonth: serverItem.yearmonth,
@@ -196,9 +202,11 @@ function showMediaHumanizationGraph(stats, elementId, title='', addClickText=fal
         amount: value,
       };
 
-      data.push(dataRow);
+      dataQuestions.push(dataRow);
       passed++;
     }
+
+    dataAverage.push(pointAverage);
   }
 
   let domain = [];
@@ -209,24 +217,34 @@ function showMediaHumanizationGraph(stats, elementId, title='', addClickText=fal
   }
 
   const passedOptions = [...Array(questionCount + 1)].map((x, i) => i);
-  const colors = d3.schemeReds[questionCount + 1].reverse();
-  const colorOrdinal = d3.scaleOrdinal(passedOptions, colors);
+  const colorsLegend = d3.schemeReds[questionCount + 1].reverse();
+  const colorOrdinal = d3.scaleOrdinal(passedOptions, colorsLegend);
+
+  // Add smoothed average to legend with the correct color
+  colorsLegend.push('#ADD8E6');
+  domain.push('Smoothed average score');
+
+  const maxAverage = questionCount;
 
   const plot = Plot.plot({
+    grid: true,
+
     color: {
       legend: true,
       domain: domain,
-      range: colors,
+      range: colorsLegend,
       type: 'categorical',
     },
+
     y: {
       percent: true,
       label: '↑  Articles (%)',
     },
-    grid: true,
+
     marks: [
       Plot.frame(),
-      Plot.areaY(data,
+
+      Plot.areaY(dataQuestions,
         Plot.stackY(
           {
             offset: "normalize",
@@ -239,7 +257,21 @@ function showMediaHumanizationGraph(stats, elementId, title='', addClickText=fal
           }
         )
       ),
-    ]
+
+      Plot.lineY(
+        dataAverage,
+        Plot.windowY(
+          { k: 12, reduce: "mean" },
+          {
+            x: "date",
+            y: d => d.average / maxAverage,
+            stroke: "#ADD8E6",
+            strokeWidth: 3,
+          }
+        )
+      ),
+    ],
+
   });
 
   const element = document.getElementById(elementId);
