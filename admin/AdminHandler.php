@@ -8,7 +8,7 @@ class AdminHandler extends AjaxHandler {
     try {
 
       if (! $this->user->admin) {
-        throw new Exception('Admins only');
+        throw new \Exception('Admins only');
       }
 
       // The stuff below is only for administrators
@@ -20,7 +20,7 @@ class AdminHandler extends AjaxHandler {
         'deleteTranslation' => $this->deleteTranslation(),
         'loadLongText' => $this->loadLongText(),
         'saveLongText' => $this->saveLongText(),
-        default => throw new Exception('Invalid command'),
+        default => throw new \Exception('Invalid command'),
       };
 
       $this->respondWithSucces($response);

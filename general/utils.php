@@ -2,8 +2,6 @@
 
 use JetBrains\PhpStorm\NoReturn;
 use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
-use PHPMailer\PHPMailer\Exception;
 
 enum PageType {
   case lastChanged;
@@ -111,18 +109,30 @@ function getRandomString($length): string {
 }
 
 /**
- * @throws Exception
+ * @throws InvalidArgumentException
+ * @throws RuntimeException|\PHPMailer\PHPMailer\Exception
  */
 function sendEmail(string $emailTo, string $subject, string $body, array $ccList=[]): bool {
+  if (! filter_var($emailTo, FILTER_VALIDATE_EMAIL)) {
+    throw new \InvalidArgumentException('Invalid recipient email address.');
+  }
+
+  if ($subject === '') {
+    throw new \InvalidArgumentException('Email subject cannot be empty.');
+  }
+
   $root = realpath($_SERVER["DOCUMENT_ROOT"]);
+  if ($root === false) {
+    throw new \RuntimeException('Could not resolve document root.');
+  }
+
   require_once $root . '/scripts/PHPMailer/PHPMailer.php';
-  require_once $root . '/scripts/PHPMailer/SMTP.php';
   require_once $root . '/scripts/PHPMailer/Exception.php';
 
   $from = 'noreply@' . WEBSITE_DOMAIN;
   $fromName = $_SERVER['SERVER_NAME'];
 
-  $mail = new PHPMailer;
+  $mail = new PHPMailer(false);
 
   $mail->isSendmail();
 
@@ -137,7 +147,9 @@ function sendEmail(string $emailTo, string $subject, string $body, array $ccList
     $mail->addCC($cc);
   }
 
-  if (! $mail->send()) throw new \Exception($mail->ErrorInfo);
+  if (! $mail->send()) {
+    throw new \RuntimeException('Mail send failed: ' . $mail->ErrorInfo);
+  }
   return true;
 }
 
@@ -152,28 +164,32 @@ function addSQLWhere(&$whereSql, $wherePart): void {
 }
 
 function addPersonsWhereSql(&$sqlWhere, $filter): void {
-  $dead = isset($filter['healthDead']) && ($filter['healthDead'] === 1);
-  $injured = isset($filter['healthInjured']) && ($filter['healthInjured'] === 1);
-  $child = isset($filter['child']) && ($filter['child'] === 1);
-  $persons = isset($filter['persons']) && (count($filter['persons']) > 0);
+  $addDeadSQL = isset($filter['healthDead']) && ($filter['healthDead'] === 1);
+  $addInjuredSQL = isset($filter['healthInjured']) && ($filter['healthInjured'] === 1);
+  $addChildSQL = isset($filter['child']) && ($filter['child'] === 1);
+  $addPersonsSQL = isset($filter['persons']) && (count($filter['persons']) > 0);
 
-  if ($dead || $injured || $child) {
+  if ($addDeadSQL || $addInjuredSQL || $addChildSQL) {
     $values = [];
-    if ($dead) $values[] = 3;
-    if ($injured) $values[] = 2;
+    if ($addDeadSQL) $values[] = 3;
+    if ($addInjuredSQL) $values[] = 2;
     $valuesText = implode(", ", $values);
 
     $wherePersons = 'c.id = crashid';
     if (! empty($valuesText)) addSQLWhere($wherePersons, "cp.health IN ($valuesText)");
 
-    if ($child) addSQLWhere($wherePersons, "cp.child = 1");
+    if ($addChildSQL) addSQLWhere($wherePersons, "cp.child = 1");
 
     $where = "EXISTS(SELECT 1 FROM crashpersons cp WHERE $wherePersons)";
 
     addSQLWhere($sqlWhere, $where);
   }
 
-  if ($persons) {
+  if ($addPersonsSQL) {
+    if (count($filter['persons']) > 4) {
+      throw new \InvalidArgumentException("Too many person transportation types selected. Maximum is 4.");
+    }
+
     foreach ($filter['persons'] as $person){
       $transportationMode = (int)$person;
       $personDead = str_contains($person, 'd');
@@ -496,7 +512,7 @@ function geocodeLocation($locationPrompt): ?array {
     $response = curl_exec($ch);
 
     if (curl_errno($ch)) {
-      throw new \Exception('cURL error: ' . curl_error($ch));
+      throw new \RuntimeException('cURL error: ' . curl_error($ch));
     }
 
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -504,7 +520,7 @@ function geocodeLocation($locationPrompt): ?array {
     curl_close($ch);
 
     if ($httpCode !== 200) {
-      throw new \Exception("Geocoder error: Received response code $httpCode");
+      throw new \RuntimeException("Geocoder error: Received response code $httpCode");
     }
 
     $data = json_decode($response, true);
@@ -517,7 +533,7 @@ function geocodeLocation($locationPrompt): ?array {
         'longitude' => $position['lng']
       ];
     } else {
-      throw new \Exception("Geocoder error: No results found for the given address: $locationPrompt");
+      throw new \RuntimeException("Geocoder error: No results found for the given address: $locationPrompt");
     }
 
   } catch (Throwable $e) {
@@ -533,7 +549,7 @@ function aiAnswerToAnswerId (string $answer): int {
   if ($answer === 'no') return 0;
   if ($answer === 'not_determinable') return 2;
 
-  throw new Exception("Invalid AI answer: $answer");
+  throw new \RuntimeException("Invalid AI answer: $answer");
 }
 
 function getLastYears($amount): array {

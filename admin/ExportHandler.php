@@ -9,7 +9,7 @@ class ExportHandler extends AjaxHandler {
         'downloadCrashesData' => $this->downloadCrashesData(),
         'downloadResearchData' => $this->downloadResearchData(),
 
-        default => throw new Exception('Invalid command'),
+        default => throw new \Exception('Invalid command'),
       };
 
       $this->respondWithSucces($response);

@@ -22,7 +22,7 @@ class ReframeHandler {
   public function __construct() {
     $this->input = json_decode(file_get_contents('php://input'), true);
 
-    if (empty($this->input['function'])) throw new Exception('No function specified');
+    if (empty($this->input['function'])) throw new \Exception('No function specified');
 
     switch ($this->input['function']) {
 
@@ -108,12 +108,12 @@ class ReframeHandler {
   private function getArticle(): array {
     try {
       $articleId = $this->input['articleId'];
-      if (!$articleId) throw new Exception('No article ID provided');
+      if (!$articleId) throw new \Exception('No article ID provided');
 
       $sql = 'SELECT title, alltext FROM articles WHERE id=:id';
       global $database;
       $article = $database->fetchObject($sql, [':id' => $articleId]);
-      if (!$article) throw new Exception('Article not found');
+      if (!$article) throw new \Exception('Article not found');
 
       return [
         'title' => $article->title,

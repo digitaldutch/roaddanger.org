@@ -80,7 +80,7 @@ HTML;
     true,
     $head . '<script src="/scripts/mark.es6.js"></script>'
   ],
-  default => throw new Exception('Unknown page type'),
+  default => throw new \Exception('Unknown page type'),
 };
 
 $html =

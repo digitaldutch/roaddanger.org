@@ -8,13 +8,13 @@ class ModeratorHandler extends AjaxHandler {
     try {
 
       if (! $this->user->isModerator()) {
-        throw new Exception('Moderators only');
+        throw new \Exception('Moderators only');
       }
 
       $response = match($command) {
         'loadTranslations' => $this->loadTranslations(),
         'saveTranslations' => $this->saveTranslations(),
-        default => throw new Exception('Invalid command'),
+        default => throw new \Exception('Invalid command'),
       };
 
       $this->respondWithSucces($response);

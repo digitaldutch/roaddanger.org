@@ -132,9 +132,9 @@ SELECT
   ar.sitename,
   q.text AS question
 FROM answers a
-LEFT JOIN articles ar ON ar.id = a.articleid
-LEFT JOIN crashes c ON ar.crashid = c.id
-LEFT JOIN questions q ON a.questionid = q.id
+  LEFT JOIN articles ar ON ar.id = a.articleid
+  LEFT JOIN crashes c ON ar.crashid = c.id
+  LEFT JOIN questions q ON a.questionid = q.id
 WHERE a.questionid=:questionId
 $SQLWhereAnd
 ORDER BY ar.publishedtime DESC;
@@ -172,7 +172,7 @@ ORDER BY qq.question_order
 SQL;
       $questionnaire['questions'] = $database->fetchAll($sql, [':questionnaire_id' => $filter['questionnaireId']]);
 
-      function getInitBechdelResults($questions): array {
+      function initBechdelResults($questions): array {
         $results = [
           'yes' => 0,
           'no' => 0,
@@ -267,7 +267,9 @@ SQL;
         }
 
         // Initialize every group to zero if the first article in the group
-        if (! isset($bechdelResultsGroup)) $bechdelResultsGroup = getInitBechdelResults($questionnaire['questions']);
+        if (! isset($bechdelResultsGroup)) {
+          $bechdelResultsGroup = initBechdelResults($questionnaire['questions']);
+        }
 
         if ($articleBechdel['result'] !== null) {
           switch ($articleBechdel['result']) {
@@ -346,8 +348,10 @@ SQL;
       if (! empty($filter['minArticles'])) {
         $filtered = [];
         foreach ($result['bechdelResults'] as $row) {
-          if ($row['total_articles'] >= $filter['minArticles']) {
-            $filtered[] = $row;
+          if (isset($row)) {
+            if ($row['total_articles'] >= $filter['minArticles']) {
+              $filtered[] = $row;
+            }
           }
         }
 

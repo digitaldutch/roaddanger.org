@@ -328,6 +328,7 @@ async function loadQuestionnaireResults() {
       let htmlTableHead = '';
       let htmlTableBody = '';
       let htmlBars = '';
+      let htmlWarning = '';
 
       // Show Bechdel settings if bechdel questionnaire
       const bechdelElements = document.querySelectorAll('[data-bechdel-option="true"]');
@@ -354,7 +355,7 @@ async function loadQuestionnaireResults() {
         if (htmlQuestions) htmlQuestions = '<table>' + htmlQuestions + '</table>';
 
         // Draw Bechdel bars
-        let htmlBar;
+        let htmlBar = '';
         if (group === 'year') {
           response.bechdelResults.sort((a, b) => b.year - a.year);
 
@@ -413,10 +414,15 @@ async function loadQuestionnaireResults() {
           }
 
         } else {
-          const textTotal = response.bechdelResults[0].total_articles.toString();
+          if (response.bechdelResults.length > 0) {
+            const textTotal = response.bechdelResults[0].total_articles.toString();
 
-          htmlBar = getBechdelBarHtml(response.bechdelResults[0], questionnaire.questions);
-          htmlBars += `<div data-tippy-content="Articles: ${textTotal}">All articles</div>` + htmlBar;
+            htmlBar = getBechdelBarHtml(response.bechdelResults[0], questionnaire.questions);
+            htmlBars += `<div data-tippy-content="Articles: ${textTotal}">All articles</div>` + htmlBar;
+          } else {
+            htmlWarning = '<div class="notice" style="width: 100%; text-align: center;">No articles found</div>';
+          }
+
         }
 
         htmlTableHead = '';
@@ -425,6 +431,7 @@ async function loadQuestionnaireResults() {
       document.getElementById('questionnaireBechdelIntro').style.display = htmlQuestions? 'block' : 'none';
       document.getElementById('questionnaireBechdelQuestions').innerHTML = htmlQuestions;
       document.getElementById('questionnaireBars').innerHTML = htmlBars;
+      document.getElementById('questionnaireWarning').innerHTML = htmlWarning;
       document.getElementById('tableQStatsHead').innerHTML = htmlTableHead;
       document.getElementById('tableQStatsBody').innerHTML = htmlTableBody;
       document.getElementById('headerStatistics').style.display = 'none';

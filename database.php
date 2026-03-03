@@ -33,8 +33,12 @@ class Database {
 
       $this->pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD, $options);
 
+      // Set max_statement_time to 30 seconds.
+      // If we don't do this, bad queries will hang on the server until manually terminated :(
+      $this->pdo->exec("SET SESSION max_statement_time = 30");
+
     } catch (Throwable $e) {
-      throw new Exception('Database error: ' . $e->getMessage());
+      throw new \Exception('Database error: ' . $e->getMessage());
     }
   }
 

@@ -311,6 +311,8 @@ HTML;
     </div>
        
     <div id="questionnaireBars" onclick="clickQuestionnaireBars()"></div>
+    
+    <div id="questionnaireWarning"></div>
   
     <div id="headerStatistics" style="display: none; width: 100%; margin-top: 10px; font-weight: bold; text-align: left;">Statistics</div>
     

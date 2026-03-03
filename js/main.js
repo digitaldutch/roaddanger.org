@@ -817,11 +817,8 @@ async function loadMapDataFromServer(){
     document.getElementById('spinnerHeader').style.display = 'inline-flex';
 
     const bounds = mapMain.getBounds();
-    const serverData  = {
-      count: 200,
-      sort: 'crashDate',
-    };
 
+    const serverData  = {};
     serverData.filter = filter.getFromGUI();
 
     // We want data from the whole world to show up

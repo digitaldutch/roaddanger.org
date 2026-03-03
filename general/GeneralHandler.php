@@ -35,7 +35,7 @@ class GeneralHandler extends AjaxHandler {
         'getArticleQuestionnairesAndText' => $this->getArticleQuestionnairesAndText(),
         'getStatistics' => $this->getStatistics(),
         'getMediaHumanizationData' => $this->getMediaHumanizationData(),
-        default => throw new Exception('Invalid command'),
+        default => throw new \Exception('Invalid command'),
       };
 
       $this->respondWithSucces($response);
@@ -125,7 +125,7 @@ SQL;
     ];
 
     if (! $this->database->execute($sql, $params, true) || ($this->database->rowCount !== 1)) {
-      throw new Exception('Wachtwoord link is verlopen of email is onbekend');
+      throw new \Exception('Wachtwoord link is verlopen of email is onbekend');
     }
 
     return [];
