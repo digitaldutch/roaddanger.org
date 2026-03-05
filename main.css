@@ -83,6 +83,10 @@ a:hover, .link:hover {
   text-decoration: underline;
 }
 
+figure {
+  margin-left: 0;
+}
+
 .pageTitle {
   font-size: 30px;
   font-weight: 500;

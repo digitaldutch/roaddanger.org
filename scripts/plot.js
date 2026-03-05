@@ -1,11 +1,11 @@
-// @observablehq/plot v0.6.14 Copyright 2020-2023 Observable, Inc.
+// @observablehq/plot v0.6.17 Copyright 2020-2025 Observable, Inc.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3@7.9.0/dist/d3.min.js')) :
     typeof define === 'function' && define.amd ? define(['exports', 'd3@7.9.0/dist/d3.min.js'], factory) :
       (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Plot = global.Plot || {}, global.d3));
 })(this, (function (exports, d3) { 'use strict';
 
-  var version = "0.6.14";
+  var version = "0.6.17";
 
   function defined(x) {
     return x != null && !Number.isNaN(x);
@@ -37,7 +37,7 @@
 
   function format(date, fallback) {
     if (!(date instanceof Date)) date = new Date(+date);
-    if (isNaN(date)) return typeof fallback === "function" ? fallback(date) : fallback;
+    if (isNaN(date)) return "string" === "function" ? fallback(date) : fallback;
     const hours = date.getUTCHours();
     const minutes = date.getUTCMinutes();
     const seconds = date.getUTCSeconds();
@@ -64,7 +64,7 @@
   const re = /^(?:[-+]\d{2})?\d{4}(?:-\d{2}(?:-\d{2})?)?(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d{3})?)?(?:Z|[-+]\d{2}:?\d{2})?)?$/;
 
   function parse(string, fallback) {
-    if (!re.test(string += "")) return typeof fallback === "function" ? fallback(string) : fallback;
+    if (!re.test(string += "")) return "undefined" === "function" ? fallback(string) : fallback;
     return new Date(string);
   }
 
@@ -256,11 +256,11 @@
     return [name, period];
   }
 
-  function maybeTimeInterval(input) {
+  function timeInterval(input) {
     return asInterval(parseTimeInterval(input), "time");
   }
 
-  function maybeUtcInterval(input) {
+  function utcInterval(input) {
     return asInterval(parseTimeInterval(input), "utc");
   }
 
@@ -282,7 +282,7 @@
     if (!tickIntervals.some(([, d]) => d === duration)) return; // nonstandard or unknown interval
     if (duration % durationDay === 0 && durationDay < duration && duration < durationMonth) return; // not generalizable
     const [i] = tickIntervals[d3.bisector(([, step]) => Math.log(step)).center(tickIntervals, Math.log(duration * n))];
-    return (interval[intervalType] === "time" ? maybeTimeInterval : maybeUtcInterval)(i);
+    return (interval[intervalType] === "time" ? timeInterval : utcInterval)(i);
   }
 
   function formatTimeInterval(name, type, anchor) {
@@ -362,6 +362,26 @@
   const TypedArray = Object.getPrototypeOf(Uint8Array);
   const objectToString = Object.prototype.toString;
 
+  function isArray(value) {
+    return value instanceof Array || value instanceof TypedArray;
+  }
+
+  function isNumberArray(value) {
+    return value instanceof TypedArray && !isBigIntArray(value);
+  }
+
+  function isNumberType(type) {
+    return type?.prototype instanceof TypedArray && !isBigIntType(type);
+  }
+
+  function isBigIntArray(value) {
+    return value instanceof BigInt64Array || value instanceof BigUint64Array;
+  }
+
+  function isBigIntType(type) {
+    return type === BigInt64Array || type === BigUint64Array;
+  }
+
 // If a reindex is attached to the data, channel values expressed as arrays will
 // be reindexed when the channels are instantiated. See exclusiveFacets.
   const reindex = Symbol("reindex");
@@ -369,7 +389,9 @@
   function valueof(data, value, type) {
     const valueType = typeof value;
     return valueType === "string"
-      ? maybeTypedMap(data, field(value), type)
+      ? isArrowTable(data)
+        ? maybeTypedArrowify(data.getChild(value), type)
+        : maybeTypedMap(data, field(value), type)
       : valueType === "function"
         ? maybeTypedMap(data, value, type)
         : valueType === "number" || value instanceof Date || valueType === "boolean"
@@ -384,25 +406,33 @@
   }
 
   function maybeTypedMap(data, f, type) {
-    return map$1(data, type?.prototype instanceof TypedArray ? floater(f) : f, type);
+    return map$1(data, isNumberType(type) ? (d, i) => coerceNumber(f(d, i)) : f, type); // allow conversion from BigInt
   }
 
   function maybeTypedArrayify(data, type) {
     return type === undefined
       ? arrayify(data) // preserve undefined type
-      : data instanceof type
-        ? data
-        : type.prototype instanceof TypedArray && !(data instanceof TypedArray)
-          ? type.from(data, coerceNumber)
-          : type.from(data);
+      : isArrowVector(data)
+        ? maybeTypedArrowify(data, type)
+        : data instanceof type
+          ? data
+          : type.from(data, isNumberType(type) && !isNumberArray(data) ? coerceNumber : undefined);
   }
 
-  function floater(f) {
-    return (d, i) => coerceNumber(f(d, i));
+  function maybeTypedArrowify(vector, type) {
+    return vector == null
+      ? vector
+      : (type === undefined || type === Array) && isArrowDateType(vector.type)
+        ? coerceDates(vectorToArray(vector))
+        : maybeTypedArrayify(vectorToArray(vector), type);
+  }
+
+  function vectorToArray(vector) {
+    return vector.nullCount ? vector.toJSON() : vector.toArray();
   }
 
   const singleton = [null]; // for data-less decoration marks, e.g. frame
-  const field = (name) => (d) => d[name];
+  const field = (name) => (d) => { const v = d[name]; return v === undefined && d.type === "Feature" ? d.properties?.[name] : v; }; // prettier-ignore
   const indexOf = {transform: range};
   const identity$1 = {transform: (d) => d};
   const one = () => 1;
@@ -423,7 +453,7 @@
 
 // If the values are specified as a typed array, no coercion is required.
   function coerceNumbers(values) {
-    return values instanceof TypedArray ? values : map$1(values, coerceNumber, Float64Array);
+    return isNumberArray(values) ? values : map$1(values, coerceNumber, Float64Array);
   }
 
 // Unlike Mark’s number, here we want to convert null and undefined to NaN since
@@ -448,7 +478,7 @@
       ? x
       : typeof x === "string"
         ? parse(x)
-        : x == null || isNaN((x = +x))
+        : x == null || isNaN((x = Number(x))) // allow conversion from BigInt
           ? undefined
           : new Date(x);
   }
@@ -483,9 +513,45 @@
     return i;
   }
 
+// Like arrayify, but also allows data to be an Apache Arrow Table.
+  function dataify(data) {
+    return isArrowTable(data) ? data : arrayify(data);
+  }
+
 // Promotes the specified data to an array as needed.
-  function arrayify(data) {
-    return data == null || data instanceof Array || data instanceof TypedArray ? data : Array.from(data);
+  function arrayify(values) {
+    if (values == null || isArray(values)) return values;
+    if (isArrowVector(values)) return maybeTypedArrowify(values);
+    if (isGeoJSON(values)) {
+      switch (values.type) {
+        case "FeatureCollection":
+          return values.features;
+        case "GeometryCollection":
+          return values.geometries;
+        default:
+          return [values];
+      }
+    }
+    return Array.from(values);
+  }
+
+// Duck typing test for GeoJSON
+  function isGeoJSON(x) {
+    switch (x?.type) {
+      case "FeatureCollection":
+      case "GeometryCollection":
+      case "Feature":
+      case "LineString":
+      case "MultiLineString":
+      case "MultiPoint":
+      case "MultiPolygon":
+      case "Point":
+      case "Polygon":
+      case "Sphere":
+        return true;
+      default:
+        return false;
+    }
   }
 
 // An optimization of type.from(values, f): if the given values are already an
@@ -570,9 +636,13 @@
     return z;
   }
 
+  function lengthof(data) {
+    return isArray(data) ? data.length : data?.numRows;
+  }
+
 // Returns a Uint32Array with elements [0, 1, 2, … data.length - 1].
   function range(data) {
-    const n = data.length;
+    const n = lengthof(data);
     const r = new Uint32Array(n);
     for (let i = 0; i < n; ++i) r[i] = i;
     return r;
@@ -580,7 +650,7 @@
 
 // Returns an array [values[index[0]], values[index[1]], …].
   function take(values, index) {
-    return map$1(index, (i) => values[i], values.constructor);
+    return isArray(values) ? map$1(index, (i) => values[i], values.constructor) : map$1(index, (i) => values.at(i));
   }
 
 // If f does not take exactly one argument, wraps it in a function that uses take.
@@ -670,25 +740,28 @@
 // range} object similar to a D3 time interval.
   function maybeInterval(interval, type) {
     if (interval == null) return;
-    if (typeof interval === "number") {
-      if (0 < interval && interval < 1 && Number.isInteger(1 / interval)) interval = -1 / interval;
-      const n = Math.abs(interval);
-      return interval < 0
-        ? {
-          floor: (d) => Math.floor(d * n) / n,
-          offset: (d) => (d * n + 1) / n, // note: no optional step for simplicity
-          range: (lo, hi) => d3.range(Math.ceil(lo * n), hi * n).map((x) => x / n)
-        }
-        : {
-          floor: (d) => Math.floor(d / n) * n,
-          offset: (d) => d + n, // note: no optional step for simplicity
-          range: (lo, hi) => d3.range(Math.ceil(lo / n), hi / n).map((x) => x * n)
-        };
-    }
-    if (typeof interval === "string") return (type === "time" ? maybeTimeInterval : maybeUtcInterval)(interval);
+    if (typeof interval === "number") return numberInterval(interval);
+    if (typeof interval === "string") return (type === "time" ? timeInterval : utcInterval)(interval);
     if (typeof interval.floor !== "function") throw new Error("invalid interval; missing floor method");
     if (typeof interval.offset !== "function") throw new Error("invalid interval; missing offset method");
     return interval;
+  }
+
+  function numberInterval(interval) {
+    interval = +interval;
+    if (0 < interval && interval < 1 && Number.isInteger(1 / interval)) interval = -1 / interval;
+    const n = Math.abs(interval);
+    return interval < 0
+      ? {
+        floor: (d) => Math.floor(d * n) / n,
+        offset: (d, s = 1) => (d * n + Math.floor(s)) / n,
+        range: (lo, hi) => d3.range(Math.ceil(lo * n), hi * n).map((x) => x / n)
+      }
+      : {
+        floor: (d) => Math.floor(d / n) * n,
+        offset: (d, s = 1) => d + n * Math.floor(s),
+        range: (lo, hi) => d3.range(Math.ceil(lo / n), hi / n).map((x) => x * n)
+      };
   }
 
 // Like maybeInterval, but requires a range method too.
@@ -896,13 +969,41 @@
     return isIterable(things) ? named(things) : things;
   }
 
-// TODO Accept other types of clips (paths, urls, x, y, other marks…)?
-// https://github.com/observablehq/plot/issues/181
   function maybeClip(clip) {
     if (clip === true) clip = "frame";
     else if (clip === false) clip = null;
-    else if (clip != null) clip = keyword(clip, "clip", ["frame", "sphere"]);
+    else if (!isGeoJSON(clip) && clip != null) {
+      clip = keyword(clip, "clip", ["frame", "sphere"]);
+      if (clip === "sphere") clip = {type: "Sphere"};
+    }
     return clip;
+  }
+
+// https://github.com/observablehq/stdlib/blob/746ca2e69135df6178e4f3a17244def35d8d6b20/src/arrow.js#L4C1-L17C1
+  function isArrowTable(value) {
+    return (
+      value &&
+      typeof value.getChild === "function" &&
+      typeof value.toArray === "function" &&
+      value.schema &&
+      Array.isArray(value.schema.fields)
+    );
+  }
+
+  function isArrowVector(value) {
+    return value && typeof value.toArray === "function" && value.type;
+  }
+
+// Apache Arrow now represents dates as numbers. We currently only support
+// implicit coercion to JavaScript Date objects when the numbers represent
+// milliseconds since Unix epoch.
+  function isArrowDateType(type) {
+    return (
+      type &&
+      (type.typeId === 8 || // date
+        type.typeId === 10) && // timestamp
+      type.unit === 1 // millisecond
+    );
   }
 
 // Positional scales have associated axes, and for ordinal data, a point or band
@@ -1056,7 +1157,7 @@
     if (t2 == null) return t1 === null ? undefined : t1;
     return function (data, facets, plotOptions) {
       ({data, facets} = t1.call(this, data, facets, plotOptions));
-      return t2.call(this, arrayify(data), facets, plotOptions);
+      return t2.call(this, dataify(data), facets, plotOptions);
     };
   }
 
@@ -1117,7 +1218,9 @@
 
   function sortData(compare) {
     return (data, facets) => {
-      const compareData = (i, j) => compare(data[i], data[j]);
+      const compareData = isArray(data)
+        ? (i, j) => compare(data[i], data[j])
+        : (i, j) => compare(data.get(i), data.get(j));
       return {data, facets: facets.map((I) => I.slice().sort(compareData))};
     };
   }
@@ -1504,7 +1607,7 @@
         ),
         second
       );
-      const top = groups.slice(-n).reverse();
+      const top = groups.slice(-5).reverse();
       if (top.length < groups.length) {
         const bottom = groups.slice(0, 1 - n);
         top[n - 1] = [`… ${bottom.length.toLocaleString("en-US")} more`, d3.sum(bottom, second)];
@@ -1565,7 +1668,7 @@
     if (typeof test !== "function") throw new Error(`invalid test function: ${test}`);
     return {
       reduceIndex(I, V, {data}) {
-        return V[I.find((i) => test(data[i], i, data))];
+        return V[I.find(isArray(data) ? (i) => test(data[i], i, data) : (i) => test(data.get(i), i, data))];
       }
     };
   }
@@ -1613,11 +1716,13 @@
         case "stroke":
         case "color":
           channel.scale = scale !== true && isEvery(value, isColor) ? null : "color";
+          channel.defaultScale = "color";
           break;
         case "fillOpacity":
         case "strokeOpacity":
         case "opacity":
           channel.scale = scale !== true && isEvery(value, isOpacity) ? null : "opacity";
+          channel.defaultScale = "opacity";
           break;
         case "symbol":
           if (scale !== true && isEvery(value, isSymbol)) {
@@ -1626,6 +1731,7 @@
           } else {
             channel.scale = "symbol";
           }
+          channel.defaultScale = "symbol";
           break;
         default:
           channel.scale = registry.has(name) ? name : null;
@@ -1746,296 +1852,6 @@
     if (!channel) return;
     while (channel.source) channel = channel.source;
     return channel.source === null ? null : channel;
-  }
-
-  function createContext(options = {}) {
-    const {document = typeof window !== "undefined" ? window.document : undefined, clip} = options;
-    return {document, clip: maybeClip(clip)};
-  }
-
-  function create(name, {document}) {
-    return d3.select(d3.creator(name).call(document.documentElement));
-  }
-
-  let warnings = 0;
-  let lastMessage;
-
-  function consumeWarnings() {
-    const w = warnings;
-    warnings = 0;
-    lastMessage = undefined;
-    return w;
-  }
-
-  function warn(message) {
-    if (message === lastMessage) return;
-    lastMessage = message;
-    console.warn(message);
-    ++warnings;
-  }
-
-  const pi = Math.PI;
-  const tau = 2 * pi;
-  const defaultAspectRatio = 0.618;
-
-  function createProjection(
-    {
-      projection,
-      inset: globalInset = 0,
-      insetTop = globalInset,
-      insetRight = globalInset,
-      insetBottom = globalInset,
-      insetLeft = globalInset
-    } = {},
-    dimensions
-  ) {
-    if (projection == null) return;
-    if (typeof projection.stream === "function") return projection; // d3 projection
-    let options;
-    let domain;
-    let clip = "frame";
-
-    // If the projection was specified as an object with additional options,
-    // extract those. The order of precedence for insetTop (and other insets) is:
-    // projection.insetTop, projection.inset, (global) insetTop, (global) inset.
-    // Any other options on this object will be passed through to the initializer.
-    if (isObject(projection)) {
-      let inset;
-      ({
-        type: projection,
-        domain,
-        inset,
-        insetTop = inset !== undefined ? inset : insetTop,
-        insetRight = inset !== undefined ? inset : insetRight,
-        insetBottom = inset !== undefined ? inset : insetBottom,
-        insetLeft = inset !== undefined ? inset : insetLeft,
-        clip = clip,
-        ...options
-      } = projection);
-      if (projection == null) return;
-    }
-
-    // For named projections, retrieve the corresponding projection initializer.
-    if (typeof projection !== "function") ({type: projection} = namedProjection(projection));
-
-    // Compute the frame dimensions and invoke the projection initializer.
-    const {width, height, marginLeft, marginRight, marginTop, marginBottom} = dimensions;
-    const dx = width - marginLeft - marginRight - insetLeft - insetRight;
-    const dy = height - marginTop - marginBottom - insetTop - insetBottom;
-    projection = projection?.({width: dx, height: dy, clip, ...options});
-
-    // The projection initializer might decide to not use a projection.
-    if (projection == null) return;
-    clip = maybePostClip(clip, marginLeft, marginTop, width - marginRight, height - marginBottom);
-
-    // Translate the origin to the top-left corner, respecting margins and insets.
-    let tx = marginLeft + insetLeft;
-    let ty = marginTop + insetTop;
-    let transform;
-
-    // If a domain is specified, fit the projection to the frame.
-    if (domain != null) {
-      const [[x0, y0], [x1, y1]] = d3.geoPath(projection).bounds(domain);
-      const k = Math.min(dx / (x1 - x0), dy / (y1 - y0));
-      if (k > 0) {
-        tx -= (k * (x0 + x1) - dx) / 2;
-        ty -= (k * (y0 + y1) - dy) / 2;
-        transform = d3.geoTransform({
-          point(x, y) {
-            this.stream.point(x * k + tx, y * k + ty);
-          }
-        });
-      } else {
-        warn(`Warning: the projection could not be fit to the specified domain; using the default scale.`);
-      }
-    }
-
-    transform ??=
-      tx === 0 && ty === 0
-        ? identity()
-        : d3.geoTransform({
-          point(x, y) {
-            this.stream.point(x + tx, y + ty);
-          }
-        });
-
-    return {stream: (s) => projection.stream(transform.stream(clip(s)))};
-  }
-
-  function namedProjection(projection) {
-    switch (`${projection}`.toLowerCase()) {
-      case "albers-usa":
-        return scaleProjection$1(d3.geoAlbersUsa, 0.7463, 0.4673);
-      case "albers":
-        return conicProjection(d3.geoAlbers, 0.7463, 0.4673);
-      case "azimuthal-equal-area":
-        return scaleProjection$1(d3.geoAzimuthalEqualArea, 4, 4);
-      case "azimuthal-equidistant":
-        return scaleProjection$1(d3.geoAzimuthalEquidistant, tau, tau);
-      case "conic-conformal":
-        return conicProjection(d3.geoConicConformal, tau, tau);
-      case "conic-equal-area":
-        return conicProjection(d3.geoConicEqualArea, 6.1702, 2.9781);
-      case "conic-equidistant":
-        return conicProjection(d3.geoConicEquidistant, 7.312, 3.6282);
-      case "equal-earth":
-        return scaleProjection$1(d3.geoEqualEarth, 5.4133, 2.6347);
-      case "equirectangular":
-        return scaleProjection$1(d3.geoEquirectangular, tau, pi);
-      case "gnomonic":
-        return scaleProjection$1(d3.geoGnomonic, 3.4641, 3.4641);
-      case "identity":
-        return {type: identity};
-      case "reflect-y":
-        return {type: reflectY};
-      case "mercator":
-        return scaleProjection$1(d3.geoMercator, tau, tau);
-      case "orthographic":
-        return scaleProjection$1(d3.geoOrthographic, 2, 2);
-      case "stereographic":
-        return scaleProjection$1(d3.geoStereographic, 2, 2);
-      case "transverse-mercator":
-        return scaleProjection$1(d3.geoTransverseMercator, tau, tau);
-      default:
-        throw new Error(`unknown projection type: ${projection}`);
-    }
-  }
-
-  function maybePostClip(clip, x1, y1, x2, y2) {
-    if (clip === false || clip == null || typeof clip === "number") return (s) => s;
-    if (clip === true) clip = "frame";
-    switch (`${clip}`.toLowerCase()) {
-      case "frame":
-        return d3.geoClipRectangle(x1, y1, x2, y2);
-      default:
-        throw new Error(`unknown projection clip type: ${clip}`);
-    }
-  }
-
-  function scaleProjection$1(createProjection, kx, ky) {
-    return {
-      type: ({width, height, rotate, precision = 0.15, clip}) => {
-        const projection = createProjection();
-        if (precision != null) projection.precision?.(precision);
-        if (rotate != null) projection.rotate?.(rotate);
-        if (typeof clip === "number") projection.clipAngle?.(clip);
-        projection.scale(Math.min(width / kx, height / ky));
-        projection.translate([width / 2, height / 2]);
-        return projection;
-      },
-      aspectRatio: ky / kx
-    };
-  }
-
-  function conicProjection(createProjection, kx, ky) {
-    const {type, aspectRatio} = scaleProjection$1(createProjection, kx, ky);
-    return {
-      type: (options) => {
-        const {parallels, domain, width, height} = options;
-        const projection = type(options);
-        if (parallels != null) {
-          projection.parallels(parallels);
-          if (domain === undefined) {
-            projection.fitSize([width, height], {type: "Sphere"});
-          }
-        }
-        return projection;
-      },
-      aspectRatio
-    };
-  }
-
-  const identity = constant({stream: (stream) => stream});
-
-  const reflectY = constant(
-    d3.geoTransform({
-      point(x, y) {
-        this.stream.point(x, -y);
-      }
-    })
-  );
-
-// Applies a point-wise projection to the given paired x and y channels.
-// Note: mutates values!
-  function project(cx, cy, values, projection) {
-    const x = values[cx];
-    const y = values[cy];
-    const n = x.length;
-    const X = (values[cx] = new Float64Array(n).fill(NaN));
-    const Y = (values[cy] = new Float64Array(n).fill(NaN));
-    let i;
-    const stream = projection.stream({
-      point(x, y) {
-        X[i] = x;
-        Y[i] = y;
-      }
-    });
-    for (i = 0; i < n; ++i) {
-      stream.point(x[i], y[i]);
-    }
-  }
-
-// Returns true if a projection was specified. This should match the logic of
-// createProjection above, and is called before we construct the projection.
-// (Though note that we ignore the edge case where the projection initializer
-// may return null.)
-  function hasProjection({projection} = {}) {
-    if (projection == null) return false;
-    if (typeof projection.stream === "function") return true;
-    if (isObject(projection)) projection = projection.type;
-    return projection != null;
-  }
-
-// When a named projection is specified, we can use its natural aspect ratio to
-// determine a good value for the projection’s height based on the desired
-// width. When we don’t have a way to know, the golden ratio is our best guess.
-// Due to a circular dependency (we need to know the height before we can
-// construct the projection), we have to test the raw projection option rather
-// than the materialized projection; therefore we must be extremely careful that
-// the logic of this function exactly matches createProjection above!
-  function projectionAspectRatio(projection) {
-    if (typeof projection?.stream === "function") return defaultAspectRatio;
-    if (isObject(projection)) projection = projection.type;
-    if (projection == null) return;
-    if (typeof projection !== "function") {
-      const {aspectRatio} = namedProjection(projection);
-      if (aspectRatio) return aspectRatio;
-    }
-    return defaultAspectRatio;
-  }
-
-// Extract the (possibly) scaled values for the x and y channels, and apply the
-// projection if any.
-  function applyPosition(channels, scales, {projection}) {
-    const {x, y} = channels;
-    let position = {};
-    if (x) position.x = x;
-    if (y) position.y = y;
-    position = valueObject(position, scales);
-    if (projection && x?.scale === "x" && y?.scale === "y") project("x", "y", position, projection);
-    if (x) position.x = coerceNumbers(position.x);
-    if (y) position.y = coerceNumbers(position.y);
-    return position;
-  }
-
-  function getGeometryChannels(channel) {
-    const X = [];
-    const Y = [];
-    const x = {scale: "x", value: X};
-    const y = {scale: "y", value: Y};
-    const sink = {
-      point(x, y) {
-        X.push(x);
-        Y.push(y);
-      },
-      lineStart() {},
-      lineEnd() {},
-      polygonStart() {},
-      polygonEnd() {},
-      sphere() {}
-    };
-    for (const object of channel.value) d3.geoStream(object, sink);
-    return [x, y];
   }
 
   const categoricalSchemes = new Map([
@@ -2297,6 +2113,7 @@
       reverse
     }
   ) {
+    domain = maybeRepeat(domain);
     interval = maybeRangeInterval(interval, type);
     if (type === "cyclical" || type === "sequential") type = "linear"; // shorthand for color schemes
     if (typeof interpolate !== "function") interpolate = maybeInterpolator(interpolate); // named interpolator
@@ -2305,8 +2122,8 @@
     // If an explicit range is specified, and it has a different length than the
     // domain, then redistribute the range using a piecewise interpolator.
     if (range !== undefined) {
-      const n = (domain = arrayify(domain)).length;
-      const m = (range = arrayify(range)).length;
+      const n = domain.length;
+      const m = (range = maybeRepeat(range)).length;
       if (n !== m) {
         if (interpolate.length === 1) throw new Error("invalid piecewise interpolator"); // e.g., turbo
         interpolate = d3.piecewise(interpolate, range);
@@ -2352,6 +2169,11 @@
     if (range !== undefined) scale.range(range);
     if (clamp) scale.clamp(clamp);
     return {type, domain, range, scale, interpolate, interval};
+  }
+
+  function maybeRepeat(values) {
+    values = arrayify(values);
+    return values.length >= 2 ? values : [values[0], values[0]];
   }
 
   function maybeNice(nice, type) {
@@ -2547,6 +2369,23 @@
 
   function interpolatePiecewise(interpolate) {
     return (i, j) => (t) => interpolate(i + t * (j - i));
+  }
+
+  let warnings = 0;
+  let lastMessage;
+
+  function consumeWarnings() {
+    const w = warnings;
+    warnings = 0;
+    lastMessage = undefined;
+    return w;
+  }
+
+  function warn(message) {
+    if (message === lastMessage) return;
+    lastMessage = message;
+    console.warn(message);
+    ++warnings;
   }
 
   function createScaleD(
@@ -2763,7 +2602,7 @@
   }
 
   function createScalePoint(key, channels, {align = 0.5, padding = 0.5, ...options}) {
-    return maybeRound(d3.scalePoint().align(align).padding(padding), channels, options, key);
+    return maybeRound$1(d3.scalePoint().align(align).padding(padding), channels, options, key);
   }
 
   function createScaleBand(
@@ -2777,7 +2616,7 @@
       ...options
     }
   ) {
-    return maybeRound(
+    return maybeRound$1(
       d3.scaleBand().align(align).paddingInner(paddingInner).paddingOuter(paddingOuter),
       channels,
       options,
@@ -2785,7 +2624,7 @@
     );
   }
 
-  function maybeRound(scale, channels, options, key) {
+  function maybeRound$1(scale, channels, options, key) {
     let {round} = options;
     if (round !== undefined) scale.round((round = !!round));
     scale = createScaleO(key, scale, channels, options);
@@ -3223,10 +3062,11 @@
     if (kind === opacity || kind === length) return "linear";
     if (kind === symbol) return "ordinal";
 
-    // If the domain or range has more than two values, assume it’s ordinal. You
-    // can still use a “piecewise” (or “polylinear”) scale, but you must set the
-    // type explicitly.
-    if ((domain || range || []).length > 2) return asOrdinalType(kind);
+    // If a domain or range is explicitly specified and doesn’t have two values,
+    // assume it’s ordinal. You can still use a “piecewise” (or “polylinear”)
+    // scale, but you must set the type explicitly.
+    const n = (domain ?? range)?.length;
+    if (n < 2 || n > 2) return asOrdinalType(kind);
 
     // Otherwise, infer the scale type from the data! Prefer the domain, if
     // present, over channels. (The domain and channels should be consistently
@@ -3372,10 +3212,526 @@
     };
   }
 
+// Returns an array of {x?, y?, i} objects representing the facet domain.
+  function createFacets(channelsByScale, options) {
+    const {fx, fy} = createScales(channelsByScale, options);
+    const fxDomain = fx?.scale.domain();
+    const fyDomain = fy?.scale.domain();
+    return fxDomain && fyDomain
+      ? d3.cross(fxDomain, fyDomain).map(([x, y], i) => ({x, y, i}))
+      : fxDomain
+        ? fxDomain.map((x, i) => ({x, i}))
+        : fyDomain
+          ? fyDomain.map((y, i) => ({y, i}))
+          : undefined;
+  }
+
+  function recreateFacets(facets, {x: X, y: Y}) {
+    X &&= facetIndex(X);
+    Y &&= facetIndex(Y);
+    return facets
+      .filter(
+        X && Y // remove any facets no longer present in the domain
+          ? (f) => X.has(f.x) && Y.has(f.y)
+          : X
+            ? (f) => X.has(f.x)
+            : (f) => Y.has(f.y)
+      )
+      .sort(
+        X && Y // reorder facets to match the new scale domains
+          ? (a, b) => X.get(a.x) - X.get(b.x) || Y.get(a.y) - Y.get(b.y)
+          : X
+            ? (a, b) => X.get(a.x) - X.get(b.x)
+            : (a, b) => Y.get(a.y) - Y.get(b.y)
+      );
+  }
+
+// Returns a (possibly nested) Map of [[key1, index1], [key2, index2], …]
+// representing the data indexes associated with each facet.
+  function facetGroups(data, {fx, fy}) {
+    const I = range(data);
+    const FX = fx?.value;
+    const FY = fy?.value;
+    return fx && fy
+      ? d3.rollup(
+        I,
+        (G) => ((G.fx = FX[G[0]]), (G.fy = FY[G[0]]), G),
+        (i) => FX[i],
+        (i) => FY[i]
+      )
+      : fx
+        ? d3.rollup(
+          I,
+          (G) => ((G.fx = FX[G[0]]), G),
+          (i) => FX[i]
+        )
+        : d3.rollup(
+          I,
+          (G) => ((G.fy = FY[G[0]]), G),
+          (i) => FY[i]
+        );
+  }
+
+  function facetTranslator(fx, fy, {marginTop, marginLeft}) {
+    const x = fx ? ({x}) => fx(x) - marginLeft : () => 0;
+    const y = fy ? ({y}) => fy(y) - marginTop : () => 0;
+    return function (d) {
+      if (this.tagName === "svg") {
+        this.setAttribute("x", x(d));
+        this.setAttribute("y", y(d));
+      } else {
+        this.setAttribute("transform", `translate(${x(d)},${y(d)})`);
+      }
+    };
+  }
+
+// Returns an index that for each facet lists all the elements present in other
+// facets in the original index. TODO Memoize to avoid repeated work?
+  function facetExclude(index) {
+    const ex = [];
+    const e = new Uint32Array(d3.sum(index, (d) => d.length));
+    for (const i of index) {
+      let n = 0;
+      for (const j of index) {
+        if (i === j) continue;
+        e.set(j, n);
+        n += j.length;
+      }
+      ex.push(e.slice(0, n));
+    }
+    return ex;
+  }
+
+  const facetAnchors = new Map([
+    ["top", facetAnchorTop],
+    ["right", facetAnchorRight],
+    ["bottom", facetAnchorBottom],
+    ["left", facetAnchorLeft],
+    ["top-left", and(facetAnchorTop, facetAnchorLeft)],
+    ["top-right", and(facetAnchorTop, facetAnchorRight)],
+    ["bottom-left", and(facetAnchorBottom, facetAnchorLeft)],
+    ["bottom-right", and(facetAnchorBottom, facetAnchorRight)],
+    ["top-empty", facetAnchorTopEmpty],
+    ["right-empty", facetAnchorRightEmpty],
+    ["bottom-empty", facetAnchorBottomEmpty],
+    ["left-empty", facetAnchorLeftEmpty],
+    ["empty", facetAnchorEmpty]
+  ]);
+
+  function maybeFacetAnchor(facetAnchor) {
+    if (facetAnchor == null) return null;
+    const anchor = facetAnchors.get(`${facetAnchor}`.toLowerCase());
+    if (anchor) return anchor;
+    throw new Error(`invalid facet anchor: ${facetAnchor}`);
+  }
+
+  const indexCache = new WeakMap();
+
+  function facetIndex(V) {
+    let I = indexCache.get(V);
+    if (!I) indexCache.set(V, (I = new d3.InternMap(map$1(V, (v, i) => [v, i]))));
+    return I;
+  }
+
+// Like V.indexOf(v), but with the same semantics as InternMap.
+  function facetIndexOf(V, v) {
+    return facetIndex(V).get(v);
+  }
+
+// Like facets.find, but with the same semantics as InternMap.
+  function facetFind(facets, x, y) {
+    x = keyof(x);
+    y = keyof(y);
+    return facets.find((f) => Object.is(keyof(f.x), x) && Object.is(keyof(f.y), y));
+  }
+
+  function facetEmpty(facets, x, y) {
+    return facetFind(facets, x, y)?.empty;
+  }
+
+  function facetAnchorTop(facets, {y: Y}, {y}) {
+    return Y ? facetIndexOf(Y, y) === 0 : true;
+  }
+
+  function facetAnchorBottom(facets, {y: Y}, {y}) {
+    return Y ? facetIndexOf(Y, y) === Y.length - 1 : true;
+  }
+
+  function facetAnchorLeft(facets, {x: X}, {x}) {
+    return X ? facetIndexOf(X, x) === 0 : true;
+  }
+
+  function facetAnchorRight(facets, {x: X}, {x}) {
+    return X ? facetIndexOf(X, x) === X.length - 1 : true;
+  }
+
+  function facetAnchorTopEmpty(facets, {y: Y}, {x, y, empty}) {
+    if (empty) return false;
+    if (!Y) return;
+    const i = facetIndexOf(Y, y);
+    if (i > 0) return facetEmpty(facets, x, Y[i - 1]);
+  }
+
+  function facetAnchorBottomEmpty(facets, {y: Y}, {x, y, empty}) {
+    if (empty) return false;
+    if (!Y) return;
+    const i = facetIndexOf(Y, y);
+    if (i < Y.length - 1) return facetEmpty(facets, x, Y[i + 1]);
+  }
+
+  function facetAnchorLeftEmpty(facets, {x: X}, {x, y, empty}) {
+    if (empty) return false;
+    if (!X) return;
+    const i = facetIndexOf(X, x);
+    if (i > 0) return facetEmpty(facets, X[i - 1], y);
+  }
+
+  function facetAnchorRightEmpty(facets, {x: X}, {x, y, empty}) {
+    if (empty) return false;
+    if (!X) return;
+    const i = facetIndexOf(X, x);
+    if (i < X.length - 1) return facetEmpty(facets, X[i + 1], y);
+  }
+
+  function facetAnchorEmpty(facets, channels, {empty}) {
+    return empty;
+  }
+
+  function and(a, b) {
+    return function () {
+      return a.apply(null, arguments) && b.apply(null, arguments);
+    };
+  }
+
+// Facet filter, by mark; for now only the "eq" filter is provided.
+  function facetFilter(facets, {channels: {fx, fy}, groups}) {
+    return fx && fy
+      ? facets.map(({x, y}) => groups.get(x)?.get(y) ?? [])
+      : fx
+        ? facets.map(({x}) => groups.get(x) ?? [])
+        : facets.map(({y}) => groups.get(y) ?? []);
+  }
+
+  const pi = Math.PI;
+  const tau = 2 * pi;
+  const defaultAspectRatio = 0.618;
+
+  function createProjection(
+    {
+      projection,
+      inset: globalInset = 0,
+      insetTop = globalInset,
+      insetRight = globalInset,
+      insetBottom = globalInset,
+      insetLeft = globalInset
+    } = {},
+    dimensions
+  ) {
+    if (projection == null) return;
+    if (typeof projection.stream === "function") return projection; // d3 projection
+    let options;
+    let domain;
+    let clip = "frame";
+
+    // If the projection was specified as an object with additional options,
+    // extract those. The order of precedence for insetTop (and other insets) is:
+    // projection.insetTop, projection.inset, (global) insetTop, (global) inset.
+    // Any other options on this object will be passed through to the initializer.
+    if (isObject(projection)) {
+      let inset;
+      ({
+        type: projection,
+        domain,
+        inset,
+        insetTop = inset !== undefined ? inset : insetTop,
+        insetRight = inset !== undefined ? inset : insetRight,
+        insetBottom = inset !== undefined ? inset : insetBottom,
+        insetLeft = inset !== undefined ? inset : insetLeft,
+        clip = clip,
+        ...options
+      } = projection);
+      if (projection == null) return;
+    }
+
+    // For named projections, retrieve the corresponding projection initializer.
+    if (typeof projection !== "function") ({type: projection} = namedProjection(projection));
+
+    // Compute the frame dimensions and invoke the projection initializer.
+    const {width, height, marginLeft, marginRight, marginTop, marginBottom} = dimensions;
+    const dx = width - marginLeft - marginRight - insetLeft - insetRight;
+    const dy = height - marginTop - marginBottom - insetTop - insetBottom;
+    projection = projection?.({width: dx, height: dy, clip, ...options});
+
+    // The projection initializer might decide to not use a projection.
+    if (projection == null) return;
+    clip = maybePostClip(clip, marginLeft, marginTop, width - marginRight, height - marginBottom);
+
+    // Translate the origin to the top-left corner, respecting margins and insets.
+    let tx = marginLeft + insetLeft;
+    let ty = marginTop + insetTop;
+    let transform;
+
+    // If a domain is specified, fit the projection to the frame.
+    if (domain != null) {
+      const [[x0, y0], [x1, y1]] = d3.geoPath(projection).bounds(domain);
+      const k = Math.min(dx / (x1 - x0), dy / (y1 - y0));
+      if (k > 0) {
+        tx -= (k * (x0 + x1) - dx) / 2;
+        ty -= (k * (y0 + y1) - dy) / 2;
+        transform = d3.geoTransform({
+          point(x, y) {
+            this.stream.point(x * k + tx, y * k + ty);
+          }
+        });
+      } else {
+        warn(`Warning: the projection could not be fit to the specified domain; using the default scale.`);
+      }
+    }
+
+    transform ??=
+      tx === 0 && ty === 0
+        ? identity()
+        : d3.geoTransform({
+          point(x, y) {
+            this.stream.point(x + tx, y + ty);
+          }
+        });
+
+    return {stream: (s) => projection.stream(transform.stream(clip(s)))};
+  }
+
+  function namedProjection(projection) {
+    switch (`${projection}`.toLowerCase()) {
+      case "albers-usa":
+        return scaleProjection(d3.geoAlbersUsa, 0.7463, 0.4673);
+      case "albers":
+        return conicProjection(d3.geoAlbers, 0.7463, 0.4673);
+      case "azimuthal-equal-area":
+        return scaleProjection(d3.geoAzimuthalEqualArea, 4, 4);
+      case "azimuthal-equidistant":
+        return scaleProjection(d3.geoAzimuthalEquidistant, tau, tau);
+      case "conic-conformal":
+        return conicProjection(d3.geoConicConformal, tau, tau);
+      case "conic-equal-area":
+        return conicProjection(d3.geoConicEqualArea, 6.1702, 2.9781);
+      case "conic-equidistant":
+        return conicProjection(d3.geoConicEquidistant, 7.312, 3.6282);
+      case "equal-earth":
+        return scaleProjection(d3.geoEqualEarth, 5.4133, 2.6347);
+      case "equirectangular":
+        return scaleProjection(d3.geoEquirectangular, tau, pi);
+      case "gnomonic":
+        return scaleProjection(d3.geoGnomonic, 3.4641, 3.4641);
+      case "identity":
+        return {type: identity};
+      case "reflect-y":
+        return {type: reflectY};
+      case "mercator":
+        return scaleProjection(d3.geoMercator, tau, tau);
+      case "orthographic":
+        return scaleProjection(d3.geoOrthographic, 2, 2);
+      case "stereographic":
+        return scaleProjection(d3.geoStereographic, 2, 2);
+      case "transverse-mercator":
+        return scaleProjection(d3.geoTransverseMercator, tau, tau);
+      default:
+        throw new Error(`unknown projection type: ${projection}`);
+    }
+  }
+
+  function maybePostClip(clip, x1, y1, x2, y2) {
+    if (clip === false || clip == null || typeof clip === "number") return (s) => s;
+    if (clip === true) clip = "frame";
+    switch (`${clip}`.toLowerCase()) {
+      case "frame":
+        return d3.geoClipRectangle(x1, y1, x2, y2);
+      default:
+        throw new Error(`unknown projection clip type: ${clip}`);
+    }
+  }
+
+  function scaleProjection(createProjection, kx, ky) {
+    return {
+      type: ({width, height, rotate, precision = 0.15, clip}) => {
+        const projection = createProjection();
+        if (precision != null) projection.precision?.(precision);
+        if (rotate != null) projection.rotate?.(rotate);
+        if (typeof clip === "number") projection.clipAngle?.(clip);
+        if (width != null) {
+          projection.scale(Math.min(width / kx, height / ky));
+          projection.translate([width / 2, height / 2]);
+        }
+        return projection;
+      },
+      aspectRatio: ky / kx
+    };
+  }
+
+  function conicProjection(createProjection, kx, ky) {
+    const {type, aspectRatio} = scaleProjection(createProjection, kx, ky);
+    return {
+      type: (options) => {
+        const {parallels, domain, width, height} = options;
+        const projection = type(options);
+        if (parallels != null) {
+          projection.parallels(parallels);
+          if (domain === undefined && width != null) {
+            projection.fitSize([width, height], {type: "Sphere"});
+          }
+        }
+        return projection;
+      },
+      aspectRatio
+    };
+  }
+
+  const identity = constant({stream: (stream) => stream});
+
+  const reflectY = constant(
+    d3.geoTransform({
+      point(x, y) {
+        this.stream.point(x, -y);
+      }
+    })
+  );
+
+// Applies a point-wise projection to the given paired x and y channels.
+// Note: mutates values!
+  function project(cx, cy, values, projection) {
+    const x = values[cx];
+    const y = values[cy];
+    const n = x.length;
+    const X = (values[cx] = new Float64Array(n).fill(NaN));
+    const Y = (values[cy] = new Float64Array(n).fill(NaN));
+    let i;
+    const stream = projection.stream({
+      point(x, y) {
+        X[i] = x;
+        Y[i] = y;
+      }
+    });
+    for (i = 0; i < n; ++i) {
+      stream.point(x[i], y[i]);
+    }
+  }
+
+// Returns true if a projection was specified. This should match the logic of
+// createProjection above, and is called before we construct the projection.
+// (Though note that we ignore the edge case where the projection initializer
+// may return null.)
+  function hasProjection({projection} = {}) {
+    if (projection == null) return false;
+    if (typeof projection.stream === "function") return true;
+    if (isObject(projection)) projection = projection.type;
+    return projection != null;
+  }
+
+// When a projection is specified, we can use its aspect ratio to determine a
+// good value for the projection’s height based on the desired width. When we
+// don’t have a way to know, the golden ratio is our best guess. Due to a
+// circular dependency (we need to know the height before we can construct the
+// projection), we have to test the raw projection option rather than the
+// materialized projection; therefore we must be extremely careful that the
+// logic of this function exactly matches createProjection above!
+  function projectionAspectRatio(projection) {
+    if (typeof projection?.stream === "function") return defaultAspectRatio;
+    if (isObject(projection)) {
+      let domain, options;
+      ({domain, type: projection, ...options} = projection);
+      if (domain != null && projection != null) {
+        const type = typeof projection === "string" ? namedProjection(projection).type : projection;
+        const [[x0, y0], [x1, y1]] = d3.geoPath(type({...options, width: 100, height: 100})).bounds(domain);
+        const r = (y1 - y0) / (x1 - x0);
+        return r && isFinite(r) ? (r < 0.2 ? 0.2 : r > 5 ? 5 : r) : defaultAspectRatio;
+      }
+    }
+    if (projection == null) return;
+    if (typeof projection !== "function") {
+      const {aspectRatio} = namedProjection(projection);
+      if (aspectRatio) return aspectRatio;
+    }
+    return defaultAspectRatio;
+  }
+
+// Extract the (possibly) scaled values for the x and y channels, and apply the
+// projection if any.
+  function applyPosition(channels, scales, {projection}) {
+    const {x, y} = channels;
+    let position = {};
+    if (x) position.x = x;
+    if (y) position.y = y;
+    position = valueObject(position, scales);
+    if (projection && x?.scale === "x" && y?.scale === "y") project("x", "y", position, projection);
+    if (x) position.x = coerceNumbers(position.x);
+    if (y) position.y = coerceNumbers(position.y);
+    return position;
+  }
+
+  function getGeometryChannels(channel) {
+    const X = [];
+    const Y = [];
+    const x = {scale: "x", value: X};
+    const y = {scale: "y", value: Y};
+    const sink = {
+      point(x, y) {
+        X.push(x);
+        Y.push(y);
+      },
+      lineStart() {},
+      lineEnd() {},
+      polygonStart() {},
+      polygonEnd() {},
+      sphere() {}
+    };
+    for (const object of channel.value) d3.geoStream(object, sink);
+    return [x, y];
+  }
+
+// If no projection is specified, default to a projection that passes points
+// through the x and y scales, if any.
+  function xyProjection({x: X, y: Y}) {
+    if (X || Y) {
+      X ??= (x) => x;
+      Y ??= (y) => y;
+      return d3.geoTransform({
+        point(x, y) {
+          this.stream.point(X(x), Y(y));
+        }
+      });
+    }
+  }
+
+  function createContext(options = {}) {
+    const {document = typeof window !== "undefined" ? window.document : undefined, clip} = options;
+    return {document, clip: maybeClip(clip)};
+  }
+
+  function create(name, {document}) {
+    return d3.select(d3.creator(name).call(document.documentElement));
+  }
+
+  const unset = Symbol("unset");
+
   function memoize1(compute) {
+    return (compute.length === 1 ? memoize1Arg : memoize1Args)(compute);
+  }
+
+  function memoize1Arg(compute) {
+    let cacheValue;
+    let cacheKey = unset;
+    return (key) => {
+      if (!Object.is(cacheKey, key)) {
+        cacheKey = key;
+        cacheValue = compute(key);
+      }
+      return cacheValue;
+    };
+  }
+
+  function memoize1Args(compute) {
     let cacheValue, cacheKeys;
     return (...keys) => {
-      if (cacheKeys?.length !== keys.length || cacheKeys.some((k, i) => k !== keys[i])) {
+      if (cacheKeys?.length !== keys.length || cacheKeys.some((k, i) => !Object.is(k, keys[i]))) {
         cacheKeys = keys;
         cacheValue = compute(...keys);
       }
@@ -3427,9 +3783,14 @@
   const offset = (typeof window !== "undefined" ? window.devicePixelRatio > 1 : typeof it === "undefined") ? 0 : 0.5; // prettier-ignore
 
   let nextClipId = 0;
+  let nextPatternId = 0;
 
   function getClipId() {
     return `plot-clip-${++nextClipId}`;
+  }
+
+  function getPatternId() {
+    return `plot-pattern-${++nextPatternId}`;
   }
 
   function styles(
@@ -3719,41 +4080,20 @@
   function applyClip(selection, mark, dimensions, context) {
     let clipUrl;
     const {clip = context.clip} = mark;
-    switch (clip) {
-      case "frame": {
-        const {width, height, marginLeft, marginRight, marginTop, marginBottom} = dimensions;
-        const id = getClipId();
-        clipUrl = `url(#${id})`;
-        selection = create("svg:g", context)
-          .call((g) =>
-            g
-              .append("svg:clipPath")
-              .attr("id", id)
-              .append("rect")
-              .attr("x", marginLeft)
-              .attr("y", marginTop)
-              .attr("width", width - marginRight - marginLeft)
-              .attr("height", height - marginTop - marginBottom)
-          )
-          .each(function () {
-            this.appendChild(selection.node());
-            selection.node = () => this; // Note: mutation!
-          });
-        break;
-      }
-      case "sphere": {
-        const {projection} = context;
-        if (!projection) throw new Error(`the "sphere" clip option requires a projection`);
-        const id = getClipId();
-        clipUrl = `url(#${id})`;
-        selection
-          .append("clipPath")
-          .attr("id", id)
-          .append("path")
-          .attr("d", d3.geoPath(projection)({type: "Sphere"}));
-        break;
-      }
+    if (clip === "frame") {
+      // Wrap the G element with another (untransformed) G element, applying the
+      // clip to the parent G element so that the clip path is not affected by
+      // the mark’s transform. To simplify the adoption of this fix, mutate the
+      // passed-in selection.node to return the parent G element.
+      selection = create("svg:g", context).each(function () {
+        this.appendChild(selection.node());
+        selection.node = () => this; // Note: mutation!
+      });
+      clipUrl = getFrameClip(context, dimensions);
+    } else if (clip) {
+      clipUrl = getGeoClip(clip, context);
     }
+
     // Here we’re careful to apply the ARIA attributes to the outer G element when
     // clipping is applied, and to apply the ARIA attributes before any other
     // attributes (for readability).
@@ -3763,9 +4103,48 @@
     applyAttr(selection, "clip-path", clipUrl);
   }
 
+  function memoizeClip(clip) {
+    const cache = new WeakMap();
+    return (context, dimensions) => {
+      let url = cache.get(context);
+      if (!url) {
+        const id = getClipId();
+        d3.select(context.ownerSVGElement).append("clipPath").attr("id", id).call(clip, context, dimensions);
+        cache.set(context, (url = `url(#${id})`));
+      }
+      return url;
+    };
+  }
+
+  const getFrameClip = memoizeClip((clipPath, context, dimensions) => {
+    const {width, height, marginLeft, marginRight, marginTop, marginBottom} = dimensions;
+    clipPath
+      .append("rect")
+      .attr("x", marginLeft)
+      .attr("y", marginTop)
+      .attr("width", width - marginRight - marginLeft)
+      .attr("height", height - marginTop - marginBottom);
+  });
+
+  const geoClipCache = new WeakMap();
+  const sphere$1 = {type: "Sphere"};
+
+  function getGeoClip(geo, context) {
+    let cache, url;
+    if (!(cache = geoClipCache.get(context))) geoClipCache.set(context, (cache = new WeakMap()));
+    if (geo.type === "Sphere") geo = sphere$1; // coalesce all spheres
+    if (!(url = cache.get(geo))) {
+      const id = getClipId();
+      d3.select(context.ownerSVGElement).append("clipPath").attr("id", id).append("path").attr("d", context.path()(geo));
+      cache.set(geo, (url = `url(#${id})`));
+    }
+    return url;
+  }
+
 // Note: may mutate selection.node!
   function applyIndirectStyles(selection, mark, dimensions, context) {
     applyClip(selection, mark, dimensions, context);
+    applyAttr(selection, "class", mark.className);
     applyAttr(selection, "fill", mark.fill);
     applyAttr(selection, "fill-opacity", mark.fillOpacity);
     applyAttr(selection, "stroke", mark.stroke);
@@ -3863,6 +4242,176 @@
     ];
   }
 
+  class Mark {
+    constructor(data, channels = {}, options = {}, defaults) {
+      const {
+        facet = "auto",
+        facetAnchor,
+        fx,
+        fy,
+        sort,
+        dx = 0,
+        dy = 0,
+        margin = 0,
+        marginTop = margin,
+        marginRight = margin,
+        marginBottom = margin,
+        marginLeft = margin,
+        className,
+        clip = defaults?.clip,
+        channels: extraChannels,
+        tip,
+        render
+      } = options;
+      this.data = data;
+      this.sort = isDomainSort(sort) ? sort : null;
+      this.initializer = initializer(options).initializer;
+      this.transform = this.initializer ? options.transform : basic(options).transform;
+      if (facet === null || facet === false) {
+        this.facet = null;
+      } else {
+        this.facet = keyword(facet === true ? "include" : facet, "facet", ["auto", "include", "exclude", "super"]);
+        this.fx = data === singleton && typeof fx === "string" ? [fx] : fx;
+        this.fy = data === singleton && typeof fy === "string" ? [fy] : fy;
+      }
+      this.facetAnchor = maybeFacetAnchor(facetAnchor);
+      channels = maybeNamed(channels);
+      if (extraChannels !== undefined) channels = {...maybeChannels(extraChannels), ...channels};
+      if (defaults !== undefined) channels = {...styles(this, options, defaults), ...channels};
+      this.channels = Object.fromEntries(
+        Object.entries(channels)
+          .map(([name, channel]) => {
+            if (isOptions(channel.value)) {
+              // apply scale and label overrides
+              const {value, label = channel.label, scale = channel.scale} = channel.value;
+              channel = {...channel, label, scale, value};
+            }
+            if (data === singleton && typeof channel.value === "string") {
+              // convert field names to singleton values for decoration marks (e.g., frame)
+              const {value} = channel;
+              channel = {...channel, value: [value]};
+            }
+            return [name, channel];
+          })
+          .filter(([name, {value, optional}]) => {
+            if (value != null) return true;
+            if (optional) return false;
+            throw new Error(`missing channel value: ${name}`);
+          })
+      );
+      this.dx = +dx;
+      this.dy = +dy;
+      this.marginTop = +marginTop;
+      this.marginRight = +marginRight;
+      this.marginBottom = +marginBottom;
+      this.marginLeft = +marginLeft;
+      this.clip = maybeClip(clip);
+      this.tip = maybeTip(tip);
+      this.className = string(className);
+      // Super-faceting currently disallow position channels; in the future, we
+      // could allow position to be specified in fx and fy in addition to (or
+      // instead of) x and y.
+      if (this.facet === "super") {
+        if (fx || fy) throw new Error(`super-faceting cannot use fx or fy`);
+        for (const name in this.channels) {
+          const {scale} = channels[name];
+          if (scale !== "x" && scale !== "y") continue;
+          throw new Error(`super-faceting cannot use x or y`);
+        }
+      }
+      if (render != null) {
+        this.render = composeRender(render, this.render);
+      }
+    }
+    initialize(facets, facetChannels, plotOptions) {
+      let data = dataify(this.data);
+      if (facets === undefined && data != null) facets = [range(data)];
+      const originalFacets = facets;
+      if (this.transform != null) (({facets, data} = this.transform(data, facets, plotOptions))), (data = dataify(data));
+      if (facets !== undefined) facets.original = originalFacets; // needed to read facetChannels
+      const channels = createChannels(this.channels, data);
+      if (this.sort != null) channelDomain(data, facets, channels, facetChannels, this.sort); // mutates facetChannels!
+      return {data, facets, channels};
+    }
+    filter(index, channels, values) {
+      for (const name in channels) {
+        const {filter = defined} = channels[name];
+        if (filter !== null) {
+          const value = values[name];
+          index = index.filter((i) => filter(value[i]));
+        }
+      }
+      return index;
+    }
+    // If there is a projection, and there are paired x and y channels associated
+    // with the x and y scale respectively (and not already in screen coordinates
+    // as with an initializer), then apply the projection, replacing the x and y
+    // values. Note that the x and y scales themselves don’t exist if there is a
+    // projection, but whether the channels are associated with scales still
+    // determines whether the projection should apply; think of the projection as
+    // a combination xy-scale.
+    project(channels, values, context) {
+      for (const cx in channels) {
+        if (channels[cx].scale === "x" && /^x|x$/.test(cx)) {
+          const cy = cx.replace(/^x|x$/, "y");
+          if (cy in channels && channels[cy].scale === "y") {
+            project(cx, cy, values, context.projection);
+          }
+        }
+      }
+    }
+    scale(channels, scales, context) {
+      const values = valueObject(channels, scales);
+      if (context.projection) this.project(channels, values, context);
+      return values;
+    }
+  }
+
+  function marks(...marks) {
+    marks.plot = Mark.prototype.plot;
+    return marks;
+  }
+
+  function composeRender(r1, r2) {
+    if (r1 == null) return r2 === null ? undefined : r2;
+    if (r2 == null) return r1 === null ? undefined : r1;
+    if (typeof r1 !== "function") throw new TypeError(`invalid render transform: ${r1}`);
+    if (typeof r2 !== "function") throw new TypeError(`invalid render transform: ${r2}`);
+    return function (i, s, v, d, c, next) {
+      return r1.call(this, i, s, v, d, c, (i, s, v, d, c) => {
+        return r2.call(this, i, s, v, d, c, next); // preserve this
+      });
+    };
+  }
+
+  function maybeChannels(channels) {
+    return Object.fromEntries(
+      Object.entries(maybeNamed(channels)).map(([name, channel]) => {
+        channel = typeof channel === "string" ? {value: channel, label: name} : maybeValue(channel); // for shorthand extra channels, use name as label
+        if (channel.filter === undefined && channel.scale == null) channel = {...channel, filter: null};
+        return [name, channel];
+      })
+    );
+  }
+
+  function maybeTip(tip) {
+    return tip === true
+      ? "xy"
+      : tip === false || tip == null
+        ? null
+        : typeof tip === "string"
+          ? keyword(tip, "tip", ["x", "y", "xy"])
+          : tip; // tip options object
+  }
+
+  function withTip(options, pointer) {
+    return options?.tip === true
+      ? {...options, tip: pointer}
+      : isObject(options?.tip) && options.tip.pointer === undefined
+        ? {...options, tip: {...options.tip, pointer}}
+        : options;
+  }
+
   function createDimensions(scales, marks, options = {}) {
     // Compute the default margins: the maximum of the marks’ margins. While not
     // always used, they may be needed to compute the default height of the plot.
@@ -3952,9 +4501,10 @@
     {projection, aspectRatio},
     {width, marginTopDefault, marginRightDefault, marginBottomDefault, marginLeftDefault}
   ) {
-    const nfy = fy ? fy.scale.domain().length : 1;
+    const nfy = fy ? fy.scale.domain().length || 1 : 1;
 
-    // If a projection is specified, use its natural aspect ratio (if known).
+    // If a projection is specified, compute an aspect ratio based on the domain,
+    // defaulting to the projection’s natural aspect ratio (if known).
     const ar = projectionAspectRatio(projection);
     if (ar) {
       const nfx = fx ? fx.scale.domain().length : 1;
@@ -3962,8 +4512,7 @@
       const lar = Math.max(0.1, Math.min(10, far)); // clamp the aspect ratio to a “reasonable” value
       return Math.round((width - marginLeftDefault - marginRightDefault) * lar + marginTopDefault + marginBottomDefault);
     }
-
-    const ny = y ? (isOrdinalScale(y) ? y.scale.domain().length : Math.max(7, 17 / nfy)) : 1;
+    const ny = y ? (isOrdinalScale(y) ? y.scale.domain().length || 1 : Math.max(7, 17 / nfy)) : 1;
 
     // If a desired aspect ratio is given, compute a default height to match.
     if (aspectRatio != null) {
@@ -4005,369 +4554,6 @@
     }
     const [min, max] = d3.extent(domain);
     return Math.abs(transform(max) - transform(min));
-  }
-
-// Returns an array of {x?, y?, i} objects representing the facet domain.
-  function createFacets(channelsByScale, options) {
-    const {fx, fy} = createScales(channelsByScale, options);
-    const fxDomain = fx?.scale.domain();
-    const fyDomain = fy?.scale.domain();
-    return fxDomain && fyDomain
-      ? d3.cross(fxDomain, fyDomain).map(([x, y], i) => ({x, y, i}))
-      : fxDomain
-        ? fxDomain.map((x, i) => ({x, i}))
-        : fyDomain
-          ? fyDomain.map((y, i) => ({y, i}))
-          : undefined;
-  }
-
-  function recreateFacets(facets, {x: X, y: Y}) {
-    X &&= facetIndex(X);
-    Y &&= facetIndex(Y);
-    return facets
-      .filter(
-        X && Y // remove any facets no longer present in the domain
-          ? (f) => X.has(f.x) && Y.has(f.y)
-          : X
-            ? (f) => X.has(f.x)
-            : (f) => Y.has(f.y)
-      )
-      .sort(
-        X && Y // reorder facets to match the new scale domains
-          ? (a, b) => X.get(a.x) - X.get(b.x) || Y.get(a.y) - Y.get(b.y)
-          : X
-            ? (a, b) => X.get(a.x) - X.get(b.x)
-            : (a, b) => Y.get(a.y) - Y.get(b.y)
-      );
-  }
-
-// Returns a (possibly nested) Map of [[key1, index1], [key2, index2], …]
-// representing the data indexes associated with each facet.
-  function facetGroups(data, {fx, fy}) {
-    const I = range(data);
-    const FX = fx?.value;
-    const FY = fy?.value;
-    return fx && fy
-      ? d3.rollup(
-        I,
-        (G) => ((G.fx = FX[G[0]]), (G.fy = FY[G[0]]), G),
-        (i) => FX[i],
-        (i) => FY[i]
-      )
-      : fx
-        ? d3.rollup(
-          I,
-          (G) => ((G.fx = FX[G[0]]), G),
-          (i) => FX[i]
-        )
-        : d3.rollup(
-          I,
-          (G) => ((G.fy = FY[G[0]]), G),
-          (i) => FY[i]
-        );
-  }
-
-  function facetTranslator(fx, fy, {marginTop, marginLeft}) {
-    return fx && fy
-      ? ({x, y}) => `translate(${fx(x) - marginLeft},${fy(y) - marginTop})`
-      : fx
-        ? ({x}) => `translate(${fx(x) - marginLeft},0)`
-        : ({y}) => `translate(0,${fy(y) - marginTop})`;
-  }
-
-// Returns an index that for each facet lists all the elements present in other
-// facets in the original index. TODO Memoize to avoid repeated work?
-  function facetExclude(index) {
-    const ex = [];
-    const e = new Uint32Array(d3.sum(index, (d) => d.length));
-    for (const i of index) {
-      let n = 0;
-      for (const j of index) {
-        if (i === j) continue;
-        e.set(j, n);
-        n += j.length;
-      }
-      ex.push(e.slice(0, n));
-    }
-    return ex;
-  }
-
-  const facetAnchors = new Map([
-    ["top", facetAnchorTop],
-    ["right", facetAnchorRight],
-    ["bottom", facetAnchorBottom],
-    ["left", facetAnchorLeft],
-    ["top-left", and(facetAnchorTop, facetAnchorLeft)],
-    ["top-right", and(facetAnchorTop, facetAnchorRight)],
-    ["bottom-left", and(facetAnchorBottom, facetAnchorLeft)],
-    ["bottom-right", and(facetAnchorBottom, facetAnchorRight)],
-    ["top-empty", facetAnchorTopEmpty],
-    ["right-empty", facetAnchorRightEmpty],
-    ["bottom-empty", facetAnchorBottomEmpty],
-    ["left-empty", facetAnchorLeftEmpty],
-    ["empty", facetAnchorEmpty]
-  ]);
-
-  function maybeFacetAnchor(facetAnchor) {
-    if (facetAnchor == null) return null;
-    const anchor = facetAnchors.get(`${facetAnchor}`.toLowerCase());
-    if (anchor) return anchor;
-    throw new Error(`invalid facet anchor: ${facetAnchor}`);
-  }
-
-  const indexCache = new WeakMap();
-
-  function facetIndex(V) {
-    let I = indexCache.get(V);
-    if (!I) indexCache.set(V, (I = new d3.InternMap(map$1(V, (v, i) => [v, i]))));
-    return I;
-  }
-
-// Like V.indexOf(v), but with the same semantics as InternMap.
-  function facetIndexOf(V, v) {
-    return facetIndex(V).get(v);
-  }
-
-// Like facets.find, but with the same semantics as InternMap.
-  function facetFind(facets, x, y) {
-    x = keyof(x);
-    y = keyof(y);
-    return facets.find((f) => Object.is(keyof(f.x), x) && Object.is(keyof(f.y), y));
-  }
-
-  function facetEmpty(facets, x, y) {
-    return facetFind(facets, x, y)?.empty;
-  }
-
-  function facetAnchorTop(facets, {y: Y}, {y}) {
-    return Y ? facetIndexOf(Y, y) === 0 : true;
-  }
-
-  function facetAnchorBottom(facets, {y: Y}, {y}) {
-    return Y ? facetIndexOf(Y, y) === Y.length - 1 : true;
-  }
-
-  function facetAnchorLeft(facets, {x: X}, {x}) {
-    return X ? facetIndexOf(X, x) === 0 : true;
-  }
-
-  function facetAnchorRight(facets, {x: X}, {x}) {
-    return X ? facetIndexOf(X, x) === X.length - 1 : true;
-  }
-
-  function facetAnchorTopEmpty(facets, {y: Y}, {x, y, empty}) {
-    if (empty) return false;
-    if (!Y) return;
-    const i = facetIndexOf(Y, y);
-    if (i > 0) return facetEmpty(facets, x, Y[i - 1]);
-  }
-
-  function facetAnchorBottomEmpty(facets, {y: Y}, {x, y, empty}) {
-    if (empty) return false;
-    if (!Y) return;
-    const i = facetIndexOf(Y, y);
-    if (i < Y.length - 1) return facetEmpty(facets, x, Y[i + 1]);
-  }
-
-  function facetAnchorLeftEmpty(facets, {x: X}, {x, y, empty}) {
-    if (empty) return false;
-    if (!X) return;
-    const i = facetIndexOf(X, x);
-    if (i > 0) return facetEmpty(facets, X[i - 1], y);
-  }
-
-  function facetAnchorRightEmpty(facets, {x: X}, {x, y, empty}) {
-    if (empty) return false;
-    if (!X) return;
-    const i = facetIndexOf(X, x);
-    if (i < X.length - 1) return facetEmpty(facets, X[i + 1], y);
-  }
-
-  function facetAnchorEmpty(facets, channels, {empty}) {
-    return empty;
-  }
-
-  function and(a, b) {
-    return function () {
-      return a.apply(null, arguments) && b.apply(null, arguments);
-    };
-  }
-
-// Facet filter, by mark; for now only the "eq" filter is provided.
-  function facetFilter(facets, {channels: {fx, fy}, groups}) {
-    return fx && fy
-      ? facets.map(({x, y}) => groups.get(x)?.get(y) ?? [])
-      : fx
-        ? facets.map(({x}) => groups.get(x) ?? [])
-        : facets.map(({y}) => groups.get(y) ?? []);
-  }
-
-  class Mark {
-    constructor(data, channels = {}, options = {}, defaults) {
-      const {
-        facet = "auto",
-        facetAnchor,
-        fx,
-        fy,
-        sort,
-        dx = 0,
-        dy = 0,
-        margin = 0,
-        marginTop = margin,
-        marginRight = margin,
-        marginBottom = margin,
-        marginLeft = margin,
-        clip = defaults?.clip,
-        channels: extraChannels,
-        tip,
-        render
-      } = options;
-      this.data = data;
-      this.sort = isDomainSort(sort) ? sort : null;
-      this.initializer = initializer(options).initializer;
-      this.transform = this.initializer ? options.transform : basic(options).transform;
-      if (facet === null || facet === false) {
-        this.facet = null;
-      } else {
-        this.facet = keyword(facet === true ? "include" : facet, "facet", ["auto", "include", "exclude", "super"]);
-        this.fx = data === singleton && typeof fx === "string" ? [fx] : fx;
-        this.fy = data === singleton && typeof fy === "string" ? [fy] : fy;
-      }
-      this.facetAnchor = maybeFacetAnchor(facetAnchor);
-      channels = maybeNamed(channels);
-      if (extraChannels !== undefined) channels = {...maybeChannels(extraChannels), ...channels};
-      if (defaults !== undefined) channels = {...styles(this, options, defaults), ...channels};
-      this.channels = Object.fromEntries(
-        Object.entries(channels)
-          .map(([name, channel]) => {
-            if (isOptions(channel.value)) {
-              // apply scale and label overrides
-              const {value, label = channel.label, scale = channel.scale} = channel.value;
-              channel = {...channel, label, scale, value};
-            }
-            if (data === singleton && typeof channel.value === "string") {
-              // convert field names to singleton values for decoration marks (e.g., frame)
-              const {value} = channel;
-              channel = {...channel, value: [value]};
-            }
-            return [name, channel];
-          })
-          .filter(([name, {value, optional}]) => {
-            if (value != null) return true;
-            if (optional) return false;
-            throw new Error(`missing channel value: ${name}`);
-          })
-      );
-      this.dx = +dx;
-      this.dy = +dy;
-      this.marginTop = +marginTop;
-      this.marginRight = +marginRight;
-      this.marginBottom = +marginBottom;
-      this.marginLeft = +marginLeft;
-      this.clip = maybeClip(clip);
-      this.tip = maybeTip(tip);
-      // Super-faceting currently disallow position channels; in the future, we
-      // could allow position to be specified in fx and fy in addition to (or
-      // instead of) x and y.
-      if (this.facet === "super") {
-        if (fx || fy) throw new Error(`super-faceting cannot use fx or fy`);
-        for (const name in this.channels) {
-          const {scale} = channels[name];
-          if (scale !== "x" && scale !== "y") continue;
-          throw new Error(`super-faceting cannot use x or y`);
-        }
-      }
-      if (render != null) {
-        this.render = composeRender(render, this.render);
-      }
-    }
-    initialize(facets, facetChannels, plotOptions) {
-      let data = arrayify(this.data);
-      if (facets === undefined && data != null) facets = [range(data)];
-      const originalFacets = facets;
-      if (this.transform != null) (({facets, data} = this.transform(data, facets, plotOptions))), (data = arrayify(data));
-      if (facets !== undefined) facets.original = originalFacets; // needed to read facetChannels
-      const channels = createChannels(this.channels, data);
-      if (this.sort != null) channelDomain(data, facets, channels, facetChannels, this.sort); // mutates facetChannels!
-      return {data, facets, channels};
-    }
-    filter(index, channels, values) {
-      for (const name in channels) {
-        const {filter = defined} = channels[name];
-        if (filter !== null) {
-          const value = values[name];
-          index = index.filter((i) => filter(value[i]));
-        }
-      }
-      return index;
-    }
-    // If there is a projection, and there are paired x and y channels associated
-    // with the x and y scale respectively (and not already in screen coordinates
-    // as with an initializer), then apply the projection, replacing the x and y
-    // values. Note that the x and y scales themselves don’t exist if there is a
-    // projection, but whether the channels are associated with scales still
-    // determines whether the projection should apply; think of the projection as
-    // a combination xy-scale.
-    project(channels, values, context) {
-      for (const cx in channels) {
-        if (channels[cx].scale === "x" && /^x|x$/.test(cx)) {
-          const cy = cx.replace(/^x|x$/, "y");
-          if (cy in channels && channels[cy].scale === "y") {
-            project(cx, cy, values, context.projection);
-          }
-        }
-      }
-    }
-    scale(channels, scales, context) {
-      const values = valueObject(channels, scales);
-      if (context.projection) this.project(channels, values, context);
-      return values;
-    }
-  }
-
-  function marks(...marks) {
-    marks.plot = Mark.prototype.plot; // Note: depends on side-effect in plot!
-    return marks;
-  }
-
-  function composeRender(r1, r2) {
-    if (r1 == null) return r2 === null ? undefined : r2;
-    if (r2 == null) return r1 === null ? undefined : r1;
-    if (typeof r1 !== "function") throw new TypeError(`invalid render transform: ${r1}`);
-    if (typeof r2 !== "function") throw new TypeError(`invalid render transform: ${r2}`);
-    return function (i, s, v, d, c, next) {
-      return r1.call(this, i, s, v, d, c, (i, s, v, d, c) => {
-        return r2.call(this, i, s, v, d, c, next); // preserve this
-      });
-    };
-  }
-
-  function maybeChannels(channels) {
-    return Object.fromEntries(
-      Object.entries(maybeNamed(channels)).map(([name, channel]) => {
-        channel = typeof channel === "string" ? {value: channel, label: name} : maybeValue(channel); // for shorthand extra channels, use name as label
-        if (channel.filter === undefined && channel.scale == null) channel = {...channel, filter: null};
-        return [name, channel];
-      })
-    );
-  }
-
-  function maybeTip(tip) {
-    return tip === true
-      ? "xy"
-      : tip === false || tip == null
-        ? null
-        : typeof tip === "string"
-          ? keyword(tip, "tip", ["x", "y", "xy"])
-          : tip; // tip options object
-  }
-
-  function withTip(options, pointer) {
-    return options?.tip === true
-      ? {...options, tip: pointer}
-      : isObject(options?.tip) && options.tip.pointer === undefined
-        ? {...options, tip: {...options.tip, pointer}}
-        : options;
   }
 
   const states = new WeakMap();
@@ -4494,7 +4680,11 @@
 
           // Dispatch the value. When simultaneously exiting this facet and
           // entering a new one, prioritize the entering facet.
-          if (!(i == null && facetState?.size > 1)) context.dispatchValue(i == null ? null : data[i]);
+          if (!(i == null && facetState?.size > 1)) {
+            const value = i == null ? null : isArray(data) ? data[i] : data.get(i);
+            context.dispatchValue(value);
+          }
+
           return r;
         }
 
@@ -4857,18 +5047,56 @@
   let nextMarkerId = 0;
 
   function applyMarkers(path, mark, {stroke: S}, context) {
-    return applyMarkersColor(path, mark, S && ((i) => S[i]), context);
+    return applyMarkersColor(path, mark, S && ((i) => S[i]), null, context);
   }
 
-  function applyGroupedMarkers(path, mark, {stroke: S}, context) {
-    return applyMarkersColor(path, mark, S && (([i]) => S[i]), context);
+  function applyGroupedMarkers(path, mark, {stroke: S, z: Z}, context) {
+    return applyMarkersColor(path, mark, S && (([i]) => S[i]), Z, context);
   }
 
-  function applyMarkersColor(path, {markerStart, markerMid, markerEnd, stroke}, strokeof = () => stroke, context) {
+  const START = 1;
+  const END = 2;
+
+  /**
+   * When rendering lines or areas with variable aesthetics, a single series
+   * produces multiple path elements. The first path element is a START segment;
+   * the last path element is an END segment. When there is only a single path
+   * element, it is both a START and an END segment.
+   */
+  function getGroupedOrientation(path, Z) {
+    const O = new Uint8Array(Z.length);
+    const D = path.data().filter((I) => I.length > 1);
+    const n = D.length;
+
+    // Forward pass to find start segments.
+    for (let i = 0, z = unset; i < n; ++i) {
+      const I = D[i];
+      if (I.length > 1) {
+        const i = I[0];
+        if (z !== (z = keyof(Z[i]))) O[i] |= START;
+      }
+    }
+
+    // Backwards pass to find end segments.
+    for (let i = n - 1, z = unset; i >= 0; --i) {
+      const I = D[i];
+      if (I.length > 1) {
+        const i = I[0];
+        if (z !== (z = keyof(Z[i]))) O[i] |= END;
+      }
+    }
+
+    return ([i]) => O[i];
+  }
+
+  function applyMarkersColor(path, {markerStart, markerMid, markerEnd, stroke}, strokeof = () => stroke, Z, context) {
+    if (!markerStart && !markerMid && !markerEnd) return;
     const iriByMarkerColor = new Map();
+    const orient = Z && getGroupedOrientation(path, Z);
 
-    function applyMarker(marker) {
+    function applyMarker(name, marker, filter) {
       return function (i) {
+        if (filter && !filter(i)) return;
         const color = strokeof(i);
         let iriByColor = iriByMarkerColor.get(marker);
         if (!iriByColor) iriByMarkerColor.set(marker, (iriByColor = new Map()));
@@ -4879,13 +5107,14 @@
           node.setAttribute("id", id);
           iriByColor.set(color, (iri = `url(#${id})`));
         }
-        return iri;
+        this.setAttribute(name, iri);
       };
     }
 
-    if (markerStart) path.attr("marker-start", applyMarker(markerStart));
-    if (markerMid) path.attr("marker-mid", applyMarker(markerMid));
-    if (markerEnd) path.attr("marker-end", applyMarker(markerEnd));
+    if (markerStart) path.each(applyMarker("marker-start", markerStart, orient && ((i) => orient(i) & START)));
+    if (markerMid && orient) path.each(applyMarker("marker-start", markerMid, (i) => !(orient(i) & START)));
+    if (markerMid) path.each(applyMarker("marker-mid", markerMid));
+    if (markerEnd) path.each(applyMarker("marker-end", markerEnd, orient && ((i) => orient(i) & END)));
   }
 
   function maybeInsetX({inset, insetLeft, insetRight, ...options} = {}) {
@@ -4991,7 +5220,7 @@
     return maybeIntervalMidK("y", maybeInsetY, options);
   }
 
-  const defaults$l = {
+  const defaults$k = {
     ariaLabel: "rule",
     fill: null,
     stroke: "currentColor"
@@ -5008,7 +5237,7 @@
           y2: {value: y2, scale: "y", optional: true}
         },
         withTip(options, "x"),
-        defaults$l
+        defaults$k
       );
       this.insetTop = number$1(insetTop);
       this.insetBottom = number$1(insetBottom);
@@ -5058,7 +5287,7 @@
           x2: {value: x2, scale: "x", optional: true}
         },
         withTip(options, "y"),
-        defaults$l
+        defaults$k
       );
       this.insetRight = number$1(insetRight);
       this.insetLeft = number$1(insetLeft);
@@ -5151,7 +5380,7 @@
     };
   }
 
-  const defaults$k = {
+  const defaults$j = {
     ariaLabel: "text",
     strokeLinejoin: "round",
     strokeWidth: 3,
@@ -5192,7 +5421,7 @@
           text: {value: text, filter: nonempty, optional: true}
         },
         options,
-        defaults$k
+        defaults$j
       );
       this.rotate = crotate;
       this.textAnchor = impliedString(textAnchor, "middle");
@@ -5655,7 +5884,7 @@
     return isAscii(text, i) ? false : ((rePictographic.lastIndex = i), rePictographic.test(text));
   }
 
-  const defaults$j = {
+  const defaults$i = {
     ariaLabel: "vector",
     fill: "none",
     stroke: "currentColor",
@@ -5721,7 +5950,7 @@
           rotate: {value: vr, optional: true}
         },
         options,
-        defaults$j
+        defaults$i
       );
       this.r = +r;
       this.length = cl;
@@ -5800,7 +6029,7 @@
   function spike(data, options = {}) {
     const {
       shape = shapeSpike,
-      stroke = defaults$j.stroke,
+      stroke = defaults$i.stroke,
       strokeWidth = 1,
       fill = stroke,
       fillOpacity = 0.3,
@@ -5885,6 +6114,7 @@
       labelAnchor,
       labelArrow,
       labelOffset,
+      ariaLabel = `${k}-axis`,
       ...options
     }
   ) {
@@ -5903,6 +6133,7 @@
           tickPadding,
           tickRotate,
           x,
+          ariaLabel,
           ...options
         })
         : null,
@@ -5922,6 +6153,7 @@
           marginRight,
           marginBottom,
           marginLeft,
+          ariaLabel,
           ...options
         })
         : null,
@@ -5946,7 +6178,7 @@
             }
             this.dy = cla === "top" ? 3 - marginTop : cla === "bottom" ? marginBottom - 3 : 0;
             this.dx = anchor === "right" ? clo : -clo;
-            this.ariaLabel = `${k}-axis label`;
+            this.ariaLabel = `${ariaLabel} label`;
             return {
               facets: [[0]],
               channels: {text: {value: [formatAxisLabel(k, scale, {anchor, label, labelAnchor: cla, labelArrow})]}}
@@ -5986,6 +6218,7 @@
       labelAnchor,
       labelArrow,
       labelOffset,
+      ariaLabel = `${k}-axis`,
       ...options
     }
   ) {
@@ -6004,6 +6237,7 @@
           tickPadding,
           tickRotate,
           y,
+          ariaLabel,
           ...options
         })
         : null,
@@ -6023,6 +6257,7 @@
           marginRight,
           marginBottom,
           marginLeft,
+          ariaLabel,
           ...options
         })
         : null,
@@ -6044,7 +6279,7 @@
             this.lineAnchor = anchor;
             this.dy = anchor === "top" ? -clo : clo;
             this.dx = cla === "right" ? marginRight - 3 : cla === "left" ? 3 - marginLeft : 0;
-            this.ariaLabel = `${k}-axis label`;
+            this.ariaLabel = `${ariaLabel} label`;
             return {
               facets: [[0]],
               channels: {text: {value: [formatAxisLabel(k, scale, {anchor, label, labelAnchor: cla, labelArrow})]}}
@@ -6071,6 +6306,7 @@
       insetRight = inset,
       dx = 0,
       y = k === "y" ? undefined : null,
+      ariaLabel,
       ...options
     }
   ) {
@@ -6079,7 +6315,7 @@
       k,
       data,
       {
-        ariaLabel: `${k}-axis tick`,
+        ariaLabel: `${ariaLabel} tick`,
         ariaHidden: true
       },
       {
@@ -6114,6 +6350,7 @@
       insetBottom = inset,
       dy = 0,
       x = k === "x" ? undefined : null,
+      ariaLabel,
       ...options
     }
   ) {
@@ -6122,7 +6359,7 @@
       k,
       data,
       {
-        ariaLabel: `${k}-axis tick`,
+        ariaLabel: `${ariaLabel} tick`,
         ariaHidden: true
       },
       {
@@ -6159,6 +6396,7 @@
       insetLeft = inset,
       insetRight = inset,
       dx = 0,
+      ariaLabel,
       y = k === "y" ? undefined : null,
       ...options
     }
@@ -6167,7 +6405,7 @@
       textY,
       k,
       data,
-      {ariaLabel: `${k}-axis tick label`},
+      {ariaLabel: `${ariaLabel} tick label`},
       {
         facetAnchor,
         frameAnchor,
@@ -6206,6 +6444,7 @@
       insetBottom = inset,
       dy = 0,
       x = k === "x" ? undefined : null,
+      ariaLabel,
       ...options
     }
   ) {
@@ -6213,7 +6452,7 @@
       textX,
       k,
       data,
-      {ariaLabel: `${k}-axis tick label`},
+      {ariaLabel: `${ariaLabel} tick label`},
       {
         facetAnchor,
         frameAnchor,
@@ -6262,10 +6501,12 @@
       x = null,
       x1 = anchor === "left" ? x : null,
       x2 = anchor === "right" ? x : null,
+      ariaLabel = `${k}-grid`,
+      ariaHidden = true,
       ...options
     }
   ) {
-    return axisMark(ruleY, k, data, {ariaLabel: `${k}-grid`, ariaHidden: true}, {y, x1, x2, ...gridDefaults(options)});
+    return axisMark(ruleY, k, data, {ariaLabel, ariaHidden}, {y, x1, x2, ...gridDefaults(options)});
   }
 
   function gridKx(
@@ -6277,10 +6518,12 @@
       y = null,
       y1 = anchor === "top" ? y : null,
       y2 = anchor === "bottom" ? y : null,
+      ariaLabel = `${k}-grid`,
+      ariaHidden = true,
       ...options
     }
   ) {
-    return axisMark(ruleX, k, data, {ariaLabel: `${k}-grid`, ariaHidden: true}, {x, y1, y2, ...gridDefaults(options)});
+    return axisMark(ruleX, k, data, {ariaLabel, ariaHidden}, {x, y1, y2, ...gridDefaults(options)});
   }
 
   function gridDefaults({
@@ -6448,16 +6691,16 @@
 // possible, or the default ISO format (2014-01-26). TODO We need a better way
 // to infer whether the ordinal scale is UTC or local time.
   function inferTickFormat(scale, data, ticks, tickFormat, anchor) {
-    return typeof tickFormat === "function"
+    return typeof tickFormat === "function" && !(scale.type === "log" && scale.tickFormat)
       ? tickFormat
       : tickFormat === undefined && data && isTemporal(data)
         ? inferTimeFormat(scale.type, data, anchor) ?? formatDefault
         : scale.tickFormat
           ? scale.tickFormat(typeof ticks === "number" ? ticks : null, tickFormat)
-          : tickFormat === undefined
-            ? formatDefault
-            : typeof tickFormat === "string"
-              ? (isTemporal(scale.domain()) ? d3.utcFormat : d3.format)(tickFormat)
+          : typeof tickFormat === "string" && scale.domain().length > 0
+            ? (isTemporal(scale.domain()) ? d3.utcFormat : d3.format)(tickFormat)
+            : tickFormat === undefined
+              ? formatDefault
               : constant(tickFormat);
   }
 
@@ -6566,6 +6809,8 @@
     );
   }
 
+  const legendSymbolColor = new WeakSet();
+
   function legendSymbols(
     symbol,
     {
@@ -6587,7 +6832,7 @@
     fillOpacity = maybeNumberChannel(fillOpacity)[1];
     strokeOpacity = maybeNumberChannel(strokeOpacity)[1];
     strokeWidth = maybeNumberChannel(strokeWidth)[1];
-    return legendItems(symbol, options, (selection, scale, width, height) =>
+    const legend = legendItems(symbol, options, (selection, scale, width, height) =>
       selection
         .append("svg")
         .attr("viewBox", "-8 -8 16 16")
@@ -6605,6 +6850,17 @@
           return p;
         })
     );
+    if (vf === "color" || vs === "color") legendSymbolColor.add(legend);
+    return legend;
+  }
+
+  /**
+   * Symbol legends can serve as color legends when the associated symbol channel
+   * is also bound to the color scale; this test allows Plot to avoid displaying a
+   * redundant color legend when a satisfying symbol legend is present.
+   */
+  function isSymbolColorLegend(legend) {
+    return legendSymbolColor.has(legend);
   }
 
   function legendItems(scale, options = {}, swatch) {
@@ -6746,7 +7002,7 @@ ${extraStyle}`
 
   function legendColor(color, {legend = true, ...options}) {
     if (legend === true) legend = color.type === "ordinal" ? "swatches" : "ramp";
-    if (color.domain === undefined) return;
+    if (color.domain === undefined) return; // no identity legend
     switch (`${legend}`.toLowerCase()) {
       case "swatches":
         return legendSwatches(color, options);
@@ -6771,17 +7027,628 @@ ${extraStyle}`
 
   function createLegends(scales, context, options) {
     const legends = [];
+    let hasColor = false;
     for (const [key, value] of legendRegistry) {
-      const o = options[key];
-      if (o?.legend && key in scales) {
-        const legend = value(scales[key], legendOptions(context, scales[key], o), (key) => scales[key]);
-        if (legend != null) legends.push(legend);
-      }
+      if (!(key in scales)) continue;
+      if (key === "color" && hasColor) continue;
+      const o = inherit(options[key], {legend: options.legend});
+      if (!o.legend) continue;
+      const legend = value(scales[key], legendOptions(context, scales[key], o), (key) => scales[key]);
+      if (legend == null) continue;
+      if (key === "symbol" && isSymbolColorLegend(legend)) hasColor = true;
+      legends.push(legend);
     }
     return legends;
   }
 
-  const defaults$i = {
+  function maybeIdentityX(options = {}, k = "x") {
+    return hasX(options) ? options : {...options, [k]: identity$1};
+  }
+
+  function maybeIdentityY(options = {}, k = "y") {
+    return hasY(options) ? options : {...options, [k]: identity$1};
+  }
+
+  function exclusiveFacets(data, facets) {
+    if (facets.length === 1) return {data, facets}; // only one facet; trivially exclusive
+
+    const n = lengthof(data);
+    const O = new Uint8Array(n);
+    let overlaps = 0;
+
+    // Count the number of overlapping indexes across facets.
+    for (const facet of facets) {
+      for (const i of facet) {
+        if (O[i]) ++overlaps;
+        O[i] = 1;
+      }
+    }
+
+    // Do nothing if the facets are already exclusive.
+    if (overlaps === 0) return {data, facets}; // facets are exclusive
+
+    // For each overlapping index (duplicate), assign a new unique index at the
+    // end of the existing array, duplicating the datum. For example, [[0, 1, 2],
+    // [2, 1, 3]] would become [[0, 1, 2], [4, 5, 3]]. Also attach a reindex to
+    // the data to preserve the association of channel values specified as arrays.
+    data = slice(data);
+    const R = (data[reindex] = new Uint32Array(n + overlaps));
+    facets = facets.map((facet) => slice(facet, Uint32Array));
+    let j = n;
+    O.fill(0);
+    for (const facet of facets) {
+      for (let k = 0, m = facet.length; k < m; ++k) {
+        const i = facet[k];
+        if (O[i]) (facet[k] = j), (data[j] = data[i]), (R[j] = i), ++j;
+        else R[i] = i;
+        O[i] = 1;
+      }
+    }
+
+    return {data, facets};
+  }
+
+  function stackX(stackOptions = {}, options = {}) {
+    if (arguments.length === 1) [stackOptions, options] = mergeOptions$2(stackOptions);
+    const {y1, y = y1, x, ...rest} = options; // note: consumes x!
+    const [transform, Y, x1, x2] = stack(y, x, "y", "x", stackOptions, rest);
+    return {...transform, y1, y: Y, x1, x2, x: mid(x1, x2)};
+  }
+
+  function stackX1(stackOptions = {}, options = {}) {
+    if (arguments.length === 1) [stackOptions, options] = mergeOptions$2(stackOptions);
+    const {y1, y = y1, x} = options;
+    const [transform, Y, X] = stack(y, x, "y", "x", stackOptions, options);
+    return {...transform, y1, y: Y, x: X};
+  }
+
+  function stackX2(stackOptions = {}, options = {}) {
+    if (arguments.length === 1) [stackOptions, options] = mergeOptions$2(stackOptions);
+    const {y1, y = y1, x} = options;
+    const [transform, Y, , X] = stack(y, x, "y", "x", stackOptions, options);
+    return {...transform, y1, y: Y, x: X};
+  }
+
+  function stackY(stackOptions = {}, options = {}) {
+    if (arguments.length === 1) [stackOptions, options] = mergeOptions$2(stackOptions);
+    const {x1, x = x1, y, ...rest} = options; // note: consumes y!
+    const [transform, X, y1, y2] = stack(x, y, "x", "y", stackOptions, rest);
+    return {...transform, x1, x: X, y1, y2, y: mid(y1, y2)};
+  }
+
+  function stackY1(stackOptions = {}, options = {}) {
+    if (arguments.length === 1) [stackOptions, options] = mergeOptions$2(stackOptions);
+    const {x1, x = x1, y} = options;
+    const [transform, X, Y] = stack(x, y, "x", "y", stackOptions, options);
+    return {...transform, x1, x: X, y: Y};
+  }
+
+  function stackY2(stackOptions = {}, options = {}) {
+    if (arguments.length === 1) [stackOptions, options] = mergeOptions$2(stackOptions);
+    const {x1, x = x1, y} = options;
+    const [transform, X, , Y] = stack(x, y, "x", "y", stackOptions, options);
+    return {...transform, x1, x: X, y: Y};
+  }
+
+  function maybeStackX({x, x1, x2, ...options} = {}) {
+    options = withTip(options, "y");
+    if (x1 === undefined && x2 === undefined) return stackX({x, ...options});
+    [x1, x2] = maybeZero(x, x1, x2);
+    return {...options, x1, x2};
+  }
+
+  function maybeStackY({y, y1, y2, ...options} = {}) {
+    options = withTip(options, "x");
+    if (y1 === undefined && y2 === undefined) return stackY({y, ...options});
+    [y1, y2] = maybeZero(y, y1, y2);
+    return {...options, y1, y2};
+  }
+
+// The reverse option is ambiguous: it is both a stack option and a basic
+// transform. If only one options object is specified, we interpret it as a
+// stack option, and therefore must remove it from the propagated options.
+  function mergeOptions$2(options) {
+    const {offset, order, reverse, ...rest} = options;
+    return [{offset, order, reverse}, rest];
+  }
+
+// This is a hint to the tooltip mark that the y1 and y2 channels (for stackY,
+// or conversely x1 and x2 for stackX) represent a stacked length, and that the
+// tooltip should therefore show y2-y1 instead of an extent.
+  const lengthy = {length: true};
+
+  function stack(x, y = one, kx, ky, {offset, order, reverse}, options) {
+    if (y === null) throw new Error(`stack requires ${ky}`);
+    const z = maybeZ(options);
+    const [X, setX] = maybeColumn(x);
+    const [Y1, setY1] = column(y);
+    const [Y2, setY2] = column(y);
+    Y1.hint = Y2.hint = lengthy;
+    offset = maybeOffset(offset);
+    order = maybeOrder(order, offset, ky);
+    return [
+      basic(options, (data, facets, plotOptions) => {
+        ({data, facets} = exclusiveFacets(data, facets));
+        const X = x == null ? undefined : setX(maybeApplyInterval(valueof(data, x), plotOptions?.[kx]));
+        const Y = valueof(data, y, Float64Array);
+        const Z = valueof(data, z);
+        const compare = order && order(data, X, Y, Z);
+        const n = lengthof(data);
+        const Y1 = setY1(new Float64Array(n));
+        const Y2 = setY2(new Float64Array(n));
+        const facetstacks = [];
+        for (const facet of facets) {
+          const stacks = X ? Array.from(d3.group(facet, (i) => X[i]).values()) : [facet];
+          if (compare) for (const stack of stacks) stack.sort(compare);
+          for (const stack of stacks) {
+            let yn = 0;
+            let yp = 0;
+            if (reverse) stack.reverse();
+            for (const i of stack) {
+              const y = Y[i];
+              if (y < 0) yn = Y2[i] = (Y1[i] = yn) + y;
+              else if (y > 0) yp = Y2[i] = (Y1[i] = yp) + y;
+              else Y2[i] = Y1[i] = yp; // NaN or zero
+            }
+          }
+          facetstacks.push(stacks);
+        }
+        if (offset) offset(facetstacks, Y1, Y2, Z);
+        return {data, facets};
+      }),
+      X,
+      Y1,
+      Y2
+    ];
+  }
+
+  function maybeOffset(offset) {
+    if (offset == null) return;
+    if (typeof offset === "function") return offset;
+    switch (`${offset}`.toLowerCase()) {
+      case "expand":
+      case "normalize":
+        return offsetExpand;
+      case "center":
+      case "silhouette":
+        return offsetCenter;
+      case "wiggle":
+        return offsetWiggle;
+    }
+    throw new Error(`unknown offset: ${offset}`);
+  }
+
+// Given a single stack, returns the minimum and maximum values from the given
+// Y2 column. Note that this relies on Y2 always being the outer column for
+// diverging values.
+  function extent(stack, Y2) {
+    let min = 0,
+      max = 0;
+    for (const i of stack) {
+      const y = Y2[i];
+      if (y < min) min = y;
+      if (y > max) max = y;
+    }
+    return [min, max];
+  }
+
+  function offsetExpand(facetstacks, Y1, Y2) {
+    for (const stacks of facetstacks) {
+      for (const stack of stacks) {
+        const [yn, yp] = extent(stack, Y2);
+        for (const i of stack) {
+          const m = 1 / (yp - yn || 1);
+          Y1[i] = m * (Y1[i] - yn);
+          Y2[i] = m * (Y2[i] - yn);
+        }
+      }
+    }
+  }
+
+  function offsetCenter(facetstacks, Y1, Y2) {
+    for (const stacks of facetstacks) {
+      for (const stack of stacks) {
+        const [yn, yp] = extent(stack, Y2);
+        for (const i of stack) {
+          const m = (yp + yn) / 2;
+          Y1[i] -= m;
+          Y2[i] -= m;
+        }
+      }
+      offsetZero(stacks, Y1, Y2);
+    }
+    offsetCenterFacets(facetstacks, Y1, Y2);
+  }
+
+  function offsetWiggle(facetstacks, Y1, Y2, Z) {
+    for (const stacks of facetstacks) {
+      const prev = new d3.InternMap();
+      let y = 0;
+      for (const stack of stacks) {
+        let j = -1;
+        const Fi = stack.map((i) => Math.abs(Y2[i] - Y1[i]));
+        const Df = stack.map((i) => {
+          j = Z ? Z[i] : ++j;
+          const value = Y2[i] - Y1[i];
+          const diff = prev.has(j) ? value - prev.get(j) : 0;
+          prev.set(j, value);
+          return diff;
+        });
+        const Cf1 = [0, ...d3.cumsum(Df)];
+        for (const i of stack) {
+          Y1[i] += y;
+          Y2[i] += y;
+        }
+        const s1 = d3.sum(Fi);
+        if (s1) y -= d3.sum(Fi, (d, i) => (Df[i] / 2 + Cf1[i]) * d) / s1;
+      }
+      offsetZero(stacks, Y1, Y2);
+    }
+    offsetCenterFacets(facetstacks, Y1, Y2);
+  }
+
+  function offsetZero(stacks, Y1, Y2) {
+    const m = d3.min(stacks, (stack) => d3.min(stack, (i) => Y1[i]));
+    for (const stack of stacks) {
+      for (const i of stack) {
+        Y1[i] -= m;
+        Y2[i] -= m;
+      }
+    }
+  }
+
+  function offsetCenterFacets(facetstacks, Y1, Y2) {
+    const n = facetstacks.length;
+    if (n === 1) return;
+    const facets = facetstacks.map((stacks) => stacks.flat());
+    const m = facets.map((I) => (d3.min(I, (i) => Y1[i]) + d3.max(I, (i) => Y2[i])) / 2);
+    const m0 = d3.min(m);
+    for (let j = 0; j < n; j++) {
+      const p = m0 - m[j];
+      for (const i of facets[j]) {
+        Y1[i] += p;
+        Y2[i] += p;
+      }
+    }
+  }
+
+  function maybeOrder(order, offset, ky) {
+    if (order === undefined && offset === offsetWiggle) return orderInsideOut(ascendingDefined);
+    if (order == null) return;
+    if (typeof order === "string") {
+      const negate = order.startsWith("-");
+      const compare = negate ? descendingDefined : ascendingDefined;
+      switch ((negate ? order.slice(1) : order).toLowerCase()) {
+        case "value":
+        case ky:
+          return orderY(compare);
+        case "z":
+          return orderZ(compare);
+        case "sum":
+          return orderSum(compare);
+        case "appearance":
+          return orderAppearance(compare);
+        case "inside-out":
+          return orderInsideOut(compare);
+      }
+      return orderAccessor(field(order));
+    }
+    if (typeof order === "function") return (order.length === 1 ? orderAccessor : orderComparator)(order);
+    if (isArray(order)) return orderGiven(order);
+    throw new Error(`invalid order: ${order}`);
+  }
+
+// by value
+  function orderY(compare) {
+    return (data, X, Y) => (i, j) => compare(Y[i], Y[j]);
+  }
+
+// by location
+  function orderZ(compare) {
+    return (data, X, Y, Z) => (i, j) => compare(Z[i], Z[j]);
+  }
+
+// by sum of value (a.k.a. “ascending”)
+  function orderSum(compare) {
+    return orderZDomain(compare, (data, X, Y, Z) =>
+      d3.groupSort(
+        range(data),
+        (I) => d3.sum(I, (i) => Y[i]),
+        (i) => Z[i]
+      )
+    );
+  }
+
+// by x = argmax of value
+  function orderAppearance(compare) {
+    return orderZDomain(compare, (data, X, Y, Z) =>
+      d3.groupSort(
+        range(data),
+        (I) => X[d3.greatest(I, (i) => Y[i])],
+        (i) => Z[i]
+      )
+    );
+  }
+
+// by x = argmax of value, but rearranged inside-out by alternating series
+// according to the sign of a running divergence of sums
+  function orderInsideOut(compare) {
+    return orderZDomain(compare, (data, X, Y, Z) => {
+      const I = range(data);
+      const K = d3.groupSort(
+        I,
+        (I) => X[d3.greatest(I, (i) => Y[i])],
+        (i) => Z[i]
+      );
+      const sums = d3.rollup(
+        I,
+        (I) => d3.sum(I, (i) => Y[i]),
+        (i) => Z[i]
+      );
+      const Kp = [],
+        Kn = [];
+      let s = 0;
+      for (const k of K) {
+        if (s < 0) {
+          s += sums.get(k);
+          Kp.push(k);
+        } else {
+          s -= sums.get(k);
+          Kn.push(k);
+        }
+      }
+      return Kn.reverse().concat(Kp);
+    });
+  }
+
+  function orderAccessor(f) {
+    return (data) => {
+      const O = valueof(data, f);
+      return (i, j) => ascendingDefined(O[i], O[j]);
+    };
+  }
+
+  function orderComparator(f) {
+    return (data) => {
+      return isArray(data) ? (i, j) => f(data[i], data[j]) : (i, j) => f(data.get(i), data.get(j));
+    };
+  }
+
+  function orderGiven(domain) {
+    return orderZDomain(ascendingDefined, () => domain);
+  }
+
+// Given an ordering (domain) of distinct values in z that can be derived from
+// the data, returns a comparator that can be used to sort stacks. Note that
+// this is a series order: it will be consistent across stacks.
+  function orderZDomain(compare, domain) {
+    return (data, X, Y, Z) => {
+      if (!Z) throw new Error("missing channel: z");
+      const map = new d3.InternMap(domain(data, X, Y, Z).map((d, i) => [d, i]));
+      return (i, j) => compare(map.get(Z[i]), map.get(Z[j]));
+    };
+  }
+
+  const defaults$h = {
+    ariaLabel: "rect"
+  };
+
+  class Rect extends Mark {
+    constructor(data, options = {}) {
+      const {x1, y1, x2, y2} = options;
+      super(
+        data,
+        {
+          x1: {value: x1, scale: "x", type: x1 != null && x2 == null ? "band" : undefined, optional: true},
+          y1: {value: y1, scale: "y", type: y1 != null && y2 == null ? "band" : undefined, optional: true},
+          x2: {value: x2, scale: "x", optional: true},
+          y2: {value: y2, scale: "y", optional: true}
+        },
+        options,
+        defaults$h
+      );
+      rectInsets(this, options);
+      rectRadii(this, options);
+    }
+    render(index, scales, channels, dimensions, context) {
+      const {x, y} = scales;
+      let {x1: X1, y1: Y1, x2: X2, y2: Y2} = channels;
+      const {marginTop, marginRight, marginBottom, marginLeft, width, height} = dimensions;
+      const {projection} = context;
+      const {insetTop, insetRight, insetBottom, insetLeft} = this;
+      const {rx, ry, rx1y1, rx1y2, rx2y1, rx2y2} = this;
+      if ((X1 || X2) && !projection && isCollapsed(x)) X1 = X2 = null; // ignore if collapsed
+      if ((Y1 || Y2) && !projection && isCollapsed(y)) Y1 = Y2 = null; // ignore if collapsed
+      const bx = x?.bandwidth ? x.bandwidth() : 0;
+      const by = y?.bandwidth ? y.bandwidth() : 0;
+      return create("svg:g", context)
+        .call(applyIndirectStyles, this, dimensions, context)
+        .call(applyTransform, this, {}, 0, 0)
+        .call((g) =>
+          g
+            .selectAll()
+            .data(index)
+            .enter()
+            .call(
+              rx1y1 || rx1y2 || rx2y1 || rx2y2
+                ? (g) =>
+                  g
+                    .append("path")
+                    .call(applyDirectStyles, this)
+                    .call(
+                      applyRoundedRect,
+                      X1 && X2
+                        ? (i) => X1[i] + (X2[i] < X1[i] ? -insetRight : insetLeft)
+                        : X1
+                          ? (i) => X1[i] + insetLeft
+                          : marginLeft + insetLeft,
+                      Y1 && Y2
+                        ? (i) => Y1[i] + (Y2[i] < Y1[i] ? -insetBottom : insetTop)
+                        : Y1
+                          ? (i) => Y1[i] + insetTop
+                          : marginTop + insetTop,
+                      X1 && X2
+                        ? (i) => X2[i] - (X2[i] < X1[i] ? -insetLeft : insetRight)
+                        : X1
+                          ? (i) => X1[i] + bx - insetRight
+                          : width - marginRight - insetRight,
+                      Y1 && Y2
+                        ? (i) => Y2[i] - (Y2[i] < Y1[i] ? -insetTop : insetBottom)
+                        : Y1
+                          ? (i) => Y1[i] + by - insetBottom
+                          : height - marginBottom - insetBottom,
+                      this
+                    )
+                    .call(applyChannelStyles, this, channels)
+                : (g) =>
+                  g
+                    .append("rect")
+                    .call(applyDirectStyles, this)
+                    .attr(
+                      "x",
+                      X1
+                        ? X2
+                          ? (i) => Math.min(X1[i], X2[i]) + insetLeft
+                          : (i) => X1[i] + insetLeft
+                        : marginLeft + insetLeft
+                    )
+                    .attr(
+                      "y",
+                      Y1
+                        ? Y2
+                          ? (i) => Math.min(Y1[i], Y2[i]) + insetTop
+                          : (i) => Y1[i] + insetTop
+                        : marginTop + insetTop
+                    )
+                    .attr(
+                      "width",
+                      X1
+                        ? X2
+                          ? (i) => Math.max(0, Math.abs(X2[i] - X1[i]) + bx - insetLeft - insetRight)
+                          : bx - insetLeft - insetRight
+                        : width - marginRight - marginLeft - insetRight - insetLeft
+                    )
+                    .attr(
+                      "height",
+                      Y1
+                        ? Y2
+                          ? (i) => Math.max(0, Math.abs(Y1[i] - Y2[i]) + by - insetTop - insetBottom)
+                          : by - insetTop - insetBottom
+                        : height - marginTop - marginBottom - insetTop - insetBottom
+                    )
+                    .call(applyAttr, "rx", rx)
+                    .call(applyAttr, "ry", ry)
+                    .call(applyChannelStyles, this, channels)
+            )
+        )
+        .node();
+    }
+  }
+
+  function rectInsets(
+    mark,
+    {inset = 0, insetTop = inset, insetRight = inset, insetBottom = inset, insetLeft = inset} = {}
+  ) {
+    mark.insetTop = number$1(insetTop);
+    mark.insetRight = number$1(insetRight);
+    mark.insetBottom = number$1(insetBottom);
+    mark.insetLeft = number$1(insetLeft);
+  }
+
+  function rectRadii(
+    mark,
+    {
+      r,
+      rx, // for elliptic corners
+      ry, // for elliptic corners
+      rx1 = r,
+      ry1 = r,
+      rx2 = r,
+      ry2 = r,
+      rx1y1 = rx1 !== undefined ? +rx1 : ry1 !== undefined ? +ry1 : 0,
+      rx1y2 = rx1 !== undefined ? +rx1 : ry2 !== undefined ? +ry2 : 0,
+      rx2y1 = rx2 !== undefined ? +rx2 : ry1 !== undefined ? +ry1 : 0,
+      rx2y2 = rx2 !== undefined ? +rx2 : ry2 !== undefined ? +ry2 : 0
+    } = {}
+  ) {
+    if (rx1y1 || rx1y2 || rx2y1 || rx2y2) {
+      mark.rx1y1 = rx1y1;
+      mark.rx1y2 = rx1y2;
+      mark.rx2y1 = rx2y1;
+      mark.rx2y2 = rx2y2;
+    } else {
+      mark.rx = impliedString(rx, "auto"); // number or percentage
+      mark.ry = impliedString(ry, "auto");
+    }
+  }
+
+  function applyRoundedRect(selection, X1, Y1, X2, Y2, mark) {
+    const {rx1y1: r11, rx1y2: r12, rx2y1: r21, rx2y2: r22} = mark;
+    if (typeof X1 !== "function") X1 = constant(X1);
+    if (typeof Y1 !== "function") Y1 = constant(Y1);
+    if (typeof X2 !== "function") X2 = constant(X2);
+    if (typeof Y2 !== "function") Y2 = constant(Y2);
+    const rx = Math.max(Math.abs(r11 + r21), Math.abs(r12 + r22));
+    const ry = Math.max(Math.abs(r11 + r12), Math.abs(r21 + r22));
+    selection.attr("d", (i) => {
+      const x1 = X1(i);
+      const y1 = Y1(i);
+      const x2 = X2(i);
+      const y2 = Y2(i);
+      const ix = x1 > x2;
+      const iy = y1 > y2;
+      const l = ix ? x2 : x1;
+      const r = ix ? x1 : x2;
+      const t = iy ? y2 : y1;
+      const b = iy ? y1 : y2;
+      const k = Math.min(1, (r - l) / rx, (b - t) / ry);
+      const tl = k * (ix ? (iy ? r22 : r21) : iy ? r12 : r11);
+      const tr = k * (ix ? (iy ? r12 : r11) : iy ? r22 : r21);
+      const br = k * (ix ? (iy ? r11 : r12) : iy ? r21 : r22);
+      const bl = k * (ix ? (iy ? r21 : r22) : iy ? r11 : r12);
+      return (
+        `M${l},${t + biasY(tl, bl)}A${tl},${tl} 0 0 ${tl < 0 ? 0 : 1} ${l + biasX(tl, bl)},${t}` +
+        `H${r - biasX(tr, br)}A${tr},${tr} 0 0 ${tr < 0 ? 0 : 1} ${r},${t + biasY(tr, br)}` +
+        `V${b - biasY(br, tr)}A${br},${br} 0 0 ${br < 0 ? 0 : 1} ${r - biasX(br, tr)},${b}` +
+        `H${l + biasX(bl, tl)}A${bl},${bl} 0 0 ${bl < 0 ? 0 : 1} ${l},${b - biasY(bl, tl)}` +
+        `Z`
+      );
+    });
+  }
+
+  /**
+   * If the opposing corner has a negative radius r2, if this corner has a
+   * negative radius r1, this corner’s “wing” will extend horizontally rather than
+   * vertically.
+   */
+  function biasX(r1, r2) {
+    return r2 < 0 ? r1 : Math.abs(r1);
+  }
+
+  /**
+   * If the opposing corner has a negative radius r2, if this corner has a
+   * negative radius r1, this corner’s “wing” will extend horizontally rather than
+   * vertically.
+   */
+  function biasY(r1, r2) {
+    return r2 < 0 ? Math.abs(r1) : r1;
+  }
+
+  function rect(data, options) {
+    return new Rect(data, maybeTrivialIntervalX(maybeTrivialIntervalY(options)));
+  }
+
+  function rectX(data, options = {}) {
+    if (!hasXY(options)) options = {...options, y: indexOf, x2: identity$1, interval: 1};
+    return new Rect(data, maybeStackX(maybeTrivialIntervalY(maybeIdentityX(options))));
+  }
+
+  function rectY(data, options = {}) {
+    if (!hasXY(options)) options = {...options, x: indexOf, y2: identity$1, interval: 1};
+    return new Rect(data, maybeStackY(maybeTrivialIntervalX(maybeIdentityY(options))));
+  }
+
+  const defaults$g = {
     ariaLabel: "frame",
     fill: "none",
     stroke: "currentColor",
@@ -6798,33 +7665,21 @@ ${extraStyle}`
 
   class Frame extends Mark {
     constructor(options = {}) {
-      const {
-        anchor = null,
-        inset = 0,
-        insetTop = inset,
-        insetRight = inset,
-        insetBottom = inset,
-        insetLeft = inset,
-        rx,
-        ry
-      } = options;
-      super(singleton, undefined, options, anchor == null ? defaults$i : lineDefaults);
+      const {anchor = null} = options;
+      super(singleton, undefined, options, anchor == null ? defaults$g : lineDefaults);
       this.anchor = maybeKeyword(anchor, "anchor", ["top", "right", "bottom", "left"]);
-      this.insetTop = number$1(insetTop);
-      this.insetRight = number$1(insetRight);
-      this.insetBottom = number$1(insetBottom);
-      this.insetLeft = number$1(insetLeft);
-      this.rx = number$1(rx);
-      this.ry = number$1(ry);
+      rectInsets(this, options);
+      if (!anchor) rectRadii(this, options);
     }
     render(index, scales, channels, dimensions, context) {
       const {marginTop, marginRight, marginBottom, marginLeft, width, height} = dimensions;
-      const {anchor, insetTop, insetRight, insetBottom, insetLeft, rx, ry} = this;
+      const {anchor, insetTop, insetRight, insetBottom, insetLeft} = this;
+      const {rx, ry, rx1y1, rx1y2, rx2y1, rx2y2} = this;
       const x1 = marginLeft + insetLeft;
       const x2 = width - marginRight - insetRight;
       const y1 = marginTop + insetTop;
       const y2 = height - marginBottom - insetBottom;
-      return create(anchor ? "svg:line" : "svg:rect", context)
+      return create(anchor ? "svg:line" : rx1y1 || rx1y2 || rx2y1 || rx2y2 ? "svg:path" : "svg:rect", context)
         .datum(0)
         .call(applyIndirectStyles, this, dimensions, context)
         .call(applyDirectStyles, this)
@@ -6839,14 +7694,16 @@ ${extraStyle}`
                 ? (line) => line.attr("x1", x1).attr("x2", x2).attr("y1", y1).attr("y2", y1)
                 : anchor === "bottom"
                   ? (line) => line.attr("x1", x1).attr("x2", x2).attr("y1", y2).attr("y2", y2)
-                  : (rect) =>
-                    rect
-                      .attr("x", x1)
-                      .attr("y", y1)
-                      .attr("width", x2 - x1)
-                      .attr("height", y2 - y1)
-                      .attr("rx", rx)
-                      .attr("ry", ry)
+                  : rx1y1 || rx1y2 || rx2y1 || rx2y2
+                    ? (path) => path.call(applyRoundedRect, x1, y1, x2, y2, this)
+                    : (rect) =>
+                      rect
+                        .attr("x", x1)
+                        .attr("y", y1)
+                        .attr("width", x2 - x1)
+                        .attr("height", y2 - y1)
+                        .attr("rx", rx)
+                        .attr("ry", ry)
         )
         .node();
     }
@@ -6856,7 +7713,7 @@ ${extraStyle}`
     return new Frame(options);
   }
 
-  const defaults$h = {
+  const defaults$f = {
     ariaLabel: "tip",
     fill: "var(--plot-background)",
     stroke: "currentColor"
@@ -6907,7 +7764,7 @@ ${extraStyle}`
           title: {value: title, optional: true} // filter: defined
         },
         options,
-        defaults$h
+        defaults$f
       );
       this.anchor = maybeAnchor$3(anchor, "anchor");
       this.preferredAnchor = maybeAnchor$3(preferredAnchor, "preferredAnchor");
@@ -6925,10 +7782,10 @@ ${extraStyle}`
       this.fontStyle = string(fontStyle);
       this.fontVariant = string(fontVariant);
       this.fontWeight = string(fontWeight);
-      for (const key in defaults$h) if (key in this.channels) this[key] = defaults$h[key]; // apply default even if channel
+      for (const key in defaults$f) if (key in this.channels) this[key] = defaults$f[key]; // apply default even if channel
       this.splitLines = splitter(this);
       this.clipLine = clipper(this);
-      this.format = {...format}; // defensive copy before mutate; also promote nullish to empty
+      this.format = typeof format === "string" || typeof format === "function" ? {title: format} : {...format}; // defensive copy before mutate; also promote nullish to empty
     }
     render(index, scales, values, dimensions, context) {
       const mark = this;
@@ -6964,10 +7821,10 @@ ${extraStyle}`
       // channels as name-value pairs.
       let sources, format;
       if ("title" in values) {
-        sources = values.channels;
+        sources = getSourceChannels.call(this, {title: values.channels.title}, scales);
         format = formatTitle;
       } else {
-        sources = getSourceChannels.call(this, values, scales);
+        sources = getSourceChannels.call(this, values.channels, scales);
         format = formatChannels;
       }
 
@@ -7163,7 +8020,7 @@ ${extraStyle}`
   }
 
 // Note: mutates this.format!
-  function getSourceChannels({channels}, scales) {
+  function getSourceChannels(channels, scales) {
     const sources = {};
 
     // Promote x and y shorthand for paired channels (in order).
@@ -7188,8 +8045,13 @@ ${extraStyle}`
     // Then fallback to all other (non-ignored) channels.
     for (const key in channels) {
       if (key in sources || key in format || ignoreChannels.has(key)) continue;
+      if ((key === "x" || key === "y") && channels.geometry) continue; // ignore x & y on geo
       const source = getSource(channels, key);
-      if (source) sources[key] = source;
+      if (source) {
+        // Ignore color channels if the values are all literal colors.
+        if (source.scale == null && source.defaultScale === "color") continue;
+        sources[key] = source;
+      }
     }
 
     // And lastly facet channels, but only if this mark is faceted.
@@ -7228,7 +8090,7 @@ ${extraStyle}`
   }
 
   function formatTitle(i, index, {title}) {
-    return formatDefault(title.value[i], i);
+    return this.format.title(title.value[i], i);
   }
 
   function* formatChannels(i, index, channels, scales, values) {
@@ -7425,6 +8287,11 @@ ${extraStyle}`
     context.className = className;
     context.projection = createProjection(options, subdimensions);
 
+    // A path generator for marks that want to draw GeoJSON.
+    context.path = function () {
+      return d3.geoPath(this.projection ?? xyProjection(scales));
+    };
+
     // Allows e.g. the axis mark to determine faceting lazily.
     context.filterFacets = (data, channels) => {
       return facetFilter(facets, {channels, groups: facetGroups(data, channels)});
@@ -7441,7 +8308,7 @@ ${extraStyle}`
     context.dispatchValue = (value) => {
       if (figure.value === value) return;
       figure.value = value;
-      figure.dispatchEvent(new Event("input", {bubbles: true}));
+      figure.dispatchEvent(new context.document.defaultView.Event("input", {bubbles: true}));
     };
 
     // Reinitialize; for deriving channels dependent on other channels.
@@ -7583,7 +8450,7 @@ ${extraStyle}`
             }
           }
         }
-        g?.selectChildren().attr("transform", facetTranslate);
+        g?.selectChildren().each(facetTranslate);
       }
     }
 
@@ -7598,6 +8465,7 @@ ${extraStyle}`
       if (subtitle != null) figure.append(createTitleElement(document, subtitle, "h3"));
       figure.append(...legends, svg);
       if (caption != null) figure.append(createFigcaption(document, caption));
+      if ("value" in svg) (figure.value = svg.value), delete svg.value;
     }
 
     figure.scale = exposeScales(scales.scales);
@@ -7632,13 +8500,6 @@ ${extraStyle}`
     e.append(caption);
     return e;
   }
-
-  function plotThis({marks = [], ...options} = {}) {
-    return plot({...options, marks: [...marks, this]});
-  }
-
-// Note: This side-effect avoids a circular dependency.
-  Mark.prototype.plot = plotThis;
 
   function flatMarks(marks) {
     return marks
@@ -7675,7 +8536,7 @@ ${extraStyle}`
       type,
       percent,
       interval,
-      transform = percent ? (x) => x * 100 : maybeIntervalTransform(interval, type)
+      transform = percent ? (x) => (x == null ? NaN : x * 100) : maybeIntervalTransform(interval, type)
     } = options[scale] ?? {};
     if (transform == null) return;
     channel.value = map$1(channel.value, transform);
@@ -7731,7 +8592,7 @@ ${extraStyle}`
     if (facet == null) return;
     const {x, y} = facet;
     if (x == null && y == null) return;
-    const data = arrayify(facet.data);
+    const data = dataify(facet.data);
     if (data == null) throw new Error("missing facet data");
     const channels = {};
     if (x != null) channels.fx = createChannel(data, {value: x, scale: "fx"});
@@ -7750,7 +8611,7 @@ ${extraStyle}`
     // here with maybeTopFacet that we could reduce.
     const {fx, fy} = mark;
     if (fx != null || fy != null) {
-      const data = arrayify(mark.data ?? fx ?? fy);
+      const data = dataify(mark.data ?? fx ?? fy);
       if (data === undefined) throw new Error(`missing facet data in ${mark.ariaLabel}`);
       if (data === null) return; // ignore channel definitions if no data is provided TODO this right?
       const channels = {};
@@ -7772,7 +8633,7 @@ ${extraStyle}`
     if (
       data.length > 0 &&
       (groups.size > 1 || (groups.size === 1 && channels.fx && channels.fy && [...groups][0][1].size > 1)) &&
-      arrayify(mark.data)?.length === data.length
+      lengthof(dataify(mark.data)) === lengthof(data)
     ) {
       warn(
         `Warning: the ${mark.ariaLabel} mark appears to use faceted data, but isn’t faceted. The mark data has the same length as the facet data and the mark facet option is "auto", but the mark data and facet data are distinct. If this mark should be faceted, set the mark facet option to true; otherwise, suppress this warning by setting the mark facet option to false.`
@@ -8004,6 +8865,7 @@ ${extraStyle}`
 
   function outerRange(scale) {
     const domain = scale.domain();
+    if (domain.length === 0) return [0, scale.bandwidth()];
     let x1 = scale(domain[0]);
     let x2 = scale(domain[domain.length - 1]);
     if (x2 < x1) [x1, x2] = [x2, x1];
@@ -8064,21 +8926,21 @@ ${extraStyle}`
 
 // Group on {z, fill, stroke}, then optionally on y, then bin x.
   function binX(outputs = {y: "count"}, options = {}) {
-    [outputs, options] = mergeOptions$2(outputs, options);
+    [outputs, options] = mergeOptions$1(outputs, options);
     const {x, y} = options;
     return binn(maybeBinValue(x, options, identity$1), null, null, y, outputs, maybeInsetX(options));
   }
 
 // Group on {z, fill, stroke}, then optionally on x, then bin y.
   function binY(outputs = {x: "count"}, options = {}) {
-    [outputs, options] = mergeOptions$2(outputs, options);
+    [outputs, options] = mergeOptions$1(outputs, options);
     const {x, y} = options;
     return binn(null, maybeBinValue(y, options, identity$1), x, null, outputs, maybeInsetY(options));
   }
 
 // Group on {z, fill, stroke}, then bin on x and y.
   function bin(outputs = {fill: "count"}, options = {}) {
-    [outputs, options] = mergeOptions$2(outputs, options);
+    [outputs, options] = mergeOptions$1(outputs, options);
     const {x, y} = maybeBinValueTuple(options);
     return binn(x, y, null, null, outputs, maybeInsetX(maybeInsetY(options)));
   }
@@ -8225,7 +9087,7 @@ ${extraStyle}`
   }
 
 // Allow bin options to be specified as part of outputs; merge them into options.
-  function mergeOptions$2({cumulative, domain, thresholds, interval, ...outputs}, options) {
+  function mergeOptions$1({cumulative, domain, thresholds, interval, ...outputs}, options) {
     return [outputs, {cumulative, domain, thresholds, interval, ...options}];
   }
 
@@ -8338,7 +9200,7 @@ ${extraStyle}`
         case "auto":
           return thresholdAuto;
       }
-      return maybeUtcInterval(thresholds);
+      return utcInterval(thresholds);
     }
     return thresholds; // pass array, count, or function to bin.thresholds
   }
@@ -8494,393 +9356,7 @@ ${extraStyle}`
     }
   };
 
-  function maybeIdentityX(options = {}) {
-    return hasX(options) ? options : {...options, x: identity$1};
-  }
-
-  function maybeIdentityY(options = {}) {
-    return hasY(options) ? options : {...options, y: identity$1};
-  }
-
-  function exclusiveFacets(data, facets) {
-    if (facets.length === 1) return {data, facets}; // only one facet; trivially exclusive
-
-    const n = data.length;
-    const O = new Uint8Array(n);
-    let overlaps = 0;
-
-    // Count the number of overlapping indexes across facets.
-    for (const facet of facets) {
-      for (const i of facet) {
-        if (O[i]) ++overlaps;
-        O[i] = 1;
-      }
-    }
-
-    // Do nothing if the facets are already exclusive.
-    if (overlaps === 0) return {data, facets}; // facets are exclusive
-
-    // For each overlapping index (duplicate), assign a new unique index at the
-    // end of the existing array, duplicating the datum. For example, [[0, 1, 2],
-    // [2, 1, 3]] would become [[0, 1, 2], [4, 5, 3]]. Also attach a reindex to
-    // the data to preserve the association of channel values specified as arrays.
-    data = slice(data);
-    const R = (data[reindex] = new Uint32Array(n + overlaps));
-    facets = facets.map((facet) => slice(facet, Uint32Array));
-    let j = n;
-    O.fill(0);
-    for (const facet of facets) {
-      for (let k = 0, m = facet.length; k < m; ++k) {
-        const i = facet[k];
-        if (O[i]) (facet[k] = j), (data[j] = data[i]), (R[j] = i), ++j;
-        else R[i] = i;
-        O[i] = 1;
-      }
-    }
-
-    return {data, facets};
-  }
-
-  function stackX(stackOptions = {}, options = {}) {
-    if (arguments.length === 1) [stackOptions, options] = mergeOptions$1(stackOptions);
-    const {y1, y = y1, x, ...rest} = options; // note: consumes x!
-    const [transform, Y, x1, x2] = stack(y, x, "y", "x", stackOptions, rest);
-    return {...transform, y1, y: Y, x1, x2, x: mid(x1, x2)};
-  }
-
-  function stackX1(stackOptions = {}, options = {}) {
-    if (arguments.length === 1) [stackOptions, options] = mergeOptions$1(stackOptions);
-    const {y1, y = y1, x} = options;
-    const [transform, Y, X] = stack(y, x, "y", "x", stackOptions, options);
-    return {...transform, y1, y: Y, x: X};
-  }
-
-  function stackX2(stackOptions = {}, options = {}) {
-    if (arguments.length === 1) [stackOptions, options] = mergeOptions$1(stackOptions);
-    const {y1, y = y1, x} = options;
-    const [transform, Y, , X] = stack(y, x, "y", "x", stackOptions, options);
-    return {...transform, y1, y: Y, x: X};
-  }
-
-  function stackY(stackOptions = {}, options = {}) {
-    if (arguments.length === 1) [stackOptions, options] = mergeOptions$1(stackOptions);
-    const {x1, x = x1, y, ...rest} = options; // note: consumes y!
-    const [transform, X, y1, y2] = stack(x, y, "x", "y", stackOptions, rest);
-    return {...transform, x1, x: X, y1, y2, y: mid(y1, y2)};
-  }
-
-  function stackY1(stackOptions = {}, options = {}) {
-    if (arguments.length === 1) [stackOptions, options] = mergeOptions$1(stackOptions);
-    const {x1, x = x1, y} = options;
-    const [transform, X, Y] = stack(x, y, "x", "y", stackOptions, options);
-    return {...transform, x1, x: X, y: Y};
-  }
-
-  function stackY2(stackOptions = {}, options = {}) {
-    if (arguments.length === 1) [stackOptions, options] = mergeOptions$1(stackOptions);
-    const {x1, x = x1, y} = options;
-    const [transform, X, , Y] = stack(x, y, "x", "y", stackOptions, options);
-    return {...transform, x1, x: X, y: Y};
-  }
-
-  function maybeStackX({x, x1, x2, ...options} = {}) {
-    options = withTip(options, "y");
-    if (x1 === undefined && x2 === undefined) return stackX({x, ...options});
-    [x1, x2] = maybeZero(x, x1, x2);
-    return {...options, x1, x2};
-  }
-
-  function maybeStackY({y, y1, y2, ...options} = {}) {
-    options = withTip(options, "x");
-    if (y1 === undefined && y2 === undefined) return stackY({y, ...options});
-    [y1, y2] = maybeZero(y, y1, y2);
-    return {...options, y1, y2};
-  }
-
-// The reverse option is ambiguous: it is both a stack option and a basic
-// transform. If only one options object is specified, we interpret it as a
-// stack option, and therefore must remove it from the propagated options.
-  function mergeOptions$1(options) {
-    const {offset, order, reverse, ...rest} = options;
-    return [{offset, order, reverse}, rest];
-  }
-
-// This is a hint to the tooltip mark that the y1 and y2 channels (for stackY,
-// or conversely x1 and x2 for stackX) represent a stacked length, and that the
-// tooltip should therefore show y2-y1 instead of an extent.
-  const lengthy = {length: true};
-
-  function stack(x, y = one, kx, ky, {offset, order, reverse}, options) {
-    if (y === null) throw new Error(`stack requires ${ky}`);
-    const z = maybeZ(options);
-    const [X, setX] = maybeColumn(x);
-    const [Y1, setY1] = column(y);
-    const [Y2, setY2] = column(y);
-    Y1.hint = Y2.hint = lengthy;
-    offset = maybeOffset(offset);
-    order = maybeOrder(order, offset, ky);
-    return [
-      basic(options, (data, facets, plotOptions) => {
-        ({data, facets} = exclusiveFacets(data, facets));
-        const X = x == null ? undefined : setX(maybeApplyInterval(valueof(data, x), plotOptions?.[kx]));
-        const Y = valueof(data, y, Float64Array);
-        const Z = valueof(data, z);
-        const compare = order && order(data, X, Y, Z);
-        const n = data.length;
-        const Y1 = setY1(new Float64Array(n));
-        const Y2 = setY2(new Float64Array(n));
-        const facetstacks = [];
-        for (const facet of facets) {
-          const stacks = X ? Array.from(d3.group(facet, (i) => X[i]).values()) : [facet];
-          if (compare) for (const stack of stacks) stack.sort(compare);
-          for (const stack of stacks) {
-            let yn = 0;
-            let yp = 0;
-            if (reverse) stack.reverse();
-            for (const i of stack) {
-              const y = Y[i];
-              if (y < 0) yn = Y2[i] = (Y1[i] = yn) + y;
-              else if (y > 0) yp = Y2[i] = (Y1[i] = yp) + y;
-              else Y2[i] = Y1[i] = yp; // NaN or zero
-            }
-          }
-          facetstacks.push(stacks);
-        }
-        if (offset) offset(facetstacks, Y1, Y2, Z);
-        return {data, facets};
-      }),
-      X,
-      Y1,
-      Y2
-    ];
-  }
-
-  function maybeOffset(offset) {
-    if (offset == null) return;
-    if (typeof offset === "function") return offset;
-    switch (`${offset}`.toLowerCase()) {
-      case "expand":
-      case "normalize":
-        return offsetExpand;
-      case "center":
-      case "silhouette":
-        return offsetCenter;
-      case "wiggle":
-        return offsetWiggle;
-    }
-    throw new Error(`unknown offset: ${offset}`);
-  }
-
-// Given a single stack, returns the minimum and maximum values from the given
-// Y2 column. Note that this relies on Y2 always being the outer column for
-// diverging values.
-  function extent(stack, Y2) {
-    let min = 0,
-      max = 0;
-    for (const i of stack) {
-      const y = Y2[i];
-      if (y < min) min = y;
-      if (y > max) max = y;
-    }
-    return [min, max];
-  }
-
-  function offsetExpand(facetstacks, Y1, Y2) {
-    for (const stacks of facetstacks) {
-      for (const stack of stacks) {
-        const [yn, yp] = extent(stack, Y2);
-        for (const i of stack) {
-          const m = 1 / (yp - yn || 1);
-          Y1[i] = m * (Y1[i] - yn);
-          Y2[i] = m * (Y2[i] - yn);
-        }
-      }
-    }
-  }
-
-  function offsetCenter(facetstacks, Y1, Y2) {
-    for (const stacks of facetstacks) {
-      for (const stack of stacks) {
-        const [yn, yp] = extent(stack, Y2);
-        for (const i of stack) {
-          const m = (yp + yn) / 2;
-          Y1[i] -= m;
-          Y2[i] -= m;
-        }
-      }
-      offsetZero(stacks, Y1, Y2);
-    }
-    offsetCenterFacets(facetstacks, Y1, Y2);
-  }
-
-  function offsetWiggle(facetstacks, Y1, Y2, Z) {
-    for (const stacks of facetstacks) {
-      const prev = new d3.InternMap();
-      let y = 0;
-      for (const stack of stacks) {
-        let j = -1;
-        const Fi = stack.map((i) => Math.abs(Y2[i] - Y1[i]));
-        const Df = stack.map((i) => {
-          j = Z ? Z[i] : ++j;
-          const value = Y2[i] - Y1[i];
-          const diff = prev.has(j) ? value - prev.get(j) : 0;
-          prev.set(j, value);
-          return diff;
-        });
-        const Cf1 = [0, ...d3.cumsum(Df)];
-        for (const i of stack) {
-          Y1[i] += y;
-          Y2[i] += y;
-        }
-        const s1 = d3.sum(Fi);
-        if (s1) y -= d3.sum(Fi, (d, i) => (Df[i] / 2 + Cf1[i]) * d) / s1;
-      }
-      offsetZero(stacks, Y1, Y2);
-    }
-    offsetCenterFacets(facetstacks, Y1, Y2);
-  }
-
-  function offsetZero(stacks, Y1, Y2) {
-    const m = d3.min(stacks, (stack) => d3.min(stack, (i) => Y1[i]));
-    for (const stack of stacks) {
-      for (const i of stack) {
-        Y1[i] -= m;
-        Y2[i] -= m;
-      }
-    }
-  }
-
-  function offsetCenterFacets(facetstacks, Y1, Y2) {
-    const n = facetstacks.length;
-    if (n === 1) return;
-    const facets = facetstacks.map((stacks) => stacks.flat());
-    const m = facets.map((I) => (d3.min(I, (i) => Y1[i]) + d3.max(I, (i) => Y2[i])) / 2);
-    const m0 = d3.min(m);
-    for (let j = 0; j < n; j++) {
-      const p = m0 - m[j];
-      for (const i of facets[j]) {
-        Y1[i] += p;
-        Y2[i] += p;
-      }
-    }
-  }
-
-  function maybeOrder(order, offset, ky) {
-    if (order === undefined && offset === offsetWiggle) return orderInsideOut(ascendingDefined);
-    if (order == null) return;
-    if (typeof order === "string") {
-      const negate = order.startsWith("-");
-      const compare = negate ? descendingDefined : ascendingDefined;
-      switch ((negate ? order.slice(1) : order).toLowerCase()) {
-        case "value":
-        case ky:
-          return orderY(compare);
-        case "z":
-          return orderZ(compare);
-        case "sum":
-          return orderSum(compare);
-        case "appearance":
-          return orderAppearance(compare);
-        case "inside-out":
-          return orderInsideOut(compare);
-      }
-      return orderAccessor(field(order));
-    }
-    if (typeof order === "function") return (order.length === 1 ? orderAccessor : orderComparator)(order);
-    if (Array.isArray(order)) return orderGiven(order);
-    throw new Error(`invalid order: ${order}`);
-  }
-
-// by value
-  function orderY(compare) {
-    return (data, X, Y) => (i, j) => compare(Y[i], Y[j]);
-  }
-
-// by location
-  function orderZ(compare) {
-    return (data, X, Y, Z) => (i, j) => compare(Z[i], Z[j]);
-  }
-
-// by sum of value (a.k.a. “ascending”)
-  function orderSum(compare) {
-    return orderZDomain(compare, (data, X, Y, Z) =>
-      d3.groupSort(
-        range(data),
-        (I) => d3.sum(I, (i) => Y[i]),
-        (i) => Z[i]
-      )
-    );
-  }
-
-// by x = argmax of value
-  function orderAppearance(compare) {
-    return orderZDomain(compare, (data, X, Y, Z) =>
-      d3.groupSort(
-        range(data),
-        (I) => X[d3.greatest(I, (i) => Y[i])],
-        (i) => Z[i]
-      )
-    );
-  }
-
-// by x = argmax of value, but rearranged inside-out by alternating series
-// according to the sign of a running divergence of sums
-  function orderInsideOut(compare) {
-    return orderZDomain(compare, (data, X, Y, Z) => {
-      const I = range(data);
-      const K = d3.groupSort(
-        I,
-        (I) => X[d3.greatest(I, (i) => Y[i])],
-        (i) => Z[i]
-      );
-      const sums = d3.rollup(
-        I,
-        (I) => d3.sum(I, (i) => Y[i]),
-        (i) => Z[i]
-      );
-      const Kp = [],
-        Kn = [];
-      let s = 0;
-      for (const k of K) {
-        if (s < 0) {
-          s += sums.get(k);
-          Kp.push(k);
-        } else {
-          s -= sums.get(k);
-          Kn.push(k);
-        }
-      }
-      return Kn.reverse().concat(Kp);
-    });
-  }
-
-  function orderAccessor(f) {
-    return (data) => {
-      const O = valueof(data, f);
-      return (i, j) => ascendingDefined(O[i], O[j]);
-    };
-  }
-
-  function orderComparator(f) {
-    return (data) => (i, j) => f(data[i], data[j]);
-  }
-
-  function orderGiven(domain) {
-    return orderZDomain(ascendingDefined, () => domain);
-  }
-
-// Given an ordering (domain) of distinct values in z that can be derived from
-// the data, returns a comparator that can be used to sort stacks. Note that
-// this is a series order: it will be consistent across stacks.
-  function orderZDomain(compare, domain) {
-    return (data, X, Y, Z) => {
-      if (!Z) throw new Error("missing channel: z");
-      const map = new d3.InternMap(domain(data, X, Y, Z).map((d, i) => [d, i]));
-      return (i, j) => compare(map.get(Z[i]), map.get(Z[j]));
-    };
-  }
-
-  const defaults$g = {
+  const defaults$e = {
     ariaLabel: "area",
     strokeWidth: 1,
     strokeLinecap: "round",
@@ -8901,7 +9377,7 @@ ${extraStyle}`
           z: {value: maybeZ(options), optional: true}
         },
         options,
-        defaults$g
+        defaults$e
       );
       this.z = z;
       this.curve = maybeCurve(curve, tension);
@@ -8944,15 +9420,15 @@ ${extraStyle}`
 
   function areaX(data, options) {
     const {y = indexOf, ...rest} = maybeDenseIntervalY(options);
-    return new Area(data, maybeStackX(maybeIdentityX({...rest, y1: y, y2: undefined})));
+    return new Area(data, maybeStackX(maybeIdentityX({...rest, y1: y, y2: undefined}, y === indexOf ? "x2" : "x")));
   }
 
   function areaY(data, options) {
     const {x = indexOf, ...rest} = maybeDenseIntervalX(options);
-    return new Area(data, maybeStackY(maybeIdentityY({...rest, x1: x, x2: undefined})));
+    return new Area(data, maybeStackY(maybeIdentityY({...rest, x1: x, x2: undefined}, x === indexOf ? "y2" : "y")));
   }
 
-  const defaults$f = {
+  const defaults$d = {
     ariaLabel: "link",
     fill: "none",
     stroke: "currentColor",
@@ -8971,7 +9447,7 @@ ${extraStyle}`
           y2: {value: y2, scale: "y", optional: true}
         },
         options,
-        defaults$f
+        defaults$d
       );
       this.curve = maybeCurveAuto(curve, tension);
       markers(this, options);
@@ -8998,7 +9474,7 @@ ${extraStyle}`
             .attr(
               "d",
               curve === curveAuto && context.projection
-                ? sphereLink(context.projection, X1, Y1, X2, Y2)
+                ? sphereLink(context.path(), X1, Y1, X2, Y2)
                 : (i) => {
                   const p = d3.pathRound();
                   const c = curve(p);
@@ -9016,8 +9492,7 @@ ${extraStyle}`
     }
   }
 
-  function sphereLink(projection, X1, Y1, X2, Y2) {
-    const path = d3.geoPath(projection);
+  function sphereLink(path, X1, Y1, X2, Y2) {
     X1 = coerceNumbers(X1);
     Y1 = coerceNumbers(Y1);
     X2 = coerceNumbers(X2);
@@ -9056,7 +9531,7 @@ ${extraStyle}`
     return [x1, x2];
   }
 
-  const defaults$e = {
+  const defaults$c = {
     ariaLabel: "arrow",
     fill: "none",
     stroke: "currentColor",
@@ -9089,7 +9564,7 @@ ${extraStyle}`
           y2: {value: y2, scale: "y", optional: true}
         },
         options,
-        defaults$e
+        defaults$c
       );
       this.bend = bend === true ? 22.5 : Math.max(-90, Math.min(90, bend));
       this.headAngle = +headAngle;
@@ -9251,19 +9726,22 @@ ${extraStyle}`
     return new Arrow(data, {...options, x1, x2, y1, y2});
   }
 
+  const barDefaults = {
+    ariaLabel: "bar"
+  };
+
   class AbstractBar extends Mark {
-    constructor(data, channels, options = {}, defaults) {
+    constructor(data, channels, options = {}, defaults = barDefaults) {
       super(data, channels, options, defaults);
-      const {inset = 0, insetTop = inset, insetRight = inset, insetBottom = inset, insetLeft = inset, rx, ry} = options;
-      this.insetTop = number$1(insetTop);
-      this.insetRight = number$1(insetRight);
-      this.insetBottom = number$1(insetBottom);
-      this.insetLeft = number$1(insetLeft);
-      this.rx = impliedString(rx, "auto"); // number or percentage
-      this.ry = impliedString(ry, "auto");
+      rectInsets(this, options);
+      rectRadii(this, options);
     }
     render(index, scales, channels, dimensions, context) {
-      const {rx, ry} = this;
+      const {rx, ry, rx1y1, rx1y2, rx2y1, rx2y2} = this;
+      const x = this._x(scales, channels, dimensions);
+      const y = this._y(scales, channels, dimensions);
+      const w = this._width(scales, channels, dimensions);
+      const h = this._height(scales, channels, dimensions);
       return create("svg:g", context)
         .call(applyIndirectStyles, this, dimensions, context)
         .call(this._transform, this, scales)
@@ -9272,15 +9750,26 @@ ${extraStyle}`
             .selectAll()
             .data(index)
             .enter()
-            .append("rect")
-            .call(applyDirectStyles, this)
-            .attr("x", this._x(scales, channels, dimensions))
-            .attr("width", this._width(scales, channels, dimensions))
-            .attr("y", this._y(scales, channels, dimensions))
-            .attr("height", this._height(scales, channels, dimensions))
-            .call(applyAttr, "rx", rx)
-            .call(applyAttr, "ry", ry)
-            .call(applyChannelStyles, this, channels)
+            .call(
+              rx1y1 || rx1y2 || rx2y1 || rx2y2
+                ? (g) =>
+                  g
+                    .append("path")
+                    .call(applyDirectStyles, this)
+                    .call(applyRoundedRect, x, y, add(x, w), add(y, h), this)
+                    .call(applyChannelStyles, this, channels)
+                : (g) =>
+                  g
+                    .append("rect")
+                    .call(applyDirectStyles, this)
+                    .attr("x", x)
+                    .attr("width", w)
+                    .attr("y", y)
+                    .attr("height", h)
+                    .call(applyAttr, "rx", rx)
+                    .call(applyAttr, "ry", ry)
+                    .call(applyChannelStyles, this, channels)
+            )
         )
         .node();
     }
@@ -9304,12 +9793,18 @@ ${extraStyle}`
     }
   }
 
-  const defaults$d = {
-    ariaLabel: "bar"
-  };
+  function add(a, b) {
+    return typeof a === "function" && typeof b === "function"
+      ? (i) => a(i) + b(i)
+      : typeof a === "function"
+        ? (i) => a(i) + b
+        : typeof b === "function"
+          ? (i) => a + b(i)
+          : a + b;
+  }
 
   class BarX extends AbstractBar {
-    constructor(data, options = {}) {
+    constructor(data, options = {}, defaults) {
       const {x1, x2, y} = options;
       super(
         data,
@@ -9319,7 +9814,7 @@ ${extraStyle}`
           y: {value: y, scale: "y", type: "band", optional: true}
         },
         options,
-        defaults$d
+        defaults
       );
     }
     _transform(selection, mark, {x}) {
@@ -9338,7 +9833,7 @@ ${extraStyle}`
   }
 
   class BarY extends AbstractBar {
-    constructor(data, options = {}) {
+    constructor(data, options = {}, defaults) {
       const {x, y1, y2} = options;
       super(
         data,
@@ -9348,7 +9843,7 @@ ${extraStyle}`
           x: {value: x, scale: "x", type: "band", optional: true}
         },
         options,
-        defaults$d
+        defaults
       );
     }
     _transform(selection, mark, {y}) {
@@ -9376,7 +9871,7 @@ ${extraStyle}`
     return new BarY(data, maybeStackY(maybeIntervalY(maybeIdentityY(options))));
   }
 
-  const defaults$c = {
+  const defaults$b = {
     ariaLabel: "cell"
   };
 
@@ -9389,7 +9884,7 @@ ${extraStyle}`
           y: {value: y, scale: "y", type: "band", optional: true}
         },
         options,
-        defaults$c
+        defaults$b
       );
     }
     _transform(selection, mark) {
@@ -9413,7 +9908,7 @@ ${extraStyle}`
     return new Cell(data, {...options, y, fill, stroke});
   }
 
-  const defaults$b = {
+  const defaults$a = {
     ariaLabel: "dot",
     fill: "none",
     stroke: "currentColor",
@@ -9440,7 +9935,7 @@ ${extraStyle}`
           symbol: {value: vsymbol, scale: "auto", optional: true}
         },
         withDefaultSort(options),
-        defaults$b
+        defaults$a
       );
       this.r = cr;
       this.rotate = crotate;
@@ -9557,7 +10052,7 @@ ${extraStyle}`
     return dot(data, {...options, symbol: "hexagon"});
   }
 
-  const defaults$a = {
+  const defaults$9 = {
     ariaLabel: "line",
     fill: "none",
     stroke: "currentColor",
@@ -9578,7 +10073,7 @@ ${extraStyle}`
           z: {value: maybeZ(options), optional: true}
         },
         options,
-        defaults$a
+        defaults$9
       );
       this.z = z;
       this.curve = maybeCurveAuto(curve, tension);
@@ -9611,7 +10106,7 @@ ${extraStyle}`
             .attr(
               "d",
               curve === curveAuto && context.projection
-                ? sphereLine(context.projection, X, Y)
+                ? sphereLine(context.path(), X, Y)
                 : d3.line()
                   .curve(curve)
                   .defined((i) => i >= 0)
@@ -9623,8 +10118,7 @@ ${extraStyle}`
     }
   }
 
-  function sphereLine(projection, X, Y) {
-    const path = d3.geoPath(projection);
+  function sphereLine(path, X, Y) {
     X = coerceNumbers(X);
     Y = coerceNumbers(Y);
     return (I) => {
@@ -9654,115 +10148,6 @@ ${extraStyle}`
 
   function lineY(data, {x = indexOf, y = identity$1, ...options} = {}) {
     return new Line(data, maybeDenseIntervalX({...options, x, y}));
-  }
-
-  const defaults$9 = {
-    ariaLabel: "rect"
-  };
-
-  class Rect extends Mark {
-    constructor(data, options = {}) {
-      const {
-        x1,
-        y1,
-        x2,
-        y2,
-        inset = 0,
-        insetTop = inset,
-        insetRight = inset,
-        insetBottom = inset,
-        insetLeft = inset,
-        rx,
-        ry
-      } = options;
-      super(
-        data,
-        {
-          x1: {value: x1, scale: "x", type: x1 != null && x2 == null ? "band" : undefined, optional: true},
-          y1: {value: y1, scale: "y", type: y1 != null && y2 == null ? "band" : undefined, optional: true},
-          x2: {value: x2, scale: "x", optional: true},
-          y2: {value: y2, scale: "y", optional: true}
-        },
-        options,
-        defaults$9
-      );
-      this.insetTop = number$1(insetTop);
-      this.insetRight = number$1(insetRight);
-      this.insetBottom = number$1(insetBottom);
-      this.insetLeft = number$1(insetLeft);
-      this.rx = impliedString(rx, "auto"); // number or percentage
-      this.ry = impliedString(ry, "auto");
-    }
-    render(index, scales, channels, dimensions, context) {
-      const {x, y} = scales;
-      const {x1: X1, y1: Y1, x2: X2, y2: Y2} = channels;
-      const {marginTop, marginRight, marginBottom, marginLeft, width, height} = dimensions;
-      const {projection} = context;
-      const {insetTop, insetRight, insetBottom, insetLeft, rx, ry} = this;
-      const bx = (x?.bandwidth ? x.bandwidth() : 0) - insetLeft - insetRight;
-      const by = (y?.bandwidth ? y.bandwidth() : 0) - insetTop - insetBottom;
-      return create("svg:g", context)
-        .call(applyIndirectStyles, this, dimensions, context)
-        .call(applyTransform, this, {}, 0, 0)
-        .call((g) =>
-          g
-            .selectAll()
-            .data(index)
-            .enter()
-            .append("rect")
-            .call(applyDirectStyles, this)
-            .attr(
-              "x",
-              X1 && (projection || !isCollapsed(x))
-                ? X2
-                  ? (i) => Math.min(X1[i], X2[i]) + insetLeft
-                  : (i) => X1[i] + insetLeft
-                : marginLeft + insetLeft
-            )
-            .attr(
-              "y",
-              Y1 && (projection || !isCollapsed(y))
-                ? Y2
-                  ? (i) => Math.min(Y1[i], Y2[i]) + insetTop
-                  : (i) => Y1[i] + insetTop
-                : marginTop + insetTop
-            )
-            .attr(
-              "width",
-              X1 && (projection || !isCollapsed(x))
-                ? X2
-                  ? (i) => Math.max(0, Math.abs(X2[i] - X1[i]) + bx)
-                  : bx
-                : width - marginRight - marginLeft - insetRight - insetLeft
-            )
-            .attr(
-              "height",
-              Y1 && (projection || !isCollapsed(y))
-                ? Y2
-                  ? (i) => Math.max(0, Math.abs(Y1[i] - Y2[i]) + by)
-                  : by
-                : height - marginTop - marginBottom - insetTop - insetBottom
-            )
-            .call(applyAttr, "rx", rx)
-            .call(applyAttr, "ry", ry)
-            .call(applyChannelStyles, this, channels)
-        )
-        .node();
-    }
-  }
-
-  function rect(data, options) {
-    return new Rect(data, maybeTrivialIntervalX(maybeTrivialIntervalY(options)));
-  }
-
-  function rectX(data, options = {}) {
-    if (!hasXY(options)) options = {...options, y: indexOf, x2: identity$1, interval: 1};
-    return new Rect(data, maybeStackX(maybeTrivialIntervalY(maybeIdentityX(options))));
-  }
-
-  function rectY(data, options = {}) {
-    if (!hasXY(options)) options = {...options, x: indexOf, y2: identity$1, interval: 1};
-    return new Rect(data, maybeStackY(maybeTrivialIntervalX(maybeIdentityY(options))));
   }
 
   function autoSpec(data, options) {
@@ -10718,6 +11103,7 @@ ${extraStyle}`
     {
       x = identity$1,
       y = null,
+      r,
       fill = "#ccc",
       fillOpacity,
       stroke = "currentColor",
@@ -10732,7 +11118,7 @@ ${extraStyle}`
       ruleY(data, group({x1: loqr1, x2: hiqr2}, {x, y, stroke, strokeOpacity, ...options})),
       barX(data, group({x1: "p25", x2: "p75"}, {x, y, fill, fillOpacity, ...options})),
       tickX(data, group({x: "p50"}, {x, y, stroke, strokeOpacity, strokeWidth, sort, ...options})),
-      dot(data, map({x: oqr}, {x, y, z: y, stroke, strokeOpacity, ...options}))
+      dot(data, map({x: oqr}, {x, y, z: y, r, stroke, strokeOpacity, ...options}))
     );
   }
 
@@ -10743,6 +11129,7 @@ ${extraStyle}`
     {
       y = identity$1,
       x = null,
+      r,
       fill = "#ccc",
       fillOpacity,
       stroke = "currentColor",
@@ -10757,7 +11144,7 @@ ${extraStyle}`
       ruleX(data, group({y1: loqr1, y2: hiqr2}, {x, y, stroke, strokeOpacity, ...options})),
       barY(data, group({y1: "p25", y2: "p75"}, {x, y, fill, fillOpacity, ...options})),
       tickY(data, group({y: "p50"}, {x, y, stroke, strokeOpacity, strokeWidth, sort, ...options})),
-      dot(data, map({y: oqr}, {x, y, z: x, stroke, strokeOpacity, ...options}))
+      dot(data, map({y: oqr}, {x, y, z: x, r, stroke, strokeOpacity, ...options}))
     );
   }
 
@@ -11795,45 +12182,45 @@ ${extraStyle}`
           y: {value: y, scale: "y", optional: true},
           z: {value: z, optional: true}
         },
-        options,
+        initializer(options, function (data, facets, channels, scales, dimensions, context) {
+          let {x: X, y: Y, z: Z} = channels;
+          ({x: X, y: Y} = applyPosition(channels, scales, context));
+          Z = Z?.value;
+          const C = new Array((X ?? Y).length).fill(null);
+          const [cx, cy] = applyFrameAnchor(this, dimensions);
+          const xi = X ? (i) => X[i] : constant(cx);
+          const yi = Y ? (i) => Y[i] : constant(cy);
+          for (let I of facets) {
+            if (X) I = I.filter((i) => defined(xi(i)));
+            if (Y) I = I.filter((i) => defined(yi(i)));
+            for (const [, J] of maybeGroup(I, Z)) {
+              const delaunay = d3.Delaunay.from(J, xi, yi);
+              const voronoi = voronoiof(delaunay, dimensions);
+              for (let i = 0, n = J.length; i < n; ++i) {
+                C[J[i]] = voronoi.renderCell(i);
+              }
+            }
+          }
+          return {data, facets, channels: {cells: {value: C}}};
+        }),
         voronoiDefaults
       );
     }
     render(index, scales, channels, dimensions, context) {
       const {x, y} = scales;
-      const {x: X, y: Y, z: Z} = channels;
-      const [cx, cy] = applyFrameAnchor(this, dimensions);
-      const xi = X ? (i) => X[i] : constant(cx);
-      const yi = Y ? (i) => Y[i] : constant(cy);
-      const mark = this;
-
-      function cells(index) {
-        const delaunay = d3.Delaunay.from(index, xi, yi);
-        const voronoi = voronoiof(delaunay, dimensions);
-        d3.select(this)
-          .selectAll()
-          .data(index)
-          .enter()
-          .append("path")
-          .call(applyDirectStyles, mark)
-          .attr("d", (_, i) => voronoi.renderCell(i))
-          .call(applyChannelStyles, mark, channels);
-      }
-
+      const {x: X, y: Y, cells: C} = channels;
       return create("svg:g", context)
         .call(applyIndirectStyles, this, dimensions, context)
         .call(applyTransform, this, {x: X && x, y: Y && y})
-        .call(
-          Z
-            ? (g) =>
-              g
-                .selectAll()
-                .data(d3.group(index, (i) => Z[i]).values())
-                .enter()
-                .append("g")
-                .each(cells)
-            : (g) => g.datum(index).each(cells)
-        )
+        .call((g) => {
+          g.selectAll()
+            .data(index)
+            .enter()
+            .append("path")
+            .call(applyDirectStyles, this)
+            .attr("d", (i) => C[i])
+            .call(applyChannelStyles, this, channels);
+        })
         .node();
     }
   }
@@ -11870,8 +12257,8 @@ ${extraStyle}`
     return delaunayMark(Hull, data, options);
   }
 
-  function voronoi(data, options) {
-    return delaunayMark(Voronoi, data, options);
+  function voronoi(data, {x, y, initializer, ...options} = {}) {
+    return delaunayMark(Voronoi, data, {...basic({...options, x, y}, exclusiveFacets), initializer});
   }
 
   function voronoiMesh(data, options) {
@@ -12046,15 +12433,24 @@ ${extraStyle}`
     return /^density$/i.test(value);
   }
 
-  function differenceY(
+  function differenceX(data, options) {
+    return differenceK("x", data, options);
+  }
+
+  function differenceY(data, options) {
+    return differenceK("y", data, options);
+  }
+
+  function differenceK(
+    k,
     data,
     {
       x1,
       x2,
       y1,
       y2,
-      x = x1 === undefined && x2 === undefined ? indexOf : undefined,
-      y = y1 === undefined && y2 === undefined ? identity$1 : undefined,
+      x = x1 === undefined && x2 === undefined ? (k === "y" ? indexOf : identity$1) : undefined,
+      y = y1 === undefined && y2 === undefined ? (k === "x" ? indexOf : identity$1) : undefined,
       fill, // ignored
       positiveFill = "#3ca951",
       negativeFill = "#4269d0",
@@ -12072,8 +12468,11 @@ ${extraStyle}`
   ) {
     [x1, x2] = memoTuple(x, x1, x2);
     [y1, y2] = memoTuple(y, y1, y2);
-    if (x1 === x2 && y1 === y2) y1 = memo(0);
-    ({tip} = withTip({tip}, "x"));
+    if (x1 === x2 && y1 === y2) {
+      if (k === "y") y1 = memo(0);
+      else x1 = memo(0);
+    }
+    ({tip} = withTip({tip}, k === "y" ? "x" : "y"));
     return marks(
       !isNoneish(positiveFill)
         ? Object.assign(
@@ -12085,7 +12484,7 @@ ${extraStyle}`
             z,
             fill: positiveFill,
             fillOpacity: positiveFillOpacity,
-            render: composeRender(render, clipDifferenceY(true)),
+            render: composeRender(render, clipDifference(k, true)),
             clip,
             ...options
           }),
@@ -12102,7 +12501,7 @@ ${extraStyle}`
             z,
             fill: negativeFill,
             fillOpacity: negativeFillOpacity,
-            render: composeRender(render, clipDifferenceY(false)),
+            render: composeRender(render, clipDifference(k, false)),
             clip,
             ...options
           }),
@@ -12150,15 +12549,20 @@ ${extraStyle}`
     return {transform: (data) => V || (V = valueof(data, value)), label};
   }
 
-  function clipDifferenceY(positive) {
+  function clipDifference(k, positive) {
+    const f = k === "x" ? "y" : "x"; // f is the flipped dimension
+    const f1 = `${f}1`;
+    const f2 = `${f}2`;
+    const k1 = `${k}1`;
+    const k2 = `${k}2`;
     return (index, scales, channels, dimensions, context, next) => {
-      const {x1, x2} = channels;
-      const {height} = dimensions;
-      const y1 = new Float32Array(x1.length);
-      const y2 = new Float32Array(x2.length);
-      (positive === inferScaleOrder(scales.y) < 0 ? y1 : y2).fill(height);
-      const oc = next(index, scales, {...channels, x2: x1, y2}, dimensions, context);
-      const og = next(index, scales, {...channels, x1: x2, y1}, dimensions, context);
+      const {[f1]: F1, [f2]: F2} = channels;
+      const K1 = new Float32Array(F1.length);
+      const K2 = new Float32Array(F2.length);
+      const m = dimensions[k === "y" ? "height" : "width"];
+      (positive === inferScaleOrder(scales[k]) < 0 ? K1 : K2).fill(m);
+      const oc = next(index, scales, {...channels, [f2]: F1, [k2]: K2}, dimensions, context);
+      const og = next(index, scales, {...channels, [f1]: F2, [k1]: K1}, dimensions, context);
       const c = oc.querySelector("g") ?? oc; // applyClip
       const g = og.querySelector("g") ?? og; // applyClip
       for (let i = 0; c.firstChild; i += 2) {
@@ -12169,6 +12573,39 @@ ${extraStyle}`
         g.insertBefore(clipPath, g.childNodes[i]);
       }
       return og;
+    };
+  }
+
+  function centroid({geometry = identity$1, ...options} = {}) {
+    const getG = memoize1((data) => valueof(data, geometry));
+    return initializer(
+      // Suppress defaults for x and y since they will be computed by the initializer.
+      // Propagate the (memoized) geometry channel in case it’s still needed.
+      {...options, x: null, y: null, geometry: {transform: getG}},
+      (data, facets, channels, scales, dimensions, context) => {
+        const G = getG(data);
+        const n = G.length;
+        const X = new Float64Array(n);
+        const Y = new Float64Array(n);
+        const {centroid} = context.path();
+        for (let i = 0; i < n; ++i) [X[i], Y[i]] = centroid(G[i]);
+        return {
+          data,
+          facets,
+          channels: {x: {value: X, scale: null, source: null}, y: {value: Y, scale: null, source: null}}
+        };
+      }
+    );
+  }
+
+  function geoCentroid({geometry = identity$1, ...options} = {}) {
+    const getG = memoize1((data) => valueof(data, geometry));
+    const getC = memoize1((data) => valueof(getG(data), d3.geoCentroid));
+    return {
+      ...options,
+      x: {transform: (data) => Float64Array.from(getC(data), ([x]) => x)},
+      y: {transform: (data) => Float64Array.from(getC(data), ([, y]) => y)},
+      geometry: {transform: getG}
     };
   }
 
@@ -12188,8 +12625,10 @@ ${extraStyle}`
       super(
         data,
         {
-          geometry: {value: options.geometry, scale: "projection"},
-          r: {value: vr, scale: "r", filter: positive, optional: true}
+          x: {value: options.tip ? options.x : null, scale: "x", optional: true},
+          y: {value: options.tip ? options.y : null, scale: "y", optional: true},
+          r: {value: vr, scale: "r", filter: positive, optional: true},
+          geometry: {value: options.geometry, scale: "projection"}
         },
         withDefaultSort(options),
         defaults$3
@@ -12198,7 +12637,7 @@ ${extraStyle}`
     }
     render(index, scales, channels, dimensions, context) {
       const {geometry: G, r: R} = channels;
-      const path = d3.geoPath(context.projection ?? scaleProjection(scales));
+      const path = context.path();
       const {r} = this;
       if (negative(r)) index = [];
       else if (r !== undefined) path.pointRadius(r);
@@ -12218,40 +12657,10 @@ ${extraStyle}`
     }
   }
 
-// If no projection is specified, default to a projection that passes points
-// through the x and y scales, if any.
-  function scaleProjection({x: X, y: Y}) {
-    if (X || Y) {
-      X ??= (x) => x;
-      Y ??= (y) => y;
-      return d3.geoTransform({
-        point(x, y) {
-          this.stream.point(X(x), Y(y));
-        }
-      });
-    }
-  }
-
-  function geo(data, {geometry = identity$1, ...options} = {}) {
-    switch (data?.type) {
-      case "FeatureCollection":
-        data = data.features;
-        break;
-      case "GeometryCollection":
-        data = data.geometries;
-        break;
-      case "Feature":
-      case "LineString":
-      case "MultiLineString":
-      case "MultiPoint":
-      case "MultiPolygon":
-      case "Point":
-      case "Polygon":
-      case "Sphere":
-        data = [data];
-        break;
-    }
-    return new Geo(data, {geometry, ...options});
+  function geo(data, options = {}) {
+    if (options.tip && options.x === undefined && options.y === undefined) options = centroid(options);
+    else if (options.geometry === undefined) options = {...options, geometry: identity$1};
+    return new Geo(data, options);
   }
 
   function sphere({strokeWidth = 1.5, ...options} = {}) {
@@ -12589,19 +12998,10 @@ ${extraStyle}`
     var a1 = a - 1;
     var b1 = b - 1;
     var j = 0;
-    var lna, lnb, pp, t, u, err, x, al, h, w, afac;
+    var lna, lnb, t, u, err, x, w, afac;
     if (p <= 0) return 0;
     if (p >= 1) return 1;
-    if (a >= 1 && b >= 1) {
-      pp = p < 0.5 ? p : 1 - p;
-      t = Math.sqrt(-2 * Math.log(pp));
-      x = (2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)) - t;
-      if (p < 0.5) x = -x;
-      al = (x * x - 3) / 6;
-      h = 2 / (1 / (2 * a - 1) + 1 / (2 * b - 1));
-      w = (x * Math.sqrt(al + h)) / h - (1 / (2 * b - 1) - 1 / (2 * a - 1)) * (al + 5 / 6 - 2 / (3 * h));
-      x = a / (a + b * Math.exp(2 * w));
-    } else {
+    {
       lna = Math.log(a / (a + b));
       lnb = Math.log(b / (a + b));
       t = Math.exp(a * lna) / a;
@@ -12680,7 +13080,7 @@ ${extraStyle}`
     var j = 0;
     var cof = [
       76.18009172947146, -86.5053203294167, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2,
-      -0.5395239384953e-5
+      -5395239384953e-18
     ];
     var ser = 1.000000000190015;
     var xx, y, tmp;
@@ -12782,7 +13182,7 @@ ${extraStyle}`
       return d3.area()
         .y((y) => y)
         .x0((y) => g(y, -1))
-        .x1((y) => g(y, +1))(d3.range(y1, y2 - precision / 2, precision).concat(y2));
+        .x1((y) => g(y, 1))(d3.range(y1, y2 - precision / 2, precision).concat(y2));
     }
     _renderLine(I, X, Y) {
       const [y1, y2] = d3.extent(I, (i) => Y[i]);
@@ -12803,7 +13203,7 @@ ${extraStyle}`
       return d3.area()
         .x((x) => x)
         .y0((x) => g(x, -1))
-        .y1((x) => g(x, +1))(d3.range(x1, x2 - precision / 2, precision).concat(x2));
+        .y1((x) => g(x, 1))(d3.range(x1, x2 - precision / 2, precision).concat(x2));
     }
     _renderLine(I, X, Y) {
       const [x1, x2] = d3.extent(I, (i) => X[i]);
@@ -12893,13 +13293,16 @@ ${extraStyle}`
         const treeData = [];
         const treeFacets = [];
         const rootof = d3.stratify().path((i) => P[i]);
+        const setData = isArray(data)
+          ? (node) => (node.data = data[node.data])
+          : (node) => (node.data = data.get(node.data));
         const layout = treeLayout();
         if (layout.nodeSize) layout.nodeSize([1, 1]);
         if (layout.separation && treeSeparation !== undefined) layout.separation(treeSeparation ?? one);
         for (const o of outputs) o[output_values] = o[output_setValues]([]);
         for (const facet of facets) {
           const treeFacet = [];
-          const root = rootof(facet.filter((i) => P[i] != null)).each((node) => (node.data = data[node.data]));
+          const root = rootof(facet.filter((i) => P[i] != null)).each(setData);
           if (treeSort != null) root.sort(treeSort);
           layout(root);
           for (const node of root.descendants()) {
@@ -13298,466 +13701,747 @@ ${extraStyle}`
     return tree(data, {...options, treeLayout: d3.cluster});
   }
 
-  function centroid({geometry = identity$1, ...options} = {}) {
-    // Suppress defaults for x and y since they will be computed by the initializer.
-    return initializer({...options, x: null, y: null}, (data, facets, channels, scales, dimensions, {projection}) => {
-      const G = valueof(data, geometry);
-      const n = G.length;
+  const waffleDefaults = {
+    ariaLabel: "waffle"
+  };
+
+  class WaffleX extends BarX {
+    constructor(data, {unit = 1, gap = 1, round, multiple, ...options} = {}) {
+      super(data, wafflePolygon("x", options), waffleDefaults);
+      this.unit = Math.max(0, unit);
+      this.gap = +gap;
+      this.round = maybeRound(round);
+      this.multiple = maybeMultiple(multiple);
+    }
+  }
+
+  class WaffleY extends BarY {
+    constructor(data, {unit = 1, gap = 1, round, multiple, ...options} = {}) {
+      super(data, wafflePolygon("y", options), waffleDefaults);
+      this.unit = Math.max(0, unit);
+      this.gap = +gap;
+      this.round = maybeRound(round);
+      this.multiple = maybeMultiple(multiple);
+    }
+  }
+
+  function wafflePolygon(y, options) {
+    const x = y === "y" ? "x" : "y";
+    const y1 = `${y}1`;
+    const y2 = `${y}2`;
+    return initializer(waffleRender(options), function (data, facets, channels, scales, dimensions) {
+      const {round, unit} = this;
+      const Y1 = channels[y1].value;
+      const Y2 = channels[y2].value;
+
+      // We might not use all the available bandwidth if the cells don’t fit evenly.
+      const xy = valueObject({...(x in channels && {[x]: channels[x]}), [y1]: channels[y1], [y2]: channels[y2]}, scales);
+      const barwidth = this[y === "y" ? "_width" : "_height"](scales, xy, dimensions);
+      const barx = this[y === "y" ? "_x" : "_y"](scales, xy, dimensions);
+
+      // The length of a unit along y in pixels.
+      const scale = unit * scaleof(scales.scales[y]);
+
+      // The number of cells on each row (or column) of the waffle.
+      const {multiple = Math.max(1, Math.floor(Math.sqrt(barwidth / scale)))} = this;
+
+      // The outer size of each square cell, in pixels, including the gap.
+      const cx = Math.min(barwidth / multiple, scale * multiple);
+      const cy = scale * multiple;
+
+      // The reference position.
+      const tx = (barwidth - multiple * cx) / 2;
+      const x0 = typeof barx === "function" ? (i) => barx(i) + tx : barx + tx;
+      const y0 = scales[y](0);
+
+      // TODO insets?
+      const transform = y === "y" ? ([x, y]) => [x * cx, -y * cy] : ([x, y]) => [y * cy, x * cx];
+      const mx = typeof x0 === "function" ? (i) => x0(i) - barwidth / 2 : () => x0;
+      const [ix, iy] = y === "y" ? [0, 1] : [1, 0];
+
+      const n = Y2.length;
+      const P = new Array(n);
       const X = new Float64Array(n);
       const Y = new Float64Array(n);
-      const path = d3.geoPath(projection);
-      for (let i = 0; i < n; ++i) [X[i], Y[i]] = path.centroid(G[i]);
+
+      for (let i = 0; i < n; ++i) {
+        P[i] = wafflePoints(round(Y1[i] / unit), round(Y2[i] / unit), multiple).map(transform);
+        const c = P[i].pop(); // extract the transformed centroid
+        X[i] = c[ix] + mx(i);
+        Y[i] = c[iy] + y0;
+      }
+
       return {
-        data,
-        facets,
         channels: {
-          x: {value: X, scale: projection == null ? "x" : null, source: null},
-          y: {value: Y, scale: projection == null ? "y" : null, source: null}
+          polygon: {value: P, source: null, filter: null},
+          [`c${x}`]: {value: [cx, x0], source: null, filter: null},
+          [`c${y}`]: {value: [cy, y0], source: null, filter: null},
+          [x]: {value: X, scale: null, source: null},
+          [y1]: {value: Y, scale: null, source: channels[y1]},
+          [y2]: {value: Y, scale: null, source: channels[y2]}
         }
       };
     });
   }
 
-  function geoCentroid({geometry = identity$1, ...options} = {}) {
-    let C;
+  function waffleRender({render, ...options}) {
     return {
       ...options,
-      x: {transform: (data) => Float64Array.from((C = valueof(valueof(data, geometry), d3.geoCentroid)), ([x]) => x)},
-      y: {transform: () => Float64Array.from(C, ([, y]) => y)}
+      render: composeRender(render, function (index, scales, values, dimensions, context) {
+        const {gap, rx, ry} = this;
+        const {channels, ariaLabel, href, title, ...visualValues} = values;
+        const {document} = context;
+        const polygon = channels.polygon.value;
+        const [cx, x0] = channels.cx.value;
+        const [cy, y0] = channels.cy.value;
+
+        // Create a base pattern with shared attributes for cloning.
+        const patternId = getPatternId();
+        const basePattern = document.createElementNS(d3.namespaces.svg, "pattern");
+        basePattern.setAttribute("width", cx);
+        basePattern.setAttribute("height", cy);
+        basePattern.setAttribute("patternUnits", "userSpaceOnUse");
+        const basePatternRect = basePattern.appendChild(document.createElementNS(d3.namespaces.svg, "rect"));
+        basePatternRect.setAttribute("x", gap / 2);
+        basePatternRect.setAttribute("y", gap / 2);
+        basePatternRect.setAttribute("width", cx - gap);
+        basePatternRect.setAttribute("height", cy - gap);
+        if (rx != null) basePatternRect.setAttribute("rx", rx);
+        if (ry != null) basePatternRect.setAttribute("ry", ry);
+
+        return create("svg:g", context)
+          .call(applyIndirectStyles, this, dimensions, context)
+          .call(this._transform, this, scales)
+          .call((g) =>
+            g
+              .selectAll()
+              .data(index)
+              .enter()
+              .append(() => basePattern.cloneNode(true))
+              .attr("id", (i) => `${patternId}-${i}`)
+              .select("rect")
+              .call(applyDirectStyles, this)
+              .call(applyChannelStyles, this, visualValues)
+          )
+          .call((g) =>
+            g
+              .selectAll()
+              .data(index)
+              .enter()
+              .append("path")
+              .attr("transform", template`translate(${x0},${y0})`)
+              .attr("d", (i) => `M${polygon[i].join("L")}Z`)
+              .attr("fill", (i) => `url(#${patternId}-${i})`)
+              .attr("stroke", this.stroke == null ? null : "none")
+              .call(applyChannelStyles, this, {ariaLabel, href, title})
+          )
+          .node();
+      })
     };
+  }
+
+// A waffle is approximately a rectangular shape, but may have one or two corner
+// cuts if the starting or ending value is not an even multiple of the number of
+// columns (the width of the waffle in cells). We can represent any waffle by
+// 8 points; below is a waffle of five columns representing the interval 2–11:
+//
+// 1-0
+// |•7-------6
+// |• • • • •|
+// 2---3• • •|
+//     4-----5
+//
+// Note that points 0 and 1 always have the same y-value, points 1 and 2 have
+// the same x-value, and so on, so we don’t need to materialize the x- and y-
+// values of all points. Also note that we can’t use the already-projected y-
+// values because these assume that y-values are distributed linearly along y
+// rather than wrapping around in columns.
+//
+// The corner points may be coincident. If the ending value is an even multiple
+// of the number of columns, say representing the interval 2–10, then points 6,
+// 7, and 0 are the same.
+//
+// 1-----0/7/6
+// |• • • • •|
+// 2---3• • •|
+//     4-----5
+//
+// Likewise if the starting value is an even multiple, say representing the
+// interval 0–10, points 2–4 are coincident.
+//
+// 1-----0/7/6
+// |• • • • •|
+// |• • • • •|
+// 4/3/2-----5
+//
+// Waffles can also represent fractional intervals (e.g., 2.4–10.1). These
+// require additional corner cuts, so the implementation below generates a few
+// more points.
+//
+// The last point describes the centroid (used for pointing)
+  function wafflePoints(i1, i2, columns) {
+    if (i2 < i1) return wafflePoints(i2, i1, columns); // ensure i1 <= i2
+    if (i1 < 0) return wafflePointsOffset(i1, i2, columns, Math.ceil(-Math.min(i1, i2) / columns)); // ensure i1 >= 0
+    const x1f = Math.floor(i1 % columns);
+    const x1c = Math.ceil(i1 % columns);
+    const x2f = Math.floor(i2 % columns);
+    const x2c = Math.ceil(i2 % columns);
+    const y1f = Math.floor(i1 / columns);
+    const y1c = Math.ceil(i1 / columns);
+    const y2f = Math.floor(i2 / columns);
+    const y2c = Math.ceil(i2 / columns);
+    const points = [];
+    if (y2c > y1c) points.push([0, y1c]);
+    points.push([x1f, y1c], [x1f, y1f + (i1 % 1)], [x1c, y1f + (i1 % 1)]);
+    if (!(i1 % columns > columns - 1)) {
+      points.push([x1c, y1f]);
+      if (y2f > y1f) points.push([columns, y1f]);
+    }
+    if (y2f > y1f) points.push([columns, y2f]);
+    points.push([x2c, y2f], [x2c, y2f + (i2 % 1)], [x2f, y2f + (i2 % 1)]);
+    if (!(i2 % columns < 1)) {
+      points.push([x2f, y2c]);
+      if (y2c > y1c) points.push([0, y2c]);
+    }
+    points.push(waffleCentroid(i1, i2, columns));
+    return points;
+  }
+
+  function wafflePointsOffset(i1, i2, columns, k) {
+    return wafflePoints(i1 + k * columns, i2 + k * columns, columns).map(([x, y]) => [x, y - k]);
+  }
+
+  function waffleCentroid(i1, i2, columns) {
+    const r = Math.floor(i2 / columns) - Math.floor(i1 / columns);
+    return r === 0
+      ? // Single row
+      waffleRowCentroid(i1, i2, columns)
+      : r === 1
+        ? // Two incomplete rows; use the midpoint of their overlap if any, otherwise the larger row
+        Math.floor(i2 % columns) > Math.ceil(i1 % columns)
+          ? [(Math.floor(i2 % columns) + Math.ceil(i1 % columns)) / 2, Math.floor(i2 / columns)]
+          : i2 % columns > columns - (i1 % columns)
+            ? waffleRowCentroid(i2 - (i2 % columns), i2, columns)
+            : waffleRowCentroid(i1, columns * Math.ceil(i1 / columns), columns)
+        : // At least one full row; take the midpoint of all the rows that include the middle
+        [columns / 2, (Math.round(i1 / columns) + Math.round(i2 / columns)) / 2];
+  }
+
+  function waffleRowCentroid(i1, i2, columns) {
+    const c = Math.floor(i2) - Math.floor(i1);
+    return c === 0
+      ? // Single cell
+      [Math.floor(i1 % columns) + 0.5, Math.floor(i1 / columns) + (((i1 + i2) / 2) % 1)]
+      : c === 1
+        ? // Two incomplete cells; use the overlap if large enough, otherwise use the largest
+        (i2 % 1) - (i1 % 1) > 0.5
+          ? [Math.ceil(i1 % columns), Math.floor(i2 / columns) + ((i1 % 1) + (i2 % 1)) / 2]
+          : i2 % 1 > 1 - (i1 % 1)
+            ? [Math.floor(i2 % columns) + 0.5, Math.floor(i2 / columns) + (i2 % 1) / 2]
+            : [Math.floor(i1 % columns) + 0.5, Math.floor(i1 / columns) + (1 + (i1 % 1)) / 2]
+        : // At least one full cell; take the midpoint
+        [
+          Math.ceil(i1 % columns) + Math.ceil(Math.floor(i2) - Math.ceil(i1)) / 2,
+          Math.floor(i1 / columns) + (i2 >= 1 + i1 ? 0.5 : ((i1 + i2) / 2) % 1)
+        ];
+  }
+
+  function maybeRound(round) {
+    if (round === undefined || round === false) return Number;
+    if (round === true) return Math.round;
+    if (typeof round !== "function") throw new Error(`invalid round: ${round}`);
+    return round;
+  }
+
+  function maybeMultiple(multiple) {
+    return multiple === undefined ? undefined : Math.max(1, Math.floor(multiple));
+  }
+
+  function scaleof({domain, range}) {
+    return spread(range) / spread(domain);
+  }
+
+  function spread(domain) {
+    const [min, max] = d3.extent(domain);
+    return max - min;
+  }
+
+  function waffleX(data, {tip, ...options} = {}) {
+    if (!hasXY(options)) options = {...options, y: indexOf, x2: identity$1};
+    return new WaffleX(data, {tip: waffleTip(tip), ...maybeStackX(maybeIntervalX(maybeIdentityX(options)))});
+  }
+
+  function waffleY(data, {tip, ...options} = {}) {
+    if (!hasXY(options)) options = {...options, x: indexOf, y2: identity$1};
+    return new WaffleY(data, {tip: waffleTip(tip), ...maybeStackY(maybeIntervalY(maybeIdentityY(options)))});
+  }
+
+  /**
+   * Waffle tips behave a bit unpredictably because we they are driven by the
+   * waffle centroid; you could be hovering over a waffle segment, but more than
+   * 40px away from its centroid, or closer to the centroid of another segment.
+   * We’d rather show a tip, even if it’s the “wrong” one, so we increase the
+   * default maxRadius to Infinity. The “right” way to fix this would be to use
+   * signed distance to the waffle geometry rather than the centroid.
+   */
+  function waffleTip(tip) {
+    return tip === true
+      ? {maxRadius: Infinity}
+      : isObject(tip) && tip.maxRadius === undefined
+        ? {...tip, maxRadius: Infinity}
+        : undefined;
   }
 
   function getDefaultExportFromCjs (x) {
     return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
   }
 
-// (a, y, c, l, h) = (array, y[, cmp, lo, hi])
+  var searchBounds;
+  var hasRequiredSearchBounds;
 
-  function ge(a, y, c, l, h) {
-    var i = h + 1;
-    while (l <= h) {
-      var m = (l + h) >>> 1, x = a[m];
-      var p = (c !== undefined) ? c(x, y) : (x - y);
-      if (p >= 0) { i = m; h = m - 1; } else { l = m + 1; }
+  function requireSearchBounds () {
+    if (hasRequiredSearchBounds) return searchBounds;
+    hasRequiredSearchBounds = 1;
+
+    // (a, y, c, l, h) = (array, y[, cmp, lo, hi])
+
+    function ge(a, y, c, l, h) {
+      var i = h + 1;
+      while (l <= h) {
+        var m = (l + h) >>> 1, x = a[m];
+        var p = (c !== undefined) ? c(x, y) : (x - y);
+        if (p >= 0) { i = m; h = m - 1; } else { l = m + 1; }
+      }
+      return i;
     }
-    return i;
-  }
-  function gt(a, y, c, l, h) {
-    var i = h + 1;
-    while (l <= h) {
-      var m = (l + h) >>> 1, x = a[m];
-      var p = (c !== undefined) ? c(x, y) : (x - y);
-      if (p > 0) { i = m; h = m - 1; } else { l = m + 1; }
+    function gt(a, y, c, l, h) {
+      var i = h + 1;
+      while (l <= h) {
+        var m = (l + h) >>> 1, x = a[m];
+        var p = (c !== undefined) ? c(x, y) : (x - y);
+        if (p > 0) { i = m; h = m - 1; } else { l = m + 1; }
+      }
+      return i;
     }
-    return i;
-  }
-  function lt(a, y, c, l, h) {
-    var i = l - 1;
-    while (l <= h) {
-      var m = (l + h) >>> 1, x = a[m];
-      var p = (c !== undefined) ? c(x, y) : (x - y);
-      if (p < 0) { i = m; l = m + 1; } else { h = m - 1; }
+    function lt(a, y, c, l, h) {
+      var i = l - 1;
+      while (l <= h) {
+        var m = (l + h) >>> 1, x = a[m];
+        var p = (c !== undefined) ? c(x, y) : (x - y);
+        if (p < 0) { i = m; l = m + 1; } else { h = m - 1; }
+      }
+      return i;
     }
-    return i;
-  }
-  function le(a, y, c, l, h) {
-    var i = l - 1;
-    while (l <= h) {
-      var m = (l + h) >>> 1, x = a[m];
-      var p = (c !== undefined) ? c(x, y) : (x - y);
-      if (p <= 0) { i = m; l = m + 1; } else { h = m - 1; }
+    function le(a, y, c, l, h) {
+      var i = l - 1;
+      while (l <= h) {
+        var m = (l + h) >>> 1, x = a[m];
+        var p = (c !== undefined) ? c(x, y) : (x - y);
+        if (p <= 0) { i = m; l = m + 1; } else { h = m - 1; }
+      }
+      return i;
     }
-    return i;
-  }
-  function eq(a, y, c, l, h) {
-    while (l <= h) {
-      var m = (l + h) >>> 1, x = a[m];
-      var p = (c !== undefined) ? c(x, y) : (x - y);
-      if (p === 0) { return m }
-      if (p <= 0) { l = m + 1; } else { h = m - 1; }
+    function eq(a, y, c, l, h) {
+      while (l <= h) {
+        var m = (l + h) >>> 1, x = a[m];
+        var p = (c !== undefined) ? c(x, y) : (x - y);
+        if (p === 0) { return m }
+        if (p <= 0) { l = m + 1; } else { h = m - 1; }
+      }
+      return -1;
     }
-    return -1;
-  }
-  function norm(a, y, c, l, h, f) {
-    if (typeof c === 'function') {
-      return f(a, y, c, (l === undefined) ? 0 : l | 0, (h === undefined) ? a.length - 1 : h | 0);
+    function norm(a, y, c, l, h, f) {
+      if (typeof c === 'function') {
+        return f(a, y, c, (l === undefined) ? 0 : l | 0, (h === undefined) ? a.length - 1 : h | 0);
+      }
+      return f(a, y, undefined, (c === undefined) ? 0 : c | 0, (l === undefined) ? a.length - 1 : l | 0);
     }
-    return f(a, y, undefined, (c === undefined) ? 0 : c | 0, (l === undefined) ? a.length - 1 : l | 0);
+
+    searchBounds = {
+      ge: function(a, y, c, l, h) { return norm(a, y, c, l, h, ge)},
+      gt: function(a, y, c, l, h) { return norm(a, y, c, l, h, gt)},
+      lt: function(a, y, c, l, h) { return norm(a, y, c, l, h, lt)},
+      le: function(a, y, c, l, h) { return norm(a, y, c, l, h, le)},
+      eq: function(a, y, c, l, h) { return norm(a, y, c, l, h, eq)}
+    };
+    return searchBounds;
   }
 
-  var searchBounds = {
-    ge: function(a, y, c, l, h) { return norm(a, y, c, l, h, ge)},
-    gt: function(a, y, c, l, h) { return norm(a, y, c, l, h, gt)},
-    lt: function(a, y, c, l, h) { return norm(a, y, c, l, h, lt)},
-    le: function(a, y, c, l, h) { return norm(a, y, c, l, h, le)},
-    eq: function(a, y, c, l, h) { return norm(a, y, c, l, h, eq)}
-  };
+  var intervalTree;
+  var hasRequiredIntervalTree;
 
-  var bounds = searchBounds;
+  function requireIntervalTree () {
+    if (hasRequiredIntervalTree) return intervalTree;
+    hasRequiredIntervalTree = 1;
 
-  var NOT_FOUND = 0;
-  var SUCCESS = 1;
-  var EMPTY = 2;
+    var bounds = requireSearchBounds();
 
-  var intervalTree = createWrapper;
+    var NOT_FOUND = 0;
+    var SUCCESS = 1;
+    var EMPTY = 2;
 
-  function IntervalTreeNode(mid, left, right, leftPoints, rightPoints) {
-    this.mid = mid;
-    this.left = left;
-    this.right = right;
-    this.leftPoints = leftPoints;
-    this.rightPoints = rightPoints;
-    this.count = (left ? left.count : 0) + (right ? right.count : 0) + leftPoints.length;
-  }
+    intervalTree = createWrapper;
 
-  var proto = IntervalTreeNode.prototype;
-
-  function copy(a, b) {
-    a.mid = b.mid;
-    a.left = b.left;
-    a.right = b.right;
-    a.leftPoints = b.leftPoints;
-    a.rightPoints = b.rightPoints;
-    a.count = b.count;
-  }
-
-  function rebuild(node, intervals) {
-    var ntree = createIntervalTree(intervals);
-    node.mid = ntree.mid;
-    node.left = ntree.left;
-    node.right = ntree.right;
-    node.leftPoints = ntree.leftPoints;
-    node.rightPoints = ntree.rightPoints;
-    node.count = ntree.count;
-  }
-
-  function rebuildWithInterval(node, interval) {
-    var intervals = node.intervals([]);
-    intervals.push(interval);
-    rebuild(node, intervals);
-  }
-
-  function rebuildWithoutInterval(node, interval) {
-    var intervals = node.intervals([]);
-    var idx = intervals.indexOf(interval);
-    if(idx < 0) {
-      return NOT_FOUND
+    function IntervalTreeNode(mid, left, right, leftPoints, rightPoints) {
+      this.mid = mid;
+      this.left = left;
+      this.right = right;
+      this.leftPoints = leftPoints;
+      this.rightPoints = rightPoints;
+      this.count = (left ? left.count : 0) + (right ? right.count : 0) + leftPoints.length;
     }
-    intervals.splice(idx, 1);
-    rebuild(node, intervals);
-    return SUCCESS
-  }
 
-  proto.intervals = function(result) {
-    result.push.apply(result, this.leftPoints);
-    if(this.left) {
-      this.left.intervals(result);
-    }
-    if(this.right) {
-      this.right.intervals(result);
-    }
-    return result
-  };
+    var proto = IntervalTreeNode.prototype;
 
-  proto.insert = function(interval) {
-    var weight = this.count - this.leftPoints.length;
-    this.count += 1;
-    if(interval[1] < this.mid) {
+    function copy(a, b) {
+      a.mid = b.mid;
+      a.left = b.left;
+      a.right = b.right;
+      a.leftPoints = b.leftPoints;
+      a.rightPoints = b.rightPoints;
+      a.count = b.count;
+    }
+
+    function rebuild(node, intervals) {
+      var ntree = createIntervalTree(intervals);
+      node.mid = ntree.mid;
+      node.left = ntree.left;
+      node.right = ntree.right;
+      node.leftPoints = ntree.leftPoints;
+      node.rightPoints = ntree.rightPoints;
+      node.count = ntree.count;
+    }
+
+    function rebuildWithInterval(node, interval) {
+      var intervals = node.intervals([]);
+      intervals.push(interval);
+      rebuild(node, intervals);
+    }
+
+    function rebuildWithoutInterval(node, interval) {
+      var intervals = node.intervals([]);
+      var idx = intervals.indexOf(interval);
+      if(idx < 0) {
+        return NOT_FOUND
+      }
+      intervals.splice(idx, 1);
+      rebuild(node, intervals);
+      return SUCCESS
+    }
+
+    proto.intervals = function(result) {
+      result.push.apply(result, this.leftPoints);
       if(this.left) {
-        if(4*(this.left.count+1) > 3*(weight+1)) {
-          rebuildWithInterval(this, interval);
-        } else {
-          this.left.insert(interval);
-        }
-      } else {
-        this.left = createIntervalTree([interval]);
+        this.left.intervals(result);
       }
-    } else if(interval[0] > this.mid) {
       if(this.right) {
-        if(4*(this.right.count+1) > 3*(weight+1)) {
-          rebuildWithInterval(this, interval);
+        this.right.intervals(result);
+      }
+      return result
+    };
+
+    proto.insert = function(interval) {
+      var weight = this.count - this.leftPoints.length;
+      this.count += 1;
+      if(interval[1] < this.mid) {
+        if(this.left) {
+          if(4*(this.left.count+1) > 3*(weight+1)) {
+            rebuildWithInterval(this, interval);
+          } else {
+            this.left.insert(interval);
+          }
         } else {
-          this.right.insert(interval);
+          this.left = createIntervalTree([interval]);
+        }
+      } else if(interval[0] > this.mid) {
+        if(this.right) {
+          if(4*(this.right.count+1) > 3*(weight+1)) {
+            rebuildWithInterval(this, interval);
+          } else {
+            this.right.insert(interval);
+          }
+        } else {
+          this.right = createIntervalTree([interval]);
         }
       } else {
-        this.right = createIntervalTree([interval]);
+        var l = bounds.ge(this.leftPoints, interval, compareBegin);
+        var r = bounds.ge(this.rightPoints, interval, compareEnd);
+        this.leftPoints.splice(l, 0, interval);
+        this.rightPoints.splice(r, 0, interval);
       }
-    } else {
-      var l = bounds.ge(this.leftPoints, interval, compareBegin);
-      var r = bounds.ge(this.rightPoints, interval, compareEnd);
-      this.leftPoints.splice(l, 0, interval);
-      this.rightPoints.splice(r, 0, interval);
-    }
-  };
+    };
 
-  proto.remove = function(interval) {
-    var weight = this.count - this.leftPoints;
-    if(interval[1] < this.mid) {
-      if(!this.left) {
-        return NOT_FOUND
-      }
-      var rw = this.right ? this.right.count : 0;
-      if(4 * rw > 3 * (weight-1)) {
-        return rebuildWithoutInterval(this, interval)
-      }
-      var r = this.left.remove(interval);
-      if(r === EMPTY) {
-        this.left = null;
-        this.count -= 1;
-        return SUCCESS
-      } else if(r === SUCCESS) {
-        this.count -= 1;
-      }
-      return r
-    } else if(interval[0] > this.mid) {
-      if(!this.right) {
-        return NOT_FOUND
-      }
-      var lw = this.left ? this.left.count : 0;
-      if(4 * lw > 3 * (weight-1)) {
-        return rebuildWithoutInterval(this, interval)
-      }
-      var r = this.right.remove(interval);
-      if(r === EMPTY) {
-        this.right = null;
-        this.count -= 1;
-        return SUCCESS
-      } else if(r === SUCCESS) {
-        this.count -= 1;
-      }
-      return r
-    } else {
-      if(this.count === 1) {
-        if(this.leftPoints[0] === interval) {
-          return EMPTY
-        } else {
+    proto.remove = function(interval) {
+      var weight = this.count - this.leftPoints;
+      if(interval[1] < this.mid) {
+        if(!this.left) {
           return NOT_FOUND
         }
-      }
-      if(this.leftPoints.length === 1 && this.leftPoints[0] === interval) {
-        if(this.left && this.right) {
-          var p = this;
-          var n = this.left;
-          while(n.right) {
-            p = n;
-            n = n.right;
-          }
-          if(p === this) {
-            n.right = this.right;
-          } else {
-            var l = this.left;
-            var r = this.right;
-            p.count -= n.count;
-            p.right = n.left;
-            n.left = l;
-            n.right = r;
-          }
-          copy(this, n);
-          this.count = (this.left?this.left.count:0) + (this.right?this.right.count:0) + this.leftPoints.length;
-        } else if(this.left) {
-          copy(this, this.left);
-        } else {
-          copy(this, this.right);
+        var rw = this.right ? this.right.count : 0;
+        if(4 * rw > 3 * (weight-1)) {
+          return rebuildWithoutInterval(this, interval)
         }
-        return SUCCESS
-      }
-      for(var l = bounds.ge(this.leftPoints, interval, compareBegin); l<this.leftPoints.length; ++l) {
-        if(this.leftPoints[l][0] !== interval[0]) {
-          break
-        }
-        if(this.leftPoints[l] === interval) {
+        var r = this.left.remove(interval);
+        if(r === EMPTY) {
+          this.left = null;
           this.count -= 1;
-          this.leftPoints.splice(l, 1);
-          for(var r = bounds.ge(this.rightPoints, interval, compareEnd); r<this.rightPoints.length; ++r) {
-            if(this.rightPoints[r][1] !== interval[1]) {
-              break
-            } else if(this.rightPoints[r] === interval) {
-              this.rightPoints.splice(r, 1);
-              return SUCCESS
+          return SUCCESS
+        } else if(r === SUCCESS) {
+          this.count -= 1;
+        }
+        return r
+      } else if(interval[0] > this.mid) {
+        if(!this.right) {
+          return NOT_FOUND
+        }
+        var lw = this.left ? this.left.count : 0;
+        if(4 * lw > 3 * (weight-1)) {
+          return rebuildWithoutInterval(this, interval)
+        }
+        var r = this.right.remove(interval);
+        if(r === EMPTY) {
+          this.right = null;
+          this.count -= 1;
+          return SUCCESS
+        } else if(r === SUCCESS) {
+          this.count -= 1;
+        }
+        return r
+      } else {
+        if(this.count === 1) {
+          if(this.leftPoints[0] === interval) {
+            return EMPTY
+          } else {
+            return NOT_FOUND
+          }
+        }
+        if(this.leftPoints.length === 1 && this.leftPoints[0] === interval) {
+          if(this.left && this.right) {
+            var p = this;
+            var n = this.left;
+            while(n.right) {
+              p = n;
+              n = n.right;
+            }
+            if(p === this) {
+              n.right = this.right;
+            } else {
+              var l = this.left;
+              var r = this.right;
+              p.count -= n.count;
+              p.right = n.left;
+              n.left = l;
+              n.right = r;
+            }
+            copy(this, n);
+            this.count = (this.left?this.left.count:0) + (this.right?this.right.count:0) + this.leftPoints.length;
+          } else if(this.left) {
+            copy(this, this.left);
+          } else {
+            copy(this, this.right);
+          }
+          return SUCCESS
+        }
+        for(var l = bounds.ge(this.leftPoints, interval, compareBegin); l<this.leftPoints.length; ++l) {
+          if(this.leftPoints[l][0] !== interval[0]) {
+            break
+          }
+          if(this.leftPoints[l] === interval) {
+            this.count -= 1;
+            this.leftPoints.splice(l, 1);
+            for(var r = bounds.ge(this.rightPoints, interval, compareEnd); r<this.rightPoints.length; ++r) {
+              if(this.rightPoints[r][1] !== interval[1]) {
+                break
+              } else if(this.rightPoints[r] === interval) {
+                this.rightPoints.splice(r, 1);
+                return SUCCESS
+              }
             }
           }
         }
+        return NOT_FOUND
       }
-      return NOT_FOUND
-    }
-  };
+    };
 
-  function reportLeftRange(arr, hi, cb) {
-    for(var i=0; i<arr.length && arr[i][0] <= hi; ++i) {
-      var r = cb(arr[i]);
-      if(r) { return r }
-    }
-  }
-
-  function reportRightRange(arr, lo, cb) {
-    for(var i=arr.length-1; i>=0 && arr[i][1] >= lo; --i) {
-      var r = cb(arr[i]);
-      if(r) { return r }
-    }
-  }
-
-  function reportRange(arr, cb) {
-    for(var i=0; i<arr.length; ++i) {
-      var r = cb(arr[i]);
-      if(r) { return r }
-    }
-  }
-
-  proto.queryPoint = function(x, cb) {
-    if(x < this.mid) {
-      if(this.left) {
-        var r = this.left.queryPoint(x, cb);
+    function reportLeftRange(arr, hi, cb) {
+      for(var i=0; i<arr.length && arr[i][0] <= hi; ++i) {
+        var r = cb(arr[i]);
         if(r) { return r }
       }
-      return reportLeftRange(this.leftPoints, x, cb)
-    } else if(x > this.mid) {
-      if(this.right) {
-        var r = this.right.queryPoint(x, cb);
+    }
+
+    function reportRightRange(arr, lo, cb) {
+      for(var i=arr.length-1; i>=0 && arr[i][1] >= lo; --i) {
+        var r = cb(arr[i]);
         if(r) { return r }
       }
-      return reportRightRange(this.rightPoints, x, cb)
-    } else {
-      return reportRange(this.leftPoints, cb)
     }
-  };
 
-  proto.queryInterval = function(lo, hi, cb) {
-    if(lo < this.mid && this.left) {
-      var r = this.left.queryInterval(lo, hi, cb);
-      if(r) { return r }
+    function reportRange(arr, cb) {
+      for(var i=0; i<arr.length; ++i) {
+        var r = cb(arr[i]);
+        if(r) { return r }
+      }
     }
-    if(hi > this.mid && this.right) {
-      var r = this.right.queryInterval(lo, hi, cb);
-      if(r) { return r }
-    }
-    if(hi < this.mid) {
-      return reportLeftRange(this.leftPoints, hi, cb)
-    } else if(lo > this.mid) {
-      return reportRightRange(this.rightPoints, lo, cb)
-    } else {
-      return reportRange(this.leftPoints, cb)
-    }
-  };
 
-  function compareNumbers(a, b) {
-    return a - b
-  }
-
-  function compareBegin(a, b) {
-    var d = a[0] - b[0];
-    if(d) { return d }
-    return a[1] - b[1]
-  }
-
-  function compareEnd(a, b) {
-    var d = a[1] - b[1];
-    if(d) { return d }
-    return a[0] - b[0]
-  }
-
-  function createIntervalTree(intervals) {
-    if(intervals.length === 0) {
-      return null
-    }
-    var pts = [];
-    for(var i=0; i<intervals.length; ++i) {
-      pts.push(intervals[i][0], intervals[i][1]);
-    }
-    pts.sort(compareNumbers);
-
-    var mid = pts[pts.length>>1];
-
-    var leftIntervals = [];
-    var rightIntervals = [];
-    var centerIntervals = [];
-    for(var i=0; i<intervals.length; ++i) {
-      var s = intervals[i];
-      if(s[1] < mid) {
-        leftIntervals.push(s);
-      } else if(mid < s[0]) {
-        rightIntervals.push(s);
+    proto.queryPoint = function(x, cb) {
+      if(x < this.mid) {
+        if(this.left) {
+          var r = this.left.queryPoint(x, cb);
+          if(r) { return r }
+        }
+        return reportLeftRange(this.leftPoints, x, cb)
+      } else if(x > this.mid) {
+        if(this.right) {
+          var r = this.right.queryPoint(x, cb);
+          if(r) { return r }
+        }
+        return reportRightRange(this.rightPoints, x, cb)
       } else {
-        centerIntervals.push(s);
+        return reportRange(this.leftPoints, cb)
       }
-    }
+    };
 
-    //Split center intervals
-    var leftPoints = centerIntervals;
-    var rightPoints = centerIntervals.slice();
-    leftPoints.sort(compareBegin);
-    rightPoints.sort(compareEnd);
-
-    return new IntervalTreeNode(mid,
-      createIntervalTree(leftIntervals),
-      createIntervalTree(rightIntervals),
-      leftPoints,
-      rightPoints)
-  }
-
-//User friendly wrapper that makes it possible to support empty trees
-  function IntervalTree(root) {
-    this.root = root;
-  }
-
-  var tproto = IntervalTree.prototype;
-
-  tproto.insert = function(interval) {
-    if(this.root) {
-      this.root.insert(interval);
-    } else {
-      this.root = new IntervalTreeNode(interval[0], null, null, [interval], [interval]);
-    }
-  };
-
-  tproto.remove = function(interval) {
-    if(this.root) {
-      var r = this.root.remove(interval);
-      if(r === EMPTY) {
-        this.root = null;
+    proto.queryInterval = function(lo, hi, cb) {
+      if(lo < this.mid && this.left) {
+        var r = this.left.queryInterval(lo, hi, cb);
+        if(r) { return r }
       }
-      return r !== NOT_FOUND
-    }
-    return false
-  };
+      if(hi > this.mid && this.right) {
+        var r = this.right.queryInterval(lo, hi, cb);
+        if(r) { return r }
+      }
+      if(hi < this.mid) {
+        return reportLeftRange(this.leftPoints, hi, cb)
+      } else if(lo > this.mid) {
+        return reportRightRange(this.rightPoints, lo, cb)
+      } else {
+        return reportRange(this.leftPoints, cb)
+      }
+    };
 
-  tproto.queryPoint = function(p, cb) {
-    if(this.root) {
-      return this.root.queryPoint(p, cb)
+    function compareNumbers(a, b) {
+      return a - b
     }
-  };
 
-  tproto.queryInterval = function(lo, hi, cb) {
-    if(lo <= hi && this.root) {
-      return this.root.queryInterval(lo, hi, cb)
+    function compareBegin(a, b) {
+      var d = a[0] - b[0];
+      if(d) { return d }
+      return a[1] - b[1]
     }
-  };
 
-  Object.defineProperty(tproto, "count", {
-    get: function() {
+    function compareEnd(a, b) {
+      var d = a[1] - b[1];
+      if(d) { return d }
+      return a[0] - b[0]
+    }
+
+    function createIntervalTree(intervals) {
+      if(intervals.length === 0) {
+        return null
+      }
+      var pts = [];
+      for(var i=0; i<intervals.length; ++i) {
+        pts.push(intervals[i][0], intervals[i][1]);
+      }
+      pts.sort(compareNumbers);
+
+      var mid = pts[pts.length>>1];
+
+      var leftIntervals = [];
+      var rightIntervals = [];
+      var centerIntervals = [];
+      for(var i=0; i<intervals.length; ++i) {
+        var s = intervals[i];
+        if(s[1] < mid) {
+          leftIntervals.push(s);
+        } else if(mid < s[0]) {
+          rightIntervals.push(s);
+        } else {
+          centerIntervals.push(s);
+        }
+      }
+
+      //Split center intervals
+      var leftPoints = centerIntervals;
+      var rightPoints = centerIntervals.slice();
+      leftPoints.sort(compareBegin);
+      rightPoints.sort(compareEnd);
+
+      return new IntervalTreeNode(mid,
+        createIntervalTree(leftIntervals),
+        createIntervalTree(rightIntervals),
+        leftPoints,
+        rightPoints)
+    }
+
+    //User friendly wrapper that makes it possible to support empty trees
+    function IntervalTree(root) {
+      this.root = root;
+    }
+
+    var tproto = IntervalTree.prototype;
+
+    tproto.insert = function(interval) {
       if(this.root) {
-        return this.root.count
+        this.root.insert(interval);
+      } else {
+        this.root = new IntervalTreeNode(interval[0], null, null, [interval], [interval]);
       }
-      return 0
-    }
-  });
+    };
 
-  Object.defineProperty(tproto, "intervals", {
-    get: function() {
+    tproto.remove = function(interval) {
       if(this.root) {
-        return this.root.intervals([])
+        var r = this.root.remove(interval);
+        if(r === EMPTY) {
+          this.root = null;
+        }
+        return r !== NOT_FOUND
       }
-      return []
-    }
-  });
+      return false
+    };
 
-  function createWrapper(intervals) {
-    if(!intervals || intervals.length === 0) {
-      return new IntervalTree(null)
+    tproto.queryPoint = function(p, cb) {
+      if(this.root) {
+        return this.root.queryPoint(p, cb)
+      }
+    };
+
+    tproto.queryInterval = function(lo, hi, cb) {
+      if(lo <= hi && this.root) {
+        return this.root.queryInterval(lo, hi, cb)
+      }
+    };
+
+    Object.defineProperty(tproto, "count", {
+      get: function() {
+        if(this.root) {
+          return this.root.count
+        }
+        return 0
+      }
+    });
+
+    Object.defineProperty(tproto, "intervals", {
+      get: function() {
+        if(this.root) {
+          return this.root.intervals([])
+        }
+        return []
+      }
+    });
+
+    function createWrapper(intervals) {
+      if(!intervals || intervals.length === 0) {
+        return new IntervalTree(null)
+      }
+      return new IntervalTree(createIntervalTree(intervals))
     }
-    return new IntervalTree(createIntervalTree(intervals))
+    return intervalTree;
   }
 
-  var IntervalTree$1 = /*@__PURE__*/getDefaultExportFromCjs(intervalTree);
+  var intervalTreeExports = requireIntervalTree();
+  var IntervalTree = /*@__PURE__*/getDefaultExportFromCjs(intervalTreeExports);
 
   const anchorXLeft = ({marginLeft}) => [1, marginLeft];
   const anchorXRight = ({width, marginRight}) => [-1, width - marginRight];
@@ -13832,7 +14516,7 @@ ${extraStyle}`
       const Y = new Float64Array(X.length);
       const radius = R ? (i) => R[i] : () => cr;
       for (let I of facets) {
-        const tree = IntervalTree$1();
+        const tree = IntervalTree();
         I = I.filter(R ? (i) => finite$1(X[i]) && positive(R[i]) : (i) => finite$1(X[i]));
         const intervals = new Float64Array(2 * I.length + 2);
         for (const i of I) {
@@ -13995,6 +14679,10 @@ ${extraStyle}`
     return shiftK("x", interval, options);
   }
 
+  function shiftY(interval, options) {
+    return shiftK("y", interval, options);
+  }
+
   function shiftK(x, interval, options = {}) {
     let offset;
     let k = 1;
@@ -14129,6 +14817,11 @@ ${extraStyle}`
     });
   }
 
+// Note: this side effect avoids a circular dependency.
+  Mark.prototype.plot = function ({marks = [], ...options} = {}) {
+    return plot({...options, marks: [...marks, this]});
+  };
+
   exports.Area = Area;
   exports.Arrow = Arrow;
   exports.BarX = BarX;
@@ -14153,6 +14846,8 @@ ${extraStyle}`
   exports.TickY = TickY;
   exports.Tip = Tip;
   exports.Vector = Vector;
+  exports.WaffleX = WaffleX;
+  exports.WaffleY = WaffleY;
   exports.area = area;
   exports.areaX = areaX;
   exports.areaY = areaY;
@@ -14187,6 +14882,7 @@ ${extraStyle}`
   exports.delaunayLink = delaunayLink;
   exports.delaunayMesh = delaunayMesh;
   exports.density = density;
+  exports.differenceX = differenceX;
   exports.differenceY = differenceY;
   exports.dodgeX = dodgeX;
   exports.dodgeY = dodgeY;
@@ -14197,6 +14893,7 @@ ${extraStyle}`
   exports.find = find;
   exports.formatIsoDate = formatIsoDate;
   exports.formatMonth = formatMonth;
+  exports.formatNumber = formatNumber;
   exports.formatWeekday = formatWeekday;
   exports.frame = frame;
   exports.geo = geo;
@@ -14236,6 +14933,7 @@ ${extraStyle}`
   exports.normalize = normalize;
   exports.normalizeX = normalizeX;
   exports.normalizeY = normalizeY;
+  exports.numberInterval = numberInterval;
   exports.plot = plot;
   exports.pointer = pointer;
   exports.pointerX = pointerX;
@@ -14256,6 +14954,7 @@ ${extraStyle}`
   exports.selectMinX = selectMinX;
   exports.selectMinY = selectMinY;
   exports.shiftX = shiftX;
+  exports.shiftY = shiftY;
   exports.shuffle = shuffle;
   exports.sort = sort;
   exports.sphere = sphere;
@@ -14271,11 +14970,13 @@ ${extraStyle}`
   exports.textY = textY;
   exports.tickX = tickX;
   exports.tickY = tickY;
+  exports.timeInterval = timeInterval;
   exports.tip = tip;
   exports.transform = basic;
   exports.tree = tree;
   exports.treeLink = treeLink;
   exports.treeNode = treeNode;
+  exports.utcInterval = utcInterval;
   exports.valueof = valueof;
   exports.vector = vector;
   exports.vectorX = vectorX;
@@ -14283,6 +14984,8 @@ ${extraStyle}`
   exports.version = version;
   exports.voronoi = voronoi;
   exports.voronoiMesh = voronoiMesh;
+  exports.waffleX = waffleX;
+  exports.waffleY = waffleY;
   exports.window = window$1;
   exports.windowX = windowX;
   exports.windowY = windowY;

@@ -799,7 +799,6 @@ HTML;
     global $user;
 
     $texts = translateArray(['Media_humanization_test']);
-    $infoText = $user->translateLongText('media_humanization_info');
 
     return <<<HTML
 <div id="pageMain">
@@ -812,17 +811,39 @@ HTML;
     </div>
   </div>
   
-  <div id="pageInfo" style="display: none; margin: 10px 0;">
-</div>
-
-  <div id="statistics">
+  <div id="contentLoaded" style="display: none;">
   
-    <div id="graphMediaHumanizationIntro" style="margin-top: 10px; display: none;">
-      <div>$infoText</div>
-      <div id="graphMediaHumanizationQuestions"></div>
-    </div>
+    <p>The media humanization test measures how media report on traffic crashes. 
+ 
+Articles are scored based on a list of questions.
+     </p>
     
+    <h3>Test questions</h3>
+    <p>For full humanization, each question must be answered “Yes”.</p>
+    <div id="graphMediaHumanizationQuestions"></div>
+    
+    <p>
+An article’s score is determined by the number of consecutive “Yes” answers.
+Scoring stops at the first “No”. 
+
+The more questions answered with “Yes,” the more human-centered the article is.
+
+More detailed analysis is available in the <a href="/research/questionnaires/">Research results section</a>, where you can explore filters, grouping options, and additional metrics.
+    
+</p>
+    
+    <h2>Article scores over time</h2>
+    <p>This graph shows how article scores have changed over time.
+Each article is classified based on how many questions were answered “Yes”.
+</p>
+
     <div id="graphMediaHumanization" style="position: relative;"></div>
+
+    <h2>Article average score over time</h2>
+    <p>This graph shows the average number of questions answered “Yes” per article over time.
+Higher values indicate that articles more consistently frame traffic crashes in human-centered language.</p>
+    
+    <div id="graphMediaHumanizationAverage" style="position: relative;"></div>
    
   </div>
   

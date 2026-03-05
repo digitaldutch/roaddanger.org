@@ -174,11 +174,10 @@ function initExport(){
   document.getElementById('tbodyHealth').innerHTML = html;
 }
 
-function showMediaHumanizationGraph(stats, elementId, title='', addClickText=false) {
+function getDataFromBechdelResults(stats) {
+  let questions = [];
+  let averages = [];
 
-  const questionCount = stats.questionnaire.questions.length;
-  let dataQuestions = [];
-  let dataAverage = [];
   for (const serverItem of stats.bechdelResults) {
 
     const groupYear = parseInt(serverItem.yearmonth.substring(0,4));
@@ -202,29 +201,31 @@ function showMediaHumanizationGraph(stats, elementId, title='', addClickText=fal
         amount: value,
       };
 
-      dataQuestions.push(dataRow);
+      questions.push(dataRow);
       passed++;
     }
 
-    dataAverage.push(pointAverage);
+    averages.push(pointAverage);
   }
+
+  return {questions: questions, averages: averages};
+}
+
+function showMediaHumanizationGraph(stats, elementId, title='', addClickText=false) {
+  const questionCount = stats.questionnaire.questions.length;
+
+  const data = getDataFromBechdelResults(stats);
 
   let domain = [];
   for (let i=0; i<=questionCount; i++) {
-    if (i === 0) domain.push('All failed 😞');
-    else if (i === questionCount) domain.push(`All ${i} criteria passed 😊`);
-    else domain.push(i + '/' + questionCount);
+    if (i === 0) domain.push('Failed all questions 😞');
+    else if (i === questionCount) domain.push(`Passed all questions 😊`);
+    else domain.push(i + '/' + questionCount + ' questions passed');
   }
 
   const passedOptions = [...Array(questionCount + 1)].map((x, i) => i);
   const colorsLegend = d3.schemeReds[questionCount + 1].reverse();
   const colorOrdinal = d3.scaleOrdinal(passedOptions, colorsLegend);
-
-  // Add smoothed average to legend with the correct color
-  colorsLegend.push('#ADD8E6');
-  domain.push('Smoothed average score');
-
-  const maxAverage = questionCount;
 
   const plot = Plot.plot({
     grid: true,
@@ -233,7 +234,6 @@ function showMediaHumanizationGraph(stats, elementId, title='', addClickText=fal
       legend: true,
       domain: domain,
       range: colorsLegend,
-      type: 'categorical',
     },
 
     y: {
@@ -244,7 +244,7 @@ function showMediaHumanizationGraph(stats, elementId, title='', addClickText=fal
     marks: [
       Plot.frame(),
 
-      Plot.areaY(dataQuestions,
+      Plot.areaY(data.questions,
         Plot.stackY(
           {
             offset: "normalize",
@@ -254,19 +254,6 @@ function showMediaHumanizationGraph(stats, elementId, title='', addClickText=fal
             x: "date",
             y: "amount",
             fill: d => colorOrdinal(d.passed),
-          }
-        )
-      ),
-
-      Plot.lineY(
-        dataAverage,
-        Plot.windowY(
-          { k: 12, reduce: "mean" },
-          {
-            x: "date",
-            y: d => d.average / maxAverage,
-            stroke: "#ADD8E6",
-            strokeWidth: 3,
           }
         )
       ),
@@ -290,20 +277,58 @@ function showMediaHumanizationGraph(stats, elementId, title='', addClickText=fal
   if (elementTitle) element.insertAdjacentHTML('afterbegin', elementTitle);
 }
 
+function showMediaHumanizationAverageGraph(stats, elementId) {
+
+  const questionCount = stats.questionnaire.questions.length;
+
+  const data = getDataFromBechdelResults(stats);
+
+
+  const plot = Plot.plot({
+    grid: true,
+
+    color: {
+    },
+
+    y: {
+      label: '↑  Questions passed',
+      domain: [0, questionCount],
+    },
+
+    marks: [
+      Plot.frame(),
+
+      Plot.lineY(
+        data.averages,
+        {
+          x: "date",
+          y: "average",
+          stroke: "#fee5d9",
+          strokeWidth: 3,
+          filter: d => d.average !== null,
+        }),
+    ],
+
+  });
+
+  const element = document.getElementById(elementId);
+  element.append(plot);
+
+}
+
+
+
 function showMediaHumanizationText(questions) {
-  let htmlInfo = '';
+  let htmlQuestions = '';
+
   let i=1;
   for (const question of questions) {
-    htmlInfo += `<div>${i}) ${question.text} (yes/no)</div>`;
+    htmlQuestions += `<div>Q${i}: ${question.text} (yes/no)</div>`;
     i += 1;
   }
 
-  if (questions.length > 0) {
-    htmlInfo = '<h2>Criteria</h2>' + htmlInfo;
-  }
-
-  document.getElementById('graphMediaHumanizationQuestions').innerHTML = htmlInfo;
-  document.getElementById('graphMediaHumanizationIntro').style.display = 'block';
+  document.getElementById('graphMediaHumanizationQuestions').innerHTML = htmlQuestions;
+  document.getElementById('contentLoaded').style.display = 'block';
 }
 
 function showCrashVictimsGraph(crashVictims){
@@ -533,6 +558,7 @@ async function loadStatistics() {
         case PageType.statisticsMediaHumanization: {
           showMediaHumanizationText(response.statistics.questionnaire.questions);
           showMediaHumanizationGraph(response.statistics, 'graphMediaHumanization');
+          showMediaHumanizationAverageGraph(response.statistics, 'graphMediaHumanizationAverage');
           break;
         }
       }
