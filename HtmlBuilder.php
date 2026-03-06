@@ -816,10 +816,8 @@ HTML;
     <p>The media humanization test measures how media report on traffic crashes. 
  
 Articles are scored based on a list of questions.
-     </p>
-    
-    <h3>Test questions</h3>
-    <p>For full humanization, each question must be answered “Yes”.</p>
+For full humanization, each question must be answered “Yes”.</p>
+
     <div id="graphMediaHumanizationQuestions"></div>
     
     <p>
@@ -839,11 +837,20 @@ Each article is classified based on how many questions were answered “Yes”.
 
     <div id="graphMediaHumanization" style="position: relative;"></div>
 
-    <h2>Article average score over time</h2>
+    <h2>Test: Colors reversed</h2>
+    <div id="graphMediaHumanizationReversed" style="position: relative;"></div>
+
+    <h2>Test: New colors: green = good, red = bad</h2>
+    <div id="graphMediaHumanizationGreenToRed" style="position: relative;"></div>
+
+    <h2>Test: Use average score</h2>
     <p>This graph shows the average number of questions answered “Yes” per article over time.
 Higher values indicate that articles more consistently frame traffic crashes in human-centered language.</p>
     
     <div id="graphMediaHumanizationAverage" style="position: relative;"></div>
+
+    <h2>Test: Show results in 0 to 5 stars scale.)</h2>
+    <div id="graphMediaHumanizationStars" style="position: relative;"></div>
    
   </div>
   

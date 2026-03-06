@@ -211,7 +211,7 @@ function getDataFromBechdelResults(stats) {
   return {questions: questions, averages: averages};
 }
 
-function showMediaHumanizationGraph(stats, elementId, title='', addClickText=false) {
+function showMediaHumanizationGraph(stats, elementId, title='', addClickText=false, graphType='') {
   const questionCount = stats.questionnaire.questions.length;
 
   const data = getDataFromBechdelResults(stats);
@@ -223,9 +223,28 @@ function showMediaHumanizationGraph(stats, elementId, title='', addClickText=fal
     else domain.push(i + '/' + questionCount + ' questions passed');
   }
 
+
+  let colorsData = d3.schemeReds[questionCount + 1].reverse();
   const passedOptions = [...Array(questionCount + 1)].map((x, i) => i);
-  const colorsLegend = d3.schemeReds[questionCount + 1].reverse();
-  const colorOrdinal = d3.scaleOrdinal(passedOptions, colorsLegend);
+
+  if (graphType === 'reversed') {
+    data.questions.reverse();
+    passedOptions.reverse();
+    domain.reverse();
+  } else if (graphType === 'greenToRed') {
+    data.questions.reverse();
+    passedOptions.reverse();
+    domain.reverse();
+
+    colorsData = [
+      "#befda3",
+      "#f8f88a",
+      "#ffbe61",
+      "#fb5a4b",
+    ];
+  }
+
+  const colorOrdinal = d3.scaleOrdinal(passedOptions, colorsData);
 
   const plot = Plot.plot({
     grid: true,
@@ -233,7 +252,7 @@ function showMediaHumanizationGraph(stats, elementId, title='', addClickText=fal
     color: {
       legend: true,
       domain: domain,
-      range: colorsLegend,
+      range: colorsData,
     },
 
     y: {
@@ -277,29 +296,42 @@ function showMediaHumanizationGraph(stats, elementId, title='', addClickText=fal
   if (elementTitle) element.insertAdjacentHTML('afterbegin', elementTitle);
 }
 
-function showMediaHumanizationAverageGraph(stats, elementId) {
+function showMediaHumanizationAverageGraph(stats, elementId, graphType='') {
 
   const questionCount = stats.questionnaire.questions.length;
 
   const data = getDataFromBechdelResults(stats);
 
 
+  const isStars = graphType === 'stars';
+
+  // Transform data to stars scale if needed
+  const plotData = isStars
+    ? data.averages.map(d => ({
+      ...d,
+      average: d.average !== null ? (d.average / questionCount) * 5 : null
+    }))
+    : data.averages;
+
   const plot = Plot.plot({
     grid: true,
 
-    color: {
-    },
+    color: {},
 
     y: {
-      label: '↑  Questions passed',
-      domain: [0, questionCount],
+      label: isStars ? '↑ Stars' : '↑  Questions passed',
+      domain: isStars ? [0, 5] : [0, questionCount],
+      ticks: isStars ? [0, 1, 2, 3, 4, 5] : undefined,
+      tickFormat: isStars ? d => '⭐'.repeat(Math.round(d)) : undefined,
     },
+
+    marginLeft: isStars ? 80 : undefined,
 
     marks: [
       Plot.frame(),
 
       Plot.lineY(
-        data.averages,
+        plotData,
         {
           x: "date",
           y: "average",
@@ -558,7 +590,10 @@ async function loadStatistics() {
         case PageType.statisticsMediaHumanization: {
           showMediaHumanizationText(response.statistics.questionnaire.questions);
           showMediaHumanizationGraph(response.statistics, 'graphMediaHumanization');
+          showMediaHumanizationGraph(response.statistics, 'graphMediaHumanizationReversed', '', false, 'reversed');
+          showMediaHumanizationGraph(response.statistics, 'graphMediaHumanizationGreenToRed', '', false, 'greenToRed');
           showMediaHumanizationAverageGraph(response.statistics, 'graphMediaHumanizationAverage');
+          showMediaHumanizationAverageGraph(response.statistics, 'graphMediaHumanizationStars', 'stars');
           break;
         }
       }
