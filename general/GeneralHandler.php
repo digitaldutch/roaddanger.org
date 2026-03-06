@@ -1257,7 +1257,9 @@ SQL;
       "child" => 0,
       "noUnilateral" =>  1,
       "year" => "",
-      "period" => "from2022",
+      "period" => "custom",
+      "dateFrom" => "2022-01-01",
+      "dateTo" => "",
       "country" => "NL",
       "persons" => [],
       "minArticles" => 5,
@@ -1267,6 +1269,7 @@ SQL;
     $group = 'month';
 
     require_once '../general/Cache.php';
+    $cacheResponse = null;
     $cacheResponse = Cache::get('getStatsMediaHumanization', 600);
 
     if ($cacheResponse === null) {

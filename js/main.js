@@ -319,13 +319,18 @@ function showMediaHumanizationAverageGraph(stats, elementId, graphType='') {
     color: {},
 
     y: {
-      label: isStars ? '↑ Stars' : '↑  Questions passed',
+      label: isStars ? '↑ Humanization score' : '↑  Questions passed successfully',
       domain: isStars ? [0, 5] : [0, questionCount],
-      ticks: isStars ? [0, 1, 2, 3, 4, 5] : undefined,
-      tickFormat: isStars ? d => '⭐'.repeat(Math.round(d)) : undefined,
+      ticks: isStars ? [0, 1, 2, 3, 4, 5] : [...Array(questionCount + 1)].map((x, i) => i),
+      tickFormat: isStars ? d => '⭐'.repeat(Math.round(d)) : d => {
+        const redCount = Math.round(d);
+        const grayCount = questionCount - redCount;
+        // D3 Plot tickFormat doesn't support HTML, using plain text instead
+        return '⚪'.repeat(redCount) + '◯'.repeat(grayCount);
+      },
     },
 
-    marginLeft: isStars ? 80 : undefined,
+    marginLeft: isStars? 80 : 60,
 
     marks: [
       Plot.frame(),

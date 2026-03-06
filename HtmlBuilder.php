@@ -851,7 +851,7 @@ Higher values indicate that articles more consistently frame traffic crashes in 
 
     <h2>Test: Show results in 0 to 5 stars scale.)</h2>
     <div id="graphMediaHumanizationStars" style="position: relative;"></div>
-   
+      
   </div>
   
   <div id="spinnerLoad"><img src="/images/spinner.svg" alt="Spinner"></div>
