@@ -1,4 +1,4 @@
-create table roaddanger.ai_models
+create table ai_models
 (
   id                 varchar(50)                       not null
     primary key,
@@ -13,7 +13,7 @@ create table roaddanger.ai_models
     unique (name)
 );
 
-create table roaddanger.countries
+create table countries
 (
   id                char(2)     not null
     primary key,
@@ -22,7 +22,7 @@ create table roaddanger.countries
   defaultlanguageid char(2)     null
 );
 
-create table roaddanger.languages
+create table languages
 (
   id           char(2)     not null
     primary key,
@@ -30,7 +30,7 @@ create table roaddanger.languages
   translations mediumtext  null
 );
 
-create table roaddanger.logins
+create table logins
 (
   id        int auto_increment
     primary key,
@@ -39,7 +39,7 @@ create table roaddanger.logins
   lastlogin timestamp   null
 );
 
-create table roaddanger.logs
+create table logs
 (
   id        int auto_increment
     primary key,
@@ -50,7 +50,7 @@ create table roaddanger.logs
   info      varchar(255)                          not null
 );
 
-create table roaddanger.longtexts
+create table longtexts
 (
   id          char(100)            not null,
   language_id char(2) default 'en' not null,
@@ -58,7 +58,7 @@ create table roaddanger.longtexts
   primary key (id, language_id)
 );
 
-create table roaddanger.questionnaires
+create table questionnaires
 (
   id         int auto_increment
     primary key,
@@ -70,7 +70,7 @@ create table roaddanger.questionnaires
   public     tinyint(1) default 0 null comment 'Results are publicly available'
 );
 
-create table roaddanger.questions
+create table questions
 (
   id             int auto_increment
     primary key,
@@ -80,21 +80,21 @@ create table roaddanger.questions
   explanation    varchar(200)         null
 );
 
-create table roaddanger.questionnaire_questions
+create table questionnaire_questions
 (
   questionnaire_id int      not null,
   question_id      int      not null,
   question_order   smallint null,
   primary key (questionnaire_id, question_id),
   constraint quest_questions_questionnaires_id_fk
-    foreign key (questionnaire_id) references roaddanger.questionnaires (id)
+    foreign key (questionnaire_id) references questionnaires (id)
       on update cascade on delete cascade,
   constraint quest_questions_questions_id_fk
-    foreign key (question_id) references roaddanger.questions (id)
+    foreign key (question_id) references questions (id)
       on update cascade
 );
 
-create table roaddanger.users
+create table users
 (
   id                   int auto_increment
     primary key,
@@ -112,14 +112,14 @@ create table roaddanger.users
   constraint users_email_uindex
     unique (email),
   constraint users_FK
-    foreign key (language) references roaddanger.languages (id)
+    foreign key (language) references languages (id)
       on update cascade on delete set null,
   constraint users_FK_country
-    foreign key (countryid) references roaddanger.countries (id)
+    foreign key (countryid) references countries (id)
       on update cascade on delete set null
 );
 
-create table roaddanger.ai_prompts
+create table ai_prompts
 (
   id              int auto_increment
     primary key,
@@ -133,11 +133,11 @@ create table roaddanger.ai_prompts
   constraint web_function
     unique (function),
   constraint ai_prompts_users_id_fk
-    foreign key (user_id) references roaddanger.users (id)
+    foreign key (user_id) references users (id)
       on update cascade
 );
 
-create table roaddanger.crashes
+create table crashes
 (
   id                  int auto_increment
     primary key,
@@ -162,72 +162,75 @@ create table roaddanger.crashes
   streamdatetime      timestamp  default current_timestamp() not null,
   locationdescription text                                   null,
   constraint crashes_countries_id_fk
-    foreign key (countryid) references roaddanger.countries (id)
+    foreign key (countryid) references countries (id)
       on update cascade on delete set null,
   constraint posts___fk_user
-    foreign key (userid) references roaddanger.users (id)
+    foreign key (userid) references users (id)
       on update cascade on delete cascade
 );
 
-create table roaddanger.articles
+create table articles
 (
-  id                 int auto_increment
+  id                      int auto_increment
     primary key,
-  crashid            int                                          null,
-  userid             int                                          null,
-  awaitingmoderation tinyint(1)     default 1                     null,
-  createtime         timestamp      default current_timestamp()   null,
-  streamdatetime     timestamp      default current_timestamp()   not null,
-  publishedtime      timestamp      default '0000-00-00 00:00:00' not null,
-  title              varchar(500)                                 not null,
-  text               varchar(500)                                 not null,
-  alltext            varchar(10000) default ''                    null,
-  url                varchar(1000)                                not null,
-  urlimage           varchar(1000)                                not null,
-  sitename           varchar(200)                                 not null,
+  crashid                 int                                          null,
+  userid                  int                                          null,
+  awaitingmoderation      tinyint(1)     default 1                     null,
+  createtime              timestamp      default current_timestamp()   null,
+  streamdatetime          timestamp      default current_timestamp()   not null,
+  publishedtime           timestamp      default '0000-00-00 00:00:00' not null,
+  title                   varchar(500)                                 not null,
+  text                    varchar(500)                                 not null,
+  alltext                 varchar(10000) default ''                    null,
+  url                     varchar(1000)                                not null,
+  urlimage                varchar(1000)                                not null,
+  sitename                varchar(200)                                 not null,
+  ai_questionnaire_status smallint                                     null comment '1: pending; 2: completed; 3: error',
+  ai_analyses_status      smallint                                     null comment '1: pending; 2: completed; 3: error',
   constraint articles___fk_crashes
-    foreign key (crashid) references roaddanger.crashes (id)
+    foreign key (crashid) references crashes (id)
       on update cascade on delete cascade,
   constraint articles___fk_user
-    foreign key (userid) references roaddanger.users (id)
+    foreign key (userid) references users (id)
       on update cascade on delete cascade
 );
 
-create table roaddanger.answers
+create table answers
 (
-  questionid  int          not null,
-  articleid   int          not null,
-  answer      tinyint(1)   null,
-  explanation varchar(200) null,
+  questionid       int          not null,
+  articleid        int          not null,
+  answer           tinyint(1)   null,
+  explanation      varchar(200) null,
+  answered_by_type smallint     null comment '1: human; 2: AI',
   constraint answers_pk
     unique (questionid, articleid),
   constraint answers_articles_id_fk
-    foreign key (articleid) references roaddanger.articles (id)
+    foreign key (articleid) references articles (id)
       on update cascade on delete cascade,
   constraint answers_questions_id_fk
-    foreign key (questionid) references roaddanger.questions (id)
+    foreign key (questionid) references questions (id)
       on update cascade on delete cascade
 );
 
 create index articles__index_crashid
-  on roaddanger.articles (crashid);
+  on articles (crashid);
 
 create fulltext index title
-  on roaddanger.articles (title, text);
+  on articles (title, text);
 
 create index crashes__date_streamdate_index
-  on roaddanger.crashes (date, streamdatetime);
+  on crashes (date, streamdatetime);
 
 create index crashes__index_date
-  on roaddanger.crashes (date);
+  on crashes (date);
 
 create index crashes__index_streamdatetime
-  on roaddanger.crashes (streamdatetime);
+  on crashes (streamdatetime);
 
 create fulltext index title
-  on roaddanger.crashes (title, text);
+  on crashes (title, text);
 
-create table roaddanger.crashpersons
+create table crashpersons
 (
   id                 int auto_increment
     primary key,
@@ -239,19 +242,19 @@ create table roaddanger.crashpersons
   hitrun             tinyint(1)         null,
   groupid            int                null,
   constraint crashpersons___fkcrashes
-    foreign key (crashid) references roaddanger.crashes (id)
+    foreign key (crashid) references crashes (id)
       on update cascade on delete cascade
 );
 
 create index crashpersons___fkcrash
-  on roaddanger.crashpersons (crashid);
+  on crashpersons (crashid);
 
 create index crashpersons___fkgroup
-  on roaddanger.crashpersons (groupid);
+  on crashpersons (groupid);
 
-create index idx_cp_mode_crashid
-  on roaddanger.crashpersons (transportationmode, crashid);
+create index idx_cp_crashid_mode
+  on crashpersons (crashid, transportationmode);
 
 create index idx_cp_mode_health_crashid
-  on roaddanger.crashpersons (transportationmode, health, crashid);
+  on crashpersons (transportationmode, health, crashid);
 

@@ -218,7 +218,7 @@ HTML;
     $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml(widthPixels: 140);
     $htmlSearchCountry = HtmlBuilder::getSearchLocationHtml('filterResearchCountry', 'UN');
 
-    $lastYears = array_reverse(getLastYears(7));
+    $lastYears = array_reverse(getLastYears(10));
     $optionsYears = '';
     foreach ($lastYears as $year) $optionsYears .= "<option value='{$year}'>{$year}</option>";
 
@@ -530,7 +530,7 @@ HTML;
       }
     }
 
-    $lastYears = array_reverse(getLastYears(7));
+    $lastYears = array_reverse(getLastYears(10));
     $optionsYears = '';
     foreach ($lastYears as $year) $optionsYears .= "<option value='{$year}'>{$year}</option>";
 
