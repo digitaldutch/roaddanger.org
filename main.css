@@ -331,45 +331,45 @@ h3, .pageSubTitleFont {
 }
 
 .buttonEditPost {
-  display:             inline-block;
-  height:              20px;
-  width:               15px;
-  padding:             3px;
-  cursor:              pointer;
-  opacity:             0.5;
-  border-radius:       5px;
-  background-size:     16px;
+  display: inline-block;
+  height: 20px;
+  width: 15px;
+  padding: 3px;
+  cursor: pointer;
+  opacity: 0.5;
+  border-radius: 5px;
+  background-size: 16px;
   background-position: center;
-  background-repeat:   no-repeat;
+  background-repeat: no-repeat;
 }
 
 .iconSmall {
-  display:             flex;
-  align-items:         center;
-  justify-content:     center;
-  color:               #000000;
-  outline:             none;
-  height:              18px;
-  width:               18px;
-  padding:             1px;
-  margin:              0 1px;
-  background-size:     17px;
-  background-repeat:   no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000000;
+  outline: none;
+  height: 18px;
+  width: 18px;
+  padding: 1px;
+  margin: 0 1px;
+  background-size: 17px;
+  background-repeat: no-repeat;
   background-position: center;
 }
 
 .iconInput {
   height: 100%;
-  width:  20px;
+  width: 20px;
 }
 
 .iconMedium {
-  display:             inline-block;
-  height:              22px;
-  width:               22px;
-  margin:              0 1px;
-  background-size:     22px;
-  background-repeat:   no-repeat;
+  display: inline-block;
+  height: 22px;
+  width: 22px;
+  margin: 0 1px;
+  background-size: 22px;
+  background-repeat: no-repeat;
   background-position: center;
 }
 
@@ -782,6 +782,18 @@ h3, .pageSubTitleFont {
 
 .iconTooltip:hover {
   opacity: 1;
+}
+
+.iconAI {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  border: 1px solid black;
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  font-size: 14px;
 }
 
 .tippy-box[data-theme~='light'] {

@@ -1510,6 +1510,16 @@ function setRadioGroupValue(name, value) {
   if (el) el.checked = true;
 }
 
+function getHtmlAIIcon() {
+  const AITooltip = translate('Answered_by_AI');
+  return `<div class="iconAI" data-tippy-content="${AITooltip}">AI</div>`;
+}
+
+function showQuestionAI_Icon(id, show) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = show ? getHtmlAIIcon() : '';
+}
+
 function answerToInt(answer) {
   if (answer === 'yes') return 1;
   if (answer === 'no') return 0;

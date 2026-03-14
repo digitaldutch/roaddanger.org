@@ -1757,19 +1757,30 @@ async function showQuestionsForm(crashId, articleId) {
 
     let iQuestion = 1;
     for (const question of questionnaire.questions) {
+
       const yesChecked = question.answer === 1? 'checked' : '';
       const noChecked = question.answer === 0? 'checked' : '';
       const ndChecked = question.answer === 2? 'checked' : '';
       const tooltip = question.explanation? `<span class="iconTooltip" data-tippy-content="${escapeHtml(question.explanation)}"></span>` : '';
       const answerJustification = question.answerJustification? escapeHtml(question.answerJustification) : '';
+      const answeredWithAI = question.answered_by_type === 2? getHtmlAIIcon() : '';
 
       htmlQuestionnaires +=
 `<tr id="q${questionnaire.id}_${question.id}">
 <td>${iQuestion}) ${question.text} ${tooltip}</td>
 <td style="white-space: nowrap;">
-<label><input name="answer${question.id}" value="1" type="radio" ${yesChecked} onclick="saveAnswer(${article.id}, ${question.id})">Yes</label>
-<label><input name="answer${question.id}" value="0" type="radio" ${noChecked} onclick="saveAnswer(${article.id}, ${question.id})">No</label>
-<label data-tippy-content="Not determinable"><input name="answer${question.id}" value="2" type="radio" ${ndChecked} onclick="saveAnswer(${article.id}, ${question.id})">n.d.</label>
+
+<div style="display: inline-flex; justify-content: space-between; width: 100%;">
+  <div>
+    <label><input name="answer${question.id}" value="1" type="radio" ${yesChecked} onclick="saveAnswer(${article.id}, ${question.id})">Yes</label>
+    <label><input name="answer${question.id}" value="0" type="radio" ${noChecked} onclick="saveAnswer(${article.id}, ${question.id})">No</label>
+    <label data-tippy-content="Not determinable"><input name="answer${question.id}" value="2" type="radio" ${ndChecked} onclick="saveAnswer(${article.id}, ${question.id})">n.d.</label>
+  </div>
+  <div id="ai_${question.id}">
+    ${answeredWithAI}
+  </div>
+</div>
+
 </td>
 </tr>
 <tr id="trJustification${question.id}" style="display: none;"><td colspan="2">
@@ -1830,6 +1841,12 @@ async function saveAnswer(articleId, questionId) {
   const article = getArticleFromId(articleId);
 
   for (const questionnaire of article.questionnaires) {
+
+    // Disable AI icon for all questions
+    for (const question of questionnaire.questions) {
+      question.answered_by_type = 1;
+      showQuestionAI_Icon('ai_' + question.id, false);
+    }
 
     const question = questionnaire.questions.find(q => q.id === questionId);
 
@@ -1917,7 +1934,7 @@ async function aiAnswerQuestionnaires() {
     return;
   }
 
-  const url = '/general/ajaxGeneral.php?function=answerQuestionnairesForArticle';
+  const url = '/general/ajaxGeneral.php?function=answerQuestionnairesForArticleWithAI';
   const data = {
     articleId: articleId,
   };
@@ -1939,17 +1956,21 @@ async function aiAnswerQuestionnaires() {
 
         if (question) {
           question.answer = responseQuestion.answer_id;
+          question.answered_by_type = responseQuestion.answered_by_type;
           question.answerJustification = responseQuestion.justification ?? '';
 
           document.getElementById('justification' + question.id).value = question.answerJustification;
 
           const radioGroupName = 'answer' + question.id;
           setRadioGroupValue(radioGroupName, question.answer);
+          showQuestionAI_Icon('ai_' + question.id, question.answered_by_type === 2);
         }
       }
 
       setQuestionnaireGUIVisibility(questionnaire);
     }
+
+    tippy('[data-tippy-content]', {allowHTML: true});
 
   } finally {
     spinner.style.display = 'none';

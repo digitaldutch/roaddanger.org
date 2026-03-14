@@ -16,7 +16,7 @@ class GeneralHandler extends AjaxHandler {
         'saveNewPassword' => $this->saveNewPassword(),
         'saveUser' => $this->saveUser(),
         'extractDataFromArticle' => $this->extractDataFromArticle(),
-        'answerQuestionnairesForArticle' => $this->answerQuestionnairesForArticle(),
+        'answerQuestionnairesForArticleWithAI' => $this->answerQuestionnairesForArticleWithAI(),
         'loadCountryMapOptions' => $this->loadCountryMapOptions(),
         'loadCrashes' => $this->loadCrashes(),
         'loadMapCrashes' => $this->loadMapCrashes(),
@@ -189,7 +189,7 @@ SQL;
   /**
    * @throws Exception
    */
-  private function answerQuestionnairesForArticle(): array {
+  private function answerQuestionnairesForArticleWithAI(): array {
     $articleId = $this->input['articleId'];
 
     $sql = "SELECT title, text, publishedtime FROM articles WHERE id = :id";
@@ -212,10 +212,11 @@ SQL;
     foreach ($questionnaires AS &$questionnaire) {
       foreach ($questionnaire->questions AS &$question) {
         $question->answer_id = aiAnswerToAnswerId($question->answer);
-        $question->justification = 'AI: ' . $question->justification;
+        $question->answered_by_type = 2;
 
         // Save answer to the database
-        $this->database->saveAnswer($articleId, $question->id, $question->answer_id, $question->justification);
+        $this->database->saveAnswer($articleId, $question->id, $question->answer_id,
+          $question->justification, true);
       }
     }
 
@@ -616,6 +617,7 @@ SELECT
   q.text,
   q.explanation,
   a.answer,
+  a.answered_by_type,
   a.explanation AS answerJustification
 FROM questionnaire_questions qq
 LEFT JOIN questions q ON q.id = qq.question_id
