@@ -76,6 +76,7 @@ class OpenRouterAIClient {
     return [
       'response' => $responseOpenRouter['choices'][0]['message']['content'],
       'id' => $responseOpenRouter['id'],
+      'model' => $responseOpenRouter['model'],
       'tokens_prompt' => $responseOpenRouter['usage']['prompt_tokens'],
       'tokens_completion' => $responseOpenRouter['usage']['completion_tokens'],
     ];

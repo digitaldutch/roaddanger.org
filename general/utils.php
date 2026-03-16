@@ -23,7 +23,7 @@ enum PageType {
   case humans;
   case questionnaireSettings;
   case questionnaireResults;
-  case questionnaireFillIn;
+  case anserQuestionnaires;
   case ai_prompt_builder;
 }
 
@@ -545,6 +545,8 @@ function geocodeLocation($locationPrompt): ?array {
  * @throws Exception
  */
 function aiAnswerToAnswerId (string $answer): int {
+  $answer = strtolower($answer);
+
   if ($answer === 'yes') return 1;
   if ($answer === 'no') return 0;
   if ($answer === 'not_determinable') return 2;

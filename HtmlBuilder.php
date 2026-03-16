@@ -195,7 +195,7 @@ HTML;
     $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
       'Child_victims', 'Mosaic', 'Research_uva_2026', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
       'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
-      'Version', 'Questionnaires', 'Fill_in', 'Settings', 'Results', 'AI_prompt_builder', 'Research',
+      'Version', 'Questionnaires', 'Answer_questionnaires', 'Settings', 'Results', 'AI_prompt_builder', 'Research',
       'Graphs_and_statistics', 'Media_humanization_test', 'Tools', 'Reframe']);
 
     $websiteTitle = WEBSITE_NAME;
@@ -229,7 +229,7 @@ HTML;
       <div class="navigationSectionHeader">{$texts['Research']}</div>
       <a href="/research/questionnaires/settings" class="navItem" data-admin>{$texts['Questionnaires']} · {$texts['Settings']}</a>
       <a href="/research/questionnaires/" class="navItem">{$texts['Questionnaires']} · {$texts['Results']}</a>
-      <a href="/research/questionnaires/fill_in" class="navItem" data-moderator>{$texts['Questionnaires']} · {$texts['Fill_in']}</a>
+      <a href="/research/questionnaires/answer" class="navItem" data-moderator>{$texts['Answer_questionnaires']}</a>
 
       <a href="/research/research_uva_2026" class="navItem">{$texts['Research_uva_2026']}</a>
     </div>

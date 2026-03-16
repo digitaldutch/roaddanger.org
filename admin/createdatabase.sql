@@ -202,6 +202,7 @@ create table answers
   answer           tinyint(1)   null,
   explanation      varchar(200) null,
   answered_by_type smallint     null comment '1: human; 2: AI',
+  ai_info          varchar(100) null,
   constraint answers_pk
     unique (questionid, articleid),
   constraint answers_articles_id_fk

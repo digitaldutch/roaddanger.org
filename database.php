@@ -223,7 +223,7 @@ class Database {
     return $this->fetchAllValues("SELECT DISTINCT country_id FROM questionnaires WHERE active=1 ORDER BY country_id;");
   }
 
-  public function saveAnswer($articleId, $questionId, $answer, $answerJustification=null, $answeredWithAI=false): void {
+  public function saveAnswer($articleId, $questionId, $answer, $answerJustification=null, $answeredWithAI=false, $aiInfo=null): void {
     $params = [
       ':articleid' => $articleId,
       ':questionid' => $questionId,
@@ -231,14 +231,17 @@ class Database {
       ':answer2' => $answer,
       ':answered_by_type' => $answeredWithAI? 2 : 1,
       ':answered_by_type2' => $answeredWithAI? 2 : 1,
+      ':ai_info' => $aiInfo,
+      ':ai_info2' => $aiInfo,
     ];
 
     $sql = <<<SQL
-INSERT INTO answers (articleid, questionid, answer, answered_by_type) 
-VALUES(:articleid, :questionid, :answer, :answered_by_type) 
+INSERT INTO answers (articleid, questionid, answer, answered_by_type, ai_info) 
+VALUES(:articleid, :questionid, :answer, :answered_by_type, :ai_info) 
 ON DUPLICATE KEY UPDATE 
   answer=:answer2,
-  answered_by_type=:answered_by_type2
+  answered_by_type=:answered_by_type2,
+  ai_info=:ai_info2;
 SQL;
 
     $this->execute($sql, $params);

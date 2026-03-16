@@ -11,7 +11,7 @@ global $VERSION;
 $uri = urldecode($_SERVER['REQUEST_URI']);
 
 if (str_starts_with($uri, '/research/questionnaires/settings')) $pageType = PageType::questionnaireSettings;
-else if (str_starts_with($uri, '/research/questionnaires/fill_in')) $pageType = PageType::questionnaireFillIn;
+else if (str_starts_with($uri, '/research/questionnaires/answer')) $pageType = PageType::anserQuestionnaires;
 else if (str_starts_with($uri, '/research/questionnaires')) $pageType = PageType::questionnaireResults;
 else if (str_starts_with($uri, '/research/ai_prompt_builder')) $pageType = PageType::ai_prompt_builder;
 else if (str_starts_with($uri, '/research/research_uva_2026')) $pageType = PageType::research_uva_2026;
@@ -22,8 +22,8 @@ $head = "<script src='/js/main.js?v=$VERSION'></script><script src='/research/re
 
 if ($pageType === PageType::questionnaireSettings) {
   $mainHTML = HtmlResearch::questionnaireSettings();
-} else if ($pageType === PageType::questionnaireFillIn) {
-  $mainHTML = $user->isModerator()? HtmlResearch::pageFillIn() : HtmlBuilder::pageNotModerator();
+} else if ($pageType === PageType::anserQuestionnaires) {
+  $mainHTML = $user->isModerator()? HtmlResearch::QuestionnaireAnswer() : HtmlBuilder::pageNotModerator();
 } else if ($pageType === PageType::questionnaireResults) {
   $head .= "\n<script src='/scripts/d3.v7.js?v=$VERSION'></script>";
   $mainHTML = HtmlResearch::pageResults();

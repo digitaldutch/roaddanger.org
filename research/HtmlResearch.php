@@ -155,16 +155,16 @@ class HtmlResearch {
 HTML;
   }
 
-  public static function pageFillIn(): string {
-    $texts = translateArray(['Questionnaires', 'fill_in', 'Injury', 'Dead_(adjective)', 'Child', 'Exclude_unilateral',
+  public static function QuestionnaireAnswer(): string {
+    $texts = translateArray(['Questionnaires', 'Answer_questionnaires', 'Injury', 'Dead_(adjective)', 'Child', 'Exclude_unilateral',
       'Show_results']);
 
-    $textIntro = translateLongText('questionnaires_fill_in');
+    $textIntro = translateLongText('questionnaires_answer');
     $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml(widthPixels: 140);
 
     return <<<HTML
 <div id="pageMain">
-  <div class="pageSubTitle">{$texts['Questionnaires']} | {$texts['fill_in']}</div>
+  <div class="pageSubTitle">{$texts['Answer_questionnaires']}</div>
 
   <div class="pageInner">
     $textIntro  
@@ -172,15 +172,15 @@ HTML;
 
   <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex;">
     <div class="toolbarItem">
-      <span id="filterResearchDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireOption();"></span>      
-      <span id="filterResearchChild" class="menuButtonBlack bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireOption();"></span>      
-      <span id="filterResearchNoUnilateral" class="menuButtonBlack bgNoUnilateralWhite" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickQuestionnaireOption();"></span>      
+      <span id="filterResearchDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickAnswerQuestionnairesFilterButton();"></span>      
+      <span id="filterResearchChild" class="menuButtonBlack bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="clickAnswerQuestionnairesFilterButton();"></span>      
+      <span id="filterResearchNoUnilateral" class="menuButtonBlack bgNoUnilateralWhite" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickAnswerQuestionnairesFilterButton();"></span>      
     </div>
   
     $htmlSearchPersons
 
     <div class="toolbarItem">
-      <div class="button buttonMobileSmall buttonImportant" onclick="selectFilterQuestionnaireFillIn(event)">{$texts['Show_results']}</div>
+      <div class="button buttonMobileSmall buttonImportant" onclick="selectFilterAnswerQuestionnaires(event)">{$texts['Show_results']}</div>
     </div>
     
   </div>

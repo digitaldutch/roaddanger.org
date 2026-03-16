@@ -1271,14 +1271,14 @@ function healthBad(health){
   return [Health.dead, Health.injured].includes(health);
 }
 
-function getCrashHumansIcons(crash, showAllHealth=true) {
+function getCrashHumansIcons(crash, showAllHealth=true, white=false) {
   let html = '';
   let iHuman = 0;
 
   if (crash.persons) {
     for (const person of crash.persons) {
       iHuman++;
-      html += humanIconHtml(person, iHuman, showAllHealth);
+      html += humanIconHtml(person, iHuman, showAllHealth, white);
     }
   }
 
@@ -1763,7 +1763,7 @@ async function showQuestionsForm(crashId, articleId) {
       const ndChecked = question.answer === 2? 'checked' : '';
       const tooltip = question.explanation? `<span class="iconTooltip" data-tippy-content="${escapeHtml(question.explanation)}"></span>` : '';
       const answerJustification = question.answerJustification? escapeHtml(question.answerJustification) : '';
-      const answeredWithAI = question.answered_by_type === 2? getHtmlAIIcon() : '';
+      const answeredWithAI = question.answered_by_type === 2? getHtmlAIIcon(question.ai_info) : '';
 
       htmlQuestionnaires +=
 `<tr id="q${questionnaire.id}_${question.id}">
@@ -1905,10 +1905,10 @@ function nextArticleQuestion(forward=true) {
   if (forward) {
     if (index < articles.length - 1) newArticle = articles[index + 1];
     else {
-      // Check if we are on the fill_in page.
-      const onFillInPage = window.location.href.includes('fill_in');
+      // Check if we are on the answer page.
+      const onAnswerPage = window.location.href.includes('answer');
 
-      if (onFillInPage) window.location.reload();
+      if (onAnswerPage) window.location.reload();
       else showMessage('This is the last article');
     }
 
@@ -1957,13 +1957,14 @@ async function aiAnswerQuestionnaires() {
         if (question) {
           question.answer = responseQuestion.answer_id;
           question.answered_by_type = responseQuestion.answered_by_type;
+          question.ai_info = responseQuestion.ai_info;
           question.answerJustification = responseQuestion.justification ?? '';
 
           document.getElementById('justification' + question.id).value = question.answerJustification;
 
           const radioGroupName = 'answer' + question.id;
           setRadioGroupValue(radioGroupName, question.answer);
-          showQuestionAI_Icon('ai_' + question.id, question.answered_by_type === 2);
+          showQuestionAI_Icon('ai_' + question.id, question.answered_by_type === 2, question.ai_info);
         }
       }
 

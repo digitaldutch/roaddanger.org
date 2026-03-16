@@ -213,10 +213,11 @@ SQL;
       foreach ($questionnaire->questions AS &$question) {
         $question->answer_id = aiAnswerToAnswerId($question->answer);
         $question->answered_by_type = 2;
+        $question->ai_info = $AIResults['model'];
 
         // Save answer to the database
         $this->database->saveAnswer($articleId, $question->id, $question->answer_id,
-          $question->justification, true);
+          $question->justification, true, $question->ai_info);
       }
     }
 
@@ -618,6 +619,7 @@ SELECT
   q.explanation,
   a.answer,
   a.answered_by_type,
+  a.ai_info,
   a.explanation AS answerJustification
 FROM questionnaire_questions qq
 LEFT JOIN questions q ON q.id = qq.question_id

@@ -20,7 +20,7 @@ async function initResearch(){
     if (! user.admin) {showError('Not an administrator'); return;}
 
     await loadQuestionnaires();
-  } else if (url.pathname.startsWith('/research/questionnaires/fill_in')) {
+  } else if (url.pathname.startsWith('/research/questionnaires/answer')) {
     if (! user.moderator) {showError('Permission error: Not a moderator'); return;}
 
     await loadArticlesUnanswered();
@@ -127,10 +127,10 @@ async function loadArticlesUnanswered() {
 
     const data = {
       filter: {
-        healthDead:   document.getElementById('filterResearchDead').classList.contains('menuButtonSelected')? 1 : 0,
-        child:        document.getElementById('filterResearchChild').classList.contains('menuButtonSelected')? 1 : 0,
+        healthDead: document.getElementById('filterResearchDead').classList.contains('menuButtonSelected')? 1 : 0,
+        child: document.getElementById('filterResearchChild').classList.contains('menuButtonSelected')? 1 : 0,
         noUnilateral: document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected')? 1 : 0,
-        persons:      getPersonsFromFilter(),
+        persons: getPersonsFromFilter(),
       },
     }
 
@@ -150,7 +150,7 @@ async function loadArticlesUnanswered() {
       let html = '';
       for (const article of response.articles) {
         const crash = getCrashFromId(article.crashid);
-        let htmlIcons = getCrashHumansIcons(crash);
+        let htmlIcons = getCrashHumansIcons(crash, false, true);
         if (crash.unilateral) htmlIcons += getIconUnilateral();
 
         htmlIcons = '<div style="display: flex; flex-direction: row;">' + htmlIcons + '</div>'
@@ -1162,15 +1162,16 @@ function onDragRowQuestion(event) {
 
 function clickQuestionnaireResultsOption() {
   questionnaireResultsFilterChange();
-  clickQuestionnaireOption();
+  clickAnswerQuestionnairesFilterButton();
 }
 
-function clickQuestionnaireOption() {
-  questionnaireResultsFilterChange();
+function clickAnswerQuestionnairesFilterButton() {
+  document.getElementById('dataTableArticles').innerText = '';
+
   if (event.target.classList.contains('menuButtonBlack')) event.target.classList.toggle('menuButtonSelected');
 }
 
-function selectFilterQuestionnaireFillIn() {
+function selectFilterAnswerQuestionnaires() {
   const dead = document.getElementById('filterResearchDead').classList.contains('menuButtonSelected');
   const child = document.getElementById('filterResearchChild').classList.contains('menuButtonSelected');
   const noUnilateral = document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected');

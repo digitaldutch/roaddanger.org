@@ -196,9 +196,9 @@ class ResearchHandler extends AjaxHandler {
     // Get active questionnaires
     $sql = <<<SQL
 SELECT
-id,
-title,
-type
+  id,
+  title,
+  type
 FROM questionnaires
 WHERE active = 1
 ORDER BY id;
@@ -206,15 +206,15 @@ SQL;
 
     $questionnaires = $this->database->fetchAll($sql);
 
-    // Sort on dead=3, injured=2, unknown=0, uninjured=1
+    // Sort crashpersons on dead=3, injured=2, unknown=0, uninjured=1
     $sql = <<<SQL
 SELECT 
-groupid,
-transportationmode,
-health,
-child,
-underinfluence,
-hitrun
+  groupid,
+  transportationmode,
+  health,
+  child,
+  underinfluence,
+  hitrun
 FROM crashpersons
 WHERE crashid=:crashid
 ORDER BY health IS NULL, FIELD(health, 3, 2, 0, 1);

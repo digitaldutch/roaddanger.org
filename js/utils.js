@@ -905,31 +905,34 @@ function transportationModeFromText(text) {
   }
 }
 
-function humanIconHtml(human, humanIndex, showAllHealth=true) {
+function humanIconHtml(human, humanIndex, showAllHealth=true, white=false) {
   let tooltip = translate('Human') + ' ' + humanIndex;
 
-  const imageClassName = transportationModeImageClassName(human.transportationmode);
+  const imageClassName = transportationModeImageClassName(human.transportationmode, white);
   const iconTransportation = `<div class="iconMedium ${imageClassName}"></div>`;
   tooltip += ' | ' + transportationModeText(human.transportationmode);
 
   let iconHealth = '';
   tooltip += ' | ' + healthText(human.health);
   if (showAllHealth || healthBad(human.health)) {
-    const healthClassName = healthImageClassName(human.health);
+    const healthClassName = healthImageClassName(human.health, white);
     iconHealth = `<div class="iconMedium ${healthClassName}"></div>`;
   }
 
   let iconsOptions = '';
   if (human.child) {
-    iconsOptions += `<div class="iconSmall bgChild"></div>`;
+    const icon = white? 'bgChildWhite' : 'bgChild';
+    iconsOptions += `<div class="iconSmall ${icon}"></div>`;
     tooltip += ' | ' + translate('Child');
   }
   if (human.underinfluence) {
-    iconsOptions += `<div class="iconSmall bgAlcohol"></div>`;
+    const icon = white? 'bgAlcoholWhite' : 'bgAlcohol';
+    iconsOptions += `<div class="iconSmall ${icon}"></div>`;
     tooltip += ' | ' + translate('Intoxicated');
   }
   if (human.hitrun) {
-    iconsOptions += `<div class="iconSmall bgHitRun"></div>`;
+    const icon = white? 'bgHitRunWhite' : 'bgHitRun';
+    iconsOptions += `<div class="iconSmall ${icon}"></div>`;
     tooltip += ' | ' + translate('Drive_on_or_fleeing');
   }
 
@@ -963,13 +966,13 @@ function healthFromText(text) {
   }
 }
 
-function healthImageClassName(healthStatus) {
+function healthImageClassName(healthStatus, white=false) {
   switch (healthStatus) {
-    case Health.unknown: return 'bgUnknown';
+    case Health.unknown: return white? 'bgUnknownWhite' : 'bgUnknown';
     case Health.uninjured: return 'bgUninjured';
     case Health.injured: return 'bgInjuredRed';
     case Health.dead: return 'bgDeadRed';
-    default: return 'bgUnknown';
+    default: return white? 'bgUnknownWhite' : 'bgUnknown';
   }
 }
 
@@ -1510,14 +1513,14 @@ function setRadioGroupValue(name, value) {
   if (el) el.checked = true;
 }
 
-function getHtmlAIIcon() {
-  const AITooltip = translate('Answered_by_AI');
+function getHtmlAIIcon(ai_info) {
+  const AITooltip = translate('Answered_by_AI') + (ai_info ? ` | ${ai_info}` : '');
   return `<div class="iconAI" data-tippy-content="${AITooltip}">AI</div>`;
 }
 
-function showQuestionAI_Icon(id, show) {
+function showQuestionAI_Icon(id, show, ai_info='') {
   const el = document.getElementById(id);
-  if (el) el.innerHTML = show ? getHtmlAIIcon() : '';
+  if (el) el.innerHTML = show ? getHtmlAIIcon(ai_info) : '';
 }
 
 function answerToInt(answer) {
