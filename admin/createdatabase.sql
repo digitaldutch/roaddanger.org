@@ -171,22 +171,22 @@ create table crashes
 
 create table articles
 (
-  id                      int auto_increment
+  id                          int auto_increment
     primary key,
-  crashid                 int                                          null,
-  userid                  int                                          null,
-  awaitingmoderation      tinyint(1)     default 1                     null,
-  createtime              timestamp      default current_timestamp()   null,
-  streamdatetime          timestamp      default current_timestamp()   not null,
-  publishedtime           timestamp      default '0000-00-00 00:00:00' not null,
-  title                   varchar(500)                                 not null,
-  text                    varchar(500)                                 not null,
-  alltext                 varchar(10000) default ''                    null,
-  url                     varchar(1000)                                not null,
-  urlimage                varchar(1000)                                not null,
-  sitename                varchar(200)                                 not null,
-  ai_questionnaire_status smallint                                     null comment '1: pending; 2: completed; 3: error',
-  ai_analyses_status      smallint                                     null comment '1: pending; 2: completed; 3: error',
+  crashid                     int                                          null,
+  userid                      int                                          null,
+  awaitingmoderation          tinyint(1)     default 1                     null,
+  createtime                  timestamp      default current_timestamp()   null,
+  streamdatetime              timestamp      default current_timestamp()   not null,
+  publishedtime               timestamp      default '0000-00-00 00:00:00' not null,
+  title                       varchar(500)                                 not null,
+  text                        varchar(500)                                 not null,
+  alltext                     varchar(10000) default ''                    null,
+  url                         varchar(1000)                                not null,
+  urlimage                    varchar(1000)                                not null,
+  sitename                    varchar(200)                                 not null,
+  ai_questionnaire_processing smallint                                     null comment '1: pending; 2: completed; 3: error',
+  ai_analyses_processing      smallint                                     null comment '1: pending; 2: completed; 3: error',
   constraint articles___fk_crashes
     foreign key (crashid) references crashes (id)
       on update cascade on delete cascade,

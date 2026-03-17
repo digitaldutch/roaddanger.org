@@ -21,7 +21,9 @@ const TransportationMode = Object.freeze({
 const Health = Object.freeze({unknown: 0, uninjured: 1, injured: 2, dead: 3});
 const StreamTopType = Object.freeze({unknown: 0, edited: 1, articleAdded: 2, placedOnTop: 3});
 const QuestionnaireType = Object.freeze({standard: 0, bechdel: 1});
+const QuestionnaireProcessing = Object.freeze({pending: 1, completed: 2, error: 3});
 const QuestionAnswer = Object.freeze({no: 0, yes: 1, notDeterminable: 2});
+const Answered_by_type = Object.freeze({human: 1, ai: 2});
 
 if (!Date.prototype.addDays) {
   Date.prototype.addDays = function(days) {
@@ -693,6 +695,23 @@ function answerToText(answer) {
   }
 }
 
+function answered_by_type_to_text(answered_by_type) {
+  switch (answered_by_type) {
+    case Answered_by_type.human: return 'Human';
+    case Answered_by_type.ai: return 'AI';
+    default: return '';
+  }
+}
+
+function questionnaireProcessing_to_text(questionnaireProcessing) {
+  switch (questionnaireProcessing) {
+    case QuestionnaireProcessing.pending: return 'Pending';
+    case QuestionnaireProcessing.completed: return 'Completed';
+    case QuestionnaireProcessing.error: return 'Error';
+    default: return '';
+  }
+}
+
 function initPage(){
   document.addEventListener('click', closeAllPopups);
   initMenuSwipe();
@@ -1157,7 +1176,7 @@ function selectTableRow(id=null, tableIndex=0) {
 
   if (! selectedTableData[tableIndex]) showError(`Data row id ${id} not found`)
 
-  // Select first element if none found
+  // Select the first element if none found
   if ((! selectedTableData[tableIndex]) && (tableData[tableIndex].length > 0)) selectedTableData[tableIndex] = tableData[tableIndex][0];
 
   showSelectedTableRow(tableIndex);

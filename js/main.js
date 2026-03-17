@@ -1303,7 +1303,7 @@ function highlightSearchText() {
 
 function selectArticle(articleId, smooth=false) {
   const div = document.getElementById('article' + articleId);
-  if (smooth){
+  if (smooth) {
     div.scrollIntoView({
       block:    'center',
       behavior: 'smooth',
@@ -1763,7 +1763,7 @@ async function showQuestionsForm(crashId, articleId) {
       const ndChecked = question.answer === 2? 'checked' : '';
       const tooltip = question.explanation? `<span class="iconTooltip" data-tippy-content="${escapeHtml(question.explanation)}"></span>` : '';
       const answerJustification = question.answerJustification? escapeHtml(question.answerJustification) : '';
-      const answeredWithAI = question.answered_by_type === 2? getHtmlAIIcon(question.ai_info) : '';
+      const answeredWithAI = question.answered_by_type === Answered_by_type.ai? getHtmlAIIcon(question.ai_info) : '';
 
       htmlQuestionnaires +=
 `<tr id="q${questionnaire.id}_${question.id}">
@@ -1844,7 +1844,7 @@ async function saveAnswer(articleId, questionId) {
 
     // Disable AI icon for all questions
     for (const question of questionnaire.questions) {
-      question.answered_by_type = 1;
+      question.answered_by_type = Answered_by_type.human;
       showQuestionAI_Icon('ai_' + question.id, false);
     }
 
@@ -1964,7 +1964,9 @@ async function aiAnswerQuestionnaires() {
 
           const radioGroupName = 'answer' + question.id;
           setRadioGroupValue(radioGroupName, question.answer);
-          showQuestionAI_Icon('ai_' + question.id, question.answered_by_type === 2, question.ai_info);
+
+          const showIcon = question.answered_by_type === Answered_by_type.ai;
+          showQuestionAI_Icon('ai_' + question.id, showIcon, question.ai_info);
         }
       }
 

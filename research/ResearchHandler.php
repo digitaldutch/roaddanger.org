@@ -26,7 +26,7 @@ class ResearchHandler extends AjaxHandler {
           'aiSavePrompt' => $this->aiSavePrompt(),
           'aiGetPromptList' => $this->aiGetPromptList(),
           'aiDeletePrompt' => $this->aiDeletePrompt(),
-          'loadArticlesUnanswered' => $this->loadArticlesUnanswered(),
+          'loadArticlesToAnswer' => $this->loadArticlesToAnswer(),
           'getResearch_UVA_2026' => $this->getResearch_UVA_2026(),
           default => null,
         };
@@ -41,6 +41,7 @@ class ResearchHandler extends AjaxHandler {
           'saveQuestionsOrder' => $this->saveQuestionsOrder(),
           'saveQuestionnaire' => $this->saveQuestionnaire(),
           'deleteQuestionnaire' => $this->deleteQuestionnaire(),
+          'queueArticleForAIAnswering' => $this->queueArticleForAIAnswering(),
           default => null,
         };
       }
@@ -177,6 +178,23 @@ class ResearchHandler extends AjaxHandler {
     return [];
   }
 
+  private function queueArticleForAIAnswering(): array {
+    $articleId = $this->input['articleId'];
+    $remove = $this->input['remove'];
+    if ($remove) {
+      $sql = "UPDATE articles SET ai_questionnaire_processing = null WHERE id = :articleId";
+    } else {
+      $sql = "UPDATE articles SET ai_questionnaire_processing = 1 WHERE id = :articleId";
+    }
+    $params = [':articleId' => $articleId];
+
+    $this->database->execute($sql, $params);
+    return [
+      'articleId' => $articleId,
+      'ai_questionnaire_processing' => 1,
+      ];
+  }
+
   /**
    * @throws Exception
    */
@@ -190,7 +208,7 @@ class ResearchHandler extends AjaxHandler {
     return Research::loadQuestionnaireResults($filter, $group, $articleFilter);
   }
 
-  private function loadArticlesUnanswered(): array {
+  private function loadArticlesToAnswer(): array {
     $filter = $this->input['filter'];
 
     // Get active questionnaires
@@ -206,7 +224,7 @@ SQL;
 
     $questionnaires = $this->database->fetchAll($sql);
 
-    // Sort crashpersons on dead=3, injured=2, unknown=0, uninjured=1
+    // Sort crash persons on dead=3, injured=2, unknown=0, uninjured=1
     $sql = <<<SQL
 SELECT 
   groupid,
@@ -223,7 +241,6 @@ SQL;
     $dBStatementCrashPersons = $this->database->prepare($sql);
 
     if (count($questionnaires) > 0) {
-      $SQLJoin = '';
       $SQLWhereAnd = ' ';
 
       addPersonsWhereSql($SQLWhereAnd, $filter);
@@ -234,6 +251,15 @@ SQL;
 
       $SQLWhereAnd .= $this->user->countryId === 'UN'? '' : " AND c.countryid='" . $this->user->countryId . "'";
 
+      if ($filter['answered_by_type'] === 'unanswered') {
+        $SQLWhereAnd .= " AND NOT EXISTS(SELECT 1 FROM answers WHERE articleid = a.id) ";
+      } else if ($filter['answered_by_type'] === 'human') {
+        $SQLWhereAnd .= " AND ans.answered_by_type = 1 ";
+      } else if ($filter['answered_by_type'] === 'ai') {
+        $SQLWhereAnd .= " AND ans.answered_by_type = 2 ";
+      }
+
+
       /** @noinspection SqlIdentifier */
       $sql = <<<SQL
 SELECT
@@ -241,16 +267,20 @@ a.id,
 a.title,
 a.url,
 a.sitename,
+a.publishedtime,
+a.ai_questionnaire_processing,
+ans.answered_by_type,
+ans.ai_info,
 c.date AS crash_date,
 c.unilateral AS crash_unilateral,
 c.countryid AS crash_countryid,
 c.id AS crashid
 FROM articles a
 LEFT JOIN crashes c ON a.crashid = c.id
-$SQLJoin
+LEFT JOIN answers ans ON ans.articleid = a.id 
+  AND ans.questionid = (SELECT MIN(a2.questionid) FROM answers a2  WHERE a2.articleid = a.id)
 WHERE ((alltext IS NOT NULL) AND (alltext != ''))
 $SQLWhereAnd
-AND NOT EXISTS(SELECT 1 FROM answers WHERE articleid = a.id)
 ORDER BY c.date DESC
 LIMIT 50;
 SQL;
@@ -260,10 +290,12 @@ SQL;
 
     $crashes = [];
     foreach ($articles as $article) {
+      $article['publishedtime'] = datetimeDBToISO8601($article['publishedtime'] ?? '');
+
       $crash = [
-        'id'         => $article['crashid'],
-        'date'       => $article['crash_date'],
-        'countryid'  => $article['crash_countryid'],
+        'id' => $article['crashid'],
+        'date' => $article['crash_date'],
+        'countryid' => $article['crash_countryid'],
         'unilateral' => $article['crash_unilateral'] === 1,
       ];
 

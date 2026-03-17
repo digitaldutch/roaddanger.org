@@ -1554,6 +1554,10 @@ h3, .pageSubTitleFont {
   text-align: center;
 }
 
+.headNotSticky th {
+  position: static;
+}
+
 .tableWhiteHeader th {
   background-color: #ffffff;
 }
@@ -1567,6 +1571,13 @@ h3, .pageSubTitleFont {
   flex-grow:  1;
   padding:    0 5px;
   margin-top: 5px;
+}
+
+.td200 {
+  max-width:     200px;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
 }
 
 .td300 {

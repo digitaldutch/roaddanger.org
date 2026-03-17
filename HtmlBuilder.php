@@ -227,11 +227,12 @@ HTML;
 
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Research']}</div>
-      <a href="/research/questionnaires/settings" class="navItem" data-admin>{$texts['Questionnaires']} · {$texts['Settings']}</a>
       <a href="/research/questionnaires/" class="navItem">{$texts['Questionnaires']} · {$texts['Results']}</a>
-      <a href="/research/questionnaires/answer" class="navItem" data-moderator>{$texts['Answer_questionnaires']}</a>
 
       <a href="/research/research_uva_2026" class="navItem">{$texts['Research_uva_2026']}</a>
+
+      <a href="/research/questionnaires/settings" class="navItem" data-admin>{$texts['Questionnaires']} · {$texts['Settings']}</a>
+      <a href="/research/questionnaires/answer" class="navItem" data-admin>{$texts['Answer_questionnaires']}</a>
     </div>
 
     <div class="navigationSection">

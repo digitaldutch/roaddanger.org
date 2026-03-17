@@ -171,14 +171,26 @@ HTML;
   </div>
 
   <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex;">
+
     <div class="toolbarItem">
       <span id="filterResearchDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickAnswerQuestionnairesFilterButton();"></span>      
       <span id="filterResearchChild" class="menuButtonBlack bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="clickAnswerQuestionnairesFilterButton();"></span>      
       <span id="filterResearchNoUnilateral" class="menuButtonBlack bgNoUnilateralWhite" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickAnswerQuestionnairesFilterButton();"></span>      
     </div>
   
-    $htmlSearchPersons
+    <div class="toolbarItem">
+      $htmlSearchPersons
+    </div>
 
+    <div class="toolbarItem">
+      <select id="filterAnsweredByType" class="filterBarInput active">
+        <option value="">[Answered by type]</option>
+        <option value="unanswered">Unanswered</option>
+        <option value="ai">Answered by AI</option>
+        <option value="human">Answered by a human</option>
+      </select>
+    </div>
+    
     <div class="toolbarItem">
       <div class="button buttonMobileSmall buttonImportant" onclick="selectFilterAnswerQuestionnaires(event)">{$texts['Show_results']}</div>
     </div>
@@ -187,9 +199,19 @@ HTML;
   
   <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>
   
-  <div id="tableWrapper" class="panelTableOverflow" style="display: none;">
-    <table class="dataTable">
-      <tbody id="dataTableArticles"></tbody>
+  <div id="tableWrapper" class="panelTableOverflow" style="display: none; width: 100%; padding: 0;">
+    <table class="dataTable headNotSticky">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Date</th>
+          <th>Humans</th>
+          <th>Article title</th>
+          <th>Answered by</th>
+          <th>AI processing</th>
+        </tr>
+      </thead>
+      <tbody id="dataTableArticles" onclick="answerQuestionnaireClick()" ondblclick="answerQuestionnairesDblClick()"></tbody>
     </table>
   </div>
 HTML;
@@ -372,7 +394,7 @@ HTML;
           <option value="">[none]</option>
           <option value="article_analyst">Article analyst</option>
           <option value="translator">Translator</option>
-          <option value="questionnaire_agent">Questionnaire Agent</option>
+          <option value="questionnaire_answerer">Questionnaire Agent</option>
           <option value="article_reframe_UVA">Article reframe (UVA)</option>
           <option value="article_reframe">Article reframe</option>
         </select>

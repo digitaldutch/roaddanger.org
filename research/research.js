@@ -23,7 +23,7 @@ async function initResearch(){
   } else if (url.pathname.startsWith('/research/questionnaires/answer')) {
     if (! user.moderator) {showError('Permission error: Not a moderator'); return;}
 
-    await loadArticlesUnanswered();
+    await loadArticlesToAnswer();
   } else if (url.pathname.startsWith('/research/questionnaires')) {
     const idQuestionnaire = url.searchParams.get('id');
     if (idQuestionnaire) document.getElementById('filterQuestionnaire').value = idQuestionnaire;
@@ -121,7 +121,7 @@ async function loadQuestionnaires() {
   if ((tableData[1].length > 0) && (! selectedTableData[1])) selectTableRow(tableData[1][0].id, 1);
 }
 
-async function loadArticlesUnanswered() {
+async function loadArticlesToAnswer() {
   try {
     spinnerLoad.style.display = 'block';
 
@@ -131,10 +131,11 @@ async function loadArticlesUnanswered() {
         child: document.getElementById('filterResearchChild').classList.contains('menuButtonSelected')? 1 : 0,
         noUnilateral: document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected')? 1 : 0,
         persons: getPersonsFromFilter(),
+        answered_by_type: document.getElementById('filterAnsweredByType').value,
       },
     }
 
-    const url = '/research/ajaxResearch.php?function=loadArticlesUnanswered';
+    const url = '/research/ajaxResearch.php?function=loadArticlesToAnswer';
     const response = await fetchFromServer(url, data);
 
     response.articles.forEach(article => {
@@ -144,23 +145,16 @@ async function loadArticlesUnanswered() {
     if (response.error) showError(response.error);
     else {
 
-      crashes  = response.crashes;
+      crashes = response.crashes;
       articles = response.articles;
 
       let html = '';
       for (const article of response.articles) {
+
+        article.publishedtime = new Date(article.publishedtime);
         const crash = getCrashFromId(article.crashid);
-        let htmlIcons = getCrashHumansIcons(crash, false, true);
-        if (crash.unilateral) htmlIcons += getIconUnilateral();
 
-        htmlIcons = '<div style="display: flex; flex-direction: row;">' + htmlIcons + '</div>'
-
-        html += `
-          <tr id="article${article.id}" onclick="showQuestionsForm(${article.crashid}, ${article.id})">
-            <td style="white-space: nowrap;">${article.crash_date.pretty()}</td>
-            <td class="td300">${htmlIcons}</td>
-            <td class="td400">${article.title}</td>
-          </tr>`;
+        html += getHtmlRowAnswerQuestionnaire(article, crash);
       }
 
       document.getElementById('dataTableArticles').innerHTML = html;
@@ -171,6 +165,82 @@ async function loadArticlesUnanswered() {
   } finally {
     spinnerLoad.style.display = 'none';
   }
+}
+
+function getHtmlRowAnswerQuestionnaire(article, crash) {
+  let htmlIcons = getCrashHumansIcons(crash, false, true);
+  if (crash.unilateral) htmlIcons += getIconUnilateral();
+
+  htmlIcons = '<div style="display: flex; flex-direction: row;">' + htmlIcons + '</div>'
+  let answered = answered_by_type_to_text(article.answered_by_type);
+  if ((article.answered_by_type === Answered_by_type.ai) && article.ai_info) answered += ' - ' + article.ai_info;
+
+  let buttonQueue = '';
+  if (article.ai_questionnaire_processing !== QuestionnaireProcessing.pending) {
+    buttonQueue = '<button data-queue-action="add" class="buttonTiny">Queue for AI</button>';
+  } else {
+    buttonQueue = '<button data-queue-action="remove" class="buttonTiny buttonRed">Remove from queue</button>';
+  }
+
+  return `<tr id="article${article.id}">
+  <td>${article.id}</td>
+  <td style="white-space: nowrap;">${article.publishedtime.pretty()}</td>
+  <td class="td200">${htmlIcons}</td>
+  <td class="td300">${article.title}</td>
+  <td>${answered}</td>
+  <td>${questionnaireProcessing_to_text(article.ai_questionnaire_processing)} ${buttonQueue}</td>
+</tr>`;
+}
+
+function answerQuestionnaireClick() {
+  const button = event.target.closest('button');
+  if (button) {
+    const tr = event.target.closest('tr');
+    const articleId = parseInt(tr.id.replace(/\D/g, ''));
+
+    const queueAction = button.getAttribute('data-queue-action');
+    const remove = queueAction === 'remove';
+
+    queueArticleForAIAnswering(articleId, remove);
+  }
+}
+
+function queueArticleForAIAnswering(articleId, remove=false) {
+  const message = remove? `Remove article ${articleId} from the AI queue?` : `Queue article ${articleId} for AI answering?`;
+
+  confirmMessage(message, async () => {
+
+    const data = {
+      articleId: articleId,
+      remove: remove,
+    }
+    const url = '/research/ajaxResearch.php?function=queueArticleForAIAnswering';
+
+    const response = await fetchFromServer(url, data);
+
+    if (response.error) {
+      showError(response.error);
+      return;
+    }
+
+    const article = getArticleFromId(articleId);
+    article.ai_questionnaire_processing = remove? null : QuestionnaireProcessing.pending;
+
+    const crash = getCrashFromId(article.crashid);
+
+    document.getElementById('article' + articleId).innerHTML = getHtmlRowAnswerQuestionnaire(article, crash);
+
+    const message = remove? 'Article removed from queue' : 'Article queued for AI answering';
+    showMessage(message);
+  });
+}
+
+function answerQuestionnairesDblClick() {
+  const tr = event.target.closest('tr');
+  const articleId = parseInt(tr.id.replace(/\D/g, ''));
+
+  const article = getArticleFromId(articleId);
+  showQuestionsForm(article.crashid, articleId);
 }
 
 function questionnaireResultsFilterChange() {
@@ -1186,7 +1256,7 @@ function selectFilterAnswerQuestionnaires() {
 
   window.history.pushState(null, null, url.toString());
 
-  loadArticlesUnanswered();
+  loadArticlesToAnswer();
 }
 
 async function showQuestionnaireArticles(articleFilter, title) {

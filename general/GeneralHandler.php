@@ -195,7 +195,7 @@ SQL;
     $sql = "SELECT title, text, publishedtime FROM articles WHERE id = :id";
     $article = $this->database->fetchObject($sql, ['id' => $articleId]);
 
-    $prompt = $this->database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='questionnaire_agent';");
+    $prompt = $this->database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='questionnaire_answerer';");
 
     require_once '../general/OpenRouterAIClient.php';
 
