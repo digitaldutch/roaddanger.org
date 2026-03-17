@@ -205,34 +205,27 @@ function answerQuestionnaireClick() {
   }
 }
 
-function queueArticleForAIAnswering(articleId, remove=false) {
-  const message = remove? `Remove article ${articleId} from the AI queue?` : `Queue article ${articleId} for AI answering?`;
+async function queueArticleForAIAnswering(articleId, remove=false) {
+  const data = {
+    articleId: articleId,
+    remove: remove,
+  }
 
-  confirmMessage(message, async () => {
+  const url = '/research/ajaxResearch.php?function=queueArticleForAIAnswering';
 
-    const data = {
-      articleId: articleId,
-      remove: remove,
-    }
-    const url = '/research/ajaxResearch.php?function=queueArticleForAIAnswering';
+  const response = await fetchFromServer(url, data);
 
-    const response = await fetchFromServer(url, data);
+  if (response.error) {
+    showError(response.error);
+    return;
+  }
 
-    if (response.error) {
-      showError(response.error);
-      return;
-    }
+  const article = getArticleFromId(articleId);
+  article.ai_questionnaire_processing = remove? null : QuestionnaireProcessing.pending;
 
-    const article = getArticleFromId(articleId);
-    article.ai_questionnaire_processing = remove? null : QuestionnaireProcessing.pending;
+  const crash = getCrashFromId(article.crashid);
 
-    const crash = getCrashFromId(article.crashid);
-
-    document.getElementById('article' + articleId).innerHTML = getHtmlRowAnswerQuestionnaire(article, crash);
-
-    const message = remove? 'Article removed from queue' : 'Article queued for AI answering';
-    showMessage(message);
-  });
+  document.getElementById('article' + articleId).innerHTML = getHtmlRowAnswerQuestionnaire(article, crash);
 }
 
 function answerQuestionnairesDblClick() {
