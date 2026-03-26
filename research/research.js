@@ -134,6 +134,7 @@ async function loadArticlesToAnswer() {
         answered_by_type: document.getElementById('filterAnsweredByType').value,
         AI_processing_status: document.getElementById('filterAIProcessingStatus').value,
       },
+      sort: document.getElementById('filterSort').value,
     }
 
     const url = '/research/ajaxResearch.php?function=loadArticlesToAnswer';
@@ -209,12 +210,14 @@ async function updateStatusTasks(){
 }
 
 function getHtmlRowAnswerQuestionnaire(article, crash) {
-  let htmlIcons = getCrashHumansIcons(crash, false, true);
-  if (crash.unilateral) htmlIcons += getIconUnilateral();
+  let html_icons = getCrashHumansIcons(crash, false, true);
+  if (crash.unilateral) html_icons += getIconUnilateral();
 
-  htmlIcons = '<div style="display: flex; flex-direction: row;">' + htmlIcons + '</div>'
-  let answered = answered_by_type_to_text(article.answered_by_type);
-  if ((article.answered_by_type === Answered_by_type.ai) && article.ai_info) answered += ' - ' + article.ai_info;
+  html_icons = '<div style="display: flex; flex-direction: row;">' + html_icons + '</div>'
+  let answered_by = answered_by_type_to_text(article.answered_by_type);
+  if ((article.answered_by_type === Answered_by_type.ai) && article.ai_info) answered_by += ' - ' + article.ai_info;
+
+  let answered_at = article.answered_at? datetimeToAge(new Date(article.answered_at)) : '';
 
   let buttonQueue = '';
   if (article.ai_questionnaire_status !== QuestionnaireProcessing.pending) {
@@ -223,13 +226,15 @@ function getHtmlRowAnswerQuestionnaire(article, crash) {
     buttonQueue = '<button data-queue-action="remove" class="buttonTiny buttonRed">Remove from queue</button>';
   }
 
-  return `<tr id="article${article.id}">
+  return `
+<tr id="article${article.id}">
   <td>${article.id}</td>
   <td style="white-space: nowrap;">${article.publishedtime.pretty()}</td>
   <td class="td300">${article.title}</td>
   <td>${questionnaireProcessing_to_text(article.ai_questionnaire_status)} ${buttonQueue}</td>
-  <td>${answered}</td>
-  <td class="td200">${htmlIcons}</td>
+  <td class="noWrap">${answered_at}</td>
+  <td class="noWrap">${answered_by}</td>
+  <td class="td200">${html_icons}</td>
 </tr>`;
 }
 

@@ -209,6 +209,14 @@ HTML;
     </div>
     
     <div class="toolbarItem">
+      <label>Sort
+        <select id="filterSort" class="filterBarInput active">
+        <option value="published" selected>Published</option>
+        <option value="answered_at">Answered at</option>
+      </select></label>
+    </div>
+    
+    <div class="toolbarItem">
       <div class="button buttonMobileSmall buttonImportant" onclick="selectFilterAnswerQuestionnaires(event)">{$texts['Show_results']}</div>
     </div>
     
@@ -240,9 +248,10 @@ HTML;
       <thead>
         <tr>
           <th>ID</th>
-          <th>Date</th>
+          <th>Published</th>
           <th>Article title</th>
           <th>AI processing</th>
+          <th>Answered at</th>
           <th>Answered by</th>
           <th>Humans</th>
         </tr>

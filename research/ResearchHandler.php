@@ -221,6 +221,7 @@ class ResearchHandler extends AjaxHandler {
 
   private function loadArticlesToAnswer(): array {
     $filter = $this->input['filter'];
+    $sort = $this->input['sort'];
 
     // Get active questionnaires
     $sql = <<<SQL
@@ -253,6 +254,7 @@ SQL;
 
     if (count($questionnaires) > 0) {
       $SQLWhereAnd = ' ';
+      $SQLSort = ' ';
       $params = [];
 
       addPersonsWhereSql($SQLWhereAnd, $filter);
@@ -276,6 +278,12 @@ SQL;
         $SQLWhereAnd .= " AND ans.answered_by_type = 2 ";
       }
 
+      if (($sort === 'answered_at') && ($filter['answered_by_type'] !== 'unanswered')) {
+        $SQLSort = "ORDER BY ans.answered_at DESC";
+      } else {
+        $SQLSort = "ORDER BY a.publishedtime DESC";
+      }
+
 
       /** @noinspection SqlIdentifier */
       $sql = <<<SQL
@@ -287,6 +295,7 @@ a.sitename,
 a.publishedtime,
 a.ai_questionnaire_status,
 ans.answered_by_type,
+ans.answered_at,
 ans.ai_info,
 c.date AS crash_date,
 c.unilateral AS crash_unilateral,
@@ -298,7 +307,7 @@ LEFT JOIN answers ans ON ans.articleid = a.id
   AND ans.questionid = (SELECT MIN(a2.questionid) FROM answers a2  WHERE a2.articleid = a.id)
 WHERE ((alltext IS NOT NULL) AND (alltext != ''))
 $SQLWhereAnd
-ORDER BY c.date DESC
+$SQLSort
 LIMIT 50;
 SQL;
     }

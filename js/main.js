@@ -1944,7 +1944,10 @@ async function aiAnswerQuestionnaires() {
 
     const response = await fetchFromServer(url, data);
 
-    if (response.error) showError(response.error, 10);
+    if (response.error) {
+      showError(response.error, 10);
+      return;
+    }
 
     const article = getArticleFromId(articleId);
 

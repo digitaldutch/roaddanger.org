@@ -242,11 +242,12 @@ class Database {
     ];
 
     $sql = <<<SQL
-INSERT INTO answers (articleid, questionid, answer, answered_by_type, ai_info) 
-VALUES(:articleid, :questionid, :answer, :answered_by_type, :ai_info) 
+INSERT INTO answers (articleid, questionid, answer, answered_by_type, ai_info, answered_at) 
+VALUES(:articleid, :questionid, :answer, :answered_by_type, :ai_info, NOW()) 
 ON DUPLICATE KEY UPDATE 
   answer=:answer2,
   answered_by_type=:answered_by_type2,
+  answered_at=NOW(),
   ai_info=:ai_info2;
 SQL;
 

@@ -193,7 +193,7 @@ SQL;
 
     $questionnaires = $openrouter->chatAnswerArticleQuestionnaires($articleId);
 
-    return ['questionnaires' => $questionnaires];
+    return $questionnaires;
   }
 
   /**
