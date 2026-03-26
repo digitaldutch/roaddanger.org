@@ -155,16 +155,16 @@ class OpenRouterAIClient {
    */
   private function chatFromOpenRouter(string $userPrompt, string $systemPrompt = '',
                                      string $model = self::DEFAULT_MODEL, string $responseFormat = ''): array {
-    if (strlen($userPrompt) > 5000) {
-      throw new \Exception('The "User prompt" exceeds the maximum allowed length of 5000 characters');
+    if (strlen($userPrompt) > 10000) {
+      throw new \Exception('The "User prompt" exceeds the maximum allowed length of 10000 characters');
     }
 
-    if (strlen($systemPrompt) > 5000) {
-      throw new \Exception('The "system prompt" exceeds the maximum allowed length of 5000 characters');
+    if (strlen($systemPrompt) > 10000) {
+      throw new \Exception('The "system prompt" exceeds the maximum allowed length of 10000 characters');
     }
 
-    if (strlen($responseFormat) > 5000) {
-      throw new \Exception('The "response format" exceeds the maximum allowed length of 5000 characters');
+    if (strlen($responseFormat) > 10000) {
+      throw new \Exception('The "response format" exceeds the maximum allowed length of 10000 characters');
     }
 
     $messages = [];
