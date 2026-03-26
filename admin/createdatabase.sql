@@ -47,7 +47,7 @@ create table logs
   timestamp timestamp default current_timestamp() null,
   level     tinyint                               null,
   ip        varchar(45)                           null,
-  info      varchar(255)                          not null
+  info      varchar(1000)                         not null
 );
 
 create table longtexts
@@ -124,7 +124,7 @@ create table ai_prompts
   id              int auto_increment
     primary key,
   user_id         int           not null,
-  function        varchar(20)   null comment 'Used in website function calls',
+  function        varchar(25)   null comment 'Used in website function calls',
   model_id        varchar(50)   null,
   user_prompt     varchar(5000) null,
   system_prompt   varchar(5000) null comment 'Openrouter.ai style system instructions',
@@ -185,7 +185,7 @@ create table articles
   url                         varchar(1000)                                not null,
   urlimage                    varchar(1000)                                not null,
   sitename                    varchar(200)                                 not null,
-  ai_questionnaire_processing smallint                                     null comment '1: pending; 2: completed; 3: error',
+  ai_questionnaire_status smallint                                     null comment '1: pending; 2: completed; 3: error',
   ai_analyses_processing      smallint                                     null comment '1: pending; 2: completed; 3: error',
   constraint articles___fk_crashes
     foreign key (crashid) references crashes (id)

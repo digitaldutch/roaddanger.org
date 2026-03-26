@@ -31,7 +31,7 @@ class TMetaParser {
   function downloadUsingHeadlessBrowser($urlDownload): null|string {
     $headlessCommand = PHP_OS_FAMILY === 'Windows'? HEADLESS_BROWSER_COMMAND_WINDOWS : HEADLESS_BROWSER_COMMAND;
 
-    $command = $headlessCommand . $urlDownload;
+    $command = $headlessCommand . ' ' . $urlDownload;
 
     exec($command, $output, $statusCode);
     if ($statusCode === 0) {

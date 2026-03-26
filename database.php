@@ -68,6 +68,12 @@ class Database {
     return $statement->fetchAll(PDO::FETCH_ASSOC);
   }
 
+  public function fetchAllObjects($sql, $params=null): bool|array {
+    $statement = $this->pdo->prepare($sql);
+    $statement->execute($params);
+    return $statement->fetchAll(PDO::FETCH_OBJ);
+  }
+
   public function fetchAllValues($sql, $params=null): false|array {
     try {
       $statement = $this->pdo->prepare($sql);

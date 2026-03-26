@@ -1,6 +1,6 @@
 <?php
 
-require_once '../configsecret.php';
+require_once '../config_secret.php';
 
 class OpenRouterAIClient {
   private const string DEFAULT_MODEL = 'openrouter/auto';
@@ -56,36 +56,7 @@ class OpenRouterAIClient {
   /**
    * @throws Exception
    */
-  public function chatWithMeta(string $user_prompt, string $systemPrompt = '', string $model = self::DEFAULT_MODEL,
-                               string $responseFormat = ''): array {
-
-    if (strlen($user_prompt) > 5000) {
-      throw new \Exception('The "User prompt" exceeds the maximum allowed length of 5000 characters');
-    }
-
-    if (strlen($systemPrompt) > 5000) {
-      throw new \Exception('The "system prompt" exceeds the maximum allowed length of 5000 characters');
-    }
-    
-    if (strlen($responseFormat) > 5000) {
-      throw new \Exception('The "response format" exceeds the maximum allowed length of 5000 characters');
-    }
-
-    $responseOpenRouter = $this->chatFromOpenRouter($user_prompt, $systemPrompt, $model, $responseFormat);
-
-    return [
-      'response' => $responseOpenRouter['choices'][0]['message']['content'],
-      'id' => $responseOpenRouter['id'],
-      'model' => $responseOpenRouter['model'],
-      'tokens_prompt' => $responseOpenRouter['usage']['prompt_tokens'],
-      'tokens_completion' => $responseOpenRouter['usage']['completion_tokens'],
-    ];
-  }
-
-  /**
-   * @throws Exception
-   */
-  public function chatUsingPromptFunction(string $promptFunction, object $article): string {
+  public function chatAboutArticle(string $promptFunction, object $article): string {
     if (empty($article->title)) throw new \Exception('Article title is empty');
     if (empty($article->text)) throw new \Exception('Article text is empty');
 
@@ -99,7 +70,47 @@ class OpenRouterAIClient {
 
     $prompt->user_prompt = replaceArticleTags($prompt->user_prompt, $article);
 
-    return $this->chat($prompt->user_prompt, $prompt->system_prompt, $prompt->model_id, $prompt->response_format);
+    $response = $this->chat($prompt->user_prompt, $prompt->system_prompt, $prompt->model_id, $prompt->response_format);
+
+    return $response;
+  }
+
+  /**
+   * @throws Exception
+   */
+  public function chatAnswerArticleQuestionnaires($articleId): array {
+    global $database;
+
+    $sql = "SELECT title, text, publishedtime FROM articles WHERE id = :id";
+    $article = $database->fetchObject($sql, ['id' => $articleId]);
+
+    $prompt = $database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='questionnaire_answerer';");
+
+    $prompt->user_prompt = replaceArticleTags($prompt->user_prompt, $article);
+    $questionnaires = $database->loadQuestionnaires();
+
+    $prompt->user_prompt = replaceAI_QuestionnaireTags($prompt->user_prompt, $questionnaires);
+
+    $AIResults = $this->chatWithMeta($prompt->user_prompt, $prompt->system_prompt, $prompt->model_id, $prompt->response_format);
+
+    $AIResults['response'] = json_decode($AIResults['response']);
+    $questionnaires = $AIResults['response']->questionnaires;
+
+    // Save answers to the database
+    foreach ($questionnaires AS &$questionnaire) {
+      foreach ($questionnaire->questions AS &$question) {
+        $question->answer_id = aiAnswerToAnswerId($question->answer);
+        $question->answered_by_type = 2;
+        $question->ai_info = $AIResults['model'];
+
+        $database->saveAnswer($articleId, $question->id, $question->answer_id,
+          $question->justification, true, $question->ai_info);
+      }
+    }
+
+    return [
+      'questionnaires' => $questionnaires,
+    ];
   }
 
   /**
@@ -125,8 +136,37 @@ class OpenRouterAIClient {
   /**
    * @throws Exception
    */
-  public function chatFromOpenRouter(string $userPrompt, string $systemPrompt = '',
+  public function chatWithMeta(string $user_prompt, string $systemPrompt = '', string $model = self::DEFAULT_MODEL,
+                               string $responseFormat = ''): array {
+
+    $responseOpenRouter = $this->chatFromOpenRouter($user_prompt, $systemPrompt, $model, $responseFormat);
+
+    return [
+      'response' => $responseOpenRouter['choices'][0]['message']['content'],
+      'id' => $responseOpenRouter['id'],
+      'model' => $responseOpenRouter['model'],
+      'tokens_prompt' => $responseOpenRouter['usage']['prompt_tokens'],
+      'tokens_completion' => $responseOpenRouter['usage']['completion_tokens'],
+    ];
+  }
+
+  /**
+   * @throws Exception
+   */
+  private function chatFromOpenRouter(string $userPrompt, string $systemPrompt = '',
                                      string $model = self::DEFAULT_MODEL, string $responseFormat = ''): array {
+    if (strlen($userPrompt) > 5000) {
+      throw new \Exception('The "User prompt" exceeds the maximum allowed length of 5000 characters');
+    }
+
+    if (strlen($systemPrompt) > 5000) {
+      throw new \Exception('The "system prompt" exceeds the maximum allowed length of 5000 characters');
+    }
+
+    if (strlen($responseFormat) > 5000) {
+      throw new \Exception('The "response format" exceeds the maximum allowed length of 5000 characters');
+    }
+
     $messages = [];
 
     if (! empty($systemPrompt)) {

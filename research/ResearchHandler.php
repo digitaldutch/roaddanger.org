@@ -15,6 +15,14 @@ class ResearchHandler extends AjaxHandler {
       // The stuff below is for moderators only
       if (($response === null) && $this->user->isModerator()) {
         $response = match ($command) {
+          'getResearch_UVA_2026' => $this->getResearch_UVA_2026(),
+          default => null,
+        };
+      }
+
+      // The stuff below is only for administrators
+      if (($response === null) && $this->user->admin) {
+        $response = match($command) {
           'aiRunPrompt' => $this->aiRunPrompt(),
           'aiInit' => $this->aiInit(),
           'aiGetAvailableModels' => $this->aiGetAvailableModels(),
@@ -27,14 +35,7 @@ class ResearchHandler extends AjaxHandler {
           'aiGetPromptList' => $this->aiGetPromptList(),
           'aiDeletePrompt' => $this->aiDeletePrompt(),
           'loadArticlesToAnswer' => $this->loadArticlesToAnswer(),
-          'getResearch_UVA_2026' => $this->getResearch_UVA_2026(),
-          default => null,
-        };
-      }
-
-      // The stuff below is only for administrators
-      if (($response === null) && $this->user->admin) {
-        $response = match($command) {
+          'getTaskWorkerStatus' => $this->getTaskWorkerStatus(),
           'loadQuestionnaires' => $this->loadQuestionnaires(),
           'saveQuestion' => $this->saveQuestion(),
           'deleteQuestion' => $this->deleteQuestion(),
@@ -42,6 +43,7 @@ class ResearchHandler extends AjaxHandler {
           'saveQuestionnaire' => $this->saveQuestionnaire(),
           'deleteQuestionnaire' => $this->deleteQuestionnaire(),
           'queueArticleForAIAnswering' => $this->queueArticleForAIAnswering(),
+          'startAITasks' => $this->startAITasks(),
           default => null,
         };
       }
@@ -182,17 +184,26 @@ class ResearchHandler extends AjaxHandler {
     $articleId = $this->input['articleId'];
     $remove = $this->input['remove'];
     if ($remove) {
-      $sql = "UPDATE articles SET ai_questionnaire_processing = null WHERE id = :articleId";
+      $sql = "UPDATE articles SET ai_questionnaire_status = null WHERE id = :articleId";
     } else {
-      $sql = "UPDATE articles SET ai_questionnaire_processing = 1 WHERE id = :articleId";
+      $sql = "UPDATE articles SET ai_questionnaire_status = 1 WHERE id = :articleId";
     }
     $params = [':articleId' => $articleId];
 
     $this->database->execute($sql, $params);
     return [
       'articleId' => $articleId,
-      'ai_questionnaire_processing' => 1,
+      'ai_questionnaire_status' => 1,
       ];
+  }
+
+  /**
+   * @throws Exception
+   */
+  private function startAITasks(): void {
+    $taskWorkerStartFile = __DIR__ . '/../workers/start_AI_answer_worker.php';
+
+    startPHPFromCommandLine($taskWorkerStartFile);
   }
 
   /**
@@ -242,11 +253,17 @@ SQL;
 
     if (count($questionnaires) > 0) {
       $SQLWhereAnd = ' ';
+      $params = [];
 
       addPersonsWhereSql($SQLWhereAnd, $filter);
 
       if (isset($filter['noUnilateral']) && ($filter['noUnilateral'] === 1)){
         addSQLWhere($SQLWhereAnd, " c.unilateral !=1 ");
+      }
+
+      if (! empty($filter['AI_processing_status'])){
+        $params[':ai_questionnaire_status'] = $filter['AI_processing_status'];
+        addSQLWhere($SQLWhereAnd, " a.ai_questionnaire_status = :ai_questionnaire_status ");
       }
 
       $SQLWhereAnd .= $this->user->countryId === 'UN'? '' : " AND c.countryid='" . $this->user->countryId . "'";
@@ -268,7 +285,7 @@ a.title,
 a.url,
 a.sitename,
 a.publishedtime,
-a.ai_questionnaire_processing,
+a.ai_questionnaire_status,
 ans.answered_by_type,
 ans.ai_info,
 c.date AS crash_date,
@@ -286,7 +303,7 @@ LIMIT 50;
 SQL;
     }
 
-    $articles = $this->database->fetchAll($sql);
+    $articles = $this->database->fetchAll($sql, $params);
 
     $crashes = [];
     foreach ($articles as $article) {
@@ -344,6 +361,30 @@ SQL;
       'questionnaire' => $questionnaire,
     ];
   }
+
+  private function getTaskWorkerStatus(): array {
+    $taskWorkerFile = __DIR__ . '/../workers/task_worker.php';
+    $statusFile = __DIR__ . '/../workers/task_worker_status.json';
+
+    require_once $taskWorkerFile;
+
+    $status = [
+      'running' => TaskWorker::isRunning(),
+    ];
+
+    if (file_exists($statusFile)) {
+      $fileContent = @file_get_contents($statusFile);
+      if ($fileContent !== false) {
+        $statusResult = json_decode($fileContent, true);
+        if (is_array($statusResult)) {
+          $status = array_merge($status, $statusResult);
+        }
+      }
+    }
+
+    return $status;
+  }
+
 
   private function loadArticleFromDatabase($articleId, $command=''): false|stdClass {
 

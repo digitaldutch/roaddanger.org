@@ -166,24 +166,19 @@ SQL;
    * @throws Exception
    */
   private function extractDataFromArticle(): array {
-    $article = $this->input;
-
-    $prompt = $this->database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='article_analyst';");
+    $article = (object)$this->input;
 
     require_once '../general/OpenRouterAIClient.php';
 
-    $prompt->user_prompt = replaceArticleTags($prompt->user_prompt, (object)$article);
-
     $openrouter = new OpenRouterAIClient();
-    $AIResults = $openrouter->chatWithMeta($prompt->user_prompt, $prompt->system_prompt, $prompt->model_id, $prompt->response_format);
-
-    $AIResults['response'] = json_decode($AIResults['response']);
+    $AIResponse = $openrouter->chatAboutArticle('article_analyst', $article);
+    $AIResponse = json_decode($AIResponse);
 
     // Get coordinates also from geocoder as AI is not very good at it yet
-    $geocoder_prompt = $AIResults['response']->location->geocoder_prompt;
-    $AIResults['response']->location->geocoder_coordinates = geocodeLocation($geocoder_prompt);
+    $geocoder_prompt = $AIResponse->location->geocoder_prompt;
+    $AIResponse->location->geocoder_coordinates = geocodeLocation($geocoder_prompt);
 
-    return ['data' => $AIResults['response']];
+    return ['data' => $AIResponse];
   }
 
   /**
@@ -192,34 +187,11 @@ SQL;
   private function answerQuestionnairesForArticleWithAI(): array {
     $articleId = $this->input['articleId'];
 
-    $sql = "SELECT title, text, publishedtime FROM articles WHERE id = :id";
-    $article = $this->database->fetchObject($sql, ['id' => $articleId]);
-
-    $prompt = $this->database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='questionnaire_answerer';");
-
     require_once '../general/OpenRouterAIClient.php';
 
-    $prompt->user_prompt = replaceArticleTags($prompt->user_prompt, (object)$article);
-    $questionnaires = $this->database->loadQuestionnaires();
-    $prompt->user_prompt = replaceAI_QuestionnaireTags($prompt->user_prompt, $questionnaires);
-
     $openrouter = new OpenRouterAIClient();
-    $AIResults = $openrouter->chatWithMeta($prompt->user_prompt, $prompt->system_prompt, $prompt->model_id, $prompt->response_format);
 
-    $AIResults['response'] = json_decode($AIResults['response']);
-    $questionnaires = $AIResults['response']->questionnaires;
-
-    foreach ($questionnaires AS &$questionnaire) {
-      foreach ($questionnaire->questions AS &$question) {
-        $question->answer_id = aiAnswerToAnswerId($question->answer);
-        $question->answered_by_type = 2;
-        $question->ai_info = $AIResults['model'];
-
-        // Save answer to the database
-        $this->database->saveAnswer($articleId, $question->id, $question->answer_id,
-          $question->justification, true, $question->ai_info);
-      }
-    }
+    $questionnaires = $openrouter->chatAnswerArticleQuestionnaires($articleId);
 
     return ['questionnaires' => $questionnaires];
   }

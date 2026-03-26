@@ -13,13 +13,13 @@ Website: [roaddanger.org](https://www.roaddanger.org)
 * Put all files on a webserver with PHP support. 
 * Import de database on a MySQL/MariaDB server with full text search capability. The database creation script is located in
 [admin/createdatabase.sql](admin/createdatabase.sql)
-* Read the [config.php](config.php) file. It tells you to create a `configsecret.php` file with your database connection info. Never check this one into git.
+* Read the [config.php](config.php) file. It tells you to create a `config_secret.php` file with your database connection info. Never check this one into git.
 ```PHP
 <?php
 
 // *** Do not fill in the database settings ***
-// - Create a new file named configsecret.php and fill these settings there.
-// - Exclude configsecret.php from checking into your source code repository. 
+// - Create a new file named config_secret.php and fill these settings there.
+// - Exclude config_secret.php from checking into your source code repository. 
 // - This is to prevent passwords from entering the source code repository.
 const DB_HOST     = '';
 const DB_NAME     = '';

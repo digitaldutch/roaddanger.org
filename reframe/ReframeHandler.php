@@ -66,7 +66,7 @@ class ReframeHandler {
         ];
 
         // Use the existing client to make the API call
-        $llmOutputContent = $openrouterClient->chatUsingPromptFunction('article_reframe_UVA', $article);
+        $llmOutputContent = $openrouterClient->chatAboutArticle('article_reframe_UVA', $article);
 
         $llmAnalysis = json_decode($llmOutputContent, true);
 

@@ -132,6 +132,7 @@ async function loadArticlesToAnswer() {
         noUnilateral: document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected')? 1 : 0,
         persons: getPersonsFromFilter(),
         answered_by_type: document.getElementById('filterAnsweredByType').value,
+        AI_processing_status: document.getElementById('filterAIProcessingStatus').value,
       },
     }
 
@@ -159,12 +160,52 @@ async function loadArticlesToAnswer() {
 
       document.getElementById('dataTableArticles').innerHTML = html;
       document.getElementById('tableWrapper').style.display = 'block';
+      document.getElementById('groupAIService').style.display = 'block';
+
+      updateStatusTasks();
     }
   } catch (error) {
     showError(error.message);
   } finally {
     spinnerLoad.style.display = 'none';
   }
+}
+
+async function updateStatusTasks(){
+  const spinner = document.getElementById('spinnerTasksStatus');
+  const elStatus= document.getElementById('ai_questionnaire_worker_status');
+
+  try {
+    spinner.style.display = 'inline-block';
+
+    const url = '/research/ajaxResearch.php?function=getTaskWorkerStatus';
+    const status = await fetchFromServer(url);
+
+    let html = '';
+    if (status) {
+      html = status.running? 'running' : 'idle';
+
+      if (status.running) {
+        const start_dateTime = new Date(status.start_time);
+
+        html += ' | start: ' + datetimeToISO(start_dateTime, true);
+      } else {
+        const end_time = new Date(status.end_time);
+
+        html += ' | finished: ' + datetimeToISO(end_time, true);
+      }
+
+      html += ' | ' + status.info;
+    }
+
+    elStatus.innerHTML = html;
+
+
+  } finally {
+    spinner.style.display = 'none';
+  }
+
+  setTimeout(updateStatusTasks, 2000);
 }
 
 function getHtmlRowAnswerQuestionnaire(article, crash) {
@@ -176,7 +217,7 @@ function getHtmlRowAnswerQuestionnaire(article, crash) {
   if ((article.answered_by_type === Answered_by_type.ai) && article.ai_info) answered += ' - ' + article.ai_info;
 
   let buttonQueue = '';
-  if (article.ai_questionnaire_processing !== QuestionnaireProcessing.pending) {
+  if (article.ai_questionnaire_status !== QuestionnaireProcessing.pending) {
     buttonQueue = '<button data-queue-action="add" class="buttonTiny">Queue for AI</button>';
   } else {
     buttonQueue = '<button data-queue-action="remove" class="buttonTiny buttonRed">Remove from queue</button>';
@@ -185,11 +226,28 @@ function getHtmlRowAnswerQuestionnaire(article, crash) {
   return `<tr id="article${article.id}">
   <td>${article.id}</td>
   <td style="white-space: nowrap;">${article.publishedtime.pretty()}</td>
-  <td class="td200">${htmlIcons}</td>
   <td class="td300">${article.title}</td>
+  <td>${questionnaireProcessing_to_text(article.ai_questionnaire_status)} ${buttonQueue}</td>
   <td>${answered}</td>
-  <td>${questionnaireProcessing_to_text(article.ai_questionnaire_processing)} ${buttonQueue}</td>
+  <td class="td200">${htmlIcons}</td>
 </tr>`;
+}
+
+async function startAIAnswerer() {
+  const url = '/research/ajaxResearch.php?function=startAITasks';
+
+  const response = await fetchFromServer(url);
+
+  if (response.error) {
+    showError(response.error);
+    return;
+  }
+
+  showMessage('Started AI answerer');
+}
+
+function stopAIAnswerer() {
+  showMessage('Coming soon');
 }
 
 function answerQuestionnaireClick() {
@@ -221,7 +279,7 @@ async function queueArticleForAIAnswering(articleId, remove=false) {
   }
 
   const article = getArticleFromId(articleId);
-  article.ai_questionnaire_processing = remove? null : QuestionnaireProcessing.pending;
+  article.ai_questionnaire_status = remove? null : QuestionnaireProcessing.pending;
 
   const crash = getCrashFromId(article.crashid);
 
@@ -1225,11 +1283,12 @@ function onDragRowQuestion(event) {
 
 function clickQuestionnaireResultsOption() {
   questionnaireResultsFilterChange();
-  clickAnswerQuestionnairesFilterButton();
+  if (event.target.classList.contains('menuButtonBlack')) event.target.classList.toggle('menuButtonSelected');
 }
 
 function clickAnswerQuestionnairesFilterButton() {
   document.getElementById('dataTableArticles').innerText = '';
+  document.getElementById('groupAIService').style.display = 'none';
 
   if (event.target.classList.contains('menuButtonBlack')) event.target.classList.toggle('menuButtonSelected');
 }

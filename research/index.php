@@ -26,7 +26,7 @@ if ($pageType === PageType::questionnaireSettings) {
   $mainHTML = $user->isModerator()? HtmlResearch::QuestionnaireAnswer() : HtmlBuilder::pageNotModerator();
 } else if ($pageType === PageType::questionnaireResults) {
   $head .= "\n<script src='/scripts/d3.v7.js?v=$VERSION'></script>";
-  $mainHTML = HtmlResearch::pageResults();
+  $mainHTML = HtmlResearch::questionnaireResults();
 } else if ($pageType === PageType::ai_prompt_builder) {
   $mainHTML = HtmlResearch::pageAITest();
 } else if ($pageType === PageType::research_uva_2026) {

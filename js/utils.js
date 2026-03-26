@@ -109,6 +109,19 @@ function timeToISO(date, addSeconds=false, addMilliSeconds=false) {
   return time;
 }
 
+function datetimeToISO(datetime, dateOnlyIfOlderThanToday=false) {
+
+  const dateISO = dateToISO(datetime);
+  const timeISO = timeToISO(datetime, true);
+  const todayISO = dateToISO(new Date());
+
+  if ((! dateOnlyIfOlderThanToday) || (dateISO < todayISO)){
+    return dateISO + ' ' + timeISO;
+  } else {
+    return timeISO;
+  }
+}
+
 function datetimeToAge(datetime) {
   if (! datetime) return '';
   // let ApproxDaysPerYear     = 365.25;

@@ -565,3 +565,30 @@ function getLastYears($amount): array {
   return $years;
 }
 
+function runCommandLineScript(string $command): void {
+  $process = popen($command, 'r');
+  if ($process === false) {
+      throw new RuntimeException('Could not open background process');
+  }
+
+  pclose($process);
+}
+
+function startPHPFromCommandLine(string $file): void {
+  $file = escapeshellarg($file);
+
+  if (PHP_OS_FAMILY === 'Windows') {
+      $command = "start /min " . PHP_COMMAND_LINE_WINDOWS . " $file";
+  } elseif (PHP_OS_FAMILY === 'Linux' || PHP_OS_FAMILY === 'Darwin') {
+      $command = PHP_COMMAND_LINE . " $file >/dev/null 2>&1 &";
+  } else {
+      throw new RuntimeException('Unknown PHP_OS_FAMILY: ' . PHP_OS_FAMILY);
+  }
+
+  try {
+    runCommandLineScript($command);
+  } catch (RuntimeException $e) {
+    throw new RuntimeException("Failed to start PHP script: {$e->getMessage()}");
+  }
+}
+

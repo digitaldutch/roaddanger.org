@@ -89,10 +89,10 @@ $navigation
       <a href='/'class="pageTitle">$websiteName</a>        
   
       <div style="position: relative;">
-        <div id="filterCountry" class="buttonHeader" style="height: auto; width: auto; display: none;" onclick="countryClick();">
+        <div id="filterCountry" class="buttonHeader" style="display: none;" onclick="countryClick();">
           <img id="filterCountryFlag" src="/images/flags/un.svg" style="width: 15px; height: 15px; margin-right: 3px;">
           <div id="filterCountryName">nbsp;</div>
-          <div class="bgArrowDownWhite" style="width: 15px; height: 15px; position: relative; top: 2px; margin-left: 3px;"></div> 
+          <div class="inputArrowDownWhite"></div> 
         </div>     
           
         <div id="menuCountries" class="buttonPopupMenu">
@@ -764,6 +764,9 @@ HTML;
 
     <div class="toolbarItem">
       <span id="filterChildDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="selectFilterChildVictims();"></span>      
+    </div>
+
+    <div class="toolbarItem">
       <span id="filterChildInjured" class="menuButtonBlack bgInjuredWhite" data-tippy-content="{$texts['Injury']}: {$texts['Injured']}" onclick="selectFilterChildVictims();"></span>      
     </div>
     

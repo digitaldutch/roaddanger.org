@@ -76,7 +76,7 @@ class HtmlResearch {
     <input id="questionText" class="popupInput" type="text" maxlength="200">
        
     <label for="questionExplanation">Explanation for both humans and AI. Be explicit or AI fails</span></label>
-    <input id="questionExplanation" class="popupInput" type="text" maxlength="200">
+    <input id="questionExplanation" class="popupInput" type="text" maxlength="400">
        
     <div class="popupFooter">
       <input type="submit" class="button" style="margin-left: 0;" value="{$texts['Save']}">
@@ -170,11 +170,17 @@ HTML;
     $textIntro  
   </div>
 
-  <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex;">
+  <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex; align-items: flex-end;">
 
     <div class="toolbarItem">
       <span id="filterResearchDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickAnswerQuestionnairesFilterButton();"></span>      
+    </div>
+
+    <div class="toolbarItem">
       <span id="filterResearchChild" class="menuButtonBlack bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="clickAnswerQuestionnairesFilterButton();"></span>      
+    </div>
+
+    <div class="toolbarItem">
       <span id="filterResearchNoUnilateral" class="menuButtonBlack bgNoUnilateralWhite" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickAnswerQuestionnairesFilterButton();"></span>      
     </div>
   
@@ -183,12 +189,23 @@ HTML;
     </div>
 
     <div class="toolbarItem">
+      <label>Answered by
       <select id="filterAnsweredByType" class="filterBarInput active">
-        <option value="">[Answered by type]</option>
+        <option value=""></option>
         <option value="unanswered">Unanswered</option>
         <option value="ai">Answered by AI</option>
         <option value="human">Answered by a human</option>
-      </select>
+      </select></label>
+    </div>
+
+    <div class="toolbarItem">
+      <label>AI processing
+        <select id="filterAIProcessingStatus" class="filterBarInput active">
+        <option value=""></option>
+        <option value="1">Pending</option>
+        <option value="2">Completed</option>
+        <option value="3">Error</option>
+      </select></label>
     </div>
     
     <div class="toolbarItem">
@@ -196,6 +213,25 @@ HTML;
     </div>
     
   </div>
+  
+  <div id="groupAIService" class="pageInner" style="display:none;">
+    <div style="background: #333333; padding: 5px; border-radius: 5px;">
+    
+      <div style="font-weight: bold; text-align: center;">Automatic AI Questionnaire Answerer</div>
+        
+      <div style="text-align: center; margin: 10px 0;">  
+        <button class="button buttonImportant" onclick="startAIAnswerer()">Start AI Answerer</button>
+        <button class="button buttonImportant" onclick="stopAIAnswerer()">Stop AI Answerer</button>
+      </div>
+
+      <div>Status: 
+        <span id="ai_questionnaire_worker_status"></span>
+        <div id="spinnerTasksStatus" class="spinnerInline"><img src="/images/spinner.svg"></div>
+      </div>
+    </div>
+
+  </div>
+
   
   <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>
   
@@ -205,10 +241,10 @@ HTML;
         <tr>
           <th>ID</th>
           <th>Date</th>
-          <th>Humans</th>
           <th>Article title</th>
-          <th>Answered by</th>
           <th>AI processing</th>
+          <th>Answered by</th>
+          <th>Humans</th>
         </tr>
       </thead>
       <tbody id="dataTableArticles" onclick="answerQuestionnaireClick()" ondblclick="answerQuestionnairesDblClick()"></tbody>
@@ -217,7 +253,7 @@ HTML;
 HTML;
   }
 
-  public static function pageResults(): string {
+  public static function questionnaireResults(): string {
     global $database;
     global $user;
 
@@ -277,9 +313,16 @@ HTML;
   
   <div>Article filters</div>
   <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex;">
+
     <div class="toolbarItem">
       <span id="filterResearchDead" class="menuButtonBlack bgDeadWhite" data-tippy-content="{$texts['Injury']}: {$texts['Dead_(adjective)']}" onclick="clickQuestionnaireResultsOption();"></span>      
+    </div>
+
+    <div class="toolbarItem">
       <span id="filterResearchChild" class="menuButtonBlack bgChildWhite" data-tippy-content="{$texts['Child']}" onclick="clickQuestionnaireResultsOption();"></span>      
+    </div>
+
+    <div class="toolbarItem">
       <span id="filterResearchNoUnilateral" class="menuButtonBlack bgNoUnilateralWhite" data-tippy-content="{$texts['Exclude_unilateral']}" onclick="clickQuestionnaireResultsOption();"></span>      
     </div>
     
