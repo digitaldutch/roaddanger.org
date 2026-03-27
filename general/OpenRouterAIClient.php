@@ -81,7 +81,7 @@ class OpenRouterAIClient {
   public function chatAnswerArticleQuestionnaires($articleId): array {
     global $database;
 
-    $sql = "SELECT title, text, publishedtime FROM articles WHERE id = :id";
+    $sql = "SELECT title, alltext AS text, publishedtime FROM articles WHERE id = :id";
     $article = $database->fetchObject($sql, ['id' => $articleId]);
 
     $prompt = $database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='questionnaire_answerer';");

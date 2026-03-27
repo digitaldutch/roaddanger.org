@@ -51,7 +51,7 @@ class HtmlResearch {
   
     <table id="table_questions" class="dataTable" style="min-width: 500px;">
       <thead>
-        <tr><th>Id</th><th>Question</th><th>Explanation <span style="font-weight: normal;">(For humans and AI. Be explicit!)</span></th></tr>
+        <tr><th>Id</th><th>Question</th><th>Explanation <span style="font-weight: normal;">(For AI. Be explicit and test!)</span></th></tr>
       </thead>
       <tbody id="tableBodyQuestions" onclick="tableDataClick(event);" ondblclick="editQuestion();">    
      </tbody>
@@ -75,8 +75,8 @@ class HtmlResearch {
     <label for="questionText">Question text</label>
     <input id="questionText" class="popupInput" type="text" maxlength="200">
        
-    <label for="questionExplanation">Explanation for both humans and AI. Be explicit or AI fails</span></label>
-    <input id="questionExplanation" class="popupInput" type="text" maxlength="400">
+    <label for="questionExplanation">Explanation/prompt for AI. Be explicit and test or AI fails. Max 1000 characters</span></label>
+    <textarea id="questionExplanation" maxlength="1000" style="height: 75px; resize: vertical;" class="popupInput" autocomplete="off"></textarea>
        
     <div class="popupFooter">
       <input type="submit" class="button" style="margin-left: 0;" value="{$texts['Save']}">
@@ -156,18 +156,29 @@ HTML;
   }
 
   public static function QuestionnaireAnswer(): string {
-    $texts = translateArray(['Questionnaires', 'Answer_questionnaires', 'Injury', 'Dead_(adjective)', 'Child', 'Exclude_unilateral',
+    $texts = translateArray(['Questionnaires', 'Injury', 'Dead_(adjective)', 'Child', 'Exclude_unilateral',
       'Show_results']);
 
-    $textIntro = translateLongText('questionnaires_answer');
     $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml(widthPixels: 140);
 
     return <<<HTML
 <div id="pageMain">
-  <div class="pageSubTitle">{$texts['Answer_questionnaires']}</div>
+  <div class="pageSubTitle">Answer questionnaires with AI</div>
 
   <div class="pageInner">
-    $textIntro  
+  <p>On this page questionnaires can be answered with AI or by humans. One can also easily check
+  how the AI has answered questions by sorting and filtering on it. Use it to tweak question explanation or prompt instructions.
+  Test thoroughly to prevent AI slop from entering the results.</p>
+  
+  <p>You can queue articles for processing and then start the AI answerer to process the queue.
+  <ul>
+  <li>Queue a few articles</li>
+  <li>Start the AI answerer</li>
+  <li>When done sort on "Answered at" to see the last processed articles</li>
+  <li>Double-click an article to see the results and correct them manually if wrong</li>
+  <li>Tweak the question prompt or AI system prompt until AI answers all questions correctly</li>
+</ul>
+  </p>
   </div>
 
   <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex; align-items: flex-end;">

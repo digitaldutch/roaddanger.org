@@ -1783,8 +1783,8 @@ async function showQuestionsForm(crashId, articleId) {
 
 </td>
 </tr>
-<tr id="trJustification${question.id}" style="display: none;"><td colspan="2">
-  <div class="smallFont">Justication</div>
+<tr id="trJustification${question.id}"><td colspan="2">
+  <div class="smallFont">Justication (not required)</div>
   <input id="justification${question.id}" type="text" value="${answerJustification}" class="inputForm" oninput="saveJustificationDelayed(${article.id}, ${question.id});">
 </td></tr>
 `;
@@ -1827,8 +1827,7 @@ function setQuestionnaireGUIVisibility(questionnaire) {
       document.getElementById(id).style.display = questionVisible? 'table-row' : 'none';
 
       // Show the justification field if "not determinable" answered or not empty
-      const visible = questionVisible && (question.answer === QuestionAnswer.notDeterminable || question.answerJustification);
-      document.getElementById('trJustification' + question.id).style.display = visible? 'table-row' : 'none';
+      document.getElementById('trJustification' + question.id).style.display = questionVisible? 'table-row' : 'none';
     }
   }
 
