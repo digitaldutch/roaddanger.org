@@ -23,6 +23,8 @@ async function initResearch(){
   } else if (url.pathname.startsWith('/research/questionnaires/answer')) {
     if (! user.moderator) {showError('Permission error: Not a moderator'); return;}
 
+    updateStatusTasks();
+
     await loadArticlesToAnswer();
   } else if (url.pathname.startsWith('/research/questionnaires')) {
     const idQuestionnaire = url.searchParams.get('id');
@@ -162,8 +164,6 @@ async function loadArticlesToAnswer() {
       document.getElementById('dataTableArticles').innerHTML = html;
       document.getElementById('tableWrapper').style.display = 'block';
       document.getElementById('groupAIService').style.display = 'block';
-
-      updateStatusTasks();
     }
   } catch (error) {
     showError(error.message);

@@ -10,6 +10,7 @@ let yTouchDown = null;
 let TouchDown = Object.freeze({none:0, openNavigation:1, closeNavigation:2});
 let touchDownAction = TouchDown.none;
 
+//  The Mapbox API key is public and restricted to the roaddanger.org domain on the mapbox website
 const mapboxKey = 'pk.eyJ1IjoiamFuZGVyayIsImEiOiJjazI4dTVzNW8zOWw4M2NtdnRhMGs4dDc1In0.Cxw10toXdLoC1eqVaTn1RQ';
 const websiteTitle = 'Roaddanger.org';
 

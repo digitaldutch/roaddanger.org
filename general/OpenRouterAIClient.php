@@ -84,6 +84,10 @@ class OpenRouterAIClient {
     $sql = "SELECT title, alltext AS text, publishedtime FROM articles WHERE id = :id";
     $article = $database->fetchObject($sql, ['id' => $articleId]);
 
+    // The user prompt limit is 10000. Cutting the article text to prevent errors.
+    // We need some space for the questionnaires too.
+    if (strlen($article->text) > 7000) $article->text = substr($article->text, 0, 7000);
+
     $prompt = $database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='questionnaire_answerer';");
 
     $prompt->user_prompt = replaceArticleTags($prompt->user_prompt, $article);

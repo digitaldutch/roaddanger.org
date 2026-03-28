@@ -51,7 +51,7 @@ class HtmlResearch {
   
     <table id="table_questions" class="dataTable" style="min-width: 500px;">
       <thead>
-        <tr><th>Id</th><th>Question</th><th>Explanation <span style="font-weight: normal;">(For AI. Be explicit and test!)</span></th></tr>
+        <tr><th>Id</th><th>Question</th><th>AI prompt / explanation <span style="font-weight: normal;">(For AI. Be explicit and test!)</span></th></tr>
       </thead>
       <tbody id="tableBodyQuestions" onclick="tableDataClick(event);" ondblclick="editQuestion();">    
      </tbody>
