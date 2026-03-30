@@ -161,11 +161,7 @@ HTML;
 
     $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml(widthPixels: 140);
 
-    return <<<HTML
-<div id="pageMain">
-  <div class="pageSubTitle">Answer questionnaires with AI</div>
-
-  <div class="pageInner">
+    $htmlIntro = <<<HTML
   <p>On this page questionnaires can be answered with AI or by humans. One can also easily check
   how the AI has answered questions by sorting and filtering on it. Use it to tweak question explanation or prompt instructions.
   Test thoroughly to prevent AI slop from entering the results.</p>
@@ -179,6 +175,17 @@ HTML;
   <li>Tweak the question prompt or AI system prompt until AI answers all questions correctly</li>
 </ul>
   </p>
+HTML;
+
+    $htmlIntro = HtmlBuilder::getCollapsableIntroHTML($htmlIntro, true);
+
+
+    return <<<HTML
+<div id="pageMain">
+  <div class="pageSubTitle">Answer questionnaires with AI</div>
+
+  <div class="pageInner">
+    $htmlIntro
   </div>
 
   <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex; align-items: flex-end;">
@@ -254,7 +261,7 @@ HTML;
   
   <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>
   
-  <div id="tableWrapper" class="panelTableOverflow" style="display: none; width: 100%; padding: 0;">
+  <div id="tableWrapper" style="display: none; width: 100%; padding: 0;">
     <table class="dataTable headNotSticky">
       <thead>
         <tr>

@@ -988,6 +988,14 @@ HTML;
 
   }
 
+  public static function getCollapsableIntroHTML($intro, $readMoreVisible=false): string {
+    $readMore = translate('Read_more');
+
+    $style = $readMoreVisible ? "style='display: block;'" : '';
+    return "<div id='sectionIntro' class='sectionIntro sectionCollapsed'>$intro</div>" .
+      "<div id='introReadMore' class='readMore' onclick='showFullIntro();' $style>$readMore</div>";
+  }
+
   private static function addFilterCountry($country, $selectedCountryId): string {
     $selected = $country['id'] === $selectedCountryId ? "selected" : '';
     return "<option value='{$country['id']}' $selected>{$country['name']}</option>";
@@ -1032,9 +1040,7 @@ HTML;
     $introText = "<div id='pageSubTitle' class='pageSubTitle'>$title</div>";
 
     if (isset($websiteInfo) && in_array($pageType, [PageType::recent, PageType::lastChanged, PageType::deCorrespondent, PageType::crash])) {
-      $readMore = translate('Read_more');
-      $introText .= "<div id='sectionIntro' class='sectionIntro sectionCollapsed'>$websiteInfo</div>" .
-        "<div id='introReadMore' class='readMore' onclick='showFullIntro();'>$readMore</div>";
+      $introText .= self::getCollapsableIntroHTML($websiteInfo);
     }
 
     $htmlFiltersStatus = HtmlBuilder::getHtmlFilterStatusBar(transparent: false);

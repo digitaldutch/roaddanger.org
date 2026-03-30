@@ -139,7 +139,7 @@ SQL;
 
       $sql = <<<SQL
 SELECT
-  questionid, articleid, answer
+  questionid, articleid, answer, explanation, answered_by_type, ai_info, answered_at
 FROM answers;
 SQL;
       $answers = $this->database->fetchAll($sql);
