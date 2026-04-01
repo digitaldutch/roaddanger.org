@@ -1111,6 +1111,20 @@ HTML;
     <div class="buttonBar" style="justify-content: center; margin-bottom: 30px;">
       <button class="button buttonImportant" onclick="downloadResearchData();">Download research data</button>
     </div>  
+
+    <h3>Data specification</h3>
+
+    <div>Answers > answered_by_type</div>
+    <table class="dataTable" style="width: auto; margin: 0 0 20px 0;">
+      <thead>
+      <tr><th>id</th><th>name</th></tr>
+      </thead>
+      <tbody id="tbodyAnswers"></tbody>
+      <tr><td>1</td><td>Human</td></tr>
+      <tr><td>2</td><td>AI</td></tr>
+    </table>
+
+
     <div id="spinnerResearch" class="spinnerLine"><img src="/images/spinner.svg"></div>
             
   </div>
