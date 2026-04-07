@@ -4,7 +4,7 @@ require_once '../general/AjaxHandler.php';
 
 class AdminHandler extends AjaxHandler {
 
-  public function handleRequest($command): void {
+  public function handleRequest(): void {
     try {
 
       if (! $this->user->admin) {
@@ -12,7 +12,7 @@ class AdminHandler extends AjaxHandler {
       }
 
       // The stuff below is only for administrators
-      $response = match($command) {
+      $response = match($this->command) {
         'loadUsers' => $this->loadUsers(),
         'saveUser' => $this->saveUser(),
         'deleteUser' => $this->deleteUser(),

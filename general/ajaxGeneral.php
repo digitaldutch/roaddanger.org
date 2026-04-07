@@ -8,7 +8,5 @@ require_once 'GeneralHandler.php';
 global $database;
 global $user;
 
-$function = $_REQUEST['function'];
-
 $handler = new GeneralHandler($database, $user);
-$handler->handleRequest($function);
+$handler->handleRequest();

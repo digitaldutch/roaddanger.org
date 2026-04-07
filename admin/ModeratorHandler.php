@@ -4,14 +4,14 @@ require_once '../general/AjaxHandler.php';
 
 class ModeratorHandler extends AjaxHandler {
 
-  public function handleRequest($command): void {
+  public function handleRequest(): void {
     try {
 
       if (! $this->user->isModerator()) {
         throw new \Exception('Moderators only');
       }
 
-      $response = match($command) {
+      $response = match($this->command) {
         'loadTranslations' => $this->loadTranslations(),
         'saveTranslations' => $this->saveTranslations(),
         default => throw new \Exception('Invalid command'),

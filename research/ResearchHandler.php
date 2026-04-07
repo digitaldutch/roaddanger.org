@@ -3,18 +3,18 @@
 require_once '../general/AjaxHandler.php';
 class ResearchHandler extends AjaxHandler {
 
-  public function handleRequest($command): void {
+  public function handleRequest(): void {
     try {
 
       // Public functions
-      $response = match ($command) {
+      $response = match ($this->command) {
         'loadQuestionnaireResults' => $this->loadQuestionnaireResults(),
         default => null,
       };
 
       // The stuff below is for moderators only
       if (($response === null) && $this->user->isModerator()) {
-        $response = match ($command) {
+        $response = match ($this->command) {
           'getResearch_UVA_2026' => $this->getResearch_UVA_2026(),
           default => null,
         };
@@ -22,7 +22,7 @@ class ResearchHandler extends AjaxHandler {
 
       // The stuff below is only for administrators
       if (($response === null) && $this->user->admin) {
-        $response = match($command) {
+        $response = match($this->command) {
           'aiRunPrompt' => $this->aiRunPrompt(),
           'aiInit' => $this->aiInit(),
           'aiGetAvailableModels' => $this->aiGetAvailableModels(),
@@ -200,10 +200,12 @@ class ResearchHandler extends AjaxHandler {
   /**
    * @throws Exception
    */
-  private function startAITasks(): void {
+  private function startAITasks(): array {
     $taskWorkerStartFile = __DIR__ . '/../workers/start_AI_answer_worker.php';
 
     startPHPFromCommandLine($taskWorkerStartFile);
+
+    return [];
   }
 
   /**

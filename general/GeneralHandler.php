@@ -4,10 +4,10 @@ require_once 'AjaxHandler.php';
 
 class GeneralHandler extends AjaxHandler {
 
-  public function handleRequest($command): void {
+  public function handleRequest(): void {
     try {
 
-      $response = match ($command) {
+      $response = match ($this->command) {
         'login' => $this->login(),
         'logout' => $this->logout(),
         'register' => $this->register(),

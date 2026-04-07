@@ -5,16 +5,22 @@ abstract class AjaxHandler {
   protected Database $database;
   protected User $user;
   protected ?array $input = null;
+  protected ?string $command;
 
   public function __construct(Database $database, User $user) {
     $this->database = $database;
     $this->user = $user;
 
+    $this->command = $_REQUEST['function'] ?? null;
+
+    if (empty($this->command)) throw new \Exception('No function specified');
+
     $data = file_get_contents('php://input');
+
     if (! empty($data)) $this->input = json_decode($data, true);
   }
 
-  abstract protected  function handleRequest($command);
+  abstract protected function handleRequest();
 
   protected  function respondWithSucces(array $response): void {
     header('Content-Type: application/json');

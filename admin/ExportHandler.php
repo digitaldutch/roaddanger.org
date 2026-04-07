@@ -3,9 +3,9 @@
 require_once '../general/AjaxHandler.php';
 class ExportHandler extends AjaxHandler {
 
-  public function handleRequest($command): void {
+  public function handleRequest(): void {
     try {
-      $response = match ($command) {
+      $response = match ($this->command) {
         'downloadCrashesData' => $this->downloadCrashesData(),
         'downloadResearchData' => $this->downloadResearchData(),
 
