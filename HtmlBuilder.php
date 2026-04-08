@@ -195,16 +195,16 @@ HTML;
     $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
       'Child_victims', 'Mosaic', 'Research_uva_2026', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
       'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
-      'Version', 'Questionnaires', 'Settings', 'Results', 'AI_prompt_builder', 'Research',
+      'Version', 'Questionnaires', 'Setup', 'Results', 'AI_prompt_builder', 'Research',
       'Graphs_and_statistics', 'Media_humanization_test', 'Tools', 'Reframe']);
 
     $websiteTitle = WEBSITE_NAME;
 
     return <<<HTML
-<div id="navShadow" class="navShadow" onclick="closeNavigation()"></div>
-<div id="navigation" onclick="closeNavigation();">
+<div id="navShadow" class="navShadow" onpointerup="closeNavigation()"></div>
+<div id="navigation" onpointerup="closeNavigation();">
   <div class="navHeader">
-    <div class="popupCloseCross closeCrossWhite" onclick="closeNavigation();"></div>
+    <div class="popupCloseCross closeCrossWhite" onpointerup="closeNavigation();"></div>
     <div class="navHeaderTop"><span class="pageTitle">{$websiteTitle}</span></div>      
   </div>
   <div style="overflow-y: auto;">
@@ -227,11 +227,10 @@ HTML;
 
     <div class="navigationSection">
       <div class="navigationSectionHeader">{$texts['Research']}</div>
+      <a href="/research/questionnaires/setup" class="navItem" data-admin>{$texts['Questionnaires']} · {$texts['Setup']}</a>
       <a href="/research/questionnaires/" class="navItem">{$texts['Questionnaires']} · {$texts['Results']}</a>
-
       <a href="/research/research_uva_2026" class="navItem">{$texts['Research_uva_2026']}</a>
 
-      <a href="/research/questionnaires/settings" class="navItem" data-admin>{$texts['Questionnaires']} · {$texts['Settings']}</a>
     </div>
 
     <div class="navigationSection">

@@ -10,7 +10,7 @@ global $VERSION;
 
 $uri = urldecode($_SERVER['REQUEST_URI']);
 
-if (str_starts_with($uri, '/research/questionnaires/settings')) $pageType = PageType::questionnaireSettings;
+if (str_starts_with($uri, '/research/questionnaires/setup')) $pageType = PageType::questionnaireSetup;
 else if (str_starts_with($uri, '/research/questionnaires/answer')) $pageType = PageType::anserQuestionnaires;
 else if (str_starts_with($uri, '/research/questionnaires')) $pageType = PageType::questionnaireResults;
 else if (str_starts_with($uri, '/research/ai_prompt_builder')) $pageType = PageType::ai_prompt_builder;
@@ -20,7 +20,7 @@ else die('Internal error: Unknown page type');
 $htmlEnd = '';
 $head = "<script src='/js/main.js?v=$VERSION'></script><script src='/research/research.js?v=$VERSION'></script>";
 
-if ($pageType === PageType::questionnaireSettings) {
+if ($pageType === PageType::questionnaireSetup) {
   $mainHTML = HtmlResearch::questionnaireSettings();
 } else if ($pageType === PageType::anserQuestionnaires) {
   $mainHTML = $user->isModerator()? HtmlResearch::QuestionnaireAnswer() : HtmlBuilder::pageNotModerator();

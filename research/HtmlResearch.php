@@ -265,7 +265,7 @@ HTML;
     <table class="dataTable headNotSticky">
       <thead>
         <tr>
-          <th>ID</th>
+          <th>Article ID</th>
           <th>Published</th>
           <th>Article title</th>
           <th>AI processing</th>

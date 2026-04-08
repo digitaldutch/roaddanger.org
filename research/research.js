@@ -16,7 +16,7 @@ async function initResearch(){
 
   setResearchFilterFromUrl(url);
 
-  if (url.pathname.startsWith('/research/questionnaires/settings')) {
+  if (url.pathname.startsWith('/research/questionnaires/setup')) {
     if (! user.admin) {showError('Not an administrator'); return;}
 
     await loadQuestionnaires();

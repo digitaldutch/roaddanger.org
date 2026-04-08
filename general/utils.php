@@ -21,7 +21,7 @@ enum PageType {
   case translations;
   case longTexts;
   case humans;
-  case questionnaireSettings;
+  case questionnaireSetup;
   case questionnaireResults;
   case anserQuestionnaires;
   case ai_prompt_builder;
