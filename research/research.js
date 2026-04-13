@@ -21,17 +21,25 @@ async function initResearch(){
 
     await loadQuestionnaires();
   } else if (url.pathname.startsWith('/research/questionnaires/answer')) {
-    if (! user.moderator) {showError('Permission error: Not a moderator'); return;}
+    if (! user.admin) {showError('Permission error: Not an administrator'); return;}
 
-    updateStatusTasks();
-
-    await loadArticlesToAnswer();
+    initObserver(loadQuestionnaireAnswers);
+    await loadQuestionnaireAnswers();
   } else if (url.pathname.startsWith('/research/questionnaires')) {
     const idQuestionnaire = url.searchParams.get('id');
     if (idQuestionnaire) document.getElementById('filterQuestionnaire').value = idQuestionnaire;
+
     loadQuestionnaireResults();
   } else if (url.pathname.startsWith('/research/ai_prompt_builder')) {
-    await initAITest();
+
+    await initAIPromptBuilder();
+  } else if (url.pathname.startsWith('/research/ai_tasks')) {
+    if (! user.admin) {showError('Permission error: Not a administrator'); return;}
+
+    initObserver(loadAITasks);
+    updateTaskWorkerStatus();
+
+    await loadAITasks();
   } else if (url.pathname.startsWith('/research/research_uva_2026')) {
     loadResearch_UVA_2026();
   }
@@ -72,8 +80,8 @@ function setResearchFilterFromUrl(url) {
   }
 
   if (filterNoUnilateral) {
-    if (searchNoUnilateral && (searchNoUnilateral === "0")) filterNoUnilateral.classList.add('menuButtonSelected');
-    else filterNoUnilateral.classList.add('menuButtonSelected');
+    if (searchNoUnilateral && (searchNoUnilateral === "1")) filterNoUnilateral.classList.add('menuButtonSelected');
+    else filterNoUnilateral.classList.remove('menuButtonSelected');
   }
 }
 
@@ -94,7 +102,7 @@ async function loadQuestionnaires() {
   try {
     spinnerLoad.style.display = 'block';
 
-    const url = '/research/ajaxResearch.php?function=loadQuestionnaires';
+    const url = '/research/ajaxResearch.php?function=loadQuestionnairesData';
     const response = await fetchFromServer(url);
 
     if (response.error) showError(response.error);
@@ -123,11 +131,19 @@ async function loadQuestionnaires() {
   if ((tableData[1].length > 0) && (! selectedTableData[1])) selectTableRow(tableData[1][0].id, 1);
 }
 
-async function loadArticlesToAnswer() {
+async function loadQuestionnaireAnswers() {
+  const maxCount = 50;
+
+  let response = null;
+  let serverData = null;
+
   try {
     spinnerLoad.style.display = 'block';
+    observerSpinner.unobserve(spinnerLoad);
 
-    const data = {
+    serverData = {
+      count: maxCount,
+      offset: articles.length,
       filter: {
         healthDead: document.getElementById('filterResearchDead').classList.contains('menuButtonSelected')? 1 : 0,
         child: document.getElementById('filterResearchChild').classList.contains('menuButtonSelected')? 1 : 0,
@@ -140,73 +156,160 @@ async function loadArticlesToAnswer() {
     }
 
     const url = '/research/ajaxResearch.php?function=loadArticlesToAnswer';
-    const response = await fetchFromServer(url, data);
+    response = await fetchFromServer(url, serverData);
+
+    if (response.error) {
+      showError(response.error);
+      return;
+    }
 
     response.articles.forEach(article => {
       article.crash_date  = new Date(article.crash_date);
     });
 
-    if (response.error) showError(response.error);
-    else {
+    crashes = response.crashes;
+    articles = response.articles;
 
-      crashes = response.crashes;
-      articles = response.articles;
+    let html = '';
+    for (const article of response.articles) {
+      article.publishedtime = new Date(article.publishedtime);
 
-      let html = '';
-      for (const article of response.articles) {
+      const crash = getCrashFromId(article.crashid);
 
-        article.publishedtime = new Date(article.publishedtime);
-        const crash = getCrashFromId(article.crashid);
-
-        html += getHtmlRowAnswerQuestionnaire(article, crash);
-      }
-
-      document.getElementById('dataTableArticles').innerHTML = html;
-      document.getElementById('tableWrapper').style.display = 'block';
-      document.getElementById('groupAIService').style.display = 'block';
+      html += getHtmlRowAnswerQuestionnaire(article, crash);
     }
+
+    document.getElementById('dataTableArticles').innerHTML += html;
+
+    document.getElementById('tableWrapper').style.display = 'block';
+
+    if (response.articles.length >= serverData.count) observerSpinner.observe(spinnerLoad);
   } catch (error) {
     showError(error.message);
   } finally {
-    spinnerLoad.style.display = 'none';
+    if (! response || ! serverData || response.articles.length < serverData.count) spinnerLoad.style.display = 'none';
   }
 }
 
-async function updateStatusTasks(){
+function filterAITasks() {
+  tableData[0] = [];
+
+  document.getElementById('dataTableTasks').innerHTML = '';
+
+  loadAITasks();
+}
+
+async function loadAITasks() {
+  const maxCount = 100;
+
+  let response = null;
+  let serverData = null;
+  let elNoTasks = document.getElementById('noTasksFound');
+  try {
+    elNoTasks.style.display = 'none';
+    spinnerLoad.style.display = 'block';
+    observerSpinner.unobserve(spinnerLoad);
+
+    if (! tableData[0]) tableData[0] = [];
+
+    serverData = {
+      count: maxCount,
+      offset: tableData[0].length,
+      filter: {
+        status: document.getElementById('filter_AI_status').value,
+        questionnaire_id: parseInt(document.getElementById('filter_questionnaire').value),
+      },
+    }
+    const url = '/research/ajaxResearch.php?function=loadAITasks';
+    response = await fetchFromServer(url, serverData);
+
+    if (response.error) {
+      showError(response.error);
+      return;
+    }
+
+    tableData[0].push(...response.tasks);
+
+    let htmlRows = '';
+    for (const task of response.tasks) {
+      task.processed_at = task.processed_at? new Date(task.processed_at) : null;
+      task.created_at = new Date(task.created_at);
+
+      htmlRows += getHtmlRowAITask(task);
+    }
+
+    document.getElementById('dataTableTasks').innerHTML += htmlRows;
+
+    elNoTasks.style.display = tableData[0].length === 0? 'block' : 'none';
+
+    document.getElementById('tableWrapper').style.display = 'block';
+    document.getElementById('groupAIService').style.display = 'block';
+    document.getElementById('filterBar').style.display = 'flex';
+
+    if (response.tasks.length >= serverData.count) observerSpinner.observe(spinnerLoad);
+  } catch (error) {
+    showError(error.message);
+  } finally {
+    if (! response || ! serverData || (response.tasks.length < serverData.count)) spinnerLoad.style.display = 'none';
+  }
+}
+
+async function updateTaskWorkerStatus(){
   const spinner = document.getElementById('spinnerTasksStatus');
   const elStatus= document.getElementById('ai_questionnaire_worker_status');
 
   try {
     spinner.style.display = 'inline-block';
 
+    // Get ID of all tasks
+    let task_ids = [];
+    if (tableData[0]) {
+      task_ids = tableData[0].map(task => task.id);
+    }
+
+    const serverData = {
+      task_ids: task_ids,
+    }
+
     const url = '/research/ajaxResearch.php?function=getTaskWorkerStatus';
-    const status = await fetchFromServer(url);
+    const response = await fetchFromServer(url, serverData);
 
     let html = '';
-    if (status) {
-      html = status.running? 'running' : 'idle';
+    if (response) {
+      html = response.running? 'running' : 'idle';
 
-      if (status.running) {
-        const start_dateTime = new Date(status.start_time);
+      if (response.running) {
+        const start_dateTime = response.start_time? new Date(response.start_time) : null;
 
-        html += ' | start: ' + datetimeToISO(start_dateTime, true);
+        html += ' | Started: ' + datetimeToISO(start_dateTime, true);
       } else {
-        const end_time = new Date(status.end_time);
+        const end_time = response.end_time? new Date(response.end_time) : null;
 
-        html += ' | finished: ' + datetimeToISO(end_time, true);
+        html += ' | Finished: ' + datetimeToISO(end_time, true);
       }
 
-      html += ' | ' + status.info;
+      html += ' ' + response.info;
     }
 
     elStatus.innerHTML = html;
 
+    // Update task rows in table with new status and processed_at
+    for (const taskServer of response.tasks) {
+      const task = tableData[0].find(t => t.id === taskServer.id);
+
+      if (task) {
+        task.task_status = taskServer.task_status;
+        task.processed_at = taskServer.processed_at? new Date(taskServer.processed_at) : null;
+
+        document.getElementById('task' + task.id).innerHTML = getHtmlRowAITask(task);
+      }
+    }
 
   } finally {
     spinner.style.display = 'none';
   }
 
-  setTimeout(updateStatusTasks, 2000);
+  setTimeout(updateTaskWorkerStatus, 2000);
 }
 
 function getHtmlRowAnswerQuestionnaire(article, crash) {
@@ -219,27 +322,37 @@ function getHtmlRowAnswerQuestionnaire(article, crash) {
 
   let answered_at = article.answered_at? datetimeToAge(new Date(article.answered_at)) : '';
 
-  let buttonQueue = '';
-  if (article.ai_questionnaire_status !== QuestionnaireProcessing.pending) {
-    buttonQueue = '<button data-queue-action="add" class="buttonTiny">Queue for AI</button>';
-  } else {
-    buttonQueue = '<button data-queue-action="remove" class="buttonTiny buttonRed">Remove from queue</button>';
-  }
-
   return `
 <tr id="article${article.id}">
   <td>${article.id}</td>
-  <td style="white-space: nowrap;">${article.publishedtime.pretty()}</td>
+  <td style="white-space: nowrap;">${article.publishedtime.toLocaleDateString()}</td>
   <td class="td300">${article.title}</td>
-  <td>${questionnaireProcessing_to_text(article.ai_questionnaire_status)} ${buttonQueue}</td>
+  <td>${questionnaireProcessing_to_text(article.ai_questionnaire_status)}</td>
   <td class="noWrap">${answered_at}</td>
   <td class="noWrap">${answered_by}</td>
   <td class="td200">${html_icons}</td>
 </tr>`;
 }
 
-async function startAIAnswerer() {
-  const url = '/research/ajaxResearch.php?function=startAITasks';
+function getHtmlRowAITask(task) {
+  const htmlProcessedAt = task.processed_at ? task.processed_at.toLocaleString() : '';
+  const htmlCreatedAt = task.created_at.toLocaleString();
+
+  return `
+<tr id="task${task.id}">
+<td>${task.id}</td>
+<td>${task_status_to_text(task.task_status)}<button class="buttonTiny">Delete</button></td>
+<td>${htmlCreatedAt}</td>
+<td>${htmlProcessedAt}</td>
+<td class="td200">${task.ai_model?? ''}</td>
+<td class="">${task.article_id} ${task.article_title}</td>
+<td class="td200">${task.questionnaire_id} ${task.questionnaire_title}</td>
+<td>${task.info}</td>
+</tr>`;
+}
+
+async function startAITaskWorker() {
+  const url = '/research/ajaxResearch.php?function=startAITaskWorker';
 
   const response = await fetchFromServer(url);
 
@@ -251,30 +364,93 @@ async function startAIAnswerer() {
   showMessage('Started AI answerer');
 }
 
-function stopAIAnswerer() {
-  showMessage('Coming soon');
+function showAddAITasksForm() {
+  document.getElementById('formAddTasks').style.display = 'flex';
 }
 
-function answerQuestionnaireClick() {
+async function aiTasksFindArticles() {
+
+  const questionnaire_id = document.getElementById('tasksQuestionnaire').value;
+
+  if (! questionnaire_id) {
+    showError('Select a questionnaire');
+    return;
+  }
+
+  const serverData = {
+    questionnaire_id: questionnaire_id,
+  }
+
+  const url = '/research/ajaxResearch.php?function=findArticlesForAITasks';
+
+  const response = await fetchFromServer(url, serverData);
+
+  if (response.error) {
+    showError(response.error);
+    return;
+  }
+
+  const answeredPercent = (response.total - response.unanswered) / response.total * 100;
+  document.getElementById('aiTasksArticleInfo').innerHTML =
+    `Articles answered: ${response.total - response.unanswered} of ${response.total} (${answeredPercent.toFixed(1)}%)`;
+}
+
+async function addAITasks() {
+
+  const questionnaire_id = document.getElementById('tasksQuestionnaire').value;
+  const tasksCount = document.getElementById('tasksCount').value;
+
+  if (! questionnaire_id) {
+    showError('Select a questionnaire');
+    return;
+  }
+
+  if (! tasksCount) {
+    showError('Select a number of articles');
+    return;
+  }
+
+  confirmMessage(`Add ${tasksCount} tasks for questionnaire ${questionnaire_id}?`, async () => {
+
+    const serverData = {
+      questionnaire_id: questionnaire_id,
+      tasks_count: tasksCount,
+    }
+
+    const url = '/research/ajaxResearch.php?function=addAITasks';
+
+    const response = await fetchFromServer(url, serverData);
+
+    if (response.error) {
+      showError(response.error);
+      return;
+    }
+
+    document.getElementById('formAddTasks').style.display = 'none';
+
+    showMessage(`Added ${tasksCount} tasks for questionnaire ${questionnaire_id}`);
+
+    filterAITasks();
+  });
+
+}
+
+function aiTaskClick() {
   const button = event.target.closest('button');
   if (button) {
     const tr = event.target.closest('tr');
-    const articleId = parseInt(tr.id.replace(/\D/g, ''));
+    const task_id = parseInt(tr.id.replace(/\D/g, ''));
 
-    const queueAction = button.getAttribute('data-queue-action');
-    const remove = queueAction === 'remove';
-
-    queueArticleForAIAnswering(articleId, remove);
+    confirmMessage(`Delete task ${task_id}?`, () => deleteAiTask(task_id));
   }
 }
 
-async function queueArticleForAIAnswering(articleId, remove=false) {
+async function deleteAiTask(task_id) {
   const data = {
-    articleId: articleId,
-    remove: remove,
+    task_id: task_id,
   }
 
-  const url = '/research/ajaxResearch.php?function=queueArticleForAIAnswering';
+  const url = '/research/ajaxResearch.php?function=deleteTask';
 
   const response = await fetchFromServer(url, data);
 
@@ -283,12 +459,9 @@ async function queueArticleForAIAnswering(articleId, remove=false) {
     return;
   }
 
-  const article = getArticleFromId(articleId);
-  article.ai_questionnaire_status = remove? null : QuestionnaireProcessing.pending;
+  tableData[0] = tableData[0].filter(task => task.id !== task_id);
 
-  const crash = getCrashFromId(article.crashid);
-
-  document.getElementById('article' + articleId).innerHTML = getHtmlRowAnswerQuestionnaire(article, crash);
+  document.getElementById('task' + task_id).innerHTML = '';
 }
 
 function answerQuestionnairesDblClick() {
@@ -420,7 +593,7 @@ async function loadQuestionnaireResults() {
   const url = new URL(window.location);
   if (dead) url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
   if (child) url.searchParams.set('child', 1); else url.searchParams.delete('child');
-  if (! noUnilateral) url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
+  if (! noUnilateral) url.searchParams.set('noUnilateral', 1); else url.searchParams.delete('noUnilateral');
 
   if (period) url.searchParams.set('period', period); else url.searchParams.delete('period');
   if (country) url.searchParams.set('country', country); else url.searchParams.delete('country');
@@ -682,7 +855,7 @@ async function updateAiModelsInfo() {
     }
 
     // Refresh GUI
-    initAITest();
+    initAIPromptBuilder();
 
   } finally {
     spinnerLoad.style.display = 'none';
@@ -879,14 +1052,14 @@ function removeAiModel() {
 
       if (response.error) showError(response.error);
       else if (response.ok) {
-        initAITest();
+        initAIPromptBuilder();
       }
 
     },
     `Remove model`);
 }
 
-async function initAITest() {
+async function initAIPromptBuilder() {
   try {
     spinnerLoad.style.display = 'block';
 
@@ -1292,13 +1465,15 @@ function clickQuestionnaireResultsOption() {
 }
 
 function clickAnswerQuestionnairesFilterButton() {
-  document.getElementById('dataTableArticles').innerText = '';
-  document.getElementById('groupAIService').style.display = 'none';
-
   if (event.target.classList.contains('menuButtonBlack')) event.target.classList.toggle('menuButtonSelected');
 }
 
 function selectFilterAnswerQuestionnaires() {
+  crashes = [];
+  articles = [];
+
+  document.getElementById('dataTableArticles').innerHTML = '';
+
   const dead = document.getElementById('filterResearchDead').classList.contains('menuButtonSelected');
   const child = document.getElementById('filterResearchChild').classList.contains('menuButtonSelected');
   const noUnilateral = document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected');
@@ -1308,12 +1483,12 @@ function selectFilterAnswerQuestionnaires() {
   const url = new URL(window.location);
   if (dead) url.searchParams.set('hd', 1); else url.searchParams.delete('hd');
   if (child) url.searchParams.set('child', 1); else url.searchParams.delete('child');
-  if (! noUnilateral) url.searchParams.set('noUnilateral', 0); else url.searchParams.delete('noUnilateral');
+  if (noUnilateral) url.searchParams.set('noUnilateral', 1); else url.searchParams.delete('noUnilateral');
   if (searchPersons.length > 0) url.searchParams.set('persons', searchPersons.join()); else url.searchParams.delete('persons');
 
   window.history.pushState(null, null, url.toString());
 
-  loadArticlesToAnswer();
+  loadQuestionnaireAnswers();
 }
 
 async function showQuestionnaireArticles(articleFilter, title) {
@@ -1338,7 +1513,7 @@ async function showQuestionnaireArticles(articleFilter, title) {
         <td>${article.crashid}</td>
         <td>${article.id}</td>
         <td>${article.bechdelResult.total_questions_passed}/${article.bechdelResult.total_questions}: ${result}</td>
-        <td>${publishedtime.pretty()}</td>
+        <td>${publishedtime.toLocaleDateString()}</td>
         <td>${article.countryid}</td>
         <td class="td400">${article.sitename}</td>
       </tr>`;
@@ -1354,7 +1529,7 @@ async function showQuestionnaireArticles(articleFilter, title) {
 <tr id="article${article.id}" onclick="showQuestionsForm(${article.crashid}, ${article.id})">
   <td class="td400">${article.title}</td>
   <td>${answerToText(article.answer)}</td>
-  <td>${publishedtime.pretty()}</td>
+  <td>${publishedtime.toLocaleDateString()}</td>
   <td>${article.countryid}</td>
   <td>${article.crashid}</td>
   <td>${article.id}</td>
@@ -1624,7 +1799,24 @@ async function showGenerationSummary() {
   divMeta.innerText = 'Checking prompt meta info...';
 
   const url = '/research/ajaxResearch.php?function=aiGetGenerationInfo';
-  const response = await fetchFromServer(url, {id: lastGenerationId});
+
+  let response = null;
+  const maxRetries = 3;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    response = await fetchFromServer(url, {id: lastGenerationId});
+
+    if (!response.error) {
+      break;
+    }
+
+    if (attempt < maxRetries) {
+      divMeta.innerText = `Retrying (${attempt}/${maxRetries})...`;
+
+      // Sleep for a short time before retrying
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+  }
 
   if (response.error) {
     divMeta.innerHTML = 'Error: ' + response.error;

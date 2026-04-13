@@ -84,6 +84,7 @@ if ((! $user->loggedIn) || (! $user->isModerator())) {
       <tbody id="tableBody" onclick="tableDataClick(event);" ondblclick="adminEditUser();">        
       </tbody>
     </table>    
+    
     <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
   </div>
   

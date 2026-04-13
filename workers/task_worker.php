@@ -7,14 +7,14 @@ define ('TASK_WORKER_LOCK_FILE', realpath(dirname(__FILE__)) . DIRECTORY_SEPARAT
 define ('TASK_WORKER_STATUS_FILE', realpath(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'task_worker_status.json');
 
 abstract class TaskStatus {
-  const pending = 1;
-  const completed = 2;
-  const error = 3;
+  const int pending = 1;
+  const int completed = 2;
+  const int error = 3;
 }
 
 class TaskWorker
 {
-  private const TASK_TIMEOUT_SECONDS = 120;
+  private const int TASK_TIMEOUT_SECONDS = 120;
 
   private Database $database;
   private string $startTime = '';
@@ -67,7 +67,7 @@ class TaskWorker
     foreach ($tasks as $task) {
       $i++;
 
-      $this->saveStatusFile("Executing task $i of $totalTasks (article id $task->id)");
+      $this->saveStatusFile("Executing task $i of $totalTasks (task id $task->id)");
 
       $this->executeTask($task);
     }
@@ -94,13 +94,13 @@ class TaskWorker
     try {
       $openrouter = new OpenRouterAIClient();
 
-      $openrouter->chatAnswerArticleQuestionnaires($task->id);
+      $openrouter->chatAnswerArticleQuestionnaires($task->article_id, $task->questionnaire_id);
 
       $this->markTaskCompleted($task);
 
     } catch (\Throwable $e) {
       $this->saveStatusFile("Task $task->id failed: " . $e->getMessage());
-      $this->markTaskError($task);
+      $this->markTaskError($task->id, $e->getMessage());
     }
   }
 
@@ -111,7 +111,7 @@ class TaskWorker
 
   private function getTasksQueue(): bool|array {
     $params = ['status' => TaskStatus::pending];
-    $sql = "SELECT id FROM articles WHERE ai_questionnaire_status = :status ORDER BY id;";
+    $sql = "SELECT id, article_id, questionnaire_id FROM ai_tasks WHERE task_status = :status ORDER BY id;";
     return $this->database->fetchAllObjects($sql, $params);
   }
 
@@ -119,16 +119,19 @@ class TaskWorker
     $this->updateTaskStatus($task->id, TaskStatus::completed);
   }
 
-  private function markTaskError(object $task): void {
-    $this->updateTaskStatus($task->id, TaskStatus::error);
+  private function markTaskError(int $task_id, string $error): void {
+    $this->updateTaskStatus($task_id, TaskStatus::error, 'Error: ' . $error);
   }
 
-  private function updateTaskStatus(int $taskId, int $status): void {
+  private function updateTaskStatus(int $taskId, int $status, string $info=''): void {
     $params = [
       ':status' => $status,
+      ':info' => $info,
       ':id' => $taskId,
     ];
-    $sql = "UPDATE articles SET ai_questionnaire_status = :status WHERE id = :id;";
+
+    $sql = "UPDATE ai_tasks SET task_status = :status, info = :info WHERE id = :id;";
+
     $this->database->execute($sql, $params);
   }
 

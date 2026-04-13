@@ -230,6 +230,7 @@ HTML;
       <label>Sort
         <select id="filterSort" class="filterBarInput active">
         <option value="published" selected>Published</option>
+        <option value="added_at">Added at</option>
         <option value="answered_at">Answered at</option>
       </select></label>
     </div>
@@ -239,29 +240,9 @@ HTML;
     </div>
     
   </div>
-  
-  <div id="groupAIService" class="pageInner" style="display:none;">
-    <div style="background: #333333; padding: 5px; border-radius: 5px;">
-    
-      <div style="font-weight: bold; text-align: center;">Automatic AI Questionnaire Answerer</div>
-        
-      <div style="text-align: center; margin: 10px 0;">  
-        <button class="button buttonImportant" onclick="startAIAnswerer()">Start AI Answerer</button>
-        <button class="button buttonImportant" onclick="stopAIAnswerer()">Stop AI Answerer</button>
-      </div>
-
-      <div>Status: 
-        <span id="ai_questionnaire_worker_status"></span>
-        <div id="spinnerTasksStatus" class="spinnerInline"><img src="/images/spinner.svg"></div>
-      </div>
-    </div>
-
-  </div>
-
-  
-  <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>
-  
+     
   <div id="tableWrapper" style="display: none; width: 100%; padding: 0;">
+    
     <table class="dataTable headNotSticky">
       <thead>
         <tr>
@@ -274,9 +255,13 @@ HTML;
           <th>Humans</th>
         </tr>
       </thead>
-      <tbody id="dataTableArticles" onclick="answerQuestionnaireClick()" ondblclick="answerQuestionnairesDblClick()"></tbody>
+      <tbody id="dataTableArticles" ondblclick="answerQuestionnairesDblClick()"></tbody>
     </table>
+    
   </div>
+
+  <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>
+
 HTML;
   }
 
@@ -433,7 +418,7 @@ HTML;
 HTML;
   }
 
-  public static function pageAITest(): string {
+  public static function pageAIPromptBuilder(): string {
 
     return <<<HTML
 <div id="pageMain">
@@ -605,6 +590,149 @@ HTML;
     
   </div>
 </div>
+HTML;
+  }
+
+  public static function page_AI_tasks(): string {
+
+    $texts = translateArray(['Show_results']);
+
+    global $database;
+
+    $optionsQuestionnaires = '<option value=""></option>';
+    $questionnaires = $database->getQuestionnaires();
+    foreach ($questionnaires as $questionnaire) {
+      $text = $questionnaire['id'] . ' ' . $questionnaire['title'];
+
+      $extraInfoParts = [];
+      if ($questionnaire['public'] === 1) $extraInfoParts[] = 'public';
+      if ($questionnaire['active'] === 1) $extraInfoParts[] = 'active';
+      $text .= !empty($extraInfoParts) ? ' (' . implode(', ', $extraInfoParts) . ')' : '';
+
+      $optionsQuestionnaires .= '<option value="' . $questionnaire['id'] . '">' . $text . '</option>';
+    }
+
+    return <<<HTML
+<div id="pageMain">
+  
+  <div class="pageSubTitle">AI tasks</div>
+  
+  <div id="groupAIService" class="pageInner" style="display:none;">
+    <div style="background: #333333; padding: 5px; border-radius: 5px;">
+    
+      <div style="font-weight: bold; text-align: center;">AI Tasks Worker</div>
+        
+      <div style="text-align: center; margin: 10px 0;">  
+        <button class="button" onclick="showAddAITasksForm()">Add questionnaire tasks</button>
+        <button class="button buttonImportant" onclick="startAITaskWorker()">Start tasks</button>
+      </div>
+
+      <div>Status: 
+        <span id="ai_questionnaire_worker_status"></span>
+        <div id="spinnerTasksStatus" class="spinnerInline"><img src="/images/spinner.svg"></div>
+      </div>
+    </div>
+
+  </div>
+ 
+  <div id="filterBar" class="filterBar filterBarTransparent" style="display: none; align-items: flex-end;">
+
+    <div class="toolbarItem">
+      <label>Questionnaire
+      <select id="filter_questionnaire" class="filterBarInput active" data-tippy-content="Questionnaire" oninput="changeFilterUVA2026();">
+        $optionsQuestionnaires
+      </select></label>
+    </div>  
+
+    <div class="toolbarItem">
+      <label>Status
+      <select id="filter_AI_status" class="filterBarInput active">
+        <option value=""></option>
+        <option value="1">Pending</option>
+        <option value="2">Completed</option>
+        <option value="3">Error</option>
+      </select></label>
+    </div>  
+
+    <div class="toolbarItem">
+      <div class="button buttonMobileSmall buttonImportant" onclick="filterAITasks()">{$texts['Show_results']}</div>
+    </div>
+
+  </div>  
+
+  <div id="tableWrapper" style="display: none; width: 100%; padding: 0;">
+    <table class="dataTable headNotSticky">
+      <thead>
+        <tr>
+          <th>Task ID</th>
+          <th>Status</th>
+          <th>Created at</th>
+          <th>Processed at</th>
+          <th>AI model</th>
+          <th>Article</th>
+          <th>Questionnaire</th>
+          <th>Info</th>
+        </tr>
+      </thead>
+      <tbody id="dataTableTasks" onclick="aiTaskClick()"></tbody>
+    </table>
+  
+  </div>
+
+  <div id="spinnerLoad"><img src="/images/spinner.svg" alt="spinner"></div>
+    
+  <div id="noTasksFound" style="text-align: center; margin: 10px; display: none;">No tasks found</div>
+  
+</div>
+
+<div id="formAddTasks" class="popupOuter">
+  <div class="formFullPage" onclick="event.stopPropagation();">
+
+    <div id="headerQuestion" class="popupHeader">Add AI tasks</div>
+    <div class="popupCloseCross" onclick="closePopupForm();"></div>
+    
+    <h3>Instructions</h3>
+    <ul>
+      <li>Select a questionnaire which you want to be answered by AI</li>
+      <li>Select the number of articles to process</li>
+      <li>Click "Add tasks"</li>
+      <li>Click "Start tasks" to start the AI task worker</li>
+    </ul>
+    
+    <h3>Costs</h3>
+    <div style="margin-bottom: 10px;">The AI processing costs for roaddanger.org are €1 to €5 per 1000 articles. Not a problem, but test first with a limited amount.</div>
+    
+    <div id="spinnerAddTasks" class="spinner"></div>
+       
+    <label for="questionText">Select questionnaire
+    <select id="tasksQuestionnaire" class="inputForm">
+    $optionsQuestionnaires
+    </select></label>
+    
+    <div><button class="button" onclick="aiTasksFindArticles();" style="margin: 10px 0;">Find articles</button></div>
+    
+    <div id="aiTasksArticleInfo"></div>
+       
+    <label for="questionText">Number of unanswered articles to process
+    <select id="tasksCount" class="inputForm">
+      <option value=""></option>
+      <option value="1">1</option>
+      <option value="10">10</option>
+      <option value="100">100</option>
+      <option value="1000">1000</option>
+      <option value="5000">5000</option>
+      <option value="10000">10000</option>
+    </select>
+    </label>
+       
+    <div class="popupFooter">
+      <button class="button" style="margin-left: 0;" onclick="addAITasks();">Add tasks</button>
+      <button class="button buttonGray" onclick="closePopupForm();">Cancel</button>
+    </div>
+    
+  </div>
+</div>
+
 HTML;
   }
 

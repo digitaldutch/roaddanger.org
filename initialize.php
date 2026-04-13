@@ -1,10 +1,5 @@
 <?php
 
-// Uncomment for debug mode
-//ini_set('display_errors', 1);
-//error_reporting(E_ALL);
-error_reporting(0);
-
 // Prevents JavaScript XSS attacks aimed to steal the session ID
 ini_set('session.cookie_httponly', 1);
 
@@ -32,6 +27,21 @@ date_default_timezone_set('Europe/Amsterdam');
 setlocale(LC_MONETARY, 'nl_NL');
 
 mb_internal_encoding('UTF-8');
+
+// Environment constants
+define("IS_DEVELOPMENT_ENVIRONMENT", $_SERVER['SERVER_NAME'] === 'localhost' || str_ends_with($_SERVER['SERVER_NAME'], '.test'));
+const IS_PRODUCTION_ENVIRONMENT = ! IS_DEVELOPMENT_ENVIRONMENT;
+
+// Show debug info only when developing or testing, not in production:
+// - localhost
+// - test domains ending in *.test
+if (IS_DEVELOPMENT_ENVIRONMENT) {
+  ini_set('display_errors', 1);
+  error_reporting(E_ALL);
+} else {
+  ini_set('display_errors', 0);
+  error_reporting(0);
+}
 
 require_once __DIR__ . '/config.php';
 require_once 'database.php';

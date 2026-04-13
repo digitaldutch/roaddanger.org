@@ -35,15 +35,19 @@ class ResearchHandler extends AjaxHandler {
           'aiGetPromptList' => $this->aiGetPromptList(),
           'aiDeletePrompt' => $this->aiDeletePrompt(),
           'loadArticlesToAnswer' => $this->loadArticlesToAnswer(),
+          'loadAITasks' => $this->loadAITasks(),
+          'findArticlesForAITasks' => $this->findArticlesForAITasks(),
+          'addAITasks' => $this->addAITasks(),
+          'deleteTask' => $this->deleteTask(),
           'getTaskWorkerStatus' => $this->getTaskWorkerStatus(),
-          'loadQuestionnaires' => $this->loadQuestionnaires(),
+          'loadQuestionnairesData' => $this->database->loadQuestionnairesData(),
           'saveQuestion' => $this->saveQuestion(),
           'deleteQuestion' => $this->deleteQuestion(),
           'saveQuestionsOrder' => $this->saveQuestionsOrder(),
           'saveQuestionnaire' => $this->saveQuestionnaire(),
           'deleteQuestionnaire' => $this->deleteQuestionnaire(),
           'queueArticleForAIAnswering' => $this->queueArticleForAIAnswering(),
-          'startAITasks' => $this->startAITasks(),
+          'startAITaskWorker' => $this->startAITaskWorker(),
           default => null,
         };
       }
@@ -53,10 +57,6 @@ class ResearchHandler extends AjaxHandler {
     } catch (Exception $e) {
       $this->respondWithError($e->getMessage());
     }
-  }
-
-  private function loadQuestionnaires() {
-    return $this->database->loadQuestionnaires();
   }
 
   private function saveQuestion(): array {
@@ -181,16 +181,37 @@ class ResearchHandler extends AjaxHandler {
   }
 
   private function queueArticleForAIAnswering(): array {
+
     $articleId = $this->input['articleId'];
     $remove = $this->input['remove'];
-    if ($remove) {
-      $sql = "UPDATE articles SET ai_questionnaire_status = null WHERE id = :articleId";
-    } else {
-      $sql = "UPDATE articles SET ai_questionnaire_status = 1 WHERE id = :articleId";
-    }
-    $params = [':articleId' => $articleId];
 
-    $this->database->execute($sql, $params);
+    if ($remove) {
+      // Remove all tasks for this article
+      $sql = "DELETE FROM ai_tasks WHERE article_id = :articleId;";
+      $params = [':articleId' => $articleId];
+
+      $this->database->execute($sql, $params);
+    } else {
+
+      // Get current active questionnaire ID's
+      $sql = "SELECT id FROM questionnaires WHERE active=1;";
+      $questionnairesIds = $this->database->fetchAllValues($sql);
+
+      foreach ($questionnairesIds as $questionnaireId) {
+        $sql = <<<SQL
+INSERT INTO ai_tasks (article_id, task_status, questionnaire_id)   
+VALUES (:articleId, 1, :questionnaireId);                                                                                                                                                                                          
+SQL;
+        $params = [
+          ':articleId' => $articleId,
+          ':questionnaireId' => $questionnaireId,
+          ];
+
+        $this->database->execute($sql, $params);
+      }
+
+    }
+
     return [
       'articleId' => $articleId,
       'ai_questionnaire_status' => 1,
@@ -200,8 +221,8 @@ class ResearchHandler extends AjaxHandler {
   /**
    * @throws Exception
    */
-  private function startAITasks(): array {
-    $taskWorkerStartFile = __DIR__ . '/../workers/start_AI_answer_worker.php';
+  private function startAITaskWorker(): array {
+    $taskWorkerStartFile = __DIR__ . '/../workers/start_AI_task_worker.php';
 
     startPHPFromCommandLine($taskWorkerStartFile);
 
@@ -222,6 +243,7 @@ class ResearchHandler extends AjaxHandler {
   }
 
   private function loadArticlesToAnswer(): array {
+
     $filter = $this->input['filter'];
     $sort = $this->input['sort'];
 
@@ -255,19 +277,27 @@ SQL;
     $dBStatementCrashPersons = $this->database->prepare($sql);
 
     if (count($questionnaires) > 0) {
+      // Leave space ' ' to prevent parameter starting with WHERE
       $SQLWhereAnd = ' ';
-      $SQLSort = ' ';
-      $params = [];
+      $SQLSort = '';
+
+      $offset = $this->input['offset'];
+      $count = $this->input['count'];
+
+      $params = [
+        ':offset' => $offset,
+        ':count'  => $count,
+      ];
 
       addPersonsWhereSql($SQLWhereAnd, $filter);
 
       if (isset($filter['noUnilateral']) && ($filter['noUnilateral'] === 1)){
-        addSQLWhere($SQLWhereAnd, " c.unilateral !=1 ");
+        $SQLWhereAnd .= " AND c.unilateral !=1 ";
       }
 
       if (! empty($filter['AI_processing_status'])){
         $params[':ai_questionnaire_status'] = $filter['AI_processing_status'];
-        addSQLWhere($SQLWhereAnd, " a.ai_questionnaire_status = :ai_questionnaire_status ");
+        $SQLWhereAnd .= " AND a.ai_questionnaire_status = :ai_questionnaire_status ";
       }
 
       $SQLWhereAnd .= $this->user->countryId === 'UN'? '' : " AND c.countryid='" . $this->user->countryId . "'";
@@ -282,11 +312,16 @@ SQL;
 
       if (($sort === 'answered_at') && ($filter['answered_by_type'] !== 'unanswered')) {
         $SQLSort = "ORDER BY ans.answered_at DESC";
+      } else if ($sort === 'added_at') {
+        $SQLSort = "ORDER BY a.id DESC";
       } else {
         $SQLSort = "ORDER BY a.publishedtime DESC";
       }
 
 
+      // Jan Derk note:
+      // This is a dirty hack join to get the AI LLM and answered_at as there are multiple answers per article.
+      // We just look at the first one.
       /** @noinspection SqlIdentifier */
       $sql = <<<SQL
 SELECT
@@ -310,7 +345,7 @@ LEFT JOIN answers ans ON ans.articleid = a.id
 WHERE ((alltext IS NOT NULL) AND (alltext != ''))
 $SQLWhereAnd
 $SQLSort
-LIMIT 50;
+LIMIT :offset, :count;
 SQL;
     }
 
@@ -337,6 +372,189 @@ SQL;
       'crashes'  => $crashes,
       'articles' => $articles,
     ];
+  }
+
+  /**
+   * @throws DateMalformedStringException
+   */
+  private function loadAITasks(): array {
+    $offset = $this->input['offset'];
+    $count = $this->input['count'];
+    $filter = $this->input['filter'];
+
+    $params = [
+      ':offset' => $offset,
+      ':count'  => $count,
+    ];
+
+    $SQLWhere = '';
+
+    if (! empty($filter['status'])){
+      $params[':status'] = $filter['status'];
+      addSQLWhere($SQLWhere, 't.task_status = :status');
+    }
+
+    if (! empty($filter['questionnaire_id'])){
+      $params[':questionnaire_id'] = $filter['questionnaire_id'];
+      addSQLWhere($SQLWhere, 't.questionnaire_id = :questionnaire_id');
+    }
+
+    $sql = <<<SQL
+SELECT
+  t.id,
+  t.task_status,
+  COALESCE(t.ai_model, '') AS ai_model,
+  t.created_at,
+  t.processed_at,
+  t.questionnaire_id,
+  q.title AS questionnaire_title,
+  t.article_id,
+  a.title AS article_title,
+  COALESCE(info, '') AS info
+FROM ai_tasks t
+LEFT JOIN questionnaires q ON t.questionnaire_id = q.id
+LEFT JOIN articles a ON t.article_id = a.id
+$SQLWhere
+ORDER BY t.id DESC
+LIMIT :offset, :count
+SQL;
+
+    $tasks = $this->database->fetchAll($sql, $params);
+    foreach ($tasks as &$task) {
+      $task['created_at'] = datetimeDBToISO8601($task['created_at'] ?? '');
+      $task['processed_at'] = datetimeDBToISO8601($task['processed_at'] ?? '');
+    }
+
+    return [
+      'tasks' => $tasks,
+    ];
+  }
+
+  private function getFirstQuestionOfQuestionnaire($questionnaire_id): ?int {
+    $params = [
+      'questionnaire_id' => $questionnaire_id,
+    ];
+
+    // Get first question of questionnaire
+    $sql = <<<SQL
+SELECT
+  question_id
+from questionnaire_questions
+WHERE questionnaire_id = :questionnaire_id
+order by question_order
+LIMIT 1;
+SQL;
+
+    return $this->database->fetchSingleValue($sql, $params);
+  }
+
+  /**
+   * @throws Exception
+   */
+  private function findArticlesForAITasks(): array {
+    $questionnaire_id = $this->input['questionnaire_id'];
+
+    $first_question_id = $this->getFirstQuestionOfQuestionnaire( $questionnaire_id);
+
+    if ($first_question_id === false) {
+      throw new \Exception("No questions found for questionnaire $questionnaire_id");
+    }
+
+    // Get number of articles for which the first question has not been answered
+    // Only for articles with full text available
+    $sql = <<<SQL
+SELECT
+  count(*)
+FROM articles a
+WHERE ((a.alltext IS NOT NULL) AND (a.alltext != ''))
+AND NOT EXISTS(SELECT 1 FROM answers WHERE articleid = a.id AND questionid = :question_id);
+SQL;
+
+    $params = [
+      'question_id' => $first_question_id
+    ];
+
+    $unanswered = $this->database->fetchSingleValue($sql, $params);
+
+    $sql = <<<SQL
+SELECT
+  count(*)
+FROM articles a
+WHERE ((a.alltext IS NOT NULL) AND (a.alltext != ''))
+SQL;
+
+    $total = $this->database->fetchSingleValue($sql);
+
+    return [
+      'total' => $total,
+      'unanswered' => $unanswered,
+    ];
+  }
+
+  /**
+   * @throws Exception
+   */
+  private function addAITasks(): array {
+    $questionnaire_id = (int)$this->input['questionnaire_id'];
+    $tasks_count = (int)$this->input['tasks_count'];
+
+    if (! is_int($questionnaire_id)) {
+      throw new \Exception("Invalid questionnaire_id");
+    }
+
+    if (! is_int($tasks_count)) {
+      throw new \Exception("Invalid count");
+    }
+
+    $first_question_id = $this->getFirstQuestionOfQuestionnaire( $questionnaire_id);
+
+    if ($first_question_id === false) {
+      throw new \Exception("No questions found for questionnaire $questionnaire_id");
+    }
+
+    $sql = <<<SQL
+INSERT INTO ai_tasks (article_id, questionnaire_id, task_status)
+SELECT
+  a.ID,
+  :questionnaire_id,
+  1
+FROM articles a
+WHERE a.alltext IS NOT NULL
+  AND a.alltext != ''
+  AND NOT EXISTS (
+  SELECT 1 FROM answers WHERE articleid = a.id AND questionid = :question_id
+)
+ORDER BY ID DESC
+LIMIT :tasks_count;
+SQL;
+
+    $params = [
+      ':question_id' => $first_question_id,
+      ':questionnaire_id' => $questionnaire_id,
+      ':tasks_count' => $tasks_count,
+    ];
+
+    $this->database->execute($sql, $params);
+
+    return [];
+  }
+
+  /**
+   * @throws Exception
+   */
+  private function deleteTask(): array {
+    $task_id = (int)$this->input['task_id'];
+    if (! is_int($task_id)) {
+      throw new \Exception("Invalid task_id");
+    }
+
+    $sql = "DELETE FROM ai_tasks WHERE id = :id";
+    $params = [
+      'id' => $task_id,
+    ];
+    $this->database->execute($sql, $params);
+
+    return [];
   }
 
   /**
@@ -379,7 +597,7 @@ SQL;
 
     require_once $taskWorkerFile;
 
-    $status = [
+    $response = [
       'running' => TaskWorker::isRunning(),
     ];
 
@@ -388,12 +606,26 @@ SQL;
       if ($fileContent !== false) {
         $statusResult = json_decode($fileContent, true);
         if (is_array($statusResult)) {
-          $status = array_merge($status, $statusResult);
+          $response = array_merge($response, $statusResult);
         }
       }
     }
 
-    return $status;
+    $task_ids = $this->input['task_ids']?? [];
+    $response['tasks'] = [];
+    if (count($task_ids) > 0) {
+      $placeholders = implode(',', array_fill(0, count($task_ids), '?'));
+      $sql = "SELECT id, task_status, processed_at FROM ai_tasks WHERE id IN ($placeholders)";
+      $tasks = $this->database->fetchAll($sql, array_values($task_ids));
+
+      foreach ($tasks as &$task) {
+        $task['processed_at'] = datetimeDBToISO8601($task['processed_at'] ?? '');
+      }
+
+      $response['tasks'] = $tasks;
+    }
+
+    return $response;
   }
 
 
@@ -434,7 +666,7 @@ SQL;
 
       // Load questionnaires if needed
       if (str_contains($userPrompt, '[questionnaires]')) {
-        $questionnaires = $this->database->loadQuestionnaires();
+        $questionnaires = $this->database->loadQuestionnairesData();
         $userPrompt = replaceAI_QuestionnaireTags($userPrompt, $questionnaires);
       }
     }
@@ -576,6 +808,9 @@ SQL;
     ];
   }
 
+  /**
+   * @throws Exception
+   */
   private function aiGetGenerationInfo(): array {
     $generationId = $this->input['id'];
 

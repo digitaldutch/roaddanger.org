@@ -195,16 +195,16 @@ HTML;
     $texts = translateArray(['Admin', 'Crashes', 'Statistics', 'Translations', 'Long_texts', 'Other', 'Recent_crashes',
       'Child_victims', 'Mosaic', 'Research_uva_2026', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
       'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
-      'Version', 'Questionnaires', 'Setup', 'Results', 'AI_prompt_builder', 'Research',
+      'Version', 'Questionnaires', 'Setup', 'Results', 'AI_prompt_builder', 'AI_tasks', 'Research',
       'Graphs_and_statistics', 'Media_humanization_test', 'Tools', 'Reframe']);
 
     $websiteTitle = WEBSITE_NAME;
 
     return <<<HTML
-<div id="navShadow" class="navShadow" onpointerup="closeNavigation()"></div>
-<div id="navigation" onpointerup="closeNavigation();">
+<div id="navShadow" class="navShadow" onclick="closeNavigation()"></div>
+<div id="navigation" onclick="closeNavigation();">
   <div class="navHeader">
-    <div class="popupCloseCross closeCrossWhite" onpointerup="closeNavigation();"></div>
+    <div class="popupCloseCross closeCrossWhite" onclick="closeNavigation();"></div>
     <div class="navHeaderTop"><span class="pageTitle">{$websiteTitle}</span></div>      
   </div>
   <div style="overflow-y: auto;">
@@ -249,11 +249,12 @@ HTML;
       <div class="navigationSectionHeader">{$texts['Admin']}</div>
   
       <div class="navigationSection">
-        <a href="/admin/humans" class="navItem" data-admin>{$texts['Humans']}</a>
         <a href="/moderations/" class="navItem">{$texts['Moderations']}</a>
+        <a href="/admin/humans" class="navItem" data-admin>{$texts['Humans']}</a>
         <a href="/admin/translations/" class="navItem" data-moderator>{$texts['Translations']}</a>
-        <a href="/admin/longtexts/" class="navItem" data-moderator>{$texts['Long_texts']}</a>
-        <a href="/research/ai_prompt_builder/" class="navItem" data-moderator>{$texts['AI_prompt_builder']}</a>        
+        <a href="/admin/longtexts/" class="navItem" data-admin>{$texts['Long_texts']}</a>
+        <a href="/research/ai_prompt_builder/" class="navItem" data-admin>{$texts['AI_prompt_builder']}</a>        
+        <a href="/research/ai_tasks/" class="navItem" data-admin>{$texts['AI_tasks']}</a>        
         <a href="/research/questionnaires/answer" class="navItem" data-admin>Answer questionnaires with AI</a>
         <a href="/last_changed" class="navItem" data-moderator>{$texts['Last_modified_crashes']}</a>
       </div>      
@@ -640,17 +641,17 @@ HTML;
     <div style="border: solid 1px #000; border-radius: 5px; padding: 5px 5px 8px 5px;">
       <div>
         <div>{$texts['Transportation_mode']}</div> 
-        <div id="personTransportationButtons"></div>
+        <div id="personTransportationButtons" style="display: flex;"></div>
       </div>
               
       <div class="labelDiv">
         <div>{$texts['Injury']}</div> 
-        <div id="personHealthButtons"></div>
+        <div id="personHealthButtons" style="display: flex;"></div>
       </div>
   
       <div class="labelDiv">
         <div>{$texts['Characteristics']}</div> 
-        <div>
+        <div style="display: flex;">
           <span id="editPersonChild" class="menuButton bgChild" data-tippy-content="{$texts['Child']}" onclick="toggleSelectionButton(this)"></span>            
           <span id="editPersonUnderInfluence" class="menuButton bgAlcohol" data-tippy-content="{$texts['Intoxicated']}" onclick="toggleSelectionButton(this)"></span>            
           <span id="editPersonHitRun" class="menuButton bgHitRun" data-tippy-content="{$texts['Drive_on_or_fleeing']}" onclick="toggleSelectionButton(this)"></span>            

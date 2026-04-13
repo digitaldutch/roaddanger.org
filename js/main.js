@@ -667,7 +667,7 @@ async function loadChildVictims(){
         const title = crashArticles.length > 0? crashArticles[0].title : '';
         html += `
         <tr onclick="showCrashDetails(${crash.id})">
-          <td style="white-space: nowrap;">${crash.date.pretty()}</td>
+          <td style="white-space: nowrap;">${crash.date.toLocaleDateString()}</td>
           <td style="white-space: nowrap;">${htmlIconsChildren}${htmlIconsOther}</td>
           <td class="td400">${title}</td>
         </tr>      
@@ -1021,7 +1021,7 @@ function getMosaicHTML(newCrashes){
       if (article.urlimage) {
         html +=`<div onclick="showCrashDetails(${crash.id}); event.stopPropagation();">
 <div class="thumbPersons">${htmlPersons}</div>
-<div class="thumbDetails">${article.publishedtime.pretty()}</div>
+<div class="thumbDetails">${article.publishedtime.toLocaleDateString()}</div>
 <img src="${article.urlimage}" onerror="this.parentElement.style.display = 'none';">
 </div>`;
       }
@@ -1042,7 +1042,7 @@ function getCrashCard(crash, detailsPage=false) {
   }
 
   const htmlTopIcons = getCrashTopIcons(crash);
-  let crashHeader = crash.date.pretty() + ' | ' + translate('Crash_added_by') + ' ' + crash.user;
+  let crashHeader = crash.date.toLocaleDateString() + ' | ' + translate('Crash_added_by') + ' ' + crash.user;
   let titleModified = '';
   if (crash.streamtopuser) {
     switch (crash.streamtoptype) {
@@ -1053,7 +1053,7 @@ function getCrashCard(crash, detailsPage=false) {
 
   // Created date is only added if no modified title
   if (titleModified) crashHeader += titleModified;
-  else crashHeader += ' ' + crash.createtime.pretty();
+  else crashHeader += ' ' + crash.createtime.toLocaleDateString();
 
   const htmlPersons = getCrashHumansIcons(crash, false);
 
@@ -1210,7 +1210,7 @@ ${translate('Approval_required')}
 
     <div class="smallFont articleTitleSmall">
       <a href="${article.url}" target="article" onclick="event.stopPropagation();"><span class="cardSiteName">${escapeHtml(article.sitename)}</span></a> 
-      | ${article.publishedtime.pretty()} | ${translate('added_by')} ${article.user}
+      | ${article.publishedtime.toLocaleDateString()} | ${translate('added_by')} ${article.user}
     </div>  
   </div>
   
@@ -2412,7 +2412,7 @@ function crashRowHTML(crash, isSearch=false){
   <div class="flexRow" style="justify-content: space-between;">
     <div style="padding: 3px;">
       ${title}
-      <div class="smallFont">#${crash.id} ${crash.date.pretty()}</div>
+      <div class="smallFont">#${crash.id} ${crash.date.toLocaleDateString()}</div>
       <div>${htmlPersons}</div>
     </div>
     <div class="thumbnailWrapper">${img}</div>

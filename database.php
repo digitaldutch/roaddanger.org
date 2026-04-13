@@ -161,10 +161,21 @@ class Database {
     return $this->execute($sql, $params);
   }
 
-  public function loadQuestionnaires(): array {
+  public function loadQuestionnairesData(bool $activeOnly = false, ?int $questionnaire_id=null): array {
+    $sqlWhere = '';
+    $params = [];
 
-    $sql = "SELECT id, title, type, country_id, active, public FROM questionnaires ORDER BY id;";
-    $questionnaires = $this->fetchAll($sql);
+    if (isset($questionnaire_id)) {
+      addSQLWhere($sqlWhere, "id=:id");
+      $params = [':id' => $questionnaire_id];
+    }
+
+    if ($activeOnly) {
+      addSQLWhere($sqlWhere, "active=1");
+    }
+
+    $sql = "SELECT id, title, type, country_id, active, public FROM questionnaires $sqlWhere ORDER BY id;";
+    $questionnaires = $this->fetchAll($sql, $params);
 
     // Get question ids for each questionnaire
     $sql = "SELECT questionnaire_id, question_id FROM questionnaire_questions ORDER BY question_order;";

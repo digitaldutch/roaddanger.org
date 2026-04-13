@@ -78,7 +78,7 @@ class OpenRouterAIClient {
   /**
    * @throws Exception
    */
-  public function chatAnswerArticleQuestionnaires($articleId): array {
+  public function chatAnswerArticleQuestionnaires($articleId, $questionnaire_id=null): array {
     global $database;
 
     $sql = "SELECT title, alltext AS text, publishedtime FROM articles WHERE id = :id";
@@ -91,17 +91,17 @@ class OpenRouterAIClient {
     $prompt = $database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='questionnaire_answerer';");
 
     $prompt->user_prompt = replaceArticleTags($prompt->user_prompt, $article);
-    $questionnaires = $database->loadQuestionnaires();
+    $questionnairesData = $database->loadQuestionnairesData(false, $questionnaire_id);
 
-    $prompt->user_prompt = replaceAI_QuestionnaireTags($prompt->user_prompt, $questionnaires);
+    $prompt->user_prompt = replaceAI_QuestionnaireTags($prompt->user_prompt, $questionnairesData);
 
     $AIResults = $this->chatWithMeta($prompt->user_prompt, $prompt->system_prompt, $prompt->model_id, $prompt->response_format);
 
     $AIResults['response'] = json_decode($AIResults['response']);
-    $questionnaires = $AIResults['response']->questionnaires;
+    $questionnairesData = $AIResults['response']->questionnaires;
 
     // Save answers to the database
-    foreach ($questionnaires AS &$questionnaire) {
+    foreach ($questionnairesData AS &$questionnaire) {
       foreach ($questionnaire->questions AS &$question) {
         $question->answer_id = aiAnswerToAnswerId($question->answer);
         $question->answered_by_type = 2;
@@ -113,7 +113,7 @@ class OpenRouterAIClient {
     }
 
     return [
-      'questionnaires' => $questionnaires,
+      'questionnaires' => $questionnairesData,
     ];
   }
 

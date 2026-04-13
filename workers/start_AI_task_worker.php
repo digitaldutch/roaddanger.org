@@ -1,15 +1,12 @@
 <?php
 
-// DEBUG
-//ini_set('display_errors', 1);
-//error_reporting(E_ALL);
-error_reporting(0);
+require_once '../initialize.php';
 
 // Background script.
-// It may only be run from the command line.
-//if (php_sapi_name() != 'cli') {
-//  die('Script may only run from command line');
-//}
+// It may only be run from the command line in production.
+if (IS_PRODUCTION_ENVIRONMENT && (php_sapi_name() !== 'cli')) {
+  die('Script may only run from command line');
+}
 
 try {
   // If started from the command line, change directory to the script's directory
@@ -20,7 +17,6 @@ try {
   $time_limit = 2 * 60;
   set_time_limit($time_limit);
 
-  require_once '../initialize.php';
   require_once '../database.php';
   require_once 'task_worker.php';
 

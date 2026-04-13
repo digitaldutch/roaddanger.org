@@ -13,7 +13,7 @@ abstract class AjaxHandler {
 
     $this->command = $_REQUEST['function'] ?? null;
 
-    if (empty($this->command)) throw new \Exception('No function specified');
+    if (empty($this->command)) dieWithJSONErrorMessage('No function specified');
 
     $data = file_get_contents('php://input');
 

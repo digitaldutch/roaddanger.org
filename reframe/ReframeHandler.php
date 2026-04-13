@@ -2,10 +2,6 @@
 require_once '../initialize.php';
 require_once '../general/OpenRouterAIClient.php';
 
-//ini_set('display_errors', 1);
-//error_reporting(E_ALL);
-error_reporting(0);
-
 // Set proper headers for JSON response
 header('Content-Type: application/json');
 

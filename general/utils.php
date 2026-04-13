@@ -23,8 +23,9 @@ enum PageType {
   case humans;
   case questionnaireSetup;
   case questionnaireResults;
-  case anserQuestionnaires;
+  case answerQuestionnaires;
   case ai_prompt_builder;
+  case ai_tasks;
 }
 
 enum QuestionnaireType: int {
@@ -456,10 +457,10 @@ function replaceArticleTags(string $text, object $article): string {
   return str_replace('[article_title]', $article->title, $text);
 }
 
-function replaceAI_QuestionnaireTags(string $text, array $questionnaireData): string {
+function replaceAI_QuestionnaireTags(string $text, array $questionnairesData): string {
   if (str_contains($text, '[questionnaires]')) {
-    $questionnaires = $questionnaireData['questionnaires'];
-    $questions = $questionnaireData['questions'];
+    $questionnaires = $questionnairesData['questionnaires'];
+    $questions = $questionnairesData['questions'];
 
     $output = [
       'questionnaires' => []

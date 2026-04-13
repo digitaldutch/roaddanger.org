@@ -1338,7 +1338,7 @@ h3, .pageSubTitleFont {
   position: fixed;
   z-index: 201;
   top: 0;
-  width: 300px;
+  min-width: 250px;
   height: 100%;
   background-color: #ffffff;
   transition: transform 0.3s;
@@ -1549,31 +1549,31 @@ h3, .pageSubTitleFont {
 }
 
 .panelTableOverflow {
-  overflow:   auto;
-  flex-grow:  1;
-  padding:    0 5px;
+  overflow: auto;
+  flex-grow: 1;
+  padding: 0 5px;
   margin-top: 5px;
 }
 
 .td200 {
-  max-width:     200px;
-  overflow:      hidden;
+  max-width: 200px;
+  overflow: hidden;
   text-overflow: ellipsis;
-  white-space:   nowrap;
+  white-space: nowrap;
 }
 
 .td300 {
-  max-width:     300px;
-  overflow:      hidden;
+  max-width: 300px;
+  overflow: hidden;
   text-overflow: ellipsis;
-  white-space:   nowrap;
+  white-space: nowrap;
 }
 
 .td400 {
-  max-width:     400px;
-  overflow:      hidden;
+  max-width: 400px;
+  overflow: hidden;
   text-overflow: ellipsis;
-  white-space:   nowrap;
+  white-space: nowrap;
 }
 
 .noWrap {
@@ -1591,8 +1591,8 @@ h3, .pageSubTitleFont {
 
 .editDetails {
   font-weight: bold;
-  font-size:   25px;
-  padding:     0 5px;
+  font-size: 25px;
+  padding: 0 5px;
 }
 
 .editDetails:hover {
@@ -1630,28 +1630,28 @@ h3, .pageSubTitleFont {
 }
 
 .crashRow {
-  display:          block;
-  position:         relative;
-  box-sizing:       border-box;
-  width:            100%;
-  margin:           5px 0;
+  display: block;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 5px 0;
   background-color: #dddddd;
-  border-radius:    3px;
+  border-radius: 3px;
 }
 
 .searchRow {
-  display:          block;
-  position:         relative;
-  box-sizing:       border-box;
-  width:            100%;
-  cursor:           pointer;
-  margin:           5px 0;
-  border:           solid 1px #dddddd;
-  border-radius:    3px;
+  display: block;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  cursor: pointer;
+  margin: 5px 0;
+  border: solid 1px #dddddd;
+  border-radius: 3px;
 }
 
 .searchRow:hover {
-  color:            var(--color-hover);
+  color: var(--color-hover);
   background-color: var(--hover-bgcolor);
 }
 
@@ -1662,16 +1662,16 @@ h3, .pageSubTitleFont {
 }
 
 .buttonBar {
-  display:         flex;
-  margin-top:      10px;
+  display: flex;
+  margin-top: 10px;
   justify-content: flex-end;
 }
 
 .thumbnail {
-  display:    block;
-  height:     100%;
+  display: block;
+  height: 100%;
   min-height: 60px;
-  width:      120px;
+  width: 120px;
   object-fit: cover;
 }
 

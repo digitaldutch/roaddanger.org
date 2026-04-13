@@ -83,7 +83,8 @@ async function loadUsers(){
         user.registrationtime = new Date(user.registrationtime);
       });
 
-      tableData[0] = tableData[0].concat(response.users);
+      tableData[0].push(...response.users);
+
       showUsers(response.users);
     }
 

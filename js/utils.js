@@ -25,6 +25,8 @@ const QuestionnaireType = Object.freeze({standard: 0, bechdel: 1});
 const QuestionnaireProcessing = Object.freeze({pending: 1, completed: 2, error: 3});
 const QuestionAnswer = Object.freeze({no: 0, yes: 1, notDeterminable: 2});
 const Answered_by_type = Object.freeze({human: 1, ai: 2});
+const Task_status  = Object.freeze({pending:1, completed:2, error:3})
+
 
 if (!Date.prototype.addDays) {
   Date.prototype.addDays = function(days) {
@@ -32,12 +34,6 @@ if (!Date.prototype.addDays) {
     let newDate = new Date(this.valueOf());
     newDate.setDate(newDate.getDate() + parseInt(days));
     return newDate;
-  }
-}
-
-if (!Date.prototype.pretty) {
-  Date.prototype.pretty = function() {
-    return this.toLocaleDateString('nl', {year: 'numeric', month: 'long', day: 'numeric' });
   }
 }
 
@@ -111,6 +107,7 @@ function timeToISO(date, addSeconds=false, addMilliSeconds=false) {
 }
 
 function datetimeToISO(datetime, dateOnlyIfOlderThanToday=false) {
+  if (! datetime) return '';
 
   const dateISO = dateToISO(datetime);
   const timeISO = timeToISO(datetime, true);
@@ -716,6 +713,14 @@ function answered_by_type_to_text(answered_by_type) {
     default: return '';
   }
 }
+function task_status_to_text(task_status) {
+  switch (task_status) {
+    case Task_status.pending: return 'Pending';
+    case Task_status.completed: return 'Completed';
+    case Task_status.error: return 'Error';
+    default: return '';
+  }
+}
 
 function questionnaireProcessing_to_text(questionnaireProcessing) {
   switch (questionnaireProcessing) {
@@ -1139,7 +1144,7 @@ function initObserver(callFunction){
 
 /**
  * Input is key. Output is translated text.
- * First character is automatically capitalized if the first character of the key is capitalized.
+ * The first character is automatically capitalized if the first character of the key is capitalized.
  * @param key
  * @return {string|*}
  */
