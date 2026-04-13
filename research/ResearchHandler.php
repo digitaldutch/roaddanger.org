@@ -180,6 +180,9 @@ class ResearchHandler extends AjaxHandler {
     return [];
   }
 
+  /*
+   * queue article to let AI answer the active questionnaire's
+   */
   private function queueArticleForAIAnswering(): array {
 
     $articleId = $this->input['articleId'];
@@ -615,7 +618,7 @@ SQL;
     $response['tasks'] = [];
     if (count($task_ids) > 0) {
       $placeholders = implode(',', array_fill(0, count($task_ids), '?'));
-      $sql = "SELECT id, task_status, processed_at FROM ai_tasks WHERE id IN ($placeholders)";
+      $sql = "SELECT id, task_status, processed_at, info FROM ai_tasks WHERE id IN ($placeholders)";
       $tasks = $this->database->fetchAll($sql, array_values($task_ids));
 
       foreach ($tasks as &$task) {

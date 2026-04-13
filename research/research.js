@@ -299,6 +299,7 @@ async function updateTaskWorkerStatus(){
 
       if (task) {
         task.task_status = taskServer.task_status;
+        task.info = taskServer.info;
         task.processed_at = taskServer.processed_at? new Date(taskServer.processed_at) : null;
 
         document.getElementById('task' + task.id).innerHTML = getHtmlRowAITask(task);
