@@ -191,9 +191,7 @@ SQL;
 
     $openrouter = new OpenRouterAIClient();
 
-    $questionnaires = $openrouter->chatAnswerArticleQuestionnaires($articleId);
-
-    return $questionnaires;
+    return $openrouter->chatAnswerArticleQuestionnaires($articleId);
   }
 
   /**

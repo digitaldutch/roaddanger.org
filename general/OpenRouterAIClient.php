@@ -114,6 +114,7 @@ class OpenRouterAIClient {
 
     return [
       'questionnaires' => $questionnairesData,
+      'model_id' => $prompt->model_id,
     ];
   }
 

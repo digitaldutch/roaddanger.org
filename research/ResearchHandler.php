@@ -618,7 +618,17 @@ SQL;
     $response['tasks'] = [];
     if (count($task_ids) > 0) {
       $placeholders = implode(',', array_fill(0, count($task_ids), '?'));
-      $sql = "SELECT id, task_status, processed_at, info FROM ai_tasks WHERE id IN ($placeholders)";
+
+      $sql = <<<SQL
+SELECT 
+  id, 
+  task_status, 
+  processed_at, 
+  COALESCE(ai_model, '') AS ai_model, 
+  COALESCE(info, '') AS info 
+FROM ai_tasks 
+WHERE id IN ($placeholders);
+SQL;
       $tasks = $this->database->fetchAll($sql, array_values($task_ids));
 
       foreach ($tasks as &$task) {

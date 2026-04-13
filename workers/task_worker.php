@@ -94,13 +94,14 @@ class TaskWorker
     try {
       $openrouter = new OpenRouterAIClient();
 
-      $openrouter->chatAnswerArticleQuestionnaires($task->article_id, $task->questionnaire_id);
+      $chat_response = $openrouter->chatAnswerArticleQuestionnaires($task->article_id, $task->questionnaire_id);
+      $task->ai_model = $chat_response['model_id'];
 
       $this->markTaskCompleted($task);
 
     } catch (\Throwable $e) {
       $this->saveStatusFile("Task $task->id failed: " . $e->getMessage());
-      $this->markTaskError($task->id, $e->getMessage());
+      $this->markTaskError($task, $e->getMessage());
     }
   }
 
@@ -116,21 +117,22 @@ class TaskWorker
   }
 
   private function markTaskCompleted(object $task): void {
-    $this->updateTaskStatus($task->id, TaskStatus::completed);
+    $this->updateTaskStatus($task, TaskStatus::completed);
   }
 
-  private function markTaskError(int $task_id, string $error): void {
-    $this->updateTaskStatus($task_id, TaskStatus::error, 'Error: ' . $error);
+  private function markTaskError(object $task, string $error): void {
+    $this->updateTaskStatus($task, TaskStatus::error, 'Error: ' . $error);
   }
 
-  private function updateTaskStatus(int $taskId, int $status, string $info=''): void {
+  private function updateTaskStatus(object $task, int $status, string $info=''): void {
     $params = [
       ':status' => $status,
       ':info' => $info,
-      ':id' => $taskId,
+      ':ai_model' => $task->ai_model,
+      ':id' => $task->id,
     ];
 
-    $sql = "UPDATE ai_tasks SET task_status = :status, info = :info WHERE id = :id;";
+    $sql = "UPDATE ai_tasks SET task_status = :status, ai_model = :ai_model, info = :info WHERE id = :id;";
 
     $this->database->execute($sql, $params);
   }
