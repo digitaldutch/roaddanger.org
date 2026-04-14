@@ -32,7 +32,7 @@ class HtmlResearch {
   
     <table id="table_questionnaires" class="dataTable" style="min-width: 500px;">
       <thead>
-        <tr><th>Id</th><th>Title</th><th>Type</th><th>Country ID</th><th>Questions active</th><th>Results public</th></tr>
+        <tr><th>Id</th><th>Title</th><th>Type</th><th>Country ID</th><th>Questions active</th><th>Results public</th><th>Exclude unilateral</th></tr>
       </thead>
       <tbody id="tableBodyQuestionnaires" onclick="tableDataClick(event, 1);" ondblclick="editQuestionnaire();">    
      </tbody>
@@ -112,6 +112,8 @@ class HtmlResearch {
     
     <label><input id="questionnairePublic" type="checkbox">Public results</label>
 
+    <label><input id="questionnaireExcludeUnilateral" type="checkbox">Exclude unilateral crashes</label>
+
     <div class="formSubHeader">Questions</div> 
     
     <div>
@@ -156,7 +158,7 @@ HTML;
   }
 
   public static function QuestionnaireAnswer(): string {
-    $texts = translateArray(['Questionnaires', 'Injury', 'Dead_(adjective)', 'Child', 'Exclude_unilateral',
+    $texts = translateArray(['Questionnaires', 'Questionnaire_answers', 'Injury', 'Dead_(adjective)', 'Child', 'Exclude_unilateral',
       'Show_results']);
 
     $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml(widthPixels: 140);
@@ -182,7 +184,7 @@ HTML;
 
     return <<<HTML
 <div id="pageMain">
-  <div class="pageSubTitle">Answer questionnaires with AI</div>
+  <div class="pageSubTitle">{$texts['Questionnaire_answers']}</div>
 
   <div class="pageInner">
     $htmlIntro
@@ -215,16 +217,6 @@ HTML;
         <option value="human">Answered by a human</option>
       </select></label>
     </div>
-
-    <div class="toolbarItem">
-      <label>AI processing
-        <select id="filterAIProcessingStatus" class="filterBarInput active">
-        <option value=""></option>
-        <option value="1">Pending</option>
-        <option value="2">Completed</option>
-        <option value="3">Error</option>
-      </select></label>
-    </div>
     
     <div class="toolbarItem">
       <label>Sort
@@ -249,7 +241,6 @@ HTML;
           <th>Article ID</th>
           <th>Published</th>
           <th>Article title</th>
-          <th>AI processing</th>
           <th>Answered at</th>
           <th>Answered by</th>
           <th>Humans</th>
@@ -607,6 +598,7 @@ HTML;
       $extraInfoParts = [];
       if ($questionnaire['public'] === 1) $extraInfoParts[] = 'public';
       if ($questionnaire['active'] === 1) $extraInfoParts[] = 'active';
+      if ($questionnaire['exclude_unilateral'] === 1) $extraInfoParts[] = 'exclude_unilateral';
       $text .= !empty($extraInfoParts) ? ' (' . implode(', ', $extraInfoParts) . ')' : '';
 
       $optionsQuestionnaires .= '<option value="' . $questionnaire['id'] . '">' . $text . '</option>';

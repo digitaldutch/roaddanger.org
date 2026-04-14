@@ -174,7 +174,7 @@ class Database {
       addSQLWhere($sqlWhere, "active=1");
     }
 
-    $sql = "SELECT id, title, type, country_id, active, public FROM questionnaires $sqlWhere ORDER BY id;";
+    $sql = "SELECT id, title, type, country_id, active, public, exclude_unilateral FROM questionnaires $sqlWhere ORDER BY id;";
     $questionnaires = $this->fetchAll($sql, $params);
 
     // Get question ids for each questionnaire
@@ -232,7 +232,7 @@ class Database {
 
   public function getQuestionnaires($publicOnly=false): bool|array {
     $where = $publicOnly? ' WHERE public=1 ' : '';
-    $sql = "SELECT id, type, title, country_id, public, active FROM questionnaires $where ORDER BY title;";
+    $sql = "SELECT id, type, title, country_id, public, active, exclude_unilateral FROM questionnaires $where ORDER BY title;";
     return $this->fetchAll($sql);
   }
 

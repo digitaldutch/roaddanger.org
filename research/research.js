@@ -132,7 +132,7 @@ async function loadQuestionnaires() {
 }
 
 async function loadQuestionnaireAnswers() {
-  const maxCount = 50;
+  const maxCount = 100;
 
   let response = null;
   let serverData = null;
@@ -150,7 +150,6 @@ async function loadQuestionnaireAnswers() {
         noUnilateral: document.getElementById('filterResearchNoUnilateral').classList.contains('menuButtonSelected')? 1 : 0,
         persons: getPersonsFromFilter(),
         answered_by_type: document.getElementById('filterAnsweredByType').value,
-        AI_processing_status: document.getElementById('filterAIProcessingStatus').value,
       },
       sort: document.getElementById('filterSort').value,
     }
@@ -167,8 +166,8 @@ async function loadQuestionnaireAnswers() {
       article.crash_date  = new Date(article.crash_date);
     });
 
-    crashes = response.crashes;
-    articles = response.articles;
+    crashes.push(...response.crashes);
+    articles.push(...response.articles);
 
     let html = '';
     for (const article of response.articles) {
@@ -329,7 +328,6 @@ function getHtmlRowAnswerQuestionnaire(article, crash) {
   <td>${article.id}</td>
   <td style="white-space: nowrap;">${article.publishedtime.toLocaleDateString()}</td>
   <td class="td300">${article.title}</td>
-  <td>${questionnaireProcessing_to_text(article.ai_questionnaire_status)}</td>
   <td class="noWrap">${answered_at}</td>
   <td class="noWrap">${answered_by}</td>
   <td class="td200">${html_icons}</td>
@@ -392,9 +390,9 @@ async function aiTasksFindArticles() {
     return;
   }
 
-  const answeredPercent = (response.total - response.unanswered) / response.total * 100;
+  const answeredPercent = response.answered / response.total * 100;
   document.getElementById('aiTasksArticleInfo').innerHTML =
-    `Articles answered: ${response.total - response.unanswered} of ${response.total} (${answeredPercent.toFixed(1)}%)`;
+    `Articles answered: ${response.answered} of ${response.total} (${answeredPercent.toFixed(1)}%)`;
 }
 
 async function addAITasks() {
@@ -1175,6 +1173,7 @@ function getQuestionTableRow(question){
 function getQuestionnaireTableRow(questionnaire){
   const activeText = questionnaire.active? '✔' : '';
   const publicText = questionnaire.public? '✔' : '';
+  const excludeUnilateralText = questionnaire.exclude_unilateral? '✔' : '';
 
   return `<tr id="tr1_${questionnaire.id}">
   <td>${questionnaire.id}</td>
@@ -1183,6 +1182,7 @@ function getQuestionnaireTableRow(questionnaire){
   <td>${questionnaire.country_id}</td>
   <td style="text-align: center">${activeText}</td>
   <td style="text-align: center">${publicText}</td>
+  <td style="text-align: center">${excludeUnilateralText}</td>
 </tr>`;
 }
 
@@ -1259,12 +1259,13 @@ function deleteQuestion() {
 }
 
 function newQuestionnaire() {
-  document.getElementById('questionnaireId').value                  = null;
-  document.getElementById('questionnaireTitle').value               = null;
-  document.getElementById('questionnaireType').value                = null;
-  document.getElementById('questionnaireCountryId').value           = null;
-  document.getElementById('questionnaireActive').checked            = false;
-  document.getElementById('questionnairePublic').checked            = false;
+  document.getElementById('questionnaireId').value = null;
+  document.getElementById('questionnaireTitle').value = null;
+  document.getElementById('questionnaireType').value = null;
+  document.getElementById('questionnaireCountryId').value = null;
+  document.getElementById('questionnaireActive').checked = false;
+  document.getElementById('questionnairePublic').checked = false;
+  document.getElementById('questionnaireExcludeUnilateral').checked = false;
   document.getElementById('tbodyQuestionnaireQuestions').innerHTML = '';
 
   document.getElementById('headerQuestionnaire').innerText   = 'New questionnaire';
@@ -1277,12 +1278,13 @@ return `<tr id="tr2_${question.id}" draggable="true" ondragstart="onDragRowStart
 }
 
 function editQuestionnaire() {
-  document.getElementById('questionnaireId').value        = selectedTableData[1].id;
-  document.getElementById('questionnaireTitle').value     = selectedTableData[1].title;
-  document.getElementById('questionnaireType').value      = selectedTableData[1].type;
+  document.getElementById('questionnaireId').value = selectedTableData[1].id;
+  document.getElementById('questionnaireTitle').value = selectedTableData[1].title;
+  document.getElementById('questionnaireType').value = selectedTableData[1].type;
   document.getElementById('questionnaireCountryId').value = selectedTableData[1].country_id;
-  document.getElementById('questionnaireActive').checked  = selectedTableData[1].active;
-  document.getElementById('questionnairePublic').checked  = selectedTableData[1].public;
+  document.getElementById('questionnaireActive').checked = selectedTableData[1].active;
+  document.getElementById('questionnairePublic').checked = selectedTableData[1].public;
+  document.getElementById('questionnaireExcludeUnilateral').checked = selectedTableData[1].exclude_unilateral;
 
   document.getElementById('tbodyQuestionnaireQuestions').innerHTML = '';
   document.getElementById('headerQuestionnaire').innerText         = 'Edit questionnaire';
@@ -1365,12 +1367,13 @@ async function saveQuestionnaire() {
   const questionIds = tableData[2].map(item => item.id);
 
   const serverData = {
-    id:          parseInt(document.getElementById('questionnaireId').value),
-    title:       document.getElementById('questionnaireTitle').value.trim(),
-    type:        parseInt(document.getElementById('questionnaireType').value),
-    countryId:   document.getElementById('questionnaireCountryId').value,
-    active:      document.getElementById('questionnaireActive').checked,
-    public:      document.getElementById('questionnairePublic').checked,
+    id: parseInt(document.getElementById('questionnaireId').value),
+    title: document.getElementById('questionnaireTitle').value.trim(),
+    type: parseInt(document.getElementById('questionnaireType').value),
+    countryId: document.getElementById('questionnaireCountryId').value,
+    active: document.getElementById('questionnaireActive').checked,
+    public: document.getElementById('questionnairePublic').checked,
+    exclude_unilateral: document.getElementById('questionnaireExcludeUnilateral').checked,
     questionIds: questionIds,
   };
 

@@ -51,7 +51,8 @@ SELECT
   c.name AS country,
   q.type,
   q.public,
-  q.active
+  q.active,
+  q.exclude_unilateral
 FROM questionnaires q
 LEFT JOIN countries c ON q.country_id = c.id
 WHERE q.id=:questionnaire_id;

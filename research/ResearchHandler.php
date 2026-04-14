@@ -127,27 +127,29 @@ class ResearchHandler extends AjaxHandler {
 
     $isNew = (empty($questionnaire['id']));
     if ($isNew) {
-      $sql = "INSERT INTO questionnaires (title, type, country_id, active, public) VALUES (:title, :type, :country_id, :active, :public);";
+      $sql = "INSERT INTO questionnaires (title, type, country_id, active, public, exclude_unilateral) VALUES (:title, :type, :country_id, :active, :public, :exclude_unilateral);";
 
       $params = [
-        ':title'      => $questionnaire['title'],
-        ':type'       => $questionnaire['type'],
+        ':title' => $questionnaire['title'],
+        ':type' => $questionnaire['type'],
         ':country_id' => $questionnaire['countryId'],
-        ':active'     => intval($questionnaire['active']),
-        ':public'     => intval($questionnaire['public']),
+        ':active' => intval($questionnaire['active']),
+        ':public' => intval($questionnaire['public']),
+        ':exclude_unilateral' => intval($questionnaire['exclude_unilateral']),
       ];
       $this->database->execute($sql, $params);
       $questionnaire->id = (int)$this->database->lastInsertID();
     } else {
-      $sql = "UPDATE questionnaires SET title=:title, type=:type, country_id=:country_id, active=:active, public=:public WHERE id=:id;";
+      $sql = "UPDATE questionnaires SET title=:title, type=:type, country_id=:country_id, active=:active, public=:public, exclude_unilateral=:exclude_unilateral WHERE id=:id;";
 
       $params = [
-        ':id'         => $questionnaire['id'],
-        ':title'      => $questionnaire['title'],
-        ':type'       => $questionnaire['type'],
+        ':id' => $questionnaire['id'],
+        ':title' => $questionnaire['title'],
+        ':type' => $questionnaire['type'],
         ':country_id' => $questionnaire['countryId'],
-        ':active'     => intval($questionnaire['active']),
-        ':public'     => intval($questionnaire['public']),
+        ':active' => intval($questionnaire['active']),
+        ':public' => intval($questionnaire['public']),
+        ':exclude_unilateral' => intval($questionnaire['exclude_unilateral']),
       ];
       $this->database->execute($sql, $params);
     }
@@ -217,7 +219,6 @@ SQL;
 
     return [
       'articleId' => $articleId,
-      'ai_questionnaire_status' => 1,
       ];
   }
 
@@ -255,7 +256,8 @@ SQL;
 SELECT
   id,
   title,
-  type
+  type,
+  exclude_unilateral
 FROM questionnaires
 WHERE active = 1
 ORDER BY id;
@@ -298,11 +300,6 @@ SQL;
         $SQLWhereAnd .= " AND c.unilateral !=1 ";
       }
 
-      if (! empty($filter['AI_processing_status'])){
-        $params[':ai_questionnaire_status'] = $filter['AI_processing_status'];
-        $SQLWhereAnd .= " AND a.ai_questionnaire_status = :ai_questionnaire_status ";
-      }
-
       $SQLWhereAnd .= $this->user->countryId === 'UN'? '' : " AND c.countryid='" . $this->user->countryId . "'";
 
       if ($filter['answered_by_type'] === 'unanswered') {
@@ -333,7 +330,6 @@ a.title,
 a.url,
 a.sitename,
 a.publishedtime,
-a.ai_questionnaire_status,
 ans.answered_by_type,
 ans.answered_at,
 ans.ai_info,
@@ -456,11 +452,17 @@ SQL;
    */
   private function findArticlesForAITasks(): array {
     $questionnaire_id = $this->input['questionnaire_id'];
-
+    $exclude_unilateral = $this->database->fetchSingleValue("SELECT exclude_unilateral FROM questionnaires WHERE id = :questionnaire_id", [':questionnaire_id' => $questionnaire_id]);
     $first_question_id = $this->getFirstQuestionOfQuestionnaire( $questionnaire_id);
 
     if ($first_question_id === false) {
       throw new \Exception("No questions found for questionnaire $questionnaire_id");
+    }
+
+    if ($exclude_unilateral === 1) {
+      $sqlWhereUnilateral = "AND c.unilateral !=1 ";
+    } else {
+      $sqlWhereUnilateral = '';
     }
 
     // Get number of articles for which the first question has not been answered
@@ -469,28 +471,32 @@ SQL;
 SELECT
   count(*)
 FROM articles a
+LEFT JOIN crashes c ON a.crashid = c.id
 WHERE ((a.alltext IS NOT NULL) AND (a.alltext != ''))
-AND NOT EXISTS(SELECT 1 FROM answers WHERE articleid = a.id AND questionid = :question_id);
+   $sqlWhereUnilateral
+AND EXISTS(SELECT 1 FROM answers WHERE articleid = a.id AND questionid = :question_id);
 SQL;
 
     $params = [
       'question_id' => $first_question_id
     ];
 
-    $unanswered = $this->database->fetchSingleValue($sql, $params);
+    $answered = $this->database->fetchSingleValue($sql, $params);
 
     $sql = <<<SQL
 SELECT
   count(*)
 FROM articles a
+LEFT JOIN crashes c ON a.crashid = c.id
 WHERE ((a.alltext IS NOT NULL) AND (a.alltext != ''))
+$sqlWhereUnilateral
 SQL;
 
     $total = $this->database->fetchSingleValue($sql);
 
     return [
       'total' => $total,
-      'unanswered' => $unanswered,
+      'answered' => $answered,
     ];
   }
 
@@ -500,6 +506,7 @@ SQL;
   private function addAITasks(): array {
     $questionnaire_id = (int)$this->input['questionnaire_id'];
     $tasks_count = (int)$this->input['tasks_count'];
+    $exclude_unilateral = $this->database->fetchSingleValue("SELECT exclude_unilateral FROM questionnaires WHERE id = :questionnaire_id", [':questionnaire_id' => $questionnaire_id]);
 
     if (! is_int($questionnaire_id)) {
       throw new \Exception("Invalid questionnaire_id");
@@ -515,6 +522,12 @@ SQL;
       throw new \Exception("No questions found for questionnaire $questionnaire_id");
     }
 
+    if ($exclude_unilateral === 1) {
+      $sqlWhereUnilateral = "AND c.unilateral !=1 ";
+    } else {
+      $sqlWhereUnilateral = '';
+    }
+
     $sql = <<<SQL
 INSERT INTO ai_tasks (article_id, questionnaire_id, task_status)
 SELECT
@@ -522,10 +535,10 @@ SELECT
   :questionnaire_id,
   1
 FROM articles a
-WHERE a.alltext IS NOT NULL
-  AND a.alltext != ''
-  AND NOT EXISTS (
-  SELECT 1 FROM answers WHERE articleid = a.id AND questionid = :question_id
+LEFT JOIN crashes c ON a.crashid = c.id
+WHERE a.alltext IS NOT NULL AND a.alltext != ''
+  $sqlWhereUnilateral
+  AND NOT EXISTS (SELECT 1 FROM answers WHERE articleid = a.id AND questionid = :question_id
 )
 ORDER BY ID DESC
 LIMIT :tasks_count;

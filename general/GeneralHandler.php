@@ -574,7 +574,8 @@ SELECT
   id,
   title,
   country_id,
-  type
+  type,
+  exclude_unilateral
 FROM questionnaires
 WHERE active = 1
 ORDER BY id;
