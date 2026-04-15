@@ -217,6 +217,86 @@ function addPersonsWhereSql(&$sqlWhere, $filter): void {
   }
 }
 
+function getCrashesWhere($filter, $SQLWhere='', $params=[]): array {
+
+  // Only do full-text search if the text has 3 characters or more
+  if (isset($filter['text']) && strlen($filter['text']) > 2) {
+    $sqlLocal = <<<SQL
+(MATCH(c.title, c.text) AGAINST (:search IN BOOLEAN MODE) 
+    OR EXISTS (
+      SELECT 1
+      FROM articles ar
+      WHERE ar.crashid = c.id
+        AND MATCH(ar.title, ar.text) AGAINST (:search2 IN BOOLEAN MODE))
+)
+SQL;
+
+    addSQLWhere($SQLWhere, $sqlLocal);
+    $params[':search']  = $filter['text'];
+    $params[':search2'] = $filter['text'];
+  }
+
+  addPeriodWhereSql($SQLWhere, $params, $filter);
+
+  if (! empty($filter['country'])){
+    if ($filter['country'] !== 'UN') {
+      addSQLWhere($SQLWhere, "c.countryid=:country");
+      $params[':country'] = $filter['country'];
+    }
+  }
+
+  if (! empty($filter['siteName'])) {
+    $sqlLocal = <<<SQL
+EXISTS (
+  SELECT 1
+  FROM articles ar
+  WHERE ar.crashid = c.id
+    AND (LOWER(ar.sitename) LIKE :sitename))
+SQL;
+    addSQLWhere($SQLWhere, $sqlLocal);
+    $params[':sitename'] = "%{$filter['siteName']}%";
+  }
+
+  if (! empty($filter['userId'])) {
+    $sqlLocal = <<<SQL
+((c.userid = :userId) 
+OR
+  EXISTS (
+    SELECT 1
+    FROM articles ar
+    WHERE ar.crashid = c.id
+      AND (ar.userid = :userId2)))
+SQL;
+    addSQLWhere($SQLWhere, $sqlLocal);
+    $params[':userId'] = $filter['userId'];
+    $params[':userId2'] = $filter['userId'];
+  }
+
+  addPersonsWhereSql($SQLWhere, $filter);
+
+  if (isset($filter['area'])) {
+    $sqlArea = "MBRContains(ST_GeomFromText(:bboxWkt), c.location)";
+
+    addSQLWhere($SQLWhere, $sqlArea);
+
+    $latMin = (float)$filter['area']['latMin'];
+    $latMax = (float)$filter['area']['latMax'];
+    $lonMin = (float)$filter['area']['lonMin'];
+    $lonMax = (float)$filter['area']['lonMax'];
+
+    $params[':bboxWkt'] = sprintf(
+      'POLYGON((%F %F, %F %F, %F %F, %F %F, %F %F))',
+      $lonMin, $latMin,
+      $lonMax, $latMin,
+      $lonMax, $latMax,
+      $lonMin, $latMax,
+      $lonMin, $latMin
+    );
+  }
+
+  return [$SQLWhere, $params];
+}
+
 function addPeriodWhereSql(&$sqlWhere, &$params, $filter): void {
   if ((! isset($filter['period'])) || ($filter['period'] === '')) return;
 

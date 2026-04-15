@@ -366,6 +366,9 @@ async function startAITaskWorker() {
 
 function showAddAITasksForm() {
   document.getElementById('formAddTasks').style.display = 'flex';
+
+  document.getElementById('sectionAddTasks').style.display = 'none';
+  document.getElementById('buttonAddTasks').style.display = 'none';
 }
 
 async function aiTasksFindArticles() {
@@ -379,20 +382,38 @@ async function aiTasksFindArticles() {
 
   const serverData = {
     questionnaire_id: questionnaire_id,
+    filter: {
+      country: document.getElementById('filterAddTasksCountry').value,
+      persons: getPersonsFromFilter(),
+    }
   }
 
-  const url = '/research/ajaxResearch.php?function=findArticlesForAITasks';
+  const spinner = document.getElementById('spinnerFindTasks');
 
-  const response = await fetchFromServer(url, serverData);
+  try {
+    spinner.style.display = 'block';
 
-  if (response.error) {
-    showError(response.error);
-    return;
+    const url = '/research/ajaxResearch.php?function=findArticlesForAITasks';
+
+    const response = await fetchFromServer(url, serverData);
+
+    if (response.error) {
+      showError(response.error);
+      return;
+    }
+
+    const answeredPercent = response.answered / response.total * 100;
+    document.getElementById('aiTasksArticleInfo').innerHTML =
+      `Articles answered: ${response.answered} of ${response.total} (${answeredPercent.toFixed(1)}%)`;
+
+    // Show add tasks section
+    document.getElementById('sectionAddTasks').style.display = 'block';
+    document.getElementById('buttonAddTasks').style.display = 'flex';
+
+  } finally {
+    spinner.style.display = 'none';
   }
 
-  const answeredPercent = response.answered / response.total * 100;
-  document.getElementById('aiTasksArticleInfo').innerHTML =
-    `Articles answered: ${response.answered} of ${response.total} (${answeredPercent.toFixed(1)}%)`;
 }
 
 async function addAITasks() {
@@ -415,6 +436,10 @@ async function addAITasks() {
     const serverData = {
       questionnaire_id: questionnaire_id,
       tasks_count: tasksCount,
+      filter: {
+        country: document.getElementById('filterAddTasksCountry').value,
+        persons: getPersonsFromFilter(),
+      }
     }
 
     const url = '/research/ajaxResearch.php?function=addAITasks';

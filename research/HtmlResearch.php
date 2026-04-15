@@ -604,6 +604,9 @@ HTML;
       $optionsQuestionnaires .= '<option value="' . $questionnaire['id'] . '">' . $text . '</option>';
     }
 
+    $htmlFilterCountry = HtmlBuilder::getSearchLocationHtml('filterAddTasksCountry', 'UN');
+    $htmlFilterPersons = HtmlBuilder::getSearchPersonsHtml(widthPixels: 140);
+
     return <<<HTML
 <div id="pageMain">
   
@@ -678,7 +681,7 @@ HTML;
 </div>
 
 <div id="formAddTasks" class="popupOuter">
-  <div class="formFullPage" onclick="event.stopPropagation();">
+  <div class="formFullPage">
 
     <div id="headerQuestion" class="popupHeader">Add AI tasks</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
@@ -693,32 +696,47 @@ HTML;
     
     <h3>Costs</h3>
     <div style="margin-bottom: 10px;">The AI processing costs for roaddanger.org are €1 to €5 per 1000 articles. Not a problem, but test first with a limited amount.</div>
-    
-    <div id="spinnerAddTasks" class="spinner"></div>
-       
-    <label for="questionText">Select questionnaire
+          
+    <label>Select questionnaire
     <select id="tasksQuestionnaire" class="inputForm">
     $optionsQuestionnaires
     </select></label>
     
+    <div id="filterBar" class="filterBar filterBarTransparent" style="display: flex;">
+
+      <div class="toolbarItem">
+        <label>Country
+        $htmlFilterCountry</label>
+      </div>
+      
+      <label>Humans
+      $htmlFilterPersons</label>
+
+    </div>
+    
+    
     <div><button class="button" onclick="aiTasksFindArticles();" style="margin: 10px 0;">Find articles</button></div>
     
-    <div id="aiTasksArticleInfo"></div>
+    <div id="aiTasksArticleInfo" style="margin-bottom: 10px;"></div>
        
-    <label for="questionText">Number of unanswered articles to process
-    <select id="tasksCount" class="inputForm">
-      <option value=""></option>
-      <option value="1">1</option>
-      <option value="10">10</option>
-      <option value="100">100</option>
-      <option value="1000">1000</option>
-      <option value="5000">5000</option>
-      <option value="10000">10000</option>
-    </select>
-    </label>
+    <div id="sectionAddTasks">
+      <label>Number of unanswered articles to process
+      <select id="tasksCount" class="inputForm">
+        <option value=""></option>
+        <option value="1">1</option>
+        <option value="10">10</option>
+        <option value="100">100</option>
+        <option value="1000">1000</option>
+        <option value="5000">5000</option>
+        <option value="10000">10000</option>
+      </select>
+      </label>    
+    </div>   
        
+    <div id="spinnerFindTasks" class="spinner"></div>
+
     <div class="popupFooter">
-      <button class="button" style="margin-left: 0;" onclick="addAITasks();">Add tasks</button>
+      <button id="buttonAddTasks" class="button" style="margin-left: 0;" onclick="addAITasks();">Add tasks</button>
       <button class="button buttonGray" onclick="closePopupForm();">Cancel</button>
     </div>
     

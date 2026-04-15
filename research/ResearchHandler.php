@@ -452,18 +452,34 @@ SQL;
    */
   private function findArticlesForAITasks(): array {
     $questionnaire_id = $this->input['questionnaire_id'];
+    $filter = $this->input['filter'];
+
     $exclude_unilateral = $this->database->fetchSingleValue("SELECT exclude_unilateral FROM questionnaires WHERE id = :questionnaire_id", [':questionnaire_id' => $questionnaire_id]);
+
     $first_question_id = $this->getFirstQuestionOfQuestionnaire( $questionnaire_id);
 
     if ($first_question_id === false) {
       throw new \Exception("No questions found for questionnaire $questionnaire_id");
     }
 
+    $sqlWhereAnd = ' '; // Keeps space as we want to start with AND not WHERE
+    $params = [];
     if ($exclude_unilateral === 1) {
-      $sqlWhereUnilateral = "AND c.unilateral !=1 ";
-    } else {
-      $sqlWhereUnilateral = '';
+      $sqlWhereAnd .= " AND c.unilateral !=1 ";
     }
+
+    [$sqlWhereAnd, $params] = getCrashesWhere($filter, $sqlWhereAnd, $params);
+
+    $sql = <<<SQL
+SELECT
+  count(*)
+FROM articles a
+LEFT JOIN crashes c ON a.crashid = c.id
+WHERE ((a.alltext IS NOT NULL) AND (a.alltext != ''))
+$sqlWhereAnd
+SQL;
+
+    $total = $this->database->fetchSingleValue($sql, $params);
 
     // Get number of articles for which the first question has not been answered
     // Only for articles with full text available
@@ -473,26 +489,12 @@ SELECT
 FROM articles a
 LEFT JOIN crashes c ON a.crashid = c.id
 WHERE ((a.alltext IS NOT NULL) AND (a.alltext != ''))
-   $sqlWhereUnilateral
+   $sqlWhereAnd
 AND EXISTS(SELECT 1 FROM answers WHERE articleid = a.id AND questionid = :question_id);
 SQL;
 
-    $params = [
-      'question_id' => $first_question_id
-    ];
-
+    $params[':question_id'] = $first_question_id;
     $answered = $this->database->fetchSingleValue($sql, $params);
-
-    $sql = <<<SQL
-SELECT
-  count(*)
-FROM articles a
-LEFT JOIN crashes c ON a.crashid = c.id
-WHERE ((a.alltext IS NOT NULL) AND (a.alltext != ''))
-$sqlWhereUnilateral
-SQL;
-
-    $total = $this->database->fetchSingleValue($sql);
 
     return [
       'total' => $total,
@@ -506,27 +508,23 @@ SQL;
   private function addAITasks(): array {
     $questionnaire_id = (int)$this->input['questionnaire_id'];
     $tasks_count = (int)$this->input['tasks_count'];
-    $exclude_unilateral = $this->database->fetchSingleValue("SELECT exclude_unilateral FROM questionnaires WHERE id = :questionnaire_id", [':questionnaire_id' => $questionnaire_id]);
+    $filter = $this->input['filter'];
 
-    if (! is_int($questionnaire_id)) {
-      throw new \Exception("Invalid questionnaire_id");
-    }
-
-    if (! is_int($tasks_count)) {
-      throw new \Exception("Invalid count");
-    }
+    if (is_nan($questionnaire_id)) throw new \Exception("Invalid questionnaire_id");
+    if (is_nan($tasks_count)) throw new \Exception("Invalid count");
 
     $first_question_id = $this->getFirstQuestionOfQuestionnaire( $questionnaire_id);
+    if ($first_question_id === false) throw new \Exception("No questions found for questionnaire $questionnaire_id");
 
-    if ($first_question_id === false) {
-      throw new \Exception("No questions found for questionnaire $questionnaire_id");
-    }
+    $exclude_unilateral = $this->database->fetchSingleValue("SELECT exclude_unilateral FROM questionnaires WHERE id = :questionnaire_id", [':questionnaire_id' => $questionnaire_id]);
 
+    $sqlWhereAnd = ' '; // Keeps space as we want to start with AND not WHERE
+    $params = [];
     if ($exclude_unilateral === 1) {
-      $sqlWhereUnilateral = "AND c.unilateral !=1 ";
-    } else {
-      $sqlWhereUnilateral = '';
+      $sqlWhereAnd .= " AND c.unilateral !=1 ";
     }
+
+    [$sqlWhereAnd, $params] = getCrashesWhere($filter, $sqlWhereAnd, $params);
 
     $sql = <<<SQL
 INSERT INTO ai_tasks (article_id, questionnaire_id, task_status)
@@ -537,18 +535,16 @@ SELECT
 FROM articles a
 LEFT JOIN crashes c ON a.crashid = c.id
 WHERE a.alltext IS NOT NULL AND a.alltext != ''
-  $sqlWhereUnilateral
+  $sqlWhereAnd
   AND NOT EXISTS (SELECT 1 FROM answers WHERE articleid = a.id AND questionid = :question_id
 )
 ORDER BY ID DESC
 LIMIT :tasks_count;
 SQL;
 
-    $params = [
-      ':question_id' => $first_question_id,
-      ':questionnaire_id' => $questionnaire_id,
-      ':tasks_count' => $tasks_count,
-    ];
+    $params[':question_id'] = $first_question_id;
+    $params[':questionnaire_id'] = $questionnaire_id;
+    $params[':tasks_count'] = $tasks_count;
 
     $this->database->execute($sql, $params);
 
