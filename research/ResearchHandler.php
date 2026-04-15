@@ -688,7 +688,7 @@ SQL;
 
       // Load questionnaires if needed
       if (str_contains($userPrompt, '[questionnaires]')) {
-        $questionnaires = $this->database->loadQuestionnairesData();
+        $questionnaires = $this->database->loadQuestionnairesData(true);
         $userPrompt = replaceAI_QuestionnaireTags($userPrompt, $questionnaires);
       }
     }

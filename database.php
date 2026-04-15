@@ -161,7 +161,7 @@ class Database {
     return $this->execute($sql, $params);
   }
 
-  public function loadQuestionnairesData(bool $activeOnly = false, ?int $questionnaire_id=null): array {
+  public function loadQuestionnairesData($activeOnly=false, ?int $questionnaire_id=null): array {
     $sqlWhere = '';
     $params = [];
 
@@ -170,6 +170,7 @@ class Database {
       $params = [':id' => $questionnaire_id];
     }
 
+    // Return active questionnaires if no specific id is provided
     if ($activeOnly) {
       addSQLWhere($sqlWhere, "active=1");
     }

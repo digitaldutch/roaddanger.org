@@ -547,30 +547,29 @@ function replaceAI_QuestionnaireTags(string $text, array $questionnairesData): s
     ];
 
     foreach ($questionnaires as $questionnaire) {
-      if ($questionnaire['active'] === 1) {
-        $qBlock = [
-          'id' => $questionnaire['id'],
-          'type' => $questionnaire['type'] === 1 ? 'bechdel' : 'standard',
-          'questions' => []
-        ];
+      $questionnaireBlock = [
+        'id' => $questionnaire['id'],
+        'type' => $questionnaire['type'] === 1 ? 'bechdel' : 'standard',
+        'questions' => []
+      ];
 
-        foreach ($questionnaire['question_ids'] as $questionId) {
-          $question = array_values(array_filter(
-            $questions,
-            fn($q) => $q['id'] === $questionId
-          ))[0] ?? null;
+      foreach ($questionnaire['question_ids'] as $questionId) {
+        $question = array_values(array_filter(
+          $questions,
+          fn($q) => $q['id'] === $questionId
+        ))[0] ?? null;
 
-          if ($question) {
-            $qBlock['questions'][] = [
-              'id' => $question['id'],
-              'text' => $question['text'],
-              'explanation' => $question['explanation']
-            ];
-          }
+        if ($question) {
+          $questionnaireBlock['questions'][] = [
+            'id' => $question['id'],
+            'text' => $question['text'],
+            'explanation' => $question['explanation']
+          ];
         }
 
-        $output['questionnaires'][] = $qBlock;
       }
+
+      $output['questionnaires'][] = $questionnaireBlock;
     }
 
     $json = json_encode($output, JSON_UNESCAPED_UNICODE);

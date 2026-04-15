@@ -91,7 +91,9 @@ class OpenRouterAIClient {
     $prompt = $database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='questionnaire_answerer';");
 
     $prompt->user_prompt = replaceArticleTags($prompt->user_prompt, $article);
-    $questionnairesData = $database->loadQuestionnairesData(false, $questionnaire_id);
+
+    $activeQuestionnairesOnly = $questionnaire_id === null;
+    $questionnairesData = $database->loadQuestionnairesData( $activeQuestionnairesOnly, $questionnaire_id);
 
     $prompt->user_prompt = replaceAI_QuestionnaireTags($prompt->user_prompt, $questionnairesData);
 
