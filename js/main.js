@@ -1063,7 +1063,7 @@ function getCrashCard(crash, detailsPage=false) {
       htmlQuestionnaireHelp = `
 <div class="notice smallFont" style="display: flex; justify-content: space-between; align-items: center; margin: 0 5px 5px 0;" onclick="showQuestionsForm(${crash.id}, ${crashArticles[0].id});">
 <div>We are doing a research project and would be grateful if you answered a few questions about media articles.</div> 
-  <span class="button buttonLine">Answer research questions</span>
+  <span class="button buttonLine" style="white-space: normal; text-align: center;">Answer research questions</span>
 </div>`;
     }
   }

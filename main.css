@@ -1040,12 +1040,11 @@ h3, .pageSubTitleFont {
 .formFullPage {
   display: flex;
   flex-direction: column;
-  position: absolute;
-  top: 10px;
+  height: fit-content;
+  min-height: 100px;
   width: 700px;
   max-width: Calc(100% - 10px);
-  max-height: Calc(100% - 20px);
-  min-height: 100px;
+  margin: 5px;
   padding: 5px 15px 10px 15px;
   border-radius: 3px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -1101,7 +1100,7 @@ h3, .pageSubTitleFont {
 .popupCloseCross {
   position: absolute;
   right: 5px;
-  top: 4px;
+  top: 5px;
   background: url("/images/close.svg") no-repeat center;
   background-size: 25px;
   height: 20px;
