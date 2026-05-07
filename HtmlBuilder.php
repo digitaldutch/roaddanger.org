@@ -527,7 +527,7 @@ HTML;
   public static function getFormQuestionnaires(): string {
 
     return <<<HTML
-<div id="formQuestions" class="popupOuter">
+<div id="formQuestions" class="popupOuter" onclick="closePopupForm();">
 
   <div class="formFullPage" onclick="event.stopPropagation();">
 
