@@ -1040,6 +1040,7 @@ h3, .pageSubTitleFont {
 .formFullPage {
   display: flex;
   flex-direction: column;
+  position: relative;
   height: fit-content;
   min-height: 100px;
   width: 700px;
