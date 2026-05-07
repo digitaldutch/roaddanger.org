@@ -1432,11 +1432,14 @@ async function extractDataFromArticle() {
 
     const crash = response.data;
     editCrashPersons = [];
+    let human_id = 0;
     for (const transportationMode of crash.transportation_modes) {
       const tmNumber = transportationModeFromText(transportationMode.transportation_mode);
 
       for (const human of transportationMode.humans) {
+        human_id++;
         editCrashPersons.push({
+          id: human_id,
           groupid: null,
           transportationmode: tmNumber,
           health: healthFromText(human.health),
@@ -1579,8 +1582,10 @@ function addHuman() {
     person.hitrun = menuButtonSelected('editPersonHitRun');
   }
 
+  // id is auto-incremented based on the highest existing ID
   const maxId = editCrashPersons.reduce((max, person) => person.id > max? person.id : max, 0);
   person = {id: maxId + 1};
+
   loadPersonFromGUI(person);
 
   editCrashPersons.push(person);
