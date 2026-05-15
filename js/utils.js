@@ -82,12 +82,6 @@ function isInt(value) {
   return (x | 0) === x;
 }
 
-function dateFromISO(datetimeISO){
-  if (! datetimeISO) return null;
-  datetimeISO = datetimeISO.replace(' ', 'T');
-  return new Date(datetimeISO)
-}
-
 function addLeadingZero(n){
   return n<10? '0'+n:''+n;
 }
@@ -243,25 +237,6 @@ function escapeHtml(text) {
   return text.replace(/[&<>"']/g, m => map[m]);
 }
 
-function inputDateTimeToISO8601(dateISO, timeISO){
-  let year = dateISO.substr(0, 4);
-  let month = dateISO.substr(5, 2) - 1; // Month is zero based
-  let day = dateISO.substr(8, 2);
-  let hours = timeISO.substr(0, 2);
-  let minutes = timeISO.substr(3, 2);
-
-  let date = new Date(year, month, day, hours, minutes);
-  return date.toISOString();
-}
-
-function inputDateToISO8601(inputDate){
-  let year    = inputDate.substr(0, 4);
-  let month   = inputDate.substr(5, 2) - 1; // Month is zero based
-  let day     = inputDate.substr(8, 2);
-
-  let date = new Date(year, month, day);
-  return date.toISOString();
-}
 
 function closePopupForm() {
   if (event) event.target.closest('.popupOuter').style.display = 'none';
@@ -1567,4 +1542,32 @@ function answerToInt(answer) {
   if (answer === 'not determinable') return 2;
 
   return null;
+}
+
+function formatSI(number, digits = 1) {
+
+  const prefixes = [
+    { value: 1e12, symbol: "T" },
+    { value: 1e9, symbol: "B" },
+    { value: 1e6, symbol: "M" },
+    { value: 1e3, symbol: "k" },
+  ];
+
+  if (number === 0) return "0";
+
+  let prefix = "";
+
+  for (const {value, symbol} of prefixes) {
+    if (Math.abs(number) >= value) {
+      number /= value;
+      prefix = symbol;
+      break;
+    }
+  }
+
+  if (prefix) {
+    return number.toFixed(digits) + prefix;
+  } else {
+    return number.toString();
+  }
 }

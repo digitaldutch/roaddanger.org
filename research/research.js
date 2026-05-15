@@ -561,7 +561,8 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
 
     if ((item.amount) && (total > 0)) {
       const tooltip = `Humane score: ${item.passed} of ${questions.length} • ${item.amount} articles • ${item.amountPercentage.toFixed(1)} %`;
-      htmlBar += getBarSegment(item.amountPercentage, colorBarSegment, colorText, item.passed, tooltip);
+      const bar_text = formatSI(item.amount);
+      htmlBar += getBarSegment(item.amountPercentage, colorBarSegment, colorText, bar_text, tooltip);
     }
 
     i++;
