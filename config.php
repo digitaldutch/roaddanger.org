@@ -1,6 +1,6 @@
 <?php
-$VERSION = 737;
-$VERSION_DATE = '15 May 2026';
+$VERSION = 738;
+$VERSION_DATE = '29 July 2026';
 
 require_once 'config_secret.php';
 
@@ -52,6 +52,7 @@ const MAPBOX_GEOCODER_CSS = 'https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-
 // Install Chromium or another browser on your server if you want to enable loading websites using a headless browser
 // --disable-gpu is used as servers often run without a desktop environment.
 // --log-level=3 to suppress error messages which are triggered by the lack of a desktop environment, but don't matter
+// --no-sandbox Use only if sandbox does not work, which can happen on older Debian versions
 
 // Debian Linux with Chromium
 const HEADLESS_BROWSER_COMMAND = 'chromium --headless=new --dump-dom --disable-gpu --log-level=3';
