@@ -1,6 +1,6 @@
 <?php
-$VERSION = 738;
-$VERSION_DATE = '29 July 2026';
+$VERSION = 739;
+$VERSION_DATE = '2 August 2026';
 
 require_once 'config_secret.php';
 
@@ -55,7 +55,7 @@ const MAPBOX_GEOCODER_CSS = 'https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-
 // --no-sandbox Use only if sandbox does not work, which can happen on older Debian versions
 
 // Debian Linux with Chromium
-const HEADLESS_BROWSER_COMMAND = 'chromium --headless=new --dump-dom --disable-gpu --log-level=3';
+const HEADLESS_BROWSER_COMMAND = 'chromium --headless=new --dump-dom --disable-gpu --log-level=3 --no-sandbox';
 
 // Windows 11 with Google Chrome
 const HEADLESS_BROWSER_COMMAND_WINDOWS = '"C:\Program Files\Google\Chrome\Application\chrome.exe" --headless=new --dump-dom';

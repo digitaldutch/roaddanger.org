@@ -34,6 +34,7 @@ class TMetaParser {
     $command = $headlessCommand . ' ' . $urlDownload;
 
     exec($command, $output, $statusCode);
+
     if ($statusCode === 0) {
       return implode("\n", $output);
     } else {
