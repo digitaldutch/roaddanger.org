@@ -5,6 +5,7 @@ class Filter {
     this.#resetFilters();
 
     const isStatisticsPage = [
+      PageType.statisticsGeneral,
       PageType.statisticsCrashPartners,
       PageType.statisticsTransportationModes
     ].includes(pageType);
@@ -240,7 +241,21 @@ class Filter {
 
     if (this.filters.period && (this.filters.period !== 'all')) {
       const elPeriod = document.getElementById('searchPeriod');
-      const periodLabel = elPeriod.options[elPeriod.selectedIndex].text;
+
+      let periodLabel = '';
+      if (this.filters.period === 'custom') {
+        if (this.filters.dateFrom) {
+          periodLabel = translate('from_date') + ' ' + new Date(this.filters.dateFrom).toLocaleDateString();
+        }
+
+        if (this.filters.dateTo) {
+          if (periodLabel) periodLabel += ' ';
+          periodLabel += translate('up_to_date') + ' ' + new Date(this.filters.dateTo).toLocaleDateString() ;
+        }
+      } else {
+        periodLabel = elPeriod.options[elPeriod.selectedIndex].text;
+      }
+
       activeFilters.set("period", {label: periodLabel});
     }
 
@@ -255,7 +270,7 @@ class Filter {
 
     if (activeFilters.size > 0) {
       for (const [key, filter] of activeFilters) {
-        html += `<div class="filterStatusItem">${filter.label}<button onclick="filter.removeFilter('${key}');"></button></div>`;
+        html += `<div class="filterStatusItem" onclick='filter.showFilters()'>${filter.label}<button onclick="filter.removeFilter('${key}');"></button></div>`;
       }
     }
 
@@ -263,6 +278,7 @@ class Filter {
   }
 
   removeFilter(key) {
+    event.stopPropagation();
 
     switch (key) {
       case 'dead':

@@ -31,7 +31,7 @@ const PageType = Object.freeze({
 });
 
 
-function determinePageType(pathName, crashID) {
+function pageTypeFromUrlPath(pathName, crashID) {
   if (pathName.startsWith('/moderations')) return PageType.moderations;
   if (pathName.startsWith('/last_changed')) return PageType.lastChanged;
   if (pathName.startsWith('/mosaic')) return PageType.mosaic;
@@ -48,10 +48,28 @@ function determinePageType(pathName, crashID) {
   return PageType.recent;
 }
 
+function urlPathFromPageType(pageType) {
+  switch (pageType) {
+    case PageType.moderations:                   return '/moderations';
+    case PageType.lastChanged:                   return '/last_changed';
+    case PageType.mosaic:                        return '/mosaic';
+    case PageType.childVictims:                  return '/child_victims';
+    case PageType.map:                           return '/map';
+    case PageType.statisticsGeneral:             return '/statistics/general';
+    case PageType.statisticsCrashPartners:       return '/statistics/counterparty';
+    case PageType.statisticsTransportationModes: return '/statistics/transportation_modes';
+    case PageType.statisticsMediaHumanization:   return '/statistics/media_humanization';
+    case PageType.export:                        return '/export';
+    case PageType.deCorrespondent:               return '/decorrespondent';
+    default:                                     return '/';
+  }
+}
+
 function initializeFilter(pageType) {
   const pageTypesWithFilter = [
     PageType.recent,
     PageType.lastChanged,
+    PageType.statisticsGeneral,
     PageType.statisticsCrashPartners,
     PageType.statisticsTransportationModes,
     PageType.mosaic,
@@ -129,7 +147,7 @@ async function initMain() {
   const articleID = url.searchParams.get('articleid');
   const pathName = decodeURIComponent(url.pathname);
 
-  pageType = determinePageType(pathName, crashID);
+  pageType = pageTypeFromUrlPath(pathName, crashID);
 
   initializeFilter(pageType);
 
@@ -440,7 +458,9 @@ function selectFilterChildVictims() {
 }
 
 function searchStatistics() {
-  loadStatistics()
+  updateBrowserUrl(true);
+
+  loadStatistics();
 }
 
 async function loadStatistics() {
@@ -467,85 +487,27 @@ async function loadStatistics() {
   }
 
   function showStatisticsGeneral(dbStats) {
-    let html = `
-      <tr class="trHeader"><td colspan="2">${translate('Today')}</td></tr>
-      
+    let html = `     
       <tr>
         <td>${translate('Crashes')}</td>
-        <td style="text-align: right;">${dbStats.today.crashes}</td>
+        <td style="text-align: right;">${dbStats.crashes.toLocaleString()}</td>
       </tr>
       <tr>
         <td>${translate('Articles')}</td>
-        <td style="text-align: right;">${dbStats.today.articles}</td>
+        <td style="text-align: right;">${dbStats.articles.toLocaleString()}</td>
       </tr>
       <tr>
-        <td>${translate('Dead_(multiple)')}</td>
-        <td style="text-align: right;">${dbStats.today.dead}</td>
+        <td>${translate('Humans')} (${translate('dead_(adjective)')})</td>
+        <td style="text-align: right;">${dbStats.dead.toLocaleString()}</td>
       </tr>
       <tr>
-        <td>${translate('Injured')}</td>
-        <td style="text-align: right;">${dbStats.today.injured}</td>
+        <td>${translate('Humans')} (${translate('injured')})</td>
+        <td style="text-align: right;">${dbStats.injured.toLocaleString()}</td>
       </tr>        
-      <tr>
-        <td>${translate('Added_crashes')}</td>
-        <td style="text-align: right;">${dbStats.today.crashesAdded}</td>
-      </tr>
-      <tr>
-        <td>${translate('Added_articles')}</td>
-        <td style="text-align: right;">${dbStats.today.articlesAdded}</td>
-      </tr>`;
 
-    html += `
-      <tr class="trHeader"><td colspan="2">30 ${translate('days')}</td></tr>
-
-      <tr>
-        <td>${translate('Crashes')}</td>
-        <td style="text-align: right;">${dbStats.thirtyDays.crashes}</td>
-      </tr>
-      <tr>
-        <td>${translate('Articles')}</td>
-        <td style="text-align: right;">${dbStats.thirtyDays.articles}</td>
-      </tr>
-      <tr>
-        <td>${translate('Dead_(multiple)')}</td>
-        <td style="text-align: right;">${dbStats.thirtyDays.dead}</td>
-      </tr>
-      <tr>
-        <td>${translate('Injured')}</td>
-        <td style="text-align: right;">${dbStats.thirtyDays.injured}</td>
-      </tr>        
-      <tr>
-        <td>${translate('Added_crashes')}</td>
-        <td style="text-align: right;">${dbStats.thirtyDays.crashesAdded}</td>
-      </tr>
-      <tr>
-        <td>${translate('Added_articles')}</td>
-        <td style="text-align: right;">${dbStats.thirtyDays.articlesAdded}</td>
-      </tr>    
-    `;
-
-    html += `
-      <tr class="trHeader"><td colspan="2">${translate('Total')}</td></tr>
-
-      <tr>
-        <td>${translate('Crashes')}</td>
-        <td style="text-align: right;">${dbStats.total.crashes.toLocaleString()}</td>
-      </tr>
-      <tr>
-        <td>${translate('Articles')}</td>
-        <td style="text-align: right;">${dbStats.total.articles.toLocaleString()}</td>
-      </tr>
-      <tr>
-        <td>${translate('Dead_(multiple)')}</td>
-        <td style="text-align: right;">${dbStats.total.dead.toLocaleString()}</td>
-      </tr>
-      <tr>
-        <td>${translate('Injured')}</td>
-        <td style="text-align: right;">${dbStats.total.injured.toLocaleString()}</td>
-      </tr>                
       <tr>
         <td>${translate('Humans_helping_site')}</td>
-        <td style="text-align: right;">${dbStats.total.users.toLocaleString()}</td>
+        <td style="text-align: right;">${dbStats.users.toLocaleString()}</td>
       </tr>`;
 
     document.getElementById('tableStatistics').innerHTML = html;
@@ -563,7 +525,7 @@ async function loadStatistics() {
       case PageType.statisticsCrashPartners: {serverData.type = 'crashPartners'; break;}
     }
 
-    if ([PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
+    if ([PageType.statisticsGeneral, PageType.statisticsTransportationModes, PageType.statisticsCrashPartners].includes(pageType)) {
       serverData.filter = filter.getFromGUI();
     }
 
@@ -586,12 +548,23 @@ async function loadStatistics() {
         filter.addSearchParams(url);
       }
 
-      window.history.pushState(null, null, url.toString());
-
       switch (pageType) {
-        case PageType.statisticsGeneral: {showStatisticsGeneral(response.statistics); break;}
-        case PageType.statisticsCrashPartners: {showCrashVictimsGraph(response.statistics.crashVictims); break;}
-        case PageType.statisticsTransportationModes: {showStatisticsTransportation(response.statistics); break;}
+
+        case PageType.statisticsGeneral: {
+          showStatisticsGeneral(response.statistics);
+          break;
+        }
+
+        case PageType.statisticsCrashPartners: {
+          showCrashVictimsGraph(response.statistics.crashVictims);
+          break;
+        }
+
+        case PageType.statisticsTransportationModes: {
+          showStatisticsTransportation(response.statistics);
+          break;
+        }
+
         case PageType.statisticsMediaHumanization: {
           showMediaHumanizationText(response.statistics.questionnaire.questions);
           showMediaHumanizationGraph(response.statistics, 'graphMediaHumanization');
@@ -800,6 +773,7 @@ async function loadFeaturedGraph() {
   showMediaHumanizationGraph(response.statistics, 'featuredGraph', title, true);
 
   element.addEventListener('click',e => window.location = '/statistics/media_humanization');
+
   element.style.display = 'block';
 }
 
@@ -2626,10 +2600,7 @@ function searchCrashes() {
 function updateBrowserUrl(pushState=false){
   const url = new URL(location.origin);
 
-  if (pageType === PageType.deCorrespondent) url.pathname = '/decorrespondent';
-  else if (pageType === PageType.lastChanged) url.pathname = '/last_changed';
-  else if (pageType === PageType.mosaic) url.pathname = '/mosaic';
-  else if (pageType === PageType.map) url.pathname = '/map';
+  url.pathname = urlPathFromPageType(pageType);
 
   if (pageType === PageType.map) {
     const center = mapMain.getCenter();

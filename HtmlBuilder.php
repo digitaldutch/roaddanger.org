@@ -86,7 +86,7 @@ $navigation
     </div>
   
     <div class="headerMain">
-      <a href='/'class="pageTitle">$websiteName</a>        
+      <a href='/' class="pageTitle">$websiteName</a>        
   
       <div style="position: relative;">
         <div id="filterCountry" class="buttonHeader" style="display: none;" onclick="countryClick();">
@@ -143,6 +143,7 @@ HTML;
     $textFilters = translate('Filters');
 
     $classTransparent = $transparent? 'filterBarTransparent' : '';
+
     return "<aside class='filterStatus $classTransparent'><button class='button buttonImportant buttonMobileSmall' onclick='filter.showFilters()'>{$textFilters}</button><div id='filterStatus' style='display: flex;'></div></aside>";
   }
 
@@ -291,6 +292,7 @@ HTML;
     <div class="popupCloseCross closeCrossWhite" onclick="closeFilters();"></div>
     <div class="">{$texts['Filters']}</div>
   </div>
+
   <div style="overflow-y: auto; height: 100%; padding: 5px;">
     
     <div style="display: flex; justify-content: space-between;">
@@ -725,10 +727,16 @@ HTML;
   public static function pageStatsGeneral(): string {
     $texts = translateArray(['Statistics', 'General']);
 
+    $htmlFilterStatusBar = self::getHtmlFilterStatusBar();
+    $htmlFilters = HtmlBuilder::getFiltersbar(addPersons: false, addHealth: false);
+
     return <<<HTML
+$htmlFilters
 <div id="pageMain">
   <div class="pageInner pageInnerScroll">    
     <div class="pageSubTitle">{$texts['Statistics']} - {$texts['General']}</div>
+    
+    $htmlFilterStatusBar
     
     <div class="panelTableOverflow">
        <table id="tableStatistics" class="dataTable"></table>

@@ -624,8 +624,8 @@ SQL;
     $type = $this->input['type'] ?? '';
     $filter = $this->input['filter'] ?? '';
 
-    if ($type === 'general') $stats = $this->getStatsDatabase();
-    else if ($type === 'crashPartners') $stats = $this->getStatsCrashPartners( $filter);
+    if ($type === 'general') $stats = $this->getStatisticsGeneral($filter);
+    else if ($type === 'crashPartners') $stats = $this->getStatisticsCrashPartners( $filter);
     else if ($type === 'media_humanization') $stats = $this->getStatsMediaHumanization();
     else $stats = $this->getStatsTransportation($filter);
 
@@ -995,7 +995,7 @@ JOIN users u on u.id = ar.userid
 SQL;
   }
 
-  private function getStatsCrashPartners(array $filter): array{
+  private function getStatisticsCrashPartners(array $filter): array {
     [$SQLWhere, $params] = getCrashesWhere($filter);
 
     $sqlCrashesWithDeath = <<<SQL
@@ -1078,7 +1078,6 @@ SQL;
   private function getStatsTransportation(array $filter): array{
     $stats = [];
     $params = [];
-    $SQLJoin = '';
     $SQLWhere = '';
 
     // Only do full-text search if the text has 3 characters or more
@@ -1179,51 +1178,30 @@ SQL;
     return $response;
   }
 
-  private function getStatsDatabase(): array {
+  private function getStatisticsGeneral(array $filter): array {
+
     $stats = [];
 
-    $stats['total'] = [];
-    $sql = "SELECT COUNT(*) AS count FROM crashes";
-    $stats['total']['crashes'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) AS count FROM articles";
-    $stats['total']['articles'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE a.health=3";
+    [$SQLWhere, $params] = getCrashesWhere($filter);
 
-    $stats['total']['dead'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE a.health=2";
-    $stats['total']['injured'] = $this->database->fetchSingleValue($sql);
+    $sql = "SELECT COUNT(*) AS count FROM crashes c $SQLWhere";
+    $stats['crashes'] = $this->database->fetchSingleValue($sql, $params);
+
+    $sql = "SELECT COUNT(*) AS count FROM articles LEFT JOIN crashes c ON articles.crashid = c.id $SQLWhere";
+    $stats['articles'] = $this->database->fetchSingleValue($sql, $params);
+
+    $SQLWhereDead = $SQLWhere;
+    addSQLWhere($SQLWhereDead, 'cp.health=3');
+    $sql = "SELECT COUNT(*) FROM crashes c JOIN crashpersons cp ON c.id = cp.crashid $SQLWhereDead";
+    $stats['dead'] = $this->database->fetchSingleValue($sql, $params);
+
+    $SQLWhereInjured = $SQLWhere;
+    addSQLWhere($SQLWhereInjured, 'cp.health=2');
+    $sql = "SELECT COUNT(*) FROM crashes c JOIN crashpersons cp ON c.id = cp.crashid $SQLWhereInjured";
+    $stats['injured'] = $this->database->fetchSingleValue($sql, $params);
+
     $sql = "SELECT COUNT(*) AS count FROM users";
-    $stats['total']['users'] = $this->database->fetchSingleValue($sql);
-
-
-    $stats['today'] = [];
-    $sql = "SELECT COUNT(*) AS count FROM crashes WHERE DATE(`date`) = CURDATE()";
-    $stats['today']['crashes'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) AS count FROM articles WHERE DATE(`publishedtime`) = CURDATE()";
-    $stats['today']['articles'] = $this->database->fetchSingleValue($sql);
-    $stats['today']['users'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE(`date`) = CURDATE() AND a.health=3";
-    $stats['today']['dead'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE(`date`) = CURDATE() AND a.health=2";
-    $stats['today']['injured'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) AS count FROM crashes WHERE DATE(`createtime`) = CURDATE()";
-    $stats['today']['crashesAdded'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) AS count FROM articles WHERE DATE(`createtime`) = CURDATE()";
-    $stats['today']['articlesAdded'] = $this->database->fetchSingleValue($sql);
-
-    $stats['thirtyDays'] = [];
-    $sql = "SELECT COUNT(*) AS count FROM crashes WHERE DATE(`date`) >= SUBDATE(CURDATE(), 30)";
-    $stats['thirtyDays']['crashes'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) AS count FROM articles WHERE DATE(`publishedtime`) >= SUBDATE(CURDATE(), 30)";
-    $stats['thirtyDays']['articles'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE(`date`) >= SUBDATE(CURDATE(), 30) AND a.health=3";
-    $stats['thirtyDays']['dead'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) FROM crashes JOIN crashpersons a on crashes.id = a.crashid WHERE DATE(`date`) >= SUBDATE(CURDATE(), 30) AND a.health=2";
-    $stats['thirtyDays']['injured'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) AS count FROM crashes WHERE DATE(`createtime`) >= SUBDATE(CURDATE(), 30)";
-    $stats['thirtyDays']['crashesAdded'] = $this->database->fetchSingleValue($sql);
-    $sql = "SELECT COUNT(*) AS count FROM articles WHERE DATE(`createtime`) >= SUBDATE(CURDATE(), 30)";
-    $stats['thirtyDays']['articlesAdded'] = $this->database->fetchSingleValue($sql);
+    $stats['users'] = $this->database->fetchSingleValue($sql);
 
     return $stats;
   }

@@ -64,10 +64,10 @@ HTML;
 }
 
 [$mainHTML, $showButtonAdd, $head] = match ($pageType) {
-  PageType::statisticsGeneral => [HtmlBuilder::pageStatsGeneral(), false, $head],
   PageType::childVictims => [HtmlBuilder::pageChildVictims(), true, $head],
   PageType::map => [HtmlBuilder::pageMap(), true, $head],
   PageType::mosaic => [HtmlBuilder::pageMosaic(), true, $head],
+  PageType::statisticsGeneral => [HtmlBuilder::pageStatsGeneral(), false, $head],
   PageType::statisticsHumanizationTest => [HtmlBuilder::pageHumanizationTest(), false, $head],
   PageType::statisticsCrashPartners => [HtmlBuilder::pageStatsCrashPartners(), false, $head],
   PageType::statisticsTransportationModes => [HtmlBuilder::pageStatsTransportationModes(), false, $head],
