@@ -1,5 +1,13 @@
 # Changelog
 
+26 september 2026 v743:
+- Statistics General:
+  - Health and persons filter options added
+- Filter:
+  - Added year options (2026, 2025, etc).
+  - Fixed: Last 2 years filter in research did not return exactly 2 years, but included the complete first year.
+  - Code: SQL improved to use indices for filtering on a year.
+
 26 september 2026 v742:
 - Fixed: Webpage layout where navigation or filter sections were sometimes visible
 - Fixed: French plural for crashes fixed from "crash" to "crashs"

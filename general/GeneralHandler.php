@@ -1200,9 +1200,6 @@ SQL;
     $sql = "SELECT COUNT(*) FROM crashes c JOIN crashpersons cp ON c.id = cp.crashid $SQLWhereInjured";
     $stats['injured'] = $this->database->fetchSingleValue($sql, $params);
 
-    $sql = "SELECT COUNT(*) AS count FROM users";
-    $stats['users'] = $this->database->fetchSingleValue($sql);
-
     return $stats;
   }
 

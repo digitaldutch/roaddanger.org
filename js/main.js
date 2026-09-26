@@ -503,11 +503,6 @@ async function loadStatistics() {
       <tr>
         <td>${translate('Humans')} (${translate('injured')})</td>
         <td style="text-align: right;">${dbStats.injured.toLocaleString()}</td>
-      </tr>        
-
-      <tr>
-        <td>${translate('Humans_helping_site')}</td>
-        <td style="text-align: right;">${dbStats.users.toLocaleString()}</td>
       </tr>`;
 
     document.getElementById('tableStatistics').innerHTML = html;

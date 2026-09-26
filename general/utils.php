@@ -301,25 +301,33 @@ function addPeriodWhereSql(&$sqlWhere, &$params, $filter): void {
   if ((! isset($filter['period'])) || ($filter['period'] === '')) return;
 
   switch ($filter['period']) {
+
     case 'today':
       addSQLWhere($sqlWhere, ' DATE(c.date) = CURDATE() ');
       break;
+
     case 'yesterday':
       addSQLWhere($sqlWhere, ' DATE(c.date) = SUBDATE(CURDATE(), 1) ');
       break;
+
     case '7days':
       addSQLWhere($sqlWhere, ' DATE(c.date) > SUBDATE(CURDATE(), 7) ');
       break;
+
     case '30days':
       addSQLWhere($sqlWhere, ' DATE(c.date) > SUBDATE(CURDATE(), 30) ');
       break;
+
     case '365days':
       addSQLWhere($sqlWhere, ' DATE(c.date) > SUBDATE(CURDATE(), 365) ');
       break;
+
     case 'decorrespondent':
       addSQLWhere($sqlWhere, " DATE(c.date) >= '2019-01-14' AND DATE (c.date) <= '2019-01-20' ");
       break;
+
     case 'custom': {
+
       if ($filter['dateFrom'] !== '') {
         addSQLWhere($sqlWhere, " DATE(c.date) >= :searchDateFrom ");
         $params[':searchDateFrom'] = date($filter['dateFrom']);
@@ -334,18 +342,20 @@ function addPeriodWhereSql(&$sqlWhere, &$params, $filter): void {
     }
 
     default: {
-      if (filter_var($filter['period'], FILTER_VALIDATE_INT)) {
+      $year = filter_var($filter['period'], FILTER_VALIDATE_INT);
+      if ($year) {
+        $params[':periodStart'] = sprintf('%04d-01-01', $year);
+        $params[':periodEnd']   = sprintf('%04d-01-01', $year + 1);
 
-        $params[':year'] = $filter['period'];
-        addSQLWhere($sqlWhere, "EXTRACT(YEAR FROM c.date) = :year");
+        addSQLWhere($sqlWhere, "c.date >= :periodStart AND c.date < :periodEnd");
 
       } else if (str_ends_with($filter['period'], '_year')) {
 
         $yearOffset = (int)substr($filter['period'], 0, -5);
-        $startYear = date("Y") - $yearOffset + 1;
+        $startDate = (new DateTime('today'))->modify("-{$yearOffset} years");
 
-        $params[':startYear'] = $startYear;
-        addSQLWhere($sqlWhere, "EXTRACT(YEAR FROM c.date) >= :startYear");
+        $params[':startDate'] = $startDate->format('Y-m-d');
+        addSQLWhere($sqlWhere, "c.date >= :startDate");
       }
 
     }

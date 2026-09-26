@@ -270,10 +270,10 @@ HTML;
 HTML;
   }
 
-  public static function getFiltersbar(bool $addPersons=true, bool $addHealth=true): string {
+  public static function getFilterSidebar(bool $addPersons=true, bool $addHealth=true): string {
     $texts = translateArray(['Filters', 'Show_results', 'Clear_filters', 'Child', 'Dead_(adjective)', 'Injured', 'Search', 'Source', 'Search_text_hint', 'User_Id']);
 
-    $htmlSearchPeriod = self::getSearchPeriodHtml();
+    $htmlSearchPeriod = self::getFilterPeriodHtml();
     $htmlSearchPersons = $addPersons? self::getSearchPersonsHtml() : '';
 
     $htmlHealth = '';
@@ -719,7 +719,7 @@ HTML;
 
   public static function pageMap(): string {
     $htmlFiltersStatus = HtmlBuilder::getHtmlFilterStatusBar(transparent: false);
-    $htmlFilters = HtmlBuilder::getFiltersbar();
+    $htmlFilters = HtmlBuilder::getFilterSidebar();
 
     return $htmlFilters . $htmlFiltersStatus . "<div id='mapMain'></div>";
   }
@@ -728,7 +728,7 @@ HTML;
     $texts = translateArray(['Statistics', 'General']);
 
     $htmlFilterStatusBar = self::getHtmlFilterStatusBar();
-    $htmlFilters = HtmlBuilder::getFiltersbar(addPersons: false, addHealth: false);
+    $htmlFilters = HtmlBuilder::getFilterSidebar();
 
     return <<<HTML
 $htmlFilters
@@ -794,7 +794,7 @@ HTML;
 
   public static function pageMosaic(): string {
     $htmlFiltersStatus = HtmlBuilder::getHtmlFilterStatusBar();
-    $htmlFilters = HtmlBuilder::getFiltersbar();
+    $htmlFilters = HtmlBuilder::getFilterSidebar();
 
     return <<<HTML
 $htmlFilters
@@ -881,7 +881,7 @@ HTML;
     $infoText = $user->translateLongText('counter_party_info');
 
     $htmlFilterStatusBar = self::getHtmlFilterStatusBar();
-    $htmlFilters = HtmlBuilder::getFiltersbar(addPersons: false);
+    $htmlFilters = HtmlBuilder::getFilterSidebar(addPersons: false);
 
     return <<<HTML
 $htmlFilters
@@ -922,7 +922,7 @@ HTML;
       'Search']);
 
     $htmlFilterStatusBar = self::getHtmlFilterStatusBar();
-    $htmlFilters = HtmlBuilder::getFiltersbar(addPersons: false, addHealth: false);
+    $htmlFilters = HtmlBuilder::getFilterSidebar(addPersons: false, addHealth: false);
 
     return <<<HTML
 $htmlFilters
@@ -957,8 +957,13 @@ $htmlFilters
 </div>
 HTML;  }
 
-  public static function getSearchPeriodHtml(): string {
-    $texts = translateArray(['Always', 'Today', 'Yesterday', 'days', 'The_correspondent_week', 'Custom_period', 'Crash_date', 'Start_date', 'End_date']);
+  public static function getFilterPeriodHtml(): string {
+    $texts = translateArray(['Always', 'Today', 'Yesterday', 'days', 'The_correspondent_week', 'Custom_period',
+      'Crash_date', 'Start_date', 'End_date']);
+
+    $lastYears = array_reverse(getLastYears(10));
+    $optionsYears = '';
+    foreach ($lastYears as $year) $optionsYears .= "<option value='{$year}'>{$year}</option>";
 
     return <<<HTML
 <select id="searchPeriod" class="filterItem active" oninput="filter.setFilterFieldsVisibility();" data-tippy-content="{$texts['Crash_date']}">
@@ -968,6 +973,7 @@ HTML;  }
   <option value="7days">7 {$texts['days']}</option> 
   <option value="30days">30 {$texts['days']}</option> 
   <option value="365days">365 {$texts['days']}</option>
+  $optionsYears
   <option value="custom">{$texts['Custom_period']}</option>          
 </select>
 
@@ -1052,7 +1058,7 @@ HTML;
     }
 
     $htmlFiltersStatus = HtmlBuilder::getHtmlFilterStatusBar(transparent: false);
-    $htmlFilters = HtmlBuilder::getFiltersbar();
+    $htmlFilters = HtmlBuilder::getFilterSidebar();
 
     return <<<HTML
 $htmlFilters

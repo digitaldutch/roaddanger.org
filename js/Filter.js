@@ -161,9 +161,9 @@ class Filter {
       const elFrom = document.getElementById('searchDateFrom');
       const elTo = document.getElementById('searchDateTo');
 
-      const custom = elPeriod.value === 'custom';
+      const customPeriod = elPeriod.value === 'custom';
 
-      if (custom) {
+      if (customPeriod) {
         elFrom.classList.add('active');
         elTo.classList.add('active');
       } else {
