@@ -1,11 +1,14 @@
 # Changelog
 
+30 september 2026 v744:
+- Filter close buttons now have a round background when hovering over them.
+
 26 september 2026 v743:
 - Statistics General:
   - Health and persons filter options added
 - Filter:
   - Added year options (2026, 2025, etc).
-  - Fixed: Last 2 years filter in research did not return exactly 2 years, but included the complete first year.
+  - Fixed: "Last x years" filter in research did not return exactly 2 years, it included the complete first year.
   - Code: SQL improved to use indices for filtering on a year.
 
 26 september 2026 v742:

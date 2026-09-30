@@ -490,8 +490,8 @@ h3, .pageSubTitleFont {
 }
 
 .filterStatusItem button {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   background-image: url('/images/delete_white.svg');
   background-repeat: no-repeat;
   background-position: center;
@@ -499,7 +499,7 @@ h3, .pageSubTitleFont {
   background-color: transparent;
 
   border: none;
-  border-radius: 3px;
+  border-radius: 50%;
   padding: 0;
   margin: 3px;
   cursor: pointer;
