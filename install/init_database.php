@@ -127,6 +127,7 @@ foreach (['languages', 'countries', 'longtexts', 'ai_models', 'ai_prompts'] as $
 }
 echo 'Added initial data: ' . implode(', ', $counts) . ".\n";
 // The first user. Use --no-user to skip, e.g. when you add test users yourself.
+$adminEmail = null;
 if (in_array('--no-user', $argv, true)) {
   echo "No administrator created (--no-user). Create one later with: php install/create_admin_user.php\n";
 } else {
@@ -136,10 +137,12 @@ if (in_array('--no-user', $argv, true)) {
       echo "No terminal to ask questions on, so no administrator was created. Create one with: php install/create_admin_user.php\n";
     } else {
       $userId = createAdminUser($pdo, $details);
-      echo "Created administrator {$details['email']} (user id $userId).\n";
+      $adminEmail = $details['email'];
+      echo "Created administrator $adminEmail (user id $userId).\n";
     }
   } catch (Throwable $e) {
     echo 'Error: ' . $e->getMessage() . "\nThe database is ready. Create an administrator with: php install/create_admin_user.php\n";
   }
 }
-echo "Done.\n";
+if ($adminEmail !== null) echo "Done. You can open the website now and log in with $adminEmail.\n";
+else echo "Done. Create an administrator with: php install/create_admin_user.php. Then you can open the website.\n";

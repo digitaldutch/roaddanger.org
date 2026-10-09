@@ -1,5 +1,8 @@
 # Changelog
 
+9 october 2026 v751:
+- Installation: install/init_database.php now ends with a message that you can open the website and log in.
+
 9 october 2026 v750:
 - Fixed: Admin - Humans: the menu of a user was cut off when the table was short, so Delete could not be reached.
   The menu now opens on top of the page.
