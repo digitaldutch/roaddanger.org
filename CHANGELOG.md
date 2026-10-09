@@ -1,5 +1,10 @@
 # Changelog
 
+9 october 2026 v749:
+- Installation:
+  - New install/seed_test_data.php adds made-up test data (400 crashes with articles and people) to a new website.
+    This is an optional step in the README.
+
 9 october 2026 v748:
 - Installation:
   - New install/init_database.php creates the database and tables and adds the initial data from install/init_data.sql:

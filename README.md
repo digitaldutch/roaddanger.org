@@ -42,6 +42,11 @@ Website: [roaddanger.org](https://www.roaddanger.org)
    administrator. Run `php install/create_admin_user.php` to add another administrator later, or `php install/init_database.php --no-user`
    to skip the question.
 5. Open the website and log in with the account you just created.
+6. Optional: add made-up test data (400 crashes with articles and people) to try the website:
+   ```bash
+   php install/seed_test_data.php
+   ```
+   It refuses to run when the database already contains crashes.
 
 ### Changes ###
 See [CHANGELOG.md](CHANGELOG.md).
