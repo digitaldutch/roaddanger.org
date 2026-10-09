@@ -1,5 +1,8 @@
 # Changelog
 
+9 october 2026 v745:
+- Code: admin/createdatabase.sql updated to match the current database structure.
+
 30 september 2026 v744:
 - Filter close buttons now have a round background when hovering over them.
 

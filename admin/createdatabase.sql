@@ -22,6 +22,34 @@ create table countries
   defaultlanguageid char(2)     null
 );
 
+create table crashpersons
+(
+  id                 int auto_increment
+    primary key,
+  crashid            int                not null,
+  transportationmode smallint default 0 null comment 'unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15, scooter: 16',
+  health             smallint           null comment 'unknown: 0, uninjured: 1, injured: 2, dead: 3',
+  child              smallint           null,
+  underinfluence     tinyint(1)         null,
+  hitrun             tinyint(1)         null,
+  groupid            int                null,
+  constraint crashpersons___fkcrashes
+    foreign key (crashid) references c (id)
+      on update cascade on delete cascade
+);
+
+create index crashpersons___fkcrash
+  on crashpersons (crashid);
+
+create index crashpersons___fkgroup
+  on crashpersons (groupid);
+
+create index idx_cp_crashid_mode
+  on crashpersons (crashid, transportationmode);
+
+create index idx_cp_mode_health_crashid
+  on crashpersons (transportationmode, health, crashid);
+
 create table languages
 (
   id           char(2)     not null
@@ -60,14 +88,15 @@ create table longtexts
 
 create table questionnaires
 (
-  id         int auto_increment
+  id                 int auto_increment
     primary key,
-  active     smallint   default 0 null comment 'Users are asked to answer questions',
-  type       smallint   default 0 null comment '0: standard
+  active             smallint   default 0 null comment 'Users are asked to answer questions',
+  type               smallint   default 0 null comment '0: standard
 1: Bechdel test',
-  country_id char(2)              null,
-  title      varchar(100)         null,
-  public     tinyint(1) default 0 null comment 'Results are publicly available'
+  country_id         char(2)              null,
+  title              varchar(100)         null,
+  public             tinyint(1) default 0 null comment 'Results are publicly available',
+  exclude_unilateral tinyint(1) default 0 null
 );
 
 create table questions
@@ -77,7 +106,7 @@ create table questions
   text           varchar(200)         null,
   active         tinyint(1) default 0 null,
   question_order smallint             null,
-  explanation    varchar(200)         null
+  explanation    varchar(1000)        null
 );
 
 create table questionnaire_questions
@@ -137,6 +166,75 @@ create table ai_prompts
       on update cascade
 );
 
+create table articles
+(
+  id                      int auto_increment
+    primary key,
+  crashid                 int                                          null,
+  userid                  int                                          null,
+  awaitingmoderation      tinyint(1)     default 1                     null,
+  createtime              timestamp      default current_timestamp()   null,
+  streamdatetime          timestamp      default current_timestamp()   not null,
+  publishedtime           timestamp      default '0000-00-00 00:00:00' not null,
+  title                   varchar(500)                                 not null,
+  text                    varchar(500)                                 not null,
+  alltext                 varchar(10000) default ''                    null,
+  url                     varchar(1000)                                not null,
+  urlimage                varchar(1000)                                not null,
+  sitename                varchar(200)                                 not null,
+  ai_questionnaire_status smallint                                     null comment '1: pending; 2: completed; 3: error',
+  constraint articles___fk_crashes
+    foreign key (crashid) references c (id)
+      on update cascade on delete cascade,
+  constraint articles___fk_user
+    foreign key (userid) references users (id)
+      on update cascade on delete cascade
+);
+
+create table ai_tasks
+(
+  id               int auto_increment
+    primary key,
+  article_id       int                                   null,
+  questionnaire_id int                                   null,
+  task_status      smallint                              null comment '1: pending; 2: completed; 3: error',
+  ai_model         varchar(100)                          null,
+  processed_at     timestamp                             null on update current_timestamp(),
+  created_at       timestamp default current_timestamp() null,
+  info             varchar(1000)                         null,
+  constraint ai_tasks_articles_id_fk
+    foreign key (article_id) references articles (id)
+      on update cascade on delete cascade,
+  constraint ai_tasks_questionnaires_id_fk
+    foreign key (questionnaire_id) references questionnaires (id)
+      on update cascade on delete cascade
+);
+
+create table answers
+(
+  questionid       int                                   not null,
+  articleid        int                                   not null,
+  answer           tinyint(1)                            null,
+  explanation      varchar(200)                          null,
+  answered_by_type smallint                              null comment '1: human; 2: AI',
+  ai_info          varchar(100)                          null,
+  answered_at      timestamp default current_timestamp() null,
+  constraint answers_pk
+    unique (questionid, articleid),
+  constraint answers_articles_id_fk
+    foreign key (articleid) references articles (id)
+      on update cascade on delete cascade,
+  constraint answers_questions_id_fk
+    foreign key (questionid) references questions (id)
+      on update cascade on delete cascade
+);
+
+create index articles__index_crashid
+  on articles (crashid);
+
+create fulltext index title
+  on articles (title, text);
+
 create table crashes
 (
   id                  int auto_increment
@@ -169,56 +267,6 @@ create table crashes
       on update cascade on delete cascade
 );
 
-create table articles
-(
-  id                          int auto_increment
-    primary key,
-  crashid                     int                                          null,
-  userid                      int                                          null,
-  awaitingmoderation          tinyint(1)     default 1                     null,
-  createtime                  timestamp      default current_timestamp()   null,
-  streamdatetime              timestamp      default current_timestamp()   not null,
-  publishedtime               timestamp      default '0000-00-00 00:00:00' not null,
-  title                       varchar(500)                                 not null,
-  text                        varchar(500)                                 not null,
-  alltext                     varchar(10000) default ''                    null,
-  url                         varchar(1000)                                not null,
-  urlimage                    varchar(1000)                                not null,
-  sitename                    varchar(200)                                 not null,
-  ai_questionnaire_status smallint                                     null comment '1: pending; 2: completed; 3: error',
-  ai_analyses_processing      smallint                                     null comment '1: pending; 2: completed; 3: error',
-  constraint articles___fk_crashes
-    foreign key (crashid) references crashes (id)
-      on update cascade on delete cascade,
-  constraint articles___fk_user
-    foreign key (userid) references users (id)
-      on update cascade on delete cascade
-);
-
-create table answers
-(
-  questionid       int          not null,
-  articleid        int          not null,
-  answer           tinyint(1)   null,
-  explanation      varchar(200) null,
-  answered_by_type smallint     null comment '1: human; 2: AI',
-  ai_info          varchar(100) null,
-  constraint answers_pk
-    unique (questionid, articleid),
-  constraint answers_articles_id_fk
-    foreign key (articleid) references articles (id)
-      on update cascade on delete cascade,
-  constraint answers_questions_id_fk
-    foreign key (questionid) references questions (id)
-      on update cascade on delete cascade
-);
-
-create index articles__index_crashid
-  on articles (crashid);
-
-create fulltext index title
-  on articles (title, text);
-
 create index crashes__date_streamdate_index
   on crashes (date, streamdatetime);
 
@@ -230,32 +278,4 @@ create index crashes__index_streamdatetime
 
 create fulltext index title
   on crashes (title, text);
-
-create table crashpersons
-(
-  id                 int auto_increment
-    primary key,
-  crashid            int                not null,
-  transportationmode smallint default 0 null comment 'unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15, scooter: 16',
-  health             smallint           null comment 'unknown: 0, uninjured: 1, injured: 2, dead: 3',
-  child              smallint           null,
-  underinfluence     tinyint(1)         null,
-  hitrun             tinyint(1)         null,
-  groupid            int                null,
-  constraint crashpersons___fkcrashes
-    foreign key (crashid) references crashes (id)
-      on update cascade on delete cascade
-);
-
-create index crashpersons___fkcrash
-  on crashpersons (crashid);
-
-create index crashpersons___fkgroup
-  on crashpersons (groupid);
-
-create index idx_cp_crashid_mode
-  on crashpersons (crashid, transportationmode);
-
-create index idx_cp_mode_health_crashid
-  on crashpersons (transportationmode, health, crashid);
 
