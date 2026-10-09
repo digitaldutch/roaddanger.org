@@ -1,5 +1,19 @@
 # Changelog
 
+9 october 2026 v748:
+- Installation:
+  - New install/init_database.php creates the database and tables and adds the initial data from install/init_data.sql:
+    languages, countries, long texts, AI models and AI prompts.
+  - New install/create_admin_user.php creates an administrator. init_database.php asks for the first administrator.
+  - README rewritten: requirements and installation instructions are up to date.
+- MySQL 8 is now supported besides MariaDB:
+  - database.php: new function isMariaDB(). Query time limit and sql_mode are set for the database type.
+- Fixed: install/createdatabase.sql could not be loaded on a fresh database:
+  - Foreign keys referenced a non-existing table "c" instead of crashes.
+  - Tables are now created in dependency order (crashes before articles and crashpersons).
+  - Column "function" in ai_prompts is now quoted.
+  - articles.publishedtime default is now current_timestamp() instead of '0000-00-00 00:00:00'.
+
 9 october 2026 v747:
 - Fixed: admin/createdatabase.sql could not be loaded on a fresh database:
   - Foreign keys referenced a non-existing table "c" instead of crashes.

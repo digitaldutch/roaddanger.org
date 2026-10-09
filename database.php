@@ -33,13 +33,29 @@ class Database {
 
       $this->pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD, $options);
 
-      // Set max_statement_time to 30 seconds.
+      // Limit queries to 30 seconds.
       // If we don't do this, bad queries will hang on the server until manually terminated :(
-      $this->pdo->exec("SET SESSION max_statement_time = 30");
+      // MariaDB: max_statement_time in seconds. MySQL: max_execution_time in milliseconds (SELECT only).
+      if ($this->isMariaDB()) {
+        $this->pdo->exec("SET SESSION max_statement_time = 30");
+      } else {
+        $this->pdo->exec("SET SESSION max_execution_time = 30000");
+
+        // The site is developed for MariaDB. Use its default sql_mode on MySQL as well.
+        // MySQL 8 defaults include ONLY_FULL_GROUP_BY and NO_ZERO_DATE, which break existing queries and table defaults.
+        $this->pdo->exec("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
+      }
 
     } catch (Throwable $e) {
       throw new \Exception('Database error: ' . $e->getMessage());
     }
+  }
+
+  /**
+   * True if the connected server is MariaDB, false if it is MySQL.
+   */
+  public function isMariaDB(): bool {
+    return str_contains($this->pdo->getAttribute(PDO::ATTR_SERVER_VERSION), 'MariaDB');
   }
 
   public function close(): void {

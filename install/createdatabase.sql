@@ -1,6 +1,4 @@
 -- Requires MySQL/MariaDB with full-text search support.
--- Run with a relaxed sql_mode (e.g. SET SESSION sql_mode = 'NO_ENGINE_SUBSTITUTION';)
--- because articles.publishedtime has the default '0000-00-00 00:00:00'.
 
 create table ai_models
 (
@@ -195,7 +193,7 @@ create table articles
   awaitingmoderation      tinyint(1)     default 1                     null,
   createtime              timestamp      default current_timestamp()   null,
   streamdatetime          timestamp      default current_timestamp()   not null,
-  publishedtime           timestamp      default '0000-00-00 00:00:00' not null,
+  publishedtime           timestamp      default current_timestamp()   not null,
   title                   varchar(500)                                 not null,
   text                    varchar(500)                                 not null,
   alltext                 varchar(10000) default ''                    null,
