@@ -101,13 +101,27 @@ function showUserMenu(target) {
   let menu = document.getElementById('menuUser');
   if (menu) menu.remove();
 
-  const td = target.closest('td');
-  td.innerHTML += `
-<div id="menuUser" class="buttonPopupMenu" style="display: block !important;" onclick="event.preventDefault();">
+  // The menu is placed on the page, not in the table cell. The table is in a scrolling box that would cut it off.
+  menu = document.createElement('div');
+  menu.id = 'menuUser';
+  menu.className = 'buttonPopupMenu';
+  menu.style.display  = 'block';
+  menu.style.position = 'fixed';
+  menu.onclick = event => event.preventDefault();
+  menu.innerHTML = `
   <div onclick="adminEditUser();">${translate('Edit')}</div>
   <div onclick="adminDeleteUser()">${translate('Delete')}</div>
-</div>            
   `;
+  document.body.appendChild(menu);
+
+  // Right edge of the menu at the right edge of the button. Opens upwards if there is no room below.
+  const button = target.getBoundingClientRect();
+  const opensUp = (button.bottom + menu.offsetHeight) > window.innerHeight;
+  menu.style.right = (document.documentElement.clientWidth - button.right) + 'px';
+  menu.style.top   = Math.max(0, opensUp ? button.top - menu.offsetHeight : button.bottom) + 'px';
+
+  // A fixed menu does not scroll along with the table
+  window.addEventListener('scroll', closeAllPopups, {capture: true, once: true});
 }
 
 function adminEditUser() {

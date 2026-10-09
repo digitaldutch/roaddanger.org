@@ -1,5 +1,9 @@
 # Changelog
 
+9 october 2026 v750:
+- Fixed: Admin - Humans: the menu of a user was cut off when the table was short, so Delete could not be reached.
+  The menu now opens on top of the page.
+
 9 october 2026 v749:
 - Installation:
   - New install/seed_test_data.php adds made-up test data (400 crashes with articles and people) to a new website.
