@@ -1,3 +1,7 @@
+-- Requires MySQL/MariaDB with full-text search support.
+-- Run with a relaxed sql_mode (e.g. SET SESSION sql_mode = 'NO_ENGINE_SUBSTITUTION';)
+-- because articles.publishedtime has the default '0000-00-00 00:00:00'.
+
 create table ai_models
 (
   id                 varchar(50)                       not null
@@ -21,34 +25,6 @@ create table countries
   options           text        null,
   defaultlanguageid char(2)     null
 );
-
-create table crashpersons
-(
-  id                 int auto_increment
-    primary key,
-  crashid            int                not null,
-  transportationmode smallint default 0 null comment 'unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15, scooter: 16',
-  health             smallint           null comment 'unknown: 0, uninjured: 1, injured: 2, dead: 3',
-  child              smallint           null,
-  underinfluence     tinyint(1)         null,
-  hitrun             tinyint(1)         null,
-  groupid            int                null,
-  constraint crashpersons___fkcrashes
-    foreign key (crashid) references c (id)
-      on update cascade on delete cascade
-);
-
-create index crashpersons___fkcrash
-  on crashpersons (crashid);
-
-create index crashpersons___fkgroup
-  on crashpersons (groupid);
-
-create index idx_cp_crashid_mode
-  on crashpersons (crashid, transportationmode);
-
-create index idx_cp_mode_health_crashid
-  on crashpersons (transportationmode, health, crashid);
 
 create table languages
 (
@@ -148,19 +124,63 @@ create table users
       on update cascade on delete set null
 );
 
+create table crashes
+(
+  id                  int auto_increment
+    primary key,
+  userid              int                                    null,
+  awaitingmoderation  tinyint(1) default 1                   null,
+  createtime          timestamp  default current_timestamp() not null,
+  updatetime          timestamp  default current_timestamp() not null,
+  date                date                                   null,
+  streamtopuserid     int                                    null,
+  streamtoptype       smallint                               null comment '1: edited, 2: article added, 3: placed on top',
+  title               varchar(500)                           null,
+  text                varchar(500)                           null,
+  countryid           char(2)                                null,
+  location            point                                  null,
+  latitude            decimal(9, 6)                          null,
+  longitude           decimal(9, 6)                          null,
+  trafficjam          tinyint(1) default 0                   null,
+  unilateral          tinyint(1)                             null,
+  hitrun              tinyint(1) default 0                   null,
+  website             varchar(1000)                          null,
+  pet                 tinyint(1) default 0                   null,
+  streamdatetime      timestamp  default current_timestamp() not null,
+  locationdescription text                                   null,
+  constraint crashes_countries_id_fk
+    foreign key (countryid) references countries (id)
+      on update cascade on delete set null,
+  constraint posts___fk_user
+    foreign key (userid) references users (id)
+      on update cascade on delete cascade
+);
+
+create index crashes__date_streamdate_index
+  on crashes (date, streamdatetime);
+
+create index crashes__index_date
+  on crashes (date);
+
+create index crashes__index_streamdatetime
+  on crashes (streamdatetime);
+
+create fulltext index title
+  on crashes (title, text);
+
 create table ai_prompts
 (
   id              int auto_increment
     primary key,
   user_id         int           not null,
-  function        varchar(25)   null comment 'Used in website function calls',
+  `function`      varchar(25)   null comment 'Used in website function calls',
   model_id        varchar(50)   null,
   user_prompt     varchar(5000) null,
   system_prompt   varchar(5000) null comment 'Openrouter.ai style system instructions',
   response_format varchar(5000) null,
   article_id      int           null,
   constraint web_function
-    unique (function),
+    unique (`function`),
   constraint ai_prompts_users_id_fk
     foreign key (user_id) references users (id)
       on update cascade
@@ -184,7 +204,7 @@ create table articles
   sitename                varchar(200)                                 not null,
   ai_questionnaire_status smallint                                     null comment '1: pending; 2: completed; 3: error',
   constraint articles___fk_crashes
-    foreign key (crashid) references c (id)
+    foreign key (crashid) references crashes (id)
       on update cascade on delete cascade,
   constraint articles___fk_user
     foreign key (userid) references users (id)
@@ -235,47 +255,30 @@ create index articles__index_crashid
 create fulltext index title
   on articles (title, text);
 
-create table crashes
+create table crashpersons
 (
-  id                  int auto_increment
+  id                 int auto_increment
     primary key,
-  userid              int                                    null,
-  awaitingmoderation  tinyint(1) default 1                   null,
-  createtime          timestamp  default current_timestamp() not null,
-  updatetime          timestamp  default current_timestamp() not null,
-  date                date                                   null,
-  streamtopuserid     int                                    null,
-  streamtoptype       smallint                               null comment '1: edited, 2: article added, 3: placed on top',
-  title               varchar(500)                           null,
-  text                varchar(500)                           null,
-  countryid           char(2)                                null,
-  location            point                                  null,
-  latitude            decimal(9, 6)                          null,
-  longitude           decimal(9, 6)                          null,
-  trafficjam          tinyint(1) default 0                   null,
-  unilateral          tinyint(1)                             null,
-  hitrun              tinyint(1) default 0                   null,
-  website             varchar(1000)                          null,
-  pet                 tinyint(1) default 0                   null,
-  streamdatetime      timestamp  default current_timestamp() not null,
-  locationdescription text                                   null,
-  constraint crashes_countries_id_fk
-    foreign key (countryid) references countries (id)
-      on update cascade on delete set null,
-  constraint posts___fk_user
-    foreign key (userid) references users (id)
+  crashid            int                not null,
+  transportationmode smallint default 0 null comment 'unknown: 0, pedestrian: 1, bicycle: 2, scooter: 3, motorcycle: 4, car: 5, taxi: 6, emergencyVehicle: 7, deliveryVan: 8,  tractor: 9,  bus: 10, tram: 11, truck: 12, train: 13, wheelchair: 14, mopedCar: 15, scooter: 16',
+  health             smallint           null comment 'unknown: 0, uninjured: 1, injured: 2, dead: 3',
+  child              smallint           null,
+  underinfluence     tinyint(1)         null,
+  hitrun             tinyint(1)         null,
+  groupid            int                null,
+  constraint crashpersons___fkcrashes
+    foreign key (crashid) references crashes (id)
       on update cascade on delete cascade
 );
 
-create index crashes__date_streamdate_index
-  on crashes (date, streamdatetime);
+create index crashpersons___fkcrash
+  on crashpersons (crashid);
 
-create index crashes__index_date
-  on crashes (date);
+create index crashpersons___fkgroup
+  on crashpersons (groupid);
 
-create index crashes__index_streamdatetime
-  on crashes (streamdatetime);
+create index idx_cp_crashid_mode
+  on crashpersons (crashid, transportationmode);
 
-create fulltext index title
-  on crashes (title, text);
-
+create index idx_cp_mode_health_crashid
+  on crashpersons (transportationmode, health, crashid);

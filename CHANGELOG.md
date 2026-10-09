@@ -1,5 +1,12 @@
 # Changelog
 
+9 october 2026 v747:
+- Fixed: admin/createdatabase.sql could not be loaded on a fresh database:
+  - Foreign keys referenced a non-existing table "c" instead of crashes.
+  - Tables are now created in dependency order (crashes before articles and crashpersons).
+  - Column "function" in ai_prompts is now quoted.
+  - Added a note about the relaxed sql_mode needed for the '0000-00-00' default in articles.
+
 9 october 2026 v746:
 - Code: Config template moved from a comment in config.php to config_secret.example.php.
 - Code: A clear error message is shown when config_secret.php is missing.

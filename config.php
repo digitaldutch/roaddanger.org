@@ -1,5 +1,5 @@
 <?php
-$VERSION = 746;
+$VERSION = 747;
 $VERSION_DATE = '9 October 2026';
 
 // Passwords and API keys live in config_secret.php, which is excluded from git.
@@ -8,6 +8,7 @@ if (!file_exists(__DIR__ . '/config_secret.php')) {
   http_response_code(500);
   exit('Configuration missing: copy config_secret.example.php to config_secret.php and fill in the settings.');
 }
+
 require_once 'config_secret.php';
 
 const WEBSITE_NAME = 'roaddanger';
