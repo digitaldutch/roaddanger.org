@@ -1,37 +1,14 @@
 <?php
-$VERSION = 745;
+$VERSION = 746;
 $VERSION_DATE = '9 October 2026';
 
+// Passwords and API keys live in config_secret.php, which is excluded from git.
+// Copy config_secret.example.php to config_secret.php and fill in the settings.
+if (!file_exists(__DIR__ . '/config_secret.php')) {
+  http_response_code(500);
+  exit('Configuration missing: copy config_secret.example.php to config_secret.php and fill in the settings.');
+}
 require_once 'config_secret.php';
-
-// *** Do not fill in the database settings below! ***
-// Instead:
-// - Create a new file named config_secret.php and copy and fill in the settings below there.
-// - Exclude config_secret.php from checking into your source code repository.
-// - This is to:
-//    - prevent passwords from entering the source code repository (e.g. git)
-//    - prevent local settings on your server from being overwritten.
-//
-// *** config_secret.php content start ***
-//
-// Database settings
-// const DB_HOST = 'localhost';
-// const DB_NAME = 'database_name';
-// const DB_USER = 'database_user';
-// const DB_PASSWORD = 'database_password';
-//
-// const EMAIL_FOR_ERRORS = 'you@your_domain.com';
-//
-// OpenRouter is used for processing several AI tasks
-// const OPENROUTER_API_KEY = 'your_openrouter_api_key';
-//
-// HERE is used for finding the exact coordinates of crashes based on a location description
-// AI itself is much less accurate than the HERE API
-// const HERE_API_KEY = 'your_here_api_key';
-//
-// *** config_secret.php content end ***
-
-// *** End settings that belong in config_secret.php ***
 
 const WEBSITE_NAME = 'roaddanger';
 const WEBSITE_DOMAIN = 'roaddanger.org';

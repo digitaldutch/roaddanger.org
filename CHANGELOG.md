@@ -1,5 +1,9 @@
 # Changelog
 
+9 october 2026 v746:
+- Code: Config template moved from a comment in config.php to config_secret.example.php.
+- Code: A clear error message is shown when config_secret.php is missing.
+
 9 october 2026 v745:
 - Code: admin/createdatabase.sql updated to match the current database structure.
 
