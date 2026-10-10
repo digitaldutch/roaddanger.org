@@ -418,6 +418,25 @@ SQL;
     }
 
     $this->database->execute($sql . ' WHERE id=:id', $params);
+
+    if ($passwordHash !== null) $this->deleteOtherStayLoggedInTokens();
+  }
+
+  /**
+   * After a password change: ends the "stay logged in" logins on all other devices, for example of someone who knew
+   * the old password. The login of this browser stays, so the user is not logged out here.
+   */
+  private function deleteOtherStayLoggedInTokens(): void {
+    $keepLoginId = 0;
+
+    if (isset($_COOKIE['login_token']) && isset($_COOKIE['login_id']) && isset($_COOKIE['user_id'])) {
+      $sql = 'SELECT tokenhash FROM logins WHERE id=:id AND userid=:userid';
+      $tokenHash = $this->database->fetchSingleValue($sql, [':id' => $_COOKIE['login_id'], ':userid' => $this->id]);
+
+      if ($tokenHash && password_verify($_COOKIE['login_token'], $tokenHash)) $keepLoginId = (int)$_COOKIE['login_id'];
+    }
+
+    $this->database->execute('DELETE FROM logins WHERE userid=:userid AND id<>:keep', [':userid' => $this->id, ':keep' => $keepLoginId]);
   }
 
   /**

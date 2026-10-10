@@ -1,5 +1,8 @@
 # Changelog
 
+11 october 2026 v772:
+- Security: changing your password on the profile page now ends the "stay logged in" logins on all other devices. The login of this browser stays.
+
 11 october 2026 v771:
 - Fixed: saving the profile with an invalid password (too short, or different from the confirmation) still saved the name, email and language.
   Everything is now checked first and saved in one go.
