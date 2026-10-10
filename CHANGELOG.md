@@ -1,5 +1,8 @@
 # Changelog
 
+10 october 2026 v755:
+- README: optional installation step to try the website with PHP's built-in web server.
+
 10 october 2026 v754:
 - Friendly urls: the .htaccess files now use FallbackResource instead of mod_rewrite.
 - The http to https redirect is removed from the .htaccess files. Set it in the server configuration.

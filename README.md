@@ -47,6 +47,11 @@ Website: [roaddanger.org](https://www.roaddanger.org)
    php install/seed_test_data.php
    ```
    It refuses to run when the database already contains crashes.
+7. Optional: no Apache? Try the website on your own computer with PHP's built-in web server. Run this in the
+   project folder and open http://localhost:8000. Only use it on localhost. It is not a production server.
+   ```bash
+   php -S localhost:8000 -t .
+   ```
 
 ### Changes ###
 See [CHANGELOG.md](CHANGELOG.md).
