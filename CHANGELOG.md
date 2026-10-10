@@ -1,5 +1,8 @@
 # Changelog
 
+10 october 2026 v762:
+- Security: login and password reset now only accept data in the request body, not in the url.
+
 10 october 2026 v761:
 - All error messages from the server and the pages are now in English (registration, profile, password reset, moderation, delete user, blocked domain message).
 - The password reset page title is now in English.

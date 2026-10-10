@@ -46,12 +46,12 @@ class GeneralHandler extends AjaxHandler {
   }
 
   private function login(): array {
-    // Credentials are sent in the request body. The url is only a fallback for scripts that are cached in a browser.
-    $email    = $this->input['email']    ?? $_REQUEST['email']    ?? null;
-    $password = $this->input['password'] ?? $_REQUEST['password'] ?? null;
+    // Credentials are only accepted in the request body, never in the url: urls end up in logs and browser history
+    $email    = $this->input['email']    ?? null;
+    $password = $this->input['password'] ?? null;
     if (! is_string($email) || ! is_string($password)) dieWithJSONErrorMessage('Invalid AJAX login call.');
 
-    $stayLoggedIn = (int)($this->input['stayLoggedIn'] ?? getRequest('stayLoggedIn', 0)) === 1;
+    $stayLoggedIn = (int)($this->input['stayLoggedIn'] ?? 0) === 1;
 
     $this->user->login($email, $password, $stayLoggedIn);
 
@@ -71,7 +71,7 @@ class GeneralHandler extends AjaxHandler {
    * @throws Exception
    */
   private function sendPasswordResetInstructions(): array {
-    $email = strtolower(trim((string)($this->input['email'] ?? $_REQUEST['email'] ?? '')));
+    $email = strtolower(trim((string)($this->input['email'] ?? '')));
     if (! filter_var($email, FILTER_VALIDATE_EMAIL)) throw new \Exception('No valid email address');
 
     $recoveryToken = $this->user->resetPasswordRequest($email);
@@ -111,9 +111,9 @@ HTML;
    * @throws Exception
    */
   private function saveNewPassword(): array {
-    $password   = (string)($this->input['password']   ?? $_REQUEST['password']   ?? '');
-    $recoveryId = (string)($this->input['recoveryid'] ?? $_REQUEST['recoveryid'] ?? '');
-    $email      = (string)($this->input['email']      ?? $_REQUEST['email']      ?? '');
+    $password   = (string)($this->input['password']   ?? '');
+    $recoveryId = (string)($this->input['recoveryid'] ?? '');
+    $email      = (string)($this->input['email']      ?? '');
 
     if ($password === '')         throw new \Exception('No password provided');
     if (strlen($password) < 6)    throw new \Exception('Password must be at least 6 characters long');
