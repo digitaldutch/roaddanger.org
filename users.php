@@ -368,48 +368,56 @@ SQL;
    */
   public function save($newUser): void {
     // Users can only change their own account
-    if ($newUser['id'] !== $this->id) throw new \Exception('Internal error: User id is not of logged in user');
+    if (($newUser['id'] ?? null) !== $this->id) throw new \Exception('Internal error: User id is not of logged in user');
 
-    if (empty($newUser['firstName']))        throw new \Exception('First name is not filled in');
-    if (empty($newUser['lastName']))         throw new \Exception('Last name is not filled in');
-    if (strlen($newUser['firstName']) > 100) throw new \Exception('First name is too long (> 100)');
-    if (strlen($newUser['lastName'])  > 100) throw new \Exception('Last name is too long (> 100)');
-    if (strlen($newUser['email'])     > 250) throw new \Exception('Email address is too long (> 250)');
-    if (!filter_var($newUser['email'], FILTER_VALIDATE_EMAIL)) throw new \Exception('Invalid email address');
+    $firstName = (string)($newUser['firstName'] ?? '');
+    $lastName  = (string)($newUser['lastName'] ?? '');
+    $email     = (string)($newUser['email'] ?? '');
+    $language  = (string)($newUser['language'] ?? '');
+    $password  = (string)($newUser['password'] ?? '');
 
-    $sql = <<<SQL
-UPDATE users SET
-  firstname = :firstName,                 
-  lastname  = :lastName,                 
-  email     = :email,               
-  language  = :language                 
-WHERE id = :id
-SQL;
+    // Check everything first. Nothing is saved when something is wrong, so a rejected password cannot leave a half saved profile.
+    if ($firstName === '')              throw new \Exception('First name is not filled in');
+    if ($lastName === '')               throw new \Exception('Last name is not filled in');
+    if (strlen($firstName) > 100)       throw new \Exception('First name is too long (> 100)');
+    if (strlen($lastName)  > 100)       throw new \Exception('Last name is too long (> 100)');
+    if (strlen($email)     > 250)       throw new \Exception('Email address is too long (> 250)');
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) throw new \Exception('Invalid email address');
 
-    $params = [
-      ':firstName' => $newUser['firstName'],
-      ':lastName'  => $newUser['lastName'],
-      ':email'     => $newUser['email'],
-      ':language'  => $newUser['language'],
-      ':id'        => $this->id,
-    ];
-    $this->database->execute($sql, $params);
-
-    if (strlen($newUser['password']) > 0){
-      if (strlen($newUser['password']) < 6) throw new \Exception('Password must be at least 6 characters long');
-      if ($newUser['password'] !== $newUser['passwordConfirm']) throw new \Exception('Password confirmation is not the same as the password');
-
-      $passwordHash = password_hash($newUser['password'], PASSWORD_DEFAULT);
-
-      $sql = "UPDATE users SET passwordhash=:passwordhash, passwordrecoveryid = null WHERE id=:id;";
-      $params = [
-        ':passwordhash' => $passwordHash,
-        ':id' => $this->id,
-      ];
-
-      $this->database->execute($sql, $params);
+    $sql = 'SELECT COUNT(*) FROM users WHERE email=:email AND id<>:id';
+    if ($this->database->fetchSingleValue($sql, [':email' => $email, ':id' => $this->id]) > 0) {
+      throw new \Exception('This email address is already in use');
     }
 
+    if ($language !== '') {
+      $sql = 'SELECT COUNT(*) FROM languages WHERE id=:id';
+      if ($this->database->fetchSingleValue($sql, [':id' => $language]) == 0) throw new \Exception('Invalid language');
+    }
+
+    $passwordHash = null;
+    if ($password !== '') {
+      if (strlen($password) < 6) throw new \Exception('Password must be at least 6 characters long');
+      if ($password !== ($newUser['passwordConfirm'] ?? null)) throw new \Exception('Password confirmation is not the same as the password');
+
+      $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+    }
+
+    // One statement: the profile and the password are saved together or not at all
+    $sql = 'UPDATE users SET firstname=:firstName, lastname=:lastName, email=:email, language=:language';
+    $params = [
+      ':firstName' => $firstName,
+      ':lastName'  => $lastName,
+      ':email'     => $email,
+      ':language'  => ($language === '') ? null : $language,
+      ':id'        => $this->id,
+    ];
+
+    if ($passwordHash !== null) {
+      $sql .= ', passwordhash=:passwordhash, passwordrecoveryid=null';
+      $params[':passwordhash'] = $passwordHash;
+    }
+
+    $this->database->execute($sql . ' WHERE id=:id', $params);
   }
 
   /**

@@ -1,5 +1,10 @@
 # Changelog
 
+11 october 2026 v771:
+- Fixed: saving the profile with an invalid password (too short, or different from the confirmation) still saved the name, email and language.
+  Everything is now checked first and saved in one go.
+- The profile also checks that the email address is not used by another user and that the language exists.
+
 11 october 2026 v770:
 - Security: the AI functions are protected against abuse and costs.
   - Answering questionnaires with AI is now for moderators only. It saved answers in the database for anyone.
