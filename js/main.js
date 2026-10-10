@@ -2022,7 +2022,7 @@ async function articleModerateOK(articleID) {
 
 function domainBlacklisted(url){
   const domainBlacklist = [
-    {domain: 'drimble.nl', reason: 'Drimble is geen media website, maar een nieuws verzamelwebsite. Zoek de bron op de drimble.nl pagina en plaats die.'},
+    {domain: 'drimble.nl', reason: 'Drimble is not a media website but a news aggregator. Find the original source on the drimble.nl page and add that instead.'},
   ];
 
   return domainBlacklist.find(d => url.includes(d.domain));
@@ -2664,7 +2664,7 @@ async function showMapEdit(latitude, longitude) {
       markerElement.id = 'marker';
       markerElement.addEventListener('click', (e) => {
         e.stopPropagation();
-        confirmMessage(`Locatie verwijderen?`, () => {
+        confirmMessage(`Delete location?`, () => {
           document.getElementById('editCrashLatitude').value  = '';
           document.getElementById('editCrashLongitude').value = '';
           deleteCrashMarker();

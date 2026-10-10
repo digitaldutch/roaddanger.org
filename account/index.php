@@ -104,7 +104,7 @@ $head = <<<HTML
 HTML;
 
 $html =
-  HtmlBuilder::getHTMLBeginMain('Reset wachtwoord', $head, 'initAccount') .
+  HtmlBuilder::getHTMLBeginMain('Reset password', $head, 'initAccount') .
   $htmlMain .
   HtmlBuilder::getHTMLEnd();
 

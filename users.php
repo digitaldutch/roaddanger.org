@@ -335,18 +335,18 @@ SQL;
    * @throws Exception
    */
   public function register(string $firstName, string $lastName, string $email, string $password): void {
-    if (empty($password)) throw new \Exception('Geen paswoord') ;
-    if (empty($firstName)) throw new \Exception('Geen voornaam') ;
-    if (empty($lastName)) throw new \Exception('Geen achternaam') ;
-    if (empty($email)) throw new \Exception('Geen email') ;
-    if (strlen($password) < 6) throw new \Exception('Wachtwoord is te kort: Minder dan 6 karakters.') ;
+    if (empty($password)) throw new \Exception('No password') ;
+    if (empty($firstName)) throw new \Exception('No first name') ;
+    if (empty($lastName)) throw new \Exception('No last name') ;
+    if (empty($email)) throw new \Exception('No email address') ;
+    if (strlen($password) < 6) throw new \Exception('Password is too short: less than 6 characters.') ;
 
     $sql = "SELECT COUNT(*) AS count FROM users WHERE email=:email;";
     $params = [':email' => $email];
     $rows = $this->database->fetchAll($sql, $params);
 
     if ((count($rows) > 0) && ($rows[0]['count'] > 0)) {
-      throw new \Exception('Email adres is al in gebruik. Gebruik de wachtwoord vergeten functie.');
+      throw new \Exception('This email address is already in use. Use the forgot password function.');
     }
 
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
@@ -366,12 +366,12 @@ SQL;
     // Users can only change their own account
     if ($newUser['id'] !== $this->id) throw new \Exception('Internal error: User id is not of logged in user');
 
-    if (empty($newUser['firstName']))        throw new \Exception('Geen voornaam ingevuld');
-    if (empty($newUser['lastName']))         throw new \Exception('Geen achternaam ingevuld');
-    if (strlen($newUser['firstName']) > 100) throw new \Exception('Voornaam te lang (> 100)');
-    if (strlen($newUser['lastName'])  > 100) throw new \Exception('Achternaam te lang (> 100)');
-    if (strlen($newUser['email'])     > 250) throw new \Exception('Email adres is te lang (> 250)');
-    if (!filter_var($newUser['email'], FILTER_VALIDATE_EMAIL)) throw new \Exception('Ongeldig email adres');
+    if (empty($newUser['firstName']))        throw new \Exception('First name is not filled in');
+    if (empty($newUser['lastName']))         throw new \Exception('Last name is not filled in');
+    if (strlen($newUser['firstName']) > 100) throw new \Exception('First name is too long (> 100)');
+    if (strlen($newUser['lastName'])  > 100) throw new \Exception('Last name is too long (> 100)');
+    if (strlen($newUser['email'])     > 250) throw new \Exception('Email address is too long (> 250)');
+    if (!filter_var($newUser['email'], FILTER_VALIDATE_EMAIL)) throw new \Exception('Invalid email address');
 
     $sql = <<<SQL
 UPDATE users SET
@@ -392,8 +392,8 @@ SQL;
     $this->database->execute($sql, $params);
 
     if (strlen($newUser['password']) > 0){
-      if (strlen($newUser['password']) < 6) throw new \Exception('Wachtwoord moet minimaal 6 karakters lang zijn');
-      if ($newUser['password'] !== $newUser['passwordConfirm']) throw new \Exception('Wachtwoord bevestigen is niet hetzelfde als het wachtwoord');
+      if (strlen($newUser['password']) < 6) throw new \Exception('Password must be at least 6 characters long');
+      if ($newUser['password'] !== $newUser['passwordConfirm']) throw new \Exception('Password confirmation is not the same as the password');
 
       $passwordHash = password_hash($newUser['password'], PASSWORD_DEFAULT);
 

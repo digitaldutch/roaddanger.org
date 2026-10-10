@@ -115,10 +115,10 @@ HTML;
     $recoveryId = (string)($this->input['recoveryid'] ?? $_REQUEST['recoveryid'] ?? '');
     $email      = (string)($this->input['email']      ?? $_REQUEST['email']      ?? '');
 
-    if ($password === '')         throw new \Exception('Geen password opgegeven');
-    if (strlen($password) < 6)    throw new \Exception('Wachtwoord moet minimaal 6 karakters lang zijn');
-    if ($recoveryId === '')       throw new \Exception('Geen recoveryid opgegeven');
-    if ($email === '')            throw new \Exception('Geen email opgegeven');
+    if ($password === '')         throw new \Exception('No password provided');
+    if (strlen($password) < 6)    throw new \Exception('Password must be at least 6 characters long');
+    if ($recoveryId === '')       throw new \Exception('No recovery id provided');
+    if ($email === '')            throw new \Exception('No email address provided');
 
     // The token can be used once, within an hour. Only a hash of it is stored.
     $sql = <<<SQL
@@ -137,7 +137,7 @@ SQL;
     ];
 
     if (! $this->database->execute($sql, $params, true) || ($this->database->rowCount !== 1)) {
-      throw new \Exception('Wachtwoord link is verlopen of email is onbekend');
+      throw new \Exception('This password reset link has expired, or the email address is unknown');
     }
 
     // A new password also ends all "stay logged in" logins on other devices
@@ -690,7 +690,7 @@ SQL;
     $filter = $this->input['filter'];
 
     if ($count > 1000) throw new \Exception('Internal error: Count to high.');
-    if ($moderations && (! $this->user->isModerator())) throw new \Exception('Moderaties zijn alleen zichtbaar voor moderators.');
+    if ($moderations && (! $this->user->isModerator())) throw new \Exception('Moderations are only visible to moderators.');
 
     $crashes = [];
 

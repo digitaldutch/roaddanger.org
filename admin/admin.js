@@ -151,9 +151,9 @@ async function deleteUserDirect() {
 }
 
 async function adminDeleteUser() {
-  confirmWarning(`Mens #${selectedTableData[0].id} "${escapeHtml(selectedTableData[0].name)}" en alle items die dit mens heeft aangemaakt verwijderen?<br><br><b>Dit kan niet ongedaan worden!</b>`,
+  confirmWarning(`Delete user #${selectedTableData[0].id} "${escapeHtml(selectedTableData[0].name)}" and all items this user has created?<br><br><b>This cannot be undone!</b>`,
       function (){deleteUserDirect();},
-      `Verwijder mens en zijn items`
+      `Delete user and their items`
   );
 }
 

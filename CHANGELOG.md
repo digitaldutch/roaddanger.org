@@ -1,5 +1,9 @@
 # Changelog
 
+10 october 2026 v761:
+- All error messages from the server and the pages are now in English (registration, profile, password reset, moderation, delete user, blocked domain message).
+- The password reset page title is now in English.
+
 10 october 2026 v760:
 - Security: password reset and "stay logged in" are handled more carefully.
 - Security: login and password reset data are no longer sent in the url.

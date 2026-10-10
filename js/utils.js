@@ -310,7 +310,7 @@ async function logOut() {
   if (! user.loggedin) {
     showMessage(translate('Logged_out_successfully'), 1);
     window.location.reload();
-  } else showError('Interne error while logging out');
+  } else showError('Internal error while logging out');
 }
 
 async function loginIntern(email, password, stayLoggedIn=0) {
@@ -533,7 +533,7 @@ async function sendResetPasswordInstructions(email) {
   if (response.error) showError(response.error);
   else if (response.ok) {
     showMessage(translate('Email_with_reset_password_instructions_sent') + ' ' + email + '.', 3);
-  } else showError('Interne error while resetting password');
+  } else showError('Internal error while resetting password');
 }
 
 function scrollIntoViewIfNeeded(target) {
@@ -683,7 +683,7 @@ function bechdelAnswerToText(answer) {
     case QuestionAnswer.no: return 'Failed';
     case QuestionAnswer.yes: return 'Passed';
     case QuestionAnswer.notDeterminable: return 'Not determinable';
-    default: return 'Niet alle vragen beantwoord';
+    default: return 'Not all questions answered';
   }
 }
 
