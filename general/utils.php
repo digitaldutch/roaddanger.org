@@ -166,7 +166,7 @@ function sendEmail(string $emailTo, string $subject, string $body, array $ccList
   require_once $root . '/scripts/PHPMailer/Exception.php';
 
   $from = 'noreply@' . WEBSITE_DOMAIN;
-  $fromName = $_SERVER['SERVER_NAME'];
+  $fromName = getTrustedHost();
 
   $mail = new PHPMailer(false);
 

@@ -59,13 +59,26 @@ setlocale(LC_MONETARY, 'nl_NL');
 
 mb_internal_encoding('UTF-8');
 
+/**
+ * True on a development computer: the request comes from the computer itself, to localhost or a *.test domain.
+ * The server name alone is not enough: it comes from the Host header, which every visitor can fake. A visitor on the
+ * internet could then switch on the debug info and start the background scripts. The address of the visitor
+ * (REMOTE_ADDR) is set by the server and cannot be faked. Scripts started from the command line are production.
+ */
+function isDevelopmentEnvironment(): bool {
+  if (PHP_SAPI === 'cli') return false;
+
+  if (! in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true)) return false;
+
+  $serverName = strtolower($_SERVER['SERVER_NAME'] ?? '');
+  return $serverName === 'localhost' || str_ends_with($serverName, '.test');
+}
+
 // Environment constants
-define("IS_DEVELOPMENT_ENVIRONMENT", $_SERVER['SERVER_NAME'] === 'localhost' || str_ends_with($_SERVER['SERVER_NAME'], '.test'));
+define("IS_DEVELOPMENT_ENVIRONMENT", isDevelopmentEnvironment());
 const IS_PRODUCTION_ENVIRONMENT = ! IS_DEVELOPMENT_ENVIRONMENT;
 
-// Show debug info only when developing or testing, not in production:
-// - localhost
-// - test domains ending in *.test
+// Show debug info only when developing, not in production
 if (IS_DEVELOPMENT_ENVIRONMENT) {
   ini_set('display_errors', 1);
   error_reporting(E_ALL);
@@ -98,7 +111,9 @@ try {
   $user = new User($database);
 
 } catch (\Exception $e) {
-  $message = 'Internal error: Initialization failed: ' . $e->getMessage() . "\n\n" . $e->getTraceAsString();
-  die($message);
+  // Details (file names, queries) help a visitor who attacks the website: only show them when developing
+  error_log('Initialization failed: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+  if (IS_DEVELOPMENT_ENVIRONMENT) die('Internal error: Initialization failed: ' . $e->getMessage() . "\n\n" . $e->getTraceAsString());
+  die('Internal error: Initialization failed');
 }
 

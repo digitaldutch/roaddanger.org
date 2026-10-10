@@ -1,5 +1,11 @@
 # Changelog
 
+10 october 2026 v769:
+- Security: a visitor can no longer switch on development mode with a fake Host header.
+  Development mode (error messages on screen, background scripts startable from the browser) now also requires that the request comes from the computer itself.
+- Security: an initialization error no longer shows file names and the stack trace to visitors. It is written to the error log.
+- The sender name of emails uses the trusted host name.
+
 10 october 2026 v768:
 - Security: a visitor gets a new session id when logging in (with a password or with the remember me cookie).
   A session id that someone else planted before the login can no longer be used afterwards.
