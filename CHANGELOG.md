@@ -1,5 +1,8 @@
 # Changelog
 
+10 october 2026 v764:
+- Fixed: calling an unknown function, or a function without permission, on the research ajax page gave a PHP fatal error. It now gives a clear error message.
+
 10 october 2026 v763:
 - Security: the ajax pages only accept POST requests with a JSON body from this website. Links and forms on other websites can no longer trigger actions.
 

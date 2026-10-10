@@ -52,6 +52,9 @@ class ResearchHandler extends AjaxHandler {
         };
       }
 
+      // Nothing matched: an unknown function, or a function that this user is not allowed to use
+      if ($response === null) throw new \Exception('Invalid command, or you have no permission');
+
       $this->respondWithSucces($response);
 
     } catch (Exception $e) {
