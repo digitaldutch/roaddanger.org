@@ -1,5 +1,10 @@
 # Changelog
 
+10 october 2026 v767:
+- Security: the server now sends security headers with every page and ajax response.
+  - Other websites cannot show this website in a frame. Browsers do not guess file types. Fewer details go to other websites in the referrer.
+  - Browsers keep using https for this website after a visit.
+
 10 october 2026 v766:
 - Security: limits on login attempts, registrations and password reset requests.
   - After a few free tries, the visitor is blocked. The block starts at 1 minute and doubles with every next try, up to 1 hour.

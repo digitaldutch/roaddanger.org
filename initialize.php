@@ -23,6 +23,37 @@ ini_set('session.cookie_domain', $domain);
 
 session_start();
 
+sendSecurityHeaders();
+
+/**
+ * Headers that make browsers protect visitors better. Sent with every page and ajax response.
+ * No script-src in the Content-Security-Policy yet: the pages use inline scripts and event handlers.
+ */
+function sendSecurityHeaders(): void {
+  if (PHP_SAPI === 'cli' || headers_sent()) return;
+
+  // Browsers must not guess the type of a file. Stops an uploaded or fetched file from being run as a script.
+  header('X-Content-Type-Options: nosniff');
+
+  // Other websites cannot show this website in a frame (clickjacking). X-Frame-Options is for older browsers.
+  header('X-Frame-Options: SAMEORIGIN');
+
+  // Other websites only get the domain of the page a visitor comes from, not the full url. Never over http.
+  header('Referrer-Policy: strict-origin-when-cross-origin');
+
+  // This website needs no camera, microphone or payment. Location is used by the map.
+  header('Permissions-Policy: camera=(), microphone=(), payment=(), geolocation=(self)');
+
+  // frame-ancestors: same as X-Frame-Options. base-uri and object-src: block injected <base> and plugin tricks.
+  // form-action: forms can only send data to this website.
+  header("Content-Security-Policy: base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'");
+
+  // After a visit over https, browsers use https for this domain for a year. Subdomains are not included.
+  if (($_SERVER['HTTPS'] ?? '') === 'on') {
+    header('Strict-Transport-Security: max-age=31536000');
+  }
+}
+
 date_default_timezone_set('Europe/Amsterdam');
 setlocale(LC_MONETARY, 'nl_NL');
 
