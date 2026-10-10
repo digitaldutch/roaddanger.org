@@ -1,5 +1,9 @@
 # Changelog
 
+10 october 2026 v758:
+- Security: the login check is stricter.
+- Security: downloading article webpages is stricter: urls are checked, redirects are checked, timeouts and a certificate check are added.
+
 10 october 2026 v757:
 - Admin - Humans on a phone: each user is now a small card with all information, made with CSS from the same table cells.
   This replaces the hidden columns of v756.

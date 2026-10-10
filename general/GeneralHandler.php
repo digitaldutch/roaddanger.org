@@ -46,7 +46,7 @@ class GeneralHandler extends AjaxHandler {
   }
 
   private function login(): array {
-    if (is_null($_REQUEST['email']) || is_null($_REQUEST['password'])) dieWithJSONErrorMessage('Invalid AJAX login call.');
+    if (! isset($_REQUEST['email']) || ! isset($_REQUEST['password'])) dieWithJSONErrorMessage('Invalid AJAX login call.');
 
     $email = $_REQUEST['email'];
     $password = $_REQUEST['password'];
@@ -482,8 +482,8 @@ SQL;
 
   private function getArticleWebpageMetaData(): array {
 
-    $url = $this->input['url'];
-    $newArticle = $this->input['newArticle'];
+    $url = trim((string)($this->input['url'] ?? ''));
+    $newArticle = $this->input['newArticle'] ?? false;
 
     require_once 'meta_parser_utils.php';
     $resultParser = parseMetaDataFromUrl($url);

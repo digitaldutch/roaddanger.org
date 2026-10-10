@@ -1,5 +1,66 @@
 <?php
 
+/**
+ * Checks that the server may download this url: http or https, and only from public internet addresses.
+ * Visitors can send any url, so this keeps the server from reaching internal services
+ * (localhost, private networks, cloud metadata addresses).
+ *
+ * @return array{resolve: ?string} A curl CURLOPT_RESOLVE entry that pins the checked address, or null.
+ * @throws InvalidArgumentException when the url is not allowed
+ */
+function checkPublicWebUrl(string $url): array {
+  if ($url === '' || strlen($url) > 2000 || preg_match('/[\x00-\x20\x7f]/', $url)) {
+    throw new InvalidArgumentException('Invalid url');
+  }
+
+  $parts = parse_url($url);
+  $scheme = strtolower($parts['scheme'] ?? '');
+  if (($parts === false) || ! in_array($scheme, ['http', 'https'], true) || empty($parts['host'])) {
+    throw new InvalidArgumentException('Only http and https urls are allowed');
+  }
+  if (isset($parts['user']) || isset($parts['pass'])) {
+    throw new InvalidArgumentException('Urls with a username or password are not allowed');
+  }
+
+  $host = trim($parts['host'], '[]');
+  $port = $parts['port'] ?? (($scheme === 'https') ? 443 : 80);
+
+  if (filter_var($host, FILTER_VALIDATE_IP)) {
+    $ips = [$host];
+  } else {
+    $ips = gethostbynamel($host) ?: [];
+    foreach (@dns_get_record($host, DNS_AAAA) ?: [] as $record) $ips[] = $record['ipv6'];
+    if (! $ips) throw new InvalidArgumentException('Unknown host');
+  }
+
+  foreach ($ips as $ip) {
+    if (! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+      throw new InvalidArgumentException('This address is not allowed');
+    }
+  }
+
+  // Pin the checked IPv4 addresses, so a DNS answer cannot change between the check and the request
+  $ipv4 = array_values(array_filter($ips, fn($ip) => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)));
+  $pin = (! filter_var($host, FILTER_VALIDATE_IP)) && $ipv4;
+
+  return ['resolve' => $pin ? "$host:$port:" . implode(',', $ipv4) : null];
+}
+
+/**
+ * The command to download a page with the headless browser. The url is checked and passed as one quoted argument.
+ * On Linux the browser is stopped after 60 seconds.
+ *
+ * @throws InvalidArgumentException when the url is not allowed
+ */
+function buildHeadlessBrowserCommand(string $url): string {
+  checkPublicWebUrl($url);
+
+  $headlessCommand = PHP_OS_FAMILY === 'Windows'? HEADLESS_BROWSER_COMMAND_WINDOWS : HEADLESS_BROWSER_COMMAND;
+  $timeout = (PHP_OS_FAMILY === 'Windows')? '' : 'timeout 60 ';
+
+  return $timeout . $headlessCommand . ' ' . escapeshellarg($url);
+}
+
 class TMetaParser {
 
   private string $url;
@@ -7,31 +68,50 @@ class TMetaParser {
   function __construct(string $url) {
     $this->url = $url;
   }
+  /**
+   * @throws InvalidArgumentException when the url, or a url it redirects to, is not allowed
+   */
   function downloadWebpage(string $urlDownload): bool|string {
     // download url can be different from website url if an archive is used to retrieve the page content
     $headers = [
       "Accept-Encoding:gzip,deflate",
-      'User-Agent:' . $_SERVER['HTTP_USER_AGENT']
+      'User-Agent:' . ($_SERVER['HTTP_USER_AGENT'] ?? 'Mozilla/5.0')
     ];
 
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, $urlDownload);
-    curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($curl, CURLOPT_ENCODING,"gzip");
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_FOLLOWLOCATION,true);
-    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,false); // Don't verify authenticity of peer
+    // Redirects are followed here and not by curl, so every url is checked before it is requested
+    for ($redirectCount = 0; $redirectCount <= 5; $redirectCount++) {
+      $checked = checkPublicWebUrl($urlDownload);
 
-    $data = curl_exec($curl);
+      $curl = curl_init();
+      curl_setopt($curl, CURLOPT_URL, $urlDownload);
+      curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+      curl_setopt($curl, CURLOPT_ENCODING,"gzip");
+      curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($curl, CURLOPT_FOLLOWLOCATION, false);
+      curl_setopt($curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+      curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
+      curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+      // Connect to the address that was checked, so a DNS answer cannot change between the check and the request
+      if ($checked['resolve'] !== null) curl_setopt($curl, CURLOPT_RESOLVE, [$checked['resolve']]);
 
-    curl_close($curl);
-    return $data;
+      $data = curl_exec($curl);
+      $status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+      $redirectUrl = curl_getinfo($curl, CURLINFO_REDIRECT_URL);
+      curl_close($curl);
+
+      if (in_array($status, [301, 302, 303, 307, 308], true) && $redirectUrl) {
+        $urlDownload = $redirectUrl;
+        continue;
+      }
+
+      return $data;
+    }
+
+    return false; // Too many redirects
   }
 
   function downloadUsingHeadlessBrowser($urlDownload): null|string {
-    $headlessCommand = PHP_OS_FAMILY === 'Windows'? HEADLESS_BROWSER_COMMAND_WINDOWS : HEADLESS_BROWSER_COMMAND;
-
-    $command = $headlessCommand . ' ' . $urlDownload;
+    $command = buildHeadlessBrowserCommand($urlDownload);
 
     exec($command, $output, $statusCode);
 
@@ -346,7 +426,13 @@ class TMetaParser {
   }
 }
 
+/**
+ * @throws InvalidArgumentException when the url is not allowed
+ */
 function parseMetaDataFromUrl(string $url): array {
+  $url = trim($url);
+  checkPublicWebUrl($url);
+
   $parser = new TMetaParser($url);
 
   $urlDownload = $url;

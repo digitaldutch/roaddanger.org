@@ -140,7 +140,13 @@ SQL;
     $user = $this->database->fetch($sql, $params);
     if ($user) {
       $this->emailExists = true;
-      if (($password === '') || (password_verify($password, $user['passwordhash']))) {
+
+      // A user loaded by id is already authenticated (session or login token). Only internal code does that.
+      // A login by email always needs a password. An empty password is never accepted.
+      $authenticated = ($id !== '') ||
+        (($password !== '') && is_string($user['passwordhash']) && password_verify($password, $user['passwordhash']));
+
+      if ($authenticated) {
         $this->id = $user['id'];
         $this->firstName = $user['firstname'];
         $this->lastName = $user['lastname'];
