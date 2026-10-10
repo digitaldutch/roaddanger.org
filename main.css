@@ -1938,10 +1938,63 @@ table.tableDragging td div {
     min-width: 70px !important;
   }
 
-  /* Admin - Humans: let long names and email addresses wrap */
-  .humansTable td {
+  /* Admin - Humans: each user is a small card. Name, articles and menu on top, the other cells as one line below. */
+  .humansTable, .humansTable tbody {
+    display: block;
+  }
+
+  .humansTable thead {
+    display: none;
+  }
+
+  .humansTable tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    border-bottom: solid 1px var(--table-data-border-color);
+  }
+
+  /* Forces the line break between the top line and the small line */
+  .humansTable tr::after {
+    content: '';
+    order: 4;
+    flex: 0 0 100%;
+  }
+
+  .humansTable.dataTable td {
+    border-bottom: none;
     white-space: normal;
     overflow-wrap: anywhere;
+  }
+
+  .humansTable .humanName         {order: 1; flex: 1 1 0; min-width: 0;}
+  .humansTable .humanArticles     {order: 2;}
+  .humansTable .trButton          {order: 3;}
+  .humansTable .humanPermission   {order: 5;}
+  .humansTable .humanActive       {order: 6;}
+  .humansTable .humanRegistered   {order: 7;}
+  .humansTable .humanId           {order: 8;}
+
+  .humansTable .humanPermission,
+  .humansTable .humanActive,
+  .humansTable .humanRegistered,
+  .humansTable .humanId {
+    padding: 0 0.3em 6px 0;
+    font-size: 0.85em;
+    white-space: nowrap;
+  }
+
+  .humansTable .humanPermission {
+    padding-left: 5px;
+  }
+
+  .humansTable .humanActive::before,
+  .humansTable .humanRegistered::before {
+    content: '· ';
+  }
+
+  .humansTable .humanId::before {
+    content: '· #';
   }
 }
 

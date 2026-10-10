@@ -72,12 +72,12 @@ if ((! $user->loggedIn) || (! $user->isModerator())) {
     <table id="tableData" class="dataTable tableWhiteHeader noWrap humansTable">
       <thead>
         <tr>
-          <th class="hideOnMobile">{$texts['Id']}</th>
+          <th>{$texts['Id']}</th>
           <th>{$texts['Name']}</th>
-          <th class="hideOnMobile">{$texts['Last_active']}</th>
-          <th class="hideOnMobile">{$texts['Permission']}</th>
+          <th>{$texts['Last_active']}</th>
+          <th>{$texts['Permission']}</th>
           <th>{$texts['Articles']}</th>
-          <th class="hideOnMobile">{$texts['Registered']}</th>
+          <th>{$texts['Registered']}</th>
           <th></th>
         </tr>
       </thead>  

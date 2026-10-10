@@ -1,5 +1,9 @@
 # Changelog
 
+10 october 2026 v757:
+- Admin - Humans on a phone: each user is now a small card with all information, made with CSS from the same table cells.
+  This replaces the hidden columns of v756.
+
 10 october 2026 v756:
 - Admin - Humans: easier to use on a phone. Id, last active, permission and registered are hidden on small screens.
   The permission and last active time are shown below the name instead. The table no longer scrolls sideways.
