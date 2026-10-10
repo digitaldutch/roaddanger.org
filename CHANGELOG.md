@@ -1,5 +1,10 @@
 # Changelog
 
+10 october 2026 v754:
+- Friendly urls: the .htaccess files now use FallbackResource instead of mod_rewrite.
+- The http to https redirect is removed from the .htaccess files. Set it in the server configuration.
+- README: requirements updated.
+
 10 october 2026 v753:
 - cache folder added to .gitignore.
 

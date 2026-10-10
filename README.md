@@ -5,8 +5,8 @@ A website and database for news reports about traffic crashes around the world.
 Website: [roaddanger.org](https://www.roaddanger.org)
 
 ### Requirements ###
-* Apache webserver with `mod_rewrite` and `AllowOverride All`. The [.htaccess](.htaccess) file redirects all pages to
-  `index.php` and forces https, so your local server needs a (self-signed) https certificate too.
+* Apache webserver with `AllowOverride All`. The [.htaccess](.htaccess) files send all pages to `index.php`.
+* Https. Login cookies are secure cookies. Redirect http to https in your server configuration.
 * PHP 8.3 or newer. Required PHP modules: curl, intl, mbstring, pdo_mysql
 * MariaDB (recommended, the live website runs 10.11) or MySQL 8, both with full-text search support.
   On MySQL the site sets the session `sql_mode` to the MariaDB default, because some queries do not work with the

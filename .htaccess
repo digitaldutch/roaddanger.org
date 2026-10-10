@@ -1,28 +1,17 @@
+# Folders show their index file
+DirectoryIndex index.php index.html
+
+# Urls that are not a file or folder go to index.php
+FallbackResource /index.php
+
+# Debuggers ask for .map files that do not exist. Do not start the website for those: it causes login problems.
+<FilesMatch "\.map$">
+  FallbackResource disabled
+</FilesMatch>
+
+# Redirect old hetongeluk.nl url's
 <IfModule mod_rewrite.c>
-
-    RewriteEngine On
-    RewriteBase /
-
-    # Redirect old hetongeluk.nl url's
-    RewriteCond %{HTTP_HOST} ^(www\.)?hetongeluk\.nl$ [NC]
-    RewriteRule ^ https://roaddanger.org%{REQUEST_URI} [R=301,L,NE]
-
-    # Ensure https
-    RewriteCond %{HTTPS} off
-    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-    # No redirect for .map files. The debugger calls *.map files which sometimes don't exist, leading to login problems
-    RewriteCond %{REQUEST_URI} !\.map$
-
-    # No redirect if existing directory
-    RewriteCond %{REQUEST_FILENAME} !-d
-
-    # No redirect if existing file
-    RewriteCond %{REQUEST_FILENAME} !-f
-
-    # Redirect urls to index.php file. The url is sent as a GET
-    # QSA: Appends any query string from the original request URL to any query string created in the rewrite target.
-    # L: Last Rule
-    RewriteRule ^.+$ index.php?url=$1 [QSA,L]
-
+  RewriteEngine On
+  RewriteCond %{HTTP_HOST} ^(www\.)?hetongeluk\.nl$ [NC]
+  RewriteRule ^ https://roaddanger.org%{REQUEST_URI} [R=301,L,NE]
 </IfModule>
