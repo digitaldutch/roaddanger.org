@@ -54,6 +54,16 @@ class ReframeHandler {
       // AI responses are cached for 1 hour
       $cacheResponse = Cache::get($cacheId, 3600);
       if ($cacheResponse === null) {
+        // Everybody can use this page and each AI request costs money. Moderators are not limited.
+        // Only requests that are not in the cache count: those are the ones that cost money.
+        global $database, $user;
+        if (! $user->isModerator()) {
+          require_once '../general/RateLimit.php';
+          $wait = RateLimit::aiWaitSeconds($database);
+          if ($wait > 0) return ['error' => RateLimit::aiWaitMessage($wait)];
+          RateLimit::record($database, RateLimit::AI);
+        }
+
         $openrouterClient = new OpenRouterAIClient();
 
         $article = (object)[

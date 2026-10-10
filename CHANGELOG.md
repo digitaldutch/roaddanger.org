@@ -1,5 +1,12 @@
 # Changelog
 
+11 october 2026 v770:
+- Security: the AI functions are protected against abuse and costs.
+  - Answering questionnaires with AI is now for moderators only. It saved answers in the database for anyone.
+  - AI requests from other visitors (extract article data, both reframe tools) are limited per network and in total per day.
+    After the free requests the block starts at 1 minute and doubles, as with login attempts. Moderators are not limited.
+  - No database change: the table rate_limit_events from v766 is used.
+
 10 october 2026 v769:
 - Security: a visitor can no longer switch on development mode with a fake Host header.
   Development mode (error messages on screen, background scripts startable from the browser) now also requires that the request comes from the computer itself.

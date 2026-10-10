@@ -208,6 +208,16 @@ SQL;
    * @throws Exception
    */
   private function extractDataFromArticle(): array {
+    // Every visitor can add an article, but each AI request costs money. Moderators are not limited.
+    if (! $this->user->isModerator()) {
+      $wait = RateLimit::aiWaitSeconds($this->database);
+      if ($wait > 0) {
+        http_response_code(429);
+        dieWithJSONErrorMessage(RateLimit::aiWaitMessage($wait));
+      }
+      RateLimit::record($this->database, RateLimit::AI);
+    }
+
     $article = (object)$this->input;
 
     require_once '../general/OpenRouterAIClient.php';
@@ -227,7 +237,11 @@ SQL;
    * @throws Exception
    */
   private function answerQuestionnairesForArticleWithAI(): array {
-    $articleId = $this->input['articleId'];
+    // This costs money and saves the answers in the database, like saveAnswer, which is for moderators only
+    if (! $this->user->isModerator()) throw new \Exception('Only moderators can answer questionnaires with AI');
+
+    $articleId = (int)($this->input['articleId'] ?? 0);
+    if ($articleId <= 0) throw new \Exception('No article ID provided');
 
     require_once '../general/OpenRouterAIClient.php';
 

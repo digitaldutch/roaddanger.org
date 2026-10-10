@@ -11,6 +11,7 @@ class RateLimit {
   public const LOGIN_FAILED = 'login_failed';
   public const REGISTER     = 'register';
   public const RESET        = 'reset';
+  public const AI           = 'ai';
 
   /**
    * Every limit works the same way: some events are free, after that the visitor is blocked. The block starts at
@@ -45,6 +46,15 @@ class RateLimit {
    */
   private const REGISTER_FREE_PER_IP = 10;
   private const RESET_FREE_PER_IP    = 10;
+
+  /**
+   * AI requests (each one costs money, but not much) from visitors who are not moderators. A generous 60 free requests
+   * per hour per network: somebody who wants to add many articles is welcome to. The real protection is the second
+   * limit, a cost cap for all these visitors together: after 300 requests in a day, requests are slowed down for
+   * everyone, so a bot that uses many networks cannot run up the bill.
+   */
+  private const AI_FREE_PER_IP  = 60;
+  private const AI_FREE_PER_DAY = 300;
 
   /**
    * The network of the visitor. IPv6 addresses are cut to their /64 network: one visitor has a whole network of
@@ -147,5 +157,18 @@ class RateLimit {
 
   public static function resetWaitSeconds(Database $database): int {
     return self::waitSeconds($database, self::RESET, self::clientIP(), null, self::RESET_FREE_PER_IP, self::HOUR);
+  }
+
+  /** Seconds a visitor has to wait before the next AI request is allowed. 0 if allowed. */
+  public static function aiWaitSeconds(Database $database): int {
+    return max(
+      self::waitSeconds($database, self::AI, self::clientIP(), null, self::AI_FREE_PER_IP,  self::HOUR),
+      self::waitSeconds($database, self::AI, null,            null, self::AI_FREE_PER_DAY, self::DAY),
+    );
+  }
+
+  /** The message for a visitor who has to wait before the next AI request. */
+  public static function aiWaitMessage(int $seconds): string {
+    return 'Too many AI requests. Please try again in ' . self::formatWait($seconds) . '.';
   }
 }

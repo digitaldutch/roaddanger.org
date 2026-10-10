@@ -11,8 +11,16 @@ class ReframeTextHandler {
     if (empty($article->text)) throw new \Exception('No text provided');
     if (empty($article->title)) throw new \Exception('No title provided');
 
-    global $database;
+    global $database, $user;
     try {
+      // Everybody can use this page and each AI request costs money. Moderators are not limited.
+      if (! $user->isModerator()) {
+        require_once '../general/RateLimit.php';
+        $wait = RateLimit::aiWaitSeconds($database);
+        if ($wait > 0) throw new \Exception(RateLimit::aiWaitMessage($wait));
+        RateLimit::record($database, RateLimit::AI);
+      }
+
       $prompt = $database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE `function`='article_reframe_text';");
 
       require_once '../general/OpenRouterAIClient.php';
