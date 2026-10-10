@@ -1,5 +1,8 @@
 # Changelog
 
+10 october 2026 v763:
+- Security: the ajax pages only accept POST requests with a JSON body from this website. Links and forms on other websites can no longer trigger actions.
+
 10 october 2026 v762:
 - Security: login and password reset now only accept data in the request body, not in the url.
 
