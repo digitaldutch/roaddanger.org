@@ -1937,6 +1937,12 @@ table.tableDragging td div {
   .buttonMobileSmall {
     min-width: 70px !important;
   }
+
+  /* Admin - Humans: let long names and email addresses wrap */
+  .humansTable td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 }
 
 /* Really small screens*/

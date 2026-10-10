@@ -69,15 +69,15 @@ if ((! $user->loggedIn) || (! $user->isModerator())) {
   <div class="pageSubTitle">{$texts['Admin']} - {$texts['Humans']}</div>
   
   <div class="panelTableOverflow">
-    <table id="tableData" class="dataTable tableWhiteHeader noWrap">
+    <table id="tableData" class="dataTable tableWhiteHeader noWrap humansTable">
       <thead>
         <tr>
-          <th>{$texts['Id']}</th>
+          <th class="hideOnMobile">{$texts['Id']}</th>
           <th>{$texts['Name']}</th>
-          <th>{$texts['Last_active']}</th>
-          <th>{$texts['Permission']}</th>
+          <th class="hideOnMobile">{$texts['Last_active']}</th>
+          <th class="hideOnMobile">{$texts['Permission']}</th>
           <th>{$texts['Articles']}</th>
-          <th>{$texts['Registered']}</th>
+          <th class="hideOnMobile">{$texts['Registered']}</th>
           <th></th>
         </tr>
       </thead>  

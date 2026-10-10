@@ -55,12 +55,13 @@ async function loadUsers(){
       }
 
       html += `<tr id="tr0_${user.id}" ${trClass}>
-<td>${user.id}</td>
-<td>${user.name}<br><a href="mailto:${user.email}">${user.email}</a></td>
-<td>${datetimeToAge(user.lastactive)}</td>
-<td>${permissionToText(user.permission)}</td>
+<td class="hideOnMobile">${user.id}</td>
+<td>${user.name}<br><a href="mailto:${user.email}">${user.email}</a>
+  <div class="showOnMobile">${permissionToText(user.permission)} · ${datetimeToAge(user.lastactive)}</div></td>
+<td class="hideOnMobile">${datetimeToAge(user.lastactive)}</td>
+<td class="hideOnMobile">${permissionToText(user.permission)}</td>
 <td style="text-align: right;">${user.article_count}</td>
-<td style="text-align: right;">${user.registrationtime.toLocaleDateString()}</td>
+<td class="hideOnMobile" style="text-align: right;">${user.registrationtime.toLocaleDateString()}</td>
 <td class="trButton"><span class="editDetails" data-editUser>⋮</span></td>
 </tr>`;
     }

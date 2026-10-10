@@ -1,5 +1,9 @@
 # Changelog
 
+10 october 2026 v756:
+- Admin - Humans: easier to use on a phone. Id, last active, permission and registered are hidden on small screens.
+  The permission and last active time are shown below the name instead. The table no longer scrolls sideways.
+
 10 october 2026 v755:
 - README: optional installation step to try the website with PHP's built-in web server.
 
