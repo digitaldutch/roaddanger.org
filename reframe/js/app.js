@@ -364,7 +364,7 @@ class ReFrameApp {
                     
                     ${!disabled && expanded ? `
                         <div class="pl-11 mt-2 text-white text-sm border-l-2 border-white ml-4">
-                            ${!passed ? this.getOriginalExplanationForCriterion(i) : 'This criterion is met in the original headline.'}
+                            ${!passed ? this.escapeHtml(this.getOriginalExplanationForCriterion(i)) : 'This criterion is met in the original headline.'}
                         </div>
                     ` : ''}
                 </div>
@@ -399,7 +399,7 @@ class ReFrameApp {
                     
                     ${expanded ? `
                         <div class="pl-11 mt-2 text-black text-sm border-l-2 border-black ml-4">
-                            ${this.analysis.changes && this.analysis.changes.some(c => c.criterionId === i) ? this.getHumanizedExplanationForCriterion(i) : `${criteriaNames[i-1]} is properly used in this headline.`}
+                            ${this.analysis.changes && this.analysis.changes.some(c => c.criterionId === i) ? this.escapeHtml(this.getHumanizedExplanationForCriterion(i)) : `${criteriaNames[i-1]} is properly used in this headline.`}
                         </div>
                     ` : ''}
                 </div>

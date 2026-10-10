@@ -378,7 +378,7 @@ function showMediaHumanizationText(questions) {
 
   let i=1;
   for (const question of questions) {
-    htmlQuestions += `<div>Q${i}: ${question.text} (yes/no)</div>`;
+    htmlQuestions += `<div>Q${i}: ${escapeHtml(question.text)} (yes/no)</div>`;
     i += 1;
   }
 
@@ -637,7 +637,7 @@ async function loadChildVictims(){
         <tr onclick="showCrashDetails(${crash.id})">
           <td style="white-space: nowrap;">${crash.date.toLocaleDateString()}</td>
           <td style="white-space: nowrap;">${htmlIconsChildren}${htmlIconsOther}</td>
-          <td class="td400">${title}</td>
+          <td class="td400">${escapeHtml(title)}</td>
         </tr>      
       `;
       }
@@ -991,7 +991,7 @@ function getMosaicHTML(newCrashes){
         html +=`<div onclick="showCrashDetails(${crash.id}); event.stopPropagation();">
 <div class="thumbPersons">${htmlPersons}</div>
 <div class="thumbDetails">${article.publishedtime.toLocaleDateString()}</div>
-<img src="${article.urlimage}" onerror="this.parentElement.style.display = 'none';">
+<img src="${safeUrl(article.urlimage)}" onerror="this.parentElement.style.display = 'none';">
 </div>`;
       }
     }
@@ -1011,12 +1011,12 @@ function getCrashCard(crash, detailsPage=false) {
   }
 
   const htmlTopIcons = getCrashTopIcons(crash);
-  let crashHeader = crash.date.toLocaleDateString() + ' | ' + translate('Crash_added_by') + ' ' + crash.user;
+  let crashHeader = crash.date.toLocaleDateString() + ' | ' + translate('Crash_added_by') + ' ' + escapeHtml(crash.user);
   let titleModified = '';
   if (crash.streamtopuser) {
     switch (crash.streamtoptype) {
-      case StreamTopType.edited: titleModified = ' | ' + translate('edited_by') + ' ' + crash.streamtopuser; break;
-      case StreamTopType.articleAdded: titleModified = ' | ' + translate('new_article_added_by') + ' ' + crash.streamtopuser; break;
+      case StreamTopType.edited: titleModified = ' | ' + translate('edited_by') + ' ' + escapeHtml(crash.streamtopuser); break;
+      case StreamTopType.articleAdded: titleModified = ' | ' + translate('new_article_added_by') + ' ' + escapeHtml(crash.streamtopuser); break;
     }
   }
 
@@ -1178,13 +1178,13 @@ ${translate('Approval_required')}
     <div class="articleTitle">${escapeHtml(article.title)}</div>
 
     <div class="smallFont articleTitleSmall">
-      <a href="${article.url}" target="article" onclick="event.stopPropagation();"><span class="cardSiteName">${escapeHtml(article.sitename)}</span></a> 
-      | ${article.publishedtime.toLocaleDateString()} | ${translate('added_by')} ${article.user}
+      <a href="${safeUrl(article.url)}" target="article" rel="noopener noreferrer" onclick="event.stopPropagation();"><span class="cardSiteName">${escapeHtml(article.sitename)}</span></a> 
+      | ${article.publishedtime.toLocaleDateString()} | ${translate('added_by')} ${escapeHtml(article.user)}
     </div>  
   </div>
   
-  <a href="${article.url}" target="article" onclick="event.stopPropagation();">
-    <div class="articleImageWrapper"><img class="articleImage" src="${article.urlimage}" onerror="this.style.display='none';"></div>
+  <a href="${safeUrl(article.url)}" target="article" rel="noopener noreferrer" onclick="event.stopPropagation();">
+    <div class="articleImageWrapper"><img class="articleImage" src="${safeUrl(article.urlimage)}" onerror="this.style.display='none';"></div>
   </a>
   
   <div class="articleBody">
@@ -1715,7 +1715,7 @@ async function showQuestionsForm(crashId, articleId) {
 
   document.getElementById('questionsArticleId').value = article.id;
   document.getElementById('questionsArticleTitle').innerText = article.title;
-  document.getElementById('questionsArticle').innerHTML = `<a href="${article.url}" target="article">${article.sitename}</a>`;
+  document.getElementById('questionsArticle').innerHTML = `<a href="${safeUrl(article.url)}" target="article" rel="noopener noreferrer">${escapeHtml(article.sitename)}</a>`;
   document.getElementById('questionsCrashButtons').innerHTML = getCrashHumansIcons(crash) + htmlUnilateral;
   document.getElementById('questionsArticleText').innerText  = '⌛';
 
@@ -1727,7 +1727,7 @@ async function showQuestionsForm(crashId, articleId) {
   let htmlQuestionnaires = '';
   article.questionnaires = response.questionnaires;
   for (const questionnaire of article.questionnaires) {
-    htmlQuestionnaires += `<tr><td colspan="2" class="sectionHeader">${questionnaire.title}</td></tr>`;
+    htmlQuestionnaires += `<tr><td colspan="2" class="sectionHeader">${escapeHtml(questionnaire.title)}</td></tr>`;
 
     let iQuestion = 1;
     for (const question of questionnaire.questions) {
@@ -1741,7 +1741,7 @@ async function showQuestionsForm(crashId, articleId) {
 
       htmlQuestionnaires +=
 `<tr id="q${questionnaire.id}_${question.id}">
-<td>${iQuestion}) ${question.text} ${tooltip}</td>
+<td>${iQuestion}) ${escapeHtml(question.text)} ${tooltip}</td>
 <td style="white-space: nowrap;">
 
 <div style="display: inline-flex; justify-content: space-between; width: 100%;">
@@ -2379,13 +2379,13 @@ function crashRowHTML(crash, isSearch=false){
     let title = '';
     if (crashArticles.length > 0) {
       title = crashArticles[0].title;
-      img = `<img class="thumbnail" src="${crashArticles[0].urlimage}">`
+      img = `<img class="thumbnail" src="${safeUrl(crashArticles[0].urlimage)}">`
     }
 
     return `
   <div class="flexRow" style="justify-content: space-between;">
     <div style="padding: 3px;">
-      ${title}
+      ${escapeHtml(title)}
       <div class="smallFont">#${crash.id} ${crash.date.toLocaleDateString()}</div>
       <div>${htmlPersons}</div>
     </div>
@@ -2523,7 +2523,7 @@ function mergeCrash() {
   }
 
   confirmMessage(translate('Merge_crashes') +
-    `<ul><li>${crashFrom.id} | ${crashFrom.title}</li><li>${crashTo.id} | ${crashTo.title}</li></ul>`,
+    `<ul><li>${crashFrom.id} | ${escapeHtml(crashFrom.title)}</li><li>${crashTo.id} | ${escapeHtml(crashTo.title)}</li></ul>`,
     function () {
       mergeCrashesOnServer(fromID, toID);
     }, translate('Ok'));

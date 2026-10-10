@@ -237,7 +237,7 @@ class Filter {
 
     if (this.filters.child) activeFilters.set("child", {label: translate('Child')});
 
-    if (this.filters.text.trim()) activeFilters.set("text", {label: this.filters.text});
+    if (this.filters.text.trim()) activeFilters.set("text", {label: escapeHtml(this.filters.text)});
 
     if (this.filters.period && (this.filters.period !== 'all')) {
       const elPeriod = document.getElementById('searchPeriod');
@@ -264,9 +264,9 @@ class Filter {
       activeFilters.set("persons", {label: html});
     }
 
-    if (this.filters.siteName.trim()) activeFilters.set("siteName", {label: this.filters.siteName});
+    if (this.filters.siteName.trim()) activeFilters.set("siteName", {label: escapeHtml(this.filters.siteName)});
 
-    if (this.filters.userId) activeFilters.set("userId", {label: translate('Human') + ' Id ' + this.filters.userId});
+    if (this.filters.userId) activeFilters.set("userId", {label: translate('Human') + ' Id ' + escapeHtml(String(this.filters.userId))});
 
     if (activeFilters.size > 0) {
       for (const [key, filter] of activeFilters) {

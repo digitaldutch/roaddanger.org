@@ -105,6 +105,23 @@ function dieWithJSONErrorMessage($message): void {
   die(jsonErrorMessage($message));
 }
 
+/**
+ * Checks a url that a user entered, before it is saved. A url with another scheme than http or https
+ * (javascript:, data:, etc.) is not allowed, and neither are control characters in a url.
+ * A url without a scheme is allowed. Empty urls are allowed.
+ *
+ * @throws Exception
+ */
+function assertHttpUrl(?string $url, string $fieldName = 'url'): void {
+  if ($url === null || trim($url) === '') return;
+
+  if (preg_match('/[\x00-\x1f\x7f]/', $url)) throw new \Exception("Invalid $fieldName");
+
+  if (preg_match('/^\s*([a-z][a-z0-9+.\-]*):/i', $url, $matches) && ! in_array(strtolower($matches[1]), ['http', 'https'], true)) {
+    throw new \Exception("Invalid $fieldName: only http and https links are allowed");
+  }
+}
+
 function getRandomString($length): string {
   return substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"), 0, $length);
 }

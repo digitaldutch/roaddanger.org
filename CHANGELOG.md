@@ -1,5 +1,10 @@
 # Changelog
 
+10 october 2026 v759:
+- Security: text, names and links from users are now shown more carefully on several pages.
+- Security: links entered by users must be http or https links.
+- Security: the password reset page handles its url parameters more carefully.
+
 10 october 2026 v758:
 - Security: the login check is stricter.
 - Security: downloading article webpages is stricter: urls are checked, redirects are checked, timeouts and a certificate check are added.

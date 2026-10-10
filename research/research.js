@@ -327,9 +327,9 @@ function getHtmlRowAnswerQuestionnaire(article, crash) {
 <tr id="article${article.id}">
   <td>${article.id}</td>
   <td style="white-space: nowrap;">${article.publishedtime.toLocaleDateString()}</td>
-  <td class="td300">${article.title}</td>
+  <td class="td300">${escapeHtml(article.title)}</td>
   <td class="noWrap">${answered_at}</td>
-  <td class="noWrap">${answered_by}</td>
+  <td class="noWrap">${escapeHtml(answered_by)}</td>
   <td class="td200">${html_icons}</td>
 </tr>`;
 }
@@ -345,9 +345,9 @@ function getHtmlRowAITask(task) {
 <td>${htmlCreatedAt}</td>
 <td>${htmlProcessedAt}</td>
 <td class="td200">${task.ai_model?? ''}</td>
-<td class="">${task.article_id} ${task.article_title}</td>
-<td class="td200">${task.questionnaire_id} ${task.questionnaire_title}</td>
-<td>${task.info}</td>
+<td class="">${task.article_id} ${escapeHtml(task.article_title)}</td>
+<td class="td200">${task.questionnaire_id} ${escapeHtml(task.questionnaire_title)}</td>
+<td>${escapeHtml(task.info)}</td>
 </tr>`;
 }
 
@@ -569,7 +569,7 @@ function getBechdelBarHtml(bechdelResults, questions, group='') {
   });
 
   if (! htmlBar) htmlBar = '<div></div>';
-  htmlBar = `<div class="questionnaireBar" style="white-space: nowrap;" data-group="${groupName}">${htmlBar}</div>`;
+  htmlBar = `<div class="questionnaireBar" style="white-space: nowrap;" data-group="${escapeHtml(groupName)}">${htmlBar}</div>`;
 
   return htmlBar;
 }
@@ -673,7 +673,7 @@ async function loadQuestionnaireResults() {
         // ***** Bechdel type questionnaire *****
         let i=1;
         for (const question of questionnaire.questions) {
-          htmlQuestions += `<tr><td style="vertical-align: top;">Q${i}:</td><td style="font-style: italic;">${question.text}</td></tr>`;
+          htmlQuestions += `<tr><td style="vertical-align: top;">Q${i}:</td><td style="font-style: italic;">${escapeHtml(question.text)}</td></tr>`;
           i += 1;
         }
 
@@ -720,7 +720,7 @@ async function loadQuestionnaireResults() {
 
             const textAverage = groupResults.average.toFixed(2);
             const textTotal = groupResults.total_articles.toString();
-            const htmlBarLabel = `<div data-tippy-content="Average score: ${textAverage} Articles: ${textTotal}">${groupResults.sitename}</div>`;
+            const htmlBarLabel = `<div data-tippy-content="Average score: ${textAverage} Articles: ${textTotal}">${escapeHtml(groupResults.sitename)}</div>`;
 
             htmlBars += htmlBarLabel + htmlBar;
           }
@@ -733,7 +733,7 @@ async function loadQuestionnaireResults() {
 
             const textAverage = groupResults.average.toFixed(2);
             const textTotal = groupResults.total_articles.toString();
-            const htmlBarLabel = `<div data-tippy-content="Average score: ${textAverage} Articles: ${textTotal}">${groupResults.countryid}</div>`;
+            const htmlBarLabel = `<div data-tippy-content="Average score: ${textAverage} Articles: ${textTotal}">${escapeHtml(groupResults.countryid)}</div>`;
 
             htmlBars += htmlBarLabel + htmlBar;
           }
@@ -900,7 +900,7 @@ function getHtmlTableBodyAiModels() {
 
       const created = new Date(model.created);
       const cost = '$' + (model.cost_input * 1e6).toFixed(2) + ' → $' + (model.cost_output * 1e6).toFixed(2);
-      htmlModels += `<tr id="tr0_${model.id}"><td>${model.name}</td><td>${selected}</td><td>${cost}</td><td>${structured_outputs}</td><td>${created.toLocaleDateString()}</td></tr>`;
+      htmlModels += `<tr id="tr0_${model.id}"><td>${escapeHtml(model.name)}</td><td>${selected}</td><td>${cost}</td><td>${structured_outputs}</td><td>${created.toLocaleDateString()}</td></tr>`;
     }
   }
 
@@ -911,8 +911,8 @@ function getHtmlTableBodyAiPrompts() {
   let htmlQueries = '';
   for (const prompt of tableData[1]) {
     htmlQueries += `<tr id="tr1_${prompt.id}"><td>${prompt.id}</td><td>${prompt.model_id}</td><td>${prompt.user}</td><td>${prompt.function}</td>` +
-      `<td>${truncateText(prompt.user_prompt, 30)}</td><td>${truncateText(prompt.system_prompt, 30)}</td>` +
-      `<td>${truncateText(prompt.response_format, 30)}</td><td>${prompt.article_id??''}</td></tr>`;
+      `<td>${escapeHtml(truncateText(prompt.user_prompt, 30))}</td><td>${escapeHtml(truncateText(prompt.system_prompt, 30))}</td>` +
+      `<td>${escapeHtml(truncateText(prompt.response_format, 30))}</td><td>${prompt.article_id??''}</td></tr>`;
   }
 
   return htmlQueries;
@@ -928,7 +928,7 @@ function clickAiModelRow() {
   const model = selectedTableData[0];
 
   const div = document.getElementById('addAiModelInfo');
-  div.innerHTML = `<b>${model.name}</b><br>${model.description}`;
+  div.innerHTML = `<b>${escapeHtml(model.name)}</b><br>${escapeHtml(model.description)}`;
   div.style.display = 'block';
 }
 
@@ -1066,7 +1066,7 @@ function removeAiModel() {
     return;
   }
 
-  confirmWarning(`Are you sure you want to remove this AI model?<br>${model.name}?`,
+  confirmWarning(`Are you sure you want to remove this AI model?<br>${escapeHtml(model.name)}?`,
     async () => {
 
       const serverData = {
@@ -1106,7 +1106,7 @@ async function initAIPromptBuilder() {
       const cost_input = (model.cost_input * 1e6).toFixed(2);
       const cost_output = (model.cost_output * 1e6).toFixed(2);
       const structured_outputs = model.structured_outputs? ' | SO' : '';
-      htmlSelectModels += `<option value="${model.id}">${model.name} | ${model.created.toLocaleDateString()} | $${cost_input}/$${cost_output} ${structured_outputs}</option>`;
+      htmlSelectModels += `<option value="${model.id}">${escapeHtml(model.name)} | ${model.created.toLocaleDateString()} | $${cost_input}/$${cost_output} ${structured_outputs}</option>`;
     });
 
     updateCreditsLeft(response.credits);
@@ -1191,8 +1191,8 @@ function getQuestionTableRow(question){
   const explanationText = question.explanation? question.explanation : '';
   return `<tr id="tr0_${question.id}" draggable="true" ondragstart="onDragRowStart(event, ${question.id})" ondrop="onDropQuestion(event, ${question.id}, 0, 'saveQuestionOrder')" ondragenter="onDragEnter(event)" ondragleave="onDragLeave(event)" ondragover="onDragOver(event)" ondragend="onDragRowQuestion(event)">
   <td>${question.id}</td>
-  <td>${question.text}</td>
-  <td>${explanationText}</td>
+  <td>${escapeHtml(question.text)}</td>
+  <td>${escapeHtml(explanationText)}</td>
 </tr>`;
 }
 
@@ -1203,7 +1203,7 @@ function getQuestionnaireTableRow(questionnaire){
 
   return `<tr id="tr1_${questionnaire.id}">
   <td>${questionnaire.id}</td>
-  <td>${questionnaire.title}</td>
+  <td>${escapeHtml(questionnaire.title)}</td>
   <td>${questionnaireTypeToText(questionnaire.type)}</td>
   <td>${questionnaire.country_id}</td>
   <td style="text-align: center">${activeText}</td>
@@ -1300,7 +1300,7 @@ function newQuestionnaire() {
 }
 
 function getQuestionnaireQuestionRow(question) {
-return `<tr id="tr2_${question.id}" draggable="true" ondragstart="onDragRowStart(event, ${question.id})" ondrop="onDropQuestion(event, ${question.id}, 2)" ondragenter="onDragEnter(event)" ondragleave="onDragLeave(event)" ondragover="onDragOver(event)" ondragend="onDragRowQuestion(event)"><td>${question.id}</td><td>${question.text}</td></tr>`;
+return `<tr id="tr2_${question.id}" draggable="true" ondragstart="onDragRowStart(event, ${question.id})" ondrop="onDropQuestion(event, ${question.id}, 2)" ondragenter="onDragEnter(event)" ondragleave="onDragLeave(event)" ondragover="onDragOver(event)" ondragend="onDragRowQuestion(event)"><td>${question.id}</td><td>${escapeHtml(question.text)}</td></tr>`;
 }
 
 function editQuestionnaire() {
@@ -1349,7 +1349,7 @@ async function addQuestionToQuestionnaire() {
     // Leave out already selected questions
     if (currentQuestions.find(q => q.id === newQuestion.id)) continue;
 
-    html += `<tr id="tr3_${newQuestion.id}"><td>${newQuestion.id}</td><td>${newQuestion.text}</td></tr>`;
+    html += `<tr id="tr3_${newQuestion.id}"><td>${newQuestion.id}</td><td>${escapeHtml(newQuestion.text)}</td></tr>`;
   }
 
   if (html) html = `<table class="dataTable"><thead><th>Id</th><th>Question</th></thead><tbody onclick="tableDataClick(event, 3);" ondblclick="selectQuestionToQuestionnaire();">${html}</tbody></table>`;
@@ -1365,7 +1365,7 @@ async function removeQuestionFromQuestionnaire() {
     return;
   }
 
-  confirmWarning(`Remove question?<br><br>${question.id}: ${question.text}`, () => {
+  confirmWarning(`Remove question?<br><br>${question.id}: ${escapeHtml(question.text)}`, () => {
     tableData[2] = tableData[2].filter(q => q.id !== question.id);
     document.getElementById('tr2_' + question.id).remove();
     selectFirstTableRow(2);
@@ -1422,8 +1422,8 @@ function deleteQuestionnaire() {
     return;
   }
 
-  confirmWarning(`Delete questionnaire ${selectedTableData[1].id} - "${selectedTableData[1].title}"?`, () => {
-      confirmWarning(`To be sure I am asking one last time:<br><br>Delete questionnaire ${selectedTableData[1].id} - "${selectedTableData[1].title}"?`,
+  confirmWarning(`Delete questionnaire ${selectedTableData[1].id} - "${escapeHtml(selectedTableData[1].title)}"?`, () => {
+      confirmWarning(`To be sure I am asking one last time:<br><br>Delete questionnaire ${selectedTableData[1].id} - "${escapeHtml(selectedTableData[1].title)}"?`,
         async () => {
           const serverData = {
             id: selectedTableData[1].id,
@@ -1546,7 +1546,7 @@ async function showQuestionnaireArticles(articleFilter, title) {
         <td>${article.bechdelResult.total_questions_passed}/${article.bechdelResult.total_questions}: ${result}</td>
         <td>${publishedtime.toLocaleDateString()}</td>
         <td>${article.countryid}</td>
-        <td class="td400">${article.sitename}</td>
+        <td class="td400">${escapeHtml(article.sitename)}</td>
       </tr>`;
     }
 
@@ -1558,7 +1558,7 @@ async function showQuestionnaireArticles(articleFilter, title) {
 
       html += `
 <tr id="article${article.id}" onclick="showQuestionsForm(${article.crashid}, ${article.id})">
-  <td class="td400">${article.title}</td>
+  <td class="td400">${escapeHtml(article.title)}</td>
   <td>${answerToText(article.answer)}</td>
   <td>${publishedtime.toLocaleDateString()}</td>
   <td>${article.countryid}</td>
@@ -1762,7 +1762,7 @@ async function aiSavePrompt() {
 
   if (aiPrompt) {
     if (aiPrompt.function) {
-      confirmWarning(`This prompt is actively used on this website.<br><br>Current function: ${aiPrompt.function}<br><br>Are you really, really sure you want to overwrite it?`,
+      confirmWarning(`This prompt is actively used on this website.<br><br>Current function: ${escapeHtml(aiPrompt.function)}<br><br>Are you really, really sure you want to overwrite it?`,
         savePrompt,
         `Yes overwrite`
       );

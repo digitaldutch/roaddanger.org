@@ -11,7 +11,7 @@ class HtmlResearch {
     // Add countries
     $countryOptions = '';
     foreach ($database->countries as $country) {
-      $countryOptions .= "<option value='{$country['id']}'>{$country['name']}</option>";
+      $countryOptions .= "<option value='" . htmlspecialchars($country['id'], ENT_QUOTES) . "'>" . htmlspecialchars($country['name'], ENT_QUOTES) . "</option>";
     }
 
     return <<<HTML
@@ -273,7 +273,7 @@ HTML;
       if ($user->admin && $questionnaire['active'] === 1) $extraInfoParts[] = 'active';
       $extraInfo = !empty($extraInfoParts) ? ' (' . implode(', ', $extraInfoParts) . ')' : '';
 
-      $questionnairesOptions .= "<option value='{$questionnaire['id']}'>{$questionnaire['title']}$extraInfo</option>";
+      $questionnairesOptions .= "<option value='" . (int)$questionnaire['id'] . "'>" . htmlspecialchars($questionnaire['title'] ?? '', ENT_QUOTES) . "$extraInfo</option>";
     }
 
     $htmlSearchPersons = HtmlBuilder::getSearchPersonsHtml(widthPixels: 140);

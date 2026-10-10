@@ -56,7 +56,7 @@ async function loadUsers(){
 
       html += `<tr id="tr0_${user.id}" ${trClass}>
 <td class="humanId">${user.id}</td>
-<td class="humanName">${user.name}<br><a href="mailto:${user.email}">${user.email}</a></td>
+<td class="humanName">${escapeHtml(user.name)}<br><a href="mailto:${escapeHtml(user.email)}">${escapeHtml(user.email)}</a></td>
 <td class="humanActive">${datetimeToAge(user.lastactive)}</td>
 <td class="humanPermission">${permissionToText(user.permission)}</td>
 <td class="humanArticles" style="text-align: right;">${user.article_count}</td>
@@ -151,7 +151,7 @@ async function deleteUserDirect() {
 }
 
 async function adminDeleteUser() {
-  confirmWarning(`Mens #${selectedTableData[0].id} "${selectedTableData[0].name}" en alle items die dit mens heeft aangemaakt verwijderen?<br><br><b>Dit kan niet ongedaan worden!</b>`,
+  confirmWarning(`Mens #${selectedTableData[0].id} "${escapeHtml(selectedTableData[0].name)}" en alle items die dit mens heeft aangemaakt verwijderen?<br><br><b>Dit kan niet ongedaan worden!</b>`,
       function (){deleteUserDirect();},
       `Verwijder mens en zijn items`
   );
@@ -192,8 +192,8 @@ function getTranslationTableRow(translation){
   return `
 <tr id="tr0_${translation.id}">
   <td>${translation.id}</td>
-  <td>${translation.english}</td>
-  <td contenteditable class="editableCell" oninput="saveTranslation('${translation.id}');">${text}</td>
+  <td>${escapeHtml(translation.english)}</td>
+  <td contenteditable class="editableCell" oninput="saveTranslation('${translation.id}');">${escapeHtml(text)}</td>
 </tr>`;
 }
 

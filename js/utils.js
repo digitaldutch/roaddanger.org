@@ -163,7 +163,8 @@ function deleteElement(id){
 }
 
 function showError(text, secondsVisible=5) {
-  showMessage(text, secondsVisible, true);
+  // Error texts can contain data from the user or the server: show them as plain text
+  showMessage(escapeHtml(text), secondsVisible, true);
 }
 
 function showMessage(text, secondsVisible=3, errorMessage=false) {
@@ -227,6 +228,7 @@ function closeConfirm() {
 
 function escapeHtml(text) {
   if (! text) return '';
+  text = String(text);
   let map = {
       '&': '&amp;',
       '<': '&lt;',
@@ -235,6 +237,21 @@ function escapeHtml(text) {
       "'": '&#039;'
     };
   return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+/**
+ * Makes a url safe to use in an href or src attribute: only http(s) urls are kept, and the result is HTML escaped.
+ * Use it for urls that users can enter. Returns '#' when the url is not an http(s) url.
+ */
+function safeUrl(url) {
+  if (! url) return '#';
+  try {
+    const parsed = new URL(url, window.location.origin);
+    if ((parsed.protocol !== 'http:') && (parsed.protocol !== 'https:')) return '#';
+  } catch (e) {
+    return '#';
+  }
+  return escapeHtml(url);
 }
 
 
@@ -282,7 +299,7 @@ function clearLoginError(text) {
 }
 
 function showLoginError(text) {
-  document.getElementById('loginError').innerHTML = text;
+  document.getElementById('loginError').innerText = text;
   document.getElementById('loginError').style.display = 'flex';
 }
 
@@ -346,7 +363,7 @@ function updateLoginGUI(userNew){
     document.getElementById('loginName').style.display = 'inline-block';
     document.getElementById('loginText').style.display = 'none';
     document.getElementById('loginName').innerText = user.firstname;
-    document.getElementById('menuProfile').innerHTML = user.firstname + ' ' + user.lastname + '<div class="smallFont">' + permissionToText(user.permission) + '</div>';
+    document.getElementById('menuProfile').innerHTML = escapeHtml(user.firstname) + ' ' + escapeHtml(user.lastname) + '<div class="smallFont">' + permissionToText(user.permission) + '</div>';
 
     buttonProfile.classList.remove('buttonProfile');
   } else {
@@ -1527,8 +1544,9 @@ function setRadioGroupValue(name, value) {
 }
 
 function getHtmlAIIcon(ai_info) {
-  const AITooltip = translate('Answered_by_AI') + (ai_info ? ` | ${ai_info}` : '');
-  return `<div class="iconAI" data-tippy-content="${AITooltip}">AI</div>`;
+  // The tooltip is shown as HTML by tippy: escape the AI info for that, and escape the whole text for the attribute
+  const AITooltip = translate('Answered_by_AI') + (ai_info ? ` | ${escapeHtml(ai_info)}` : '');
+  return `<div class="iconAI" data-tippy-content="${escapeHtml(AITooltip)}">AI</div>`;
 }
 
 function showQuestionAI_Icon(id, show, ai_info='') {

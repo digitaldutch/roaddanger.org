@@ -26,8 +26,11 @@ async function reframeArticle() {
     return;
   }
 
-  outputTitle.innerHTML = response.data.title;
-  document.getElementById('outputText').innerHTML = response.data.text;
+  // The text comes from an AI that has read user content: show it as plain text
+  outputTitle.innerText = response.data.title;
+  const outputText = document.getElementById('outputText');
+  outputText.style.whiteSpace = 'pre-wrap';
+  outputText.innerText = response.data.text;
 
   console.log(JSON.stringify(response));
 }

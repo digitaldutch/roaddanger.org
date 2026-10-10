@@ -217,6 +217,12 @@ SQL;
     try {
       $article = $this->input['article']?? null;
       $crash = $this->input['crash'];
+
+      if ($article) {
+        assertHttpUrl($article['url'] ?? null, 'article url');
+        assertHttpUrl($article['urlimage'] ?? null, 'image url');
+      }
+
       $isNewCrash = (! isset($crash['id'])) || ($crash['id'] <= 0);
       $moderationRequired = ! $this->user->isModerator();
       $crashIsAwaitingModeration = $moderationRequired && $isNewCrash;

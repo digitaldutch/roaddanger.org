@@ -64,8 +64,8 @@ if ($pageType === 'account') {
 HTML;
 
 } else if ($pageType === 'resetPassword') {
-  $email      = $_REQUEST['email']? $_REQUEST['email'] : null;
-  $recoveryId = $_REQUEST['recoveryid']? $_REQUEST['recoveryid'] : null;
+  $email      = ! empty($_REQUEST['email'])      ? htmlspecialchars((string)$_REQUEST['email'], ENT_QUOTES, 'UTF-8')      : null;
+  $recoveryId = ! empty($_REQUEST['recoveryid']) ? htmlspecialchars((string)$_REQUEST['recoveryid'], ENT_QUOTES, 'UTF-8') : null;
 
   $texts = translateArray(['Save', 'Reset_password', 'New_password']);
 
