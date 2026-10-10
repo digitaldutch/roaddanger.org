@@ -1,5 +1,10 @@
 # Changelog
 
+10 october 2026 v765:
+- Fixed: the AI prompt functions did not work on MySQL 8.4: the column function is now quoted in the SQL.
+  This affects the AI prompts page, saving prompts, and the AI article analysis and answering.
+- AGENTS.md: SQL rule about the function column.
+
 10 october 2026 v764:
 - Fixed: calling an unknown function, or a function without permission, on the research ajax page gave a PHP fatal error. It now gives a clear error message.
 

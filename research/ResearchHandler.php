@@ -735,7 +735,7 @@ model_id = :model_id,
 user_prompt = :user_prompt,
 system_prompt = :system_prompt,
 response_format = :response_format,
-function = :function,
+`function` = :function,
 article_id = :article_id
 WHERE id = :id;                                                                                              ;                                                                                              
 SQL;
@@ -756,7 +756,7 @@ SQL;
       if (! $this->user->isModerator()) throw new \Exception("You have no permission to save a prompt");
 
       $SQL = <<<SQL
-INSERT INTO ai_prompts (user_id, model_id, user_prompt, system_prompt, response_format, function, article_id) 
+INSERT INTO ai_prompts (user_id, model_id, user_prompt, system_prompt, response_format, `function`, article_id) 
 VALUES (:user_id, :model_id, :user_prompt, :system_prompt, :response_format, :function, :article_id);                                                                                              ;                                                                                              
 SQL;
 
@@ -785,7 +785,7 @@ SQL;
   private function aiDeletePrompt(): array {
 
     // AI prompt with a function cannot be deleted
-    $sql = "SELECT function FROM ai_prompts WHERE id=:id;";
+    $sql = "SELECT `function` FROM ai_prompts WHERE id=:id;";
     $params = [':id' => $this->input['id']];
     $function = $this->database->fetchSingleValue($sql, $params);
     if (! empty($function)) throw new \Exception("Cannot delete an AI prompt with a function. Remove the function first.");
@@ -805,7 +805,7 @@ SELECT
 q.id, 
 q.model_id, 
 q.user_prompt, 
-COALESCE(q.function, '') AS function,  
+COALESCE(q.`function`, '') AS `function`,  
 q.system_prompt, 
 q.article_id, 
 q.response_format,

@@ -62,7 +62,7 @@ class OpenRouterAIClient {
 
     global $database;
 
-    $sql = 'SELECT model_id, system_prompt, user_prompt, response_format FROM ai_prompts WHERE function = :id';
+    $sql = 'SELECT model_id, system_prompt, user_prompt, response_format FROM ai_prompts WHERE `function` = :id';
     $params = ['id' => $promptFunction];
     $prompt = $database->fetchObject($sql, $params);
 
@@ -88,7 +88,7 @@ class OpenRouterAIClient {
     // We need some space for the questionnaires too.
     if (strlen($article->text) > 7000) $article->text = substr($article->text, 0, 7000);
 
-    $prompt = $database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE function='questionnaire_answerer';");
+    $prompt = $database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE `function`='questionnaire_answerer';");
 
     $prompt->user_prompt = replaceArticleTags($prompt->user_prompt, $article);
 

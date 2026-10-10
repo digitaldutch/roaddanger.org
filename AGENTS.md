@@ -8,6 +8,7 @@ Data is loaded with AJAX calls to `ajax*.php` files, which use a handler class (
 * PHP 8.3 or newer.
 * SQL and PHP must work on **MariaDB** (the live website runs 10.11) and on **MySQL 8**.
   `database.php` sets the session `sql_mode` and the query time limit for the database type. Keep it that way.
+* In SQL, always put the column `function` (table `ai_prompts`) between backticks. MySQL 8.4 does not accept it without.
 * No Composer and no framework. Libraries are in `scripts/`.
 * Code style: two spaces for indentation. Match the code around your change.
 
