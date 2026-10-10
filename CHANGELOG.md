@@ -1,5 +1,12 @@
 # Changelog
 
+10 october 2026 v766:
+- Security: limits on login attempts, registrations and password reset requests.
+  - After a few free tries, the visitor is blocked. The block starts at 1 minute and doubles with every next try, up to 1 hour.
+  - Applies to failed logins (per account and network, per network, per account), registrations and password reset requests.
+  - The error message says how long to wait.
+  - New table rate_limit_events (see install/createdatabase.sql). Create it on the server before uploading. Without the table nothing is limited.
+
 10 october 2026 v765:
 - Fixed: the AI prompt functions did not work on MySQL 8.4: the column function is now quoted in the SQL.
   This affects the AI prompts page, saving prompts, and the AI article analysis and answering.

@@ -1,6 +1,7 @@
 <?php
 
 require_once 'AjaxHandler.php';
+require_once __DIR__ . '/RateLimit.php';
 
 class GeneralHandler extends AjaxHandler {
 
@@ -53,7 +54,18 @@ class GeneralHandler extends AjaxHandler {
 
     $stayLoggedIn = (int)($this->input['stayLoggedIn'] ?? 0) === 1;
 
+    // Too many failed attempts for this account or from this network: do not even check the password
+    $wait = RateLimit::loginWaitSeconds($this->database, $email);
+    if ($wait > 0) {
+      http_response_code(429);
+      dieWithJSONErrorMessage('Too many login attempts. Please try again in ' . RateLimit::formatWait($wait) . '.');
+    }
+
     $this->user->login($email, $password, $stayLoggedIn);
+
+    // Unknown email addresses count too, so this cannot be used to find out which addresses are registered
+    if ($this->user->loggedIn) RateLimit::clearLoginFailures($this->database, $email);
+    else RateLimit::record($this->database, RateLimit::LOGIN_FAILED, RateLimit::subjectHash($email));
 
     return $this->user->info();
   }
@@ -73,6 +85,13 @@ class GeneralHandler extends AjaxHandler {
   private function sendPasswordResetInstructions(): array {
     $email = strtolower(trim((string)($this->input['email'] ?? '')));
     if (! filter_var($email, FILTER_VALIDATE_EMAIL)) throw new \Exception('No valid email address');
+
+    $wait = RateLimit::resetWaitSeconds($this->database);
+    if ($wait > 0) {
+      http_response_code(429);
+      dieWithJSONErrorMessage('Too many password reset requests. Please try again in ' . RateLimit::formatWait($wait) . '.');
+    }
+    RateLimit::record($this->database, RateLimit::RESET);
 
     $recoveryToken = $this->user->resetPasswordRequest($email);
 
@@ -172,6 +191,13 @@ SQL;
     return $result;
   }
   private function register(): array {
+    $wait = RateLimit::registerWaitSeconds($this->database);
+    if ($wait > 0) {
+      http_response_code(429);
+      dieWithJSONErrorMessage('Too many registrations from this network. Please try again in ' . RateLimit::formatWait($wait) . '.');
+    }
+    RateLimit::record($this->database, RateLimit::REGISTER);
+
     $this->user->register($this->input['firstname'], $this->input['lastname'],
       $this->input['email'], $this->input['password']);
 

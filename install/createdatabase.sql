@@ -280,3 +280,15 @@ create index idx_cp_crashid_mode
 
 create index idx_cp_mode_health_crashid
   on crashpersons (transportationmode, health, crashid);
+
+create table rate_limit_events
+(
+  id         int auto_increment
+    primary key,
+  kind       varchar(20)                           not null comment 'login_failed, register or reset',
+  ip         varchar(45)                           not null comment 'IPv4 address, or the /64 network of an IPv6 address',
+  subject    char(64)                              null comment 'sha256 of the email address',
+  created_at timestamp default current_timestamp() not null,
+  index rate_limit_events__kind_ip_created (kind, ip, created_at),
+  index rate_limit_events__kind_subject_created (kind, subject, created_at)
+);
