@@ -122,6 +122,24 @@ function assertHttpUrl(?string $url, string $fieldName = 'url'): void {
   }
 }
 
+/**
+ * The host name to use in links in emails.
+ * The server name comes from the Host header of the request, which a visitor can fake. So only the website domain,
+ * its subdomains (the country websites) and hosts that are listed in config_secret.php are used. Requests from the
+ * computer itself (development) are trusted too. Everything else gets the main website.
+ */
+function getTrustedHost(): string {
+  $host = strtolower($_SERVER['SERVER_NAME'] ?? '');
+
+  if ($host === WEBSITE_DOMAIN || str_ends_with($host, '.' . WEBSITE_DOMAIN)) return $host;
+
+  if (in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true)) return $host;
+
+  if (defined('TRUSTED_HOSTS') && in_array($host, TRUSTED_HOSTS, true)) return $host;
+
+  return 'www.' . WEBSITE_DOMAIN;
+}
+
 function getRandomString($length): string {
   return substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"), 0, $length);
 }

@@ -13,6 +13,10 @@ const DB_PASSWORD = 'database_password';
 
 const EMAIL_FOR_ERRORS = 'you@your_domain.com';
 
+// Links in emails (like password reset) use the website domain and its subdomains.
+// Add other hosts that serve this website, for example a test server.
+// const TRUSTED_HOSTS = ['test.your_domain.com'];
+
 // OpenRouter is used for processing several AI tasks
 const OPENROUTER_API_KEY = 'your_openrouter_api_key';
 

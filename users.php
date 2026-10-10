@@ -192,17 +192,19 @@ SQL;
   }
 
   private function deleteLoginTokenAndCookies(): void {
-    if (isset($_COOKIE['login_token'])) {
-      $token = $_COOKIE['login_token'];
+    if (isset($_COOKIE['login_token']) && isset($_COOKIE['login_id']) && isset($_COOKIE['user_id'])) {
+      // Delete the token from the database, but only when the three cookies belong together
+      $sql = "SELECT tokenhash FROM logins WHERE id=:id AND userid=:userid;";
+      $params = [':id' => $_COOKIE['login_id'], ':userid' => $_COOKIE['user_id']];
+      $tokenHash = $this->database->fetchSingleValue($sql, $params);
 
-      $tokenHash = password_hash($token, PASSWORD_DEFAULT);
-      $sql = "DELETE FROM logins WHERE tokenhash=:tokenhash;";
-      $params = ['tokenhash' => $tokenHash];
-      $this->database->execute($sql, $params);
-
-      // Delete the "remember me" cookie
-      delete_site_cookie('login_token');
+      if ($tokenHash && password_verify($_COOKIE['login_token'], $tokenHash)) {
+        $this->database->execute("DELETE FROM logins WHERE id=:id;", [':id' => $_COOKIE['login_id']]);
+      }
     }
+
+    // Delete the "remember me" cookies
+    if (isset($_COOKIE['login_token'])) delete_site_cookie('login_token');
     if (isset($_COOKIE['user_id'])) delete_site_cookie('user_id');
     if (isset($_COOKIE['login_id'])) delete_site_cookie('login_id');
   }
@@ -271,26 +273,26 @@ SQL;
     $this->clearData();
   }
 
+  /**
+   * Starts a password reset. Returns the token for the reset link, or false when there is no user with this
+   * email address, or when a reset was requested less than a minute ago for this user.
+   * The token is random and only a hash of it is stored in the database.
+   */
   public function resetPasswordRequest($email): bool|string {
-    try{
-      $sql = "SELECT 1 FROM users WHERE email=:email;";
-      $user = $this->database->fetch($sql, [':email' => $email]);
+    // One request per minute per user. This also limits the number of emails that someone can trigger.
+    $sql = <<<SQL
+SELECT 1 FROM users
+WHERE email=:email AND (passwordrecoverytime IS NULL OR passwordrecoverytime < (NOW() - INTERVAL 60 SECOND));
+SQL;
+    $user = $this->database->fetch($sql, [':email' => $email]);
+    if ($user === false) return false;
 
-      if ($user === false) throw new \Exception('Email adres onbekend') ;
+    $token = bin2hex(random_bytes(32));
 
-      $passwordRecoveryID = getRandomString(16);
+    $sql = "UPDATE users SET passwordrecoveryid=:tokenhash, passwordrecoverytime=NOW() WHERE email=:email;";
+    $this->database->execute($sql, [':tokenhash' => hash('sha256', $token), ':email' => $email]);
 
-      $sql = "UPDATE users SET passwordrecoveryid=:passwordrecoveryid, passwordrecoverytime=current_timestamp WHERE email=:email;";
-      $params = [
-        ':passwordrecoveryid' => $passwordRecoveryID,
-        ':email' => $email,
-      ];
-      $this->database->execute($sql, $params);
-
-      return $passwordRecoveryID;
-    } catch (\Exception $e){
-      return false;
-    }
+    return $token;
   }
 
   private function deleteStayLoggedInToken($tokenHash): void {
@@ -302,6 +304,9 @@ SQL;
 
     $token = bin2hex(random_bytes(64));
     $tokenHash = password_hash($token, PASSWORD_DEFAULT);
+
+    // The cookies last a year. Remove older tokens
+    $this->database->execute("DELETE FROM logins WHERE lastlogin < (NOW() - INTERVAL 365 DAY);");
 
     $sql = <<<SQL
 INSERT INTO logins 

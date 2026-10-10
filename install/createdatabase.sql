@@ -37,7 +37,7 @@ create table logins
   id        int auto_increment
     primary key,
   userid    int         null,
-  tokenhash varchar(60) null,
+  tokenhash varchar(255) null,
   lastlogin timestamp   null
 );
 
@@ -107,8 +107,8 @@ create table users
   language             char(2)                               null,
   countryid            char(2)                               null,
   registrationtime     timestamp default current_timestamp() not null,
-  passwordhash         varchar(60)                           null,
-  passwordrecoveryid   varchar(16)                           null,
+  passwordhash         varchar(255)                          null,
+  passwordrecoveryid   varchar(64)                           null comment 'sha256 hash of the password reset token',
   passwordrecoverytime timestamp                             null,
   permission           tinyint   default 0                   null comment '0=helper; 1=admin; 2=moderator',
   lastactive           timestamp default current_timestamp() not null,

@@ -314,14 +314,12 @@ async function logOut() {
 }
 
 async function loginIntern(email, password, stayLoggedIn=0) {
-  const url = "/general/ajaxGeneral.php?function=login" +
-    "&email="        + encodeURIComponent(email) +
-    "&password="     + encodeURIComponent(password) +
-    "&stayLoggedIn=" + stayLoggedIn;
+  const url = "/general/ajaxGeneral.php?function=login";
 
   document.getElementById('loginError').style.display = "none";
 
-  const user = await fetchFromServer(url);
+  // The credentials are sent in the request body, not in the url. Urls end up in server logs and in the browser history.
+  const user = await fetchFromServer(url, {email: email, password: password, stayLoggedIn: stayLoggedIn});
   if (user.error) showLoginError(user.error);
   else {
     if (! user.emailexists) showLoginError(translate('Email_adres_unknown'));
@@ -529,8 +527,8 @@ function loginForgotPassword() {
 }
 
 async function sendResetPasswordInstructions(email) {
-  const url = '/general/ajaxGeneral.php?function=sendPasswordResetInstructions&email=' + encodeURIComponent(email);
-  const response = await fetchFromServer(url);
+  const url = '/general/ajaxGeneral.php?function=sendPasswordResetInstructions';
+  const response = await fetchFromServer(url, {email: email});
 
   if (response.error) showError(response.error);
   else if (response.ok) {

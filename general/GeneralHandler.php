@@ -46,11 +46,12 @@ class GeneralHandler extends AjaxHandler {
   }
 
   private function login(): array {
-    if (! isset($_REQUEST['email']) || ! isset($_REQUEST['password'])) dieWithJSONErrorMessage('Invalid AJAX login call.');
+    // Credentials are sent in the request body. The url is only a fallback for scripts that are cached in a browser.
+    $email    = $this->input['email']    ?? $_REQUEST['email']    ?? null;
+    $password = $this->input['password'] ?? $_REQUEST['password'] ?? null;
+    if (! is_string($email) || ! is_string($password)) dieWithJSONErrorMessage('Invalid AJAX login call.');
 
-    $email = $_REQUEST['email'];
-    $password = $_REQUEST['password'];
-    $stayLoggedIn = (int)getRequest('stayLoggedIn', 0) === 1;
+    $stayLoggedIn = (int)($this->input['stayLoggedIn'] ?? getRequest('stayLoggedIn', 0)) === 1;
 
     $this->user->login($email, $password, $stayLoggedIn);
 
@@ -64,34 +65,43 @@ class GeneralHandler extends AjaxHandler {
   }
 
   /**
-   * @throws \PHPMailer\PHPMailer\Exception
+   * The answer is always the same, whether or not the email address belongs to a user.
+   * Otherwise this form can be used to find out which email addresses are registered.
+   *
    * @throws Exception
    */
   private function sendPasswordResetInstructions(): array {
-    if (! isset($_REQUEST['email'])) throw new \Exception('No email adres');
-    $email = trim($_REQUEST['email']);
+    $email = strtolower(trim((string)($this->input['email'] ?? $_REQUEST['email'] ?? '')));
+    if (! filter_var($email, FILTER_VALIDATE_EMAIL)) throw new \Exception('No valid email address');
 
-    $recoveryID = $this->user->resetPasswordRequest($email);
-    if (! $recoveryID) throw new \Exception('Interne fout: Kan geen recoveryID aanmaken');
+    $recoveryToken = $this->user->resetPasswordRequest($email);
 
-    $domain = $_SERVER['SERVER_NAME'];
-    $subject = $domain . ' wachtwoord resetten';
-    $server = $_SERVER['SERVER_NAME'];
-    $emailEncoded = urlencode($email);
-    $recoveryIDEncoded = urlencode($recoveryID);
-    $body = <<<HTML
+    if ($recoveryToken) {
+      // The host comes from the website configuration, not from the request: the Host header can be faked
+      $host = getTrustedHost();
+      $subject = $host . ' password reset';
+      $emailEncoded = urlencode($email);
+      $tokenEncoded = urlencode($recoveryToken);
+      $body = <<<HTML
 <p>Hi,</p>
 
-<p>We received a request to reset the password for $email. To reset your password, click the link below:</p>
+<p>We received a request to reset the password for $email. To reset your password, click the link below.
+The link is valid for one hour:</p>
 
-<p><a href="https://$server/account/resetpassword?email=$emailEncoded&recoveryid=$recoveryIDEncoded">Wachtwoord resetten</a></p>
+<p><a href="https://$host/account/resetpassword?email=$emailEncoded&recoveryid=$tokenEncoded">Reset password</a></p>
+
+<p>If you did not ask for this, you can ignore this email.</p>
 
 <p>Greetings,<br>
-$domain</p>
+$host</p>
 HTML;
 
-    if (! sendEmail($email, $subject, $body)) {
-      throw new \Exception('Interne server fout: Kan email niet verzenden.');
+      try {
+        sendEmail($email, $subject, $body);
+      } catch (\Throwable $e) {
+        // Do not tell the visitor: that would show that the address is registered
+        error_log('Password reset email failed: ' . $e->getMessage());
+      }
     }
 
     return [];
@@ -101,32 +111,38 @@ HTML;
    * @throws Exception
    */
   private function saveNewPassword(): array {
-    if (! isset($_REQUEST['password'])) throw new \Exception('Geen password opgegeven');
-    if (! isset($_REQUEST['recoveryid'])) throw new \Exception('Geen recoveryid opgegeven');
-    if (! isset($_REQUEST['email'])) throw new \Exception('Geen email opgegeven');
+    $password   = (string)($this->input['password']   ?? $_REQUEST['password']   ?? '');
+    $recoveryId = (string)($this->input['recoveryid'] ?? $_REQUEST['recoveryid'] ?? '');
+    $email      = (string)($this->input['email']      ?? $_REQUEST['email']      ?? '');
 
-    $password = $_REQUEST['password'];
-    $recoveryId = $_REQUEST['recoveryid'];
-    $email = $_REQUEST['email'];
+    if ($password === '')         throw new \Exception('Geen password opgegeven');
+    if (strlen($password) < 6)    throw new \Exception('Wachtwoord moet minimaal 6 karakters lang zijn');
+    if ($recoveryId === '')       throw new \Exception('Geen recoveryid opgegeven');
+    if ($email === '')            throw new \Exception('Geen email opgegeven');
 
-    $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+    // The token can be used once, within an hour. Only a hash of it is stored.
     $sql = <<<SQL
-UPDATE users SET 
+UPDATE users SET
 passwordhash=:passwordhash,
 passwordrecoveryid = null
-WHERE email=:email 
-AND passwordrecoveryid=:passwordrecoveryid;
+WHERE email=:email
+AND passwordrecoveryid=:tokenhash
+AND passwordrecoverytime > (NOW() - INTERVAL 1 HOUR);
 SQL;
 
     $params = [
-      ':passwordhash'       => $passwordHash,
-      ':email'              => $email,
-      ':passwordrecoveryid' => $recoveryId,
+      ':passwordhash' => password_hash($password, PASSWORD_DEFAULT),
+      ':email'        => $email,
+      ':tokenhash'    => hash('sha256', $recoveryId),
     ];
 
     if (! $this->database->execute($sql, $params, true) || ($this->database->rowCount !== 1)) {
       throw new \Exception('Wachtwoord link is verlopen of email is onbekend');
     }
+
+    // A new password also ends all "stay logged in" logins on other devices
+    $sql = "DELETE FROM logins WHERE userid=(SELECT id FROM users WHERE email=:email);";
+    $this->database->execute($sql, [':email' => $email]);
 
     return [];
   }

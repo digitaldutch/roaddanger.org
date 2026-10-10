@@ -1,5 +1,14 @@
 # Changelog
 
+10 october 2026 v760:
+- Security: password reset and "stay logged in" are handled more carefully.
+- Security: login and password reset data are no longer sent in the url.
+- Database change. Run this before uploading this version:
+  - ALTER TABLE users MODIFY passwordhash varchar(255) NULL, MODIFY passwordrecoveryid varchar(64) NULL;
+  - ALTER TABLE logins MODIFY tokenhash varchar(255) NULL;
+- The password reset email is now in English.
+- config_secret.example.php: new optional TRUSTED_HOSTS setting for other hosts, like a test server.
+
 10 october 2026 v759:
 - Security: text, names and links from users are now shown more carefully on several pages.
 - Security: links entered by users must be http or https links.

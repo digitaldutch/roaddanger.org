@@ -72,12 +72,9 @@ async function saveNewPassword() {
   if (! password) {showError(translate('No_password_filled_in')); return;}
   if (password.length < 6){showError(translate('Password_less_than_6_characters')); return;}
 
-  const url = '/general/ajaxGeneral.php?function=saveNewPassword' +
-    '&email=' + encodeURIComponent(email) +
-    '&recoveryid=' + encodeURIComponent(recoveryId) +
-    '&password=' + encodeURIComponent(password);
-
-  const response = await fetchFromServer(url);
+  // The new password and the token are sent in the request body, not in the url
+  const url = '/general/ajaxGeneral.php?function=saveNewPassword';
+  const response = await fetchFromServer(url, {email: email, recoveryid: recoveryId, password: password});
   if (response.error) showError(response.error);
   else if (response.ok) document.getElementById('main').innerHTML = `<div style="text-align: center;">${translate('Password_changed_successfully')}</div>`;
   else showError('Internal error saving password');
