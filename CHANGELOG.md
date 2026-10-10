@@ -1,5 +1,9 @@
 # Changelog
 
+10 october 2026 v752:
+- New AGENTS.md with instructions for AI coding agents.
+- Private folder test renamed to scratch (not in git).
+
 9 october 2026 v751:
 - Installation: install/init_database.php now ends with a message that you can open the website and log in.
 
