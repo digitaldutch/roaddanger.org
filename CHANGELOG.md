@@ -1,5 +1,8 @@
 # Changelog
 
+10 october 2026 v753:
+- cache folder added to .gitignore.
+
 10 october 2026 v752:
 - New AGENTS.md with instructions for AI coding agents.
 - Private folder test renamed to scratch (not in git).
