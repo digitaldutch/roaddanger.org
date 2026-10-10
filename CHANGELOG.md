@@ -1,5 +1,9 @@
 # Changelog
 
+10 october 2026 v768:
+- Security: a visitor gets a new session id when logging in (with a password or with the remember me cookie).
+  A session id that someone else planted before the login can no longer be used afterwards.
+
 10 october 2026 v767:
 - Security: the server now sends security headers with every page and ajax response.
   - Other websites cannot show this website in a frame. Browsers do not guess file types. Fewer details go to other websites in the referrer.

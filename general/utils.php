@@ -481,8 +481,9 @@ function globalShutdownHandler (): void {
   }
 }
 
-function writeSessionAndClose(string $id, $value): void {
+function writeSessionAndClose(string $id, $value, bool $newSessionId=false): void {
   if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+  if ($newSessionId) session_regenerate_id(true);
   $_SESSION[$id] = $value;
   session_write_close();
 }

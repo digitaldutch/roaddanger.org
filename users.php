@@ -102,7 +102,11 @@ class User {
     }
   }
 
-  private function loadUserFromDBIntern($id='', $email='', $password=''): void {
+  /**
+   * @param bool $newSession True when the visitor logs in now (password or login token). The session id is then
+   *                         replaced, so a session id that someone planted before the login cannot be used afterwards.
+   */
+  private function loadUserFromDBIntern($id='', $email='', $password='', bool $newSession=false): void {
     $this->clearData();
 
     if ($id !== '') {
@@ -163,7 +167,7 @@ SQL;
       $params = [':id' => $this->id];
       $this->database->execute($sql, $params);
 
-      writeSessionAndClose('user_id', $this->id);
+      writeSessionAndClose('user_id', $this->id, $newSession);
     }
   }
 
@@ -182,7 +186,7 @@ SQL;
 
     if ($tokenHash) {
       if (password_verify($loginToken, $tokenHash)){
-        $this->loadUserFromDBIntern($userId);
+        $this->loadUserFromDBIntern($userId, newSession: true);
 
         $this->updateStayLoggedInToken();
       } else {
@@ -211,7 +215,7 @@ SQL;
 
 
   private function loadUserFromDB($email, $password): void {
-    $this->loadUserFromDBIntern('', $email, $password);
+    $this->loadUserFromDBIntern('', $email, $password, true);
   }
 
   private function loadTranslations(): void {
