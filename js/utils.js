@@ -322,8 +322,8 @@ async function loginIntern(email, password, stayLoggedIn=0) {
   const user = await fetchFromServer(url, {email: email, password: password, stayLoggedIn: stayLoggedIn});
   if (user.error) showLoginError(user.error);
   else {
-    if (! user.emailexists) showLoginError(translate('Email_adres_unknown'));
-    else if (! user.loggedin) showLoginError(translate('Password_incorrect'));
+    // One message for an unknown email address and a wrong password: the server does not tell which addresses are registered
+    if (! user.loggedin) showLoginError(translate('Password_incorrect'));
     return user;
   }
 }

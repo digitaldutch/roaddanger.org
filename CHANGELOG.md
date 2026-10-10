@@ -1,5 +1,10 @@
 # Changelog
 
+11 october 2026 v773:
+- Security: the login no longer shows whether an email address is registered.
+  - The server does not send emailexists anymore. The login form shows "Password incorrect" for an unknown email address and for a wrong password.
+  - A login with an unknown email address takes as long as one with a wrong password.
+
 11 october 2026 v772:
 - Security: changing your password on the profile page now ends the "stay logged in" logins on all other devices. The login of this browser stays.
 

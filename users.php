@@ -16,7 +16,6 @@ class User {
   public string $firstName;
   public string $lastName;
   public string $email;
-  public bool $emailExists = false;
   public ?string $languageId;
   public ?string $countryId;
   public array $translations;
@@ -61,7 +60,6 @@ class User {
     $this->countryId = null;
     $this->languageId = null;
     $this->translations = [];
-    $this->emailExists = false;
     $this->admin = false;
     $this->permission = UserPermission::newuser;
   }
@@ -142,9 +140,13 @@ SQL;
     }
 
     $user = $this->database->fetch($sql, $params);
-    if ($user) {
-      $this->emailExists = true;
+    if (! $user && ($id === '') && ($password !== '')) {
+      // Unknown email address: check the password against a dummy hash anyway. Without this, the answer comes faster
+      // than for a known address, which would show which addresses are registered.
+      password_verify($password, '$2y$12$1se1CzktVf5k6TEImZS/2uJmbuKEr5MdwwhWpMjR1.kPPDI4xWWP2');
+    }
 
+    if ($user) {
       // A user loaded by id is already authenticated (session or login token). Only internal code does that.
       // A login by email always needs a password. An empty password is never accepted.
       $authenticated = ($id !== '') ||
@@ -470,7 +472,6 @@ SQL;
         'countryid'    => $this->countryId,
         'language'     => $this->languageId,
         'translations' => $this->translations,
-        'emailexists'  => $this->emailExists,
         'admin'        => $this->admin,
         'moderator'    => $this->isModerator(),
         'permission'   => $this->permission->value,
@@ -480,7 +481,6 @@ SQL;
       'countryid'    => $this->countryId,
       'language'     => $this->languageId,
       'translations' => $this->translations,
-      'emailexists'  => $this->emailExists,
     ];
     return $info;
   }
