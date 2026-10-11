@@ -543,6 +543,15 @@ SQL;
   }
 
   private function getArticleWebpageMetaData(): array {
+    // Every visitor can add an article, but fetching a web page costs time and bandwidth. Moderators are not limited.
+    if (! $this->user->isModerator()) {
+      $wait = RateLimit::fetchWaitSeconds($this->database);
+      if ($wait > 0) {
+        http_response_code(429);
+        dieWithJSONErrorMessage(RateLimit::fetchWaitMessage($wait));
+      }
+      RateLimit::record($this->database, RateLimit::FETCH);
+    }
 
     $url = trim((string)($this->input['url'] ?? ''));
     $newArticle = $this->input['newArticle'] ?? false;

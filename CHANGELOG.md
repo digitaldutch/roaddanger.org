@@ -1,5 +1,10 @@
 # Changelog
 
+11 october 2026 v774:
+- Security: fetching a web page for the add article form is limited for visitors who are not moderators.
+  - 60 free requests per hour per network, and 1000 per day for everybody. After that the block starts at 1 minute and doubles.
+  - No database change: the table rate_limit_events from v766 is used.
+
 11 october 2026 v773:
 - Security: the login no longer shows whether an email address is registered.
   - The server does not send emailexists anymore. The login form shows "Password incorrect" for an unknown email address and for a wrong password.

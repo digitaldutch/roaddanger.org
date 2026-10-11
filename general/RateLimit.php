@@ -12,6 +12,7 @@ class RateLimit {
   public const REGISTER     = 'register';
   public const RESET        = 'reset';
   public const AI           = 'ai';
+  public const FETCH        = 'fetch';
 
   /**
    * Every limit works the same way: some events are free, after that the visitor is blocked. The block starts at
@@ -55,6 +56,14 @@ class RateLimit {
    */
   private const AI_FREE_PER_IP  = 60;
   private const AI_FREE_PER_DAY = 300;
+
+  /**
+   * Fetching a web page for the add article form. The server downloads the page, sometimes with a headless browser,
+   * which costs time and bandwidth. 60 free per hour per network, the same as AI requests, and 1000 per day for all
+   * these visitors together, so the server cannot be used to load websites on a large scale.
+   */
+  private const FETCH_FREE_PER_IP  = 60;
+  private const FETCH_FREE_PER_DAY = 1000;
 
   /**
    * The network of the visitor. IPv6 addresses are cut to their /64 network: one visitor has a whole network of
@@ -170,5 +179,18 @@ class RateLimit {
   /** The message for a visitor who has to wait before the next AI request. */
   public static function aiWaitMessage(int $seconds): string {
     return 'Too many AI requests. Please try again in ' . self::formatWait($seconds) . '.';
+  }
+
+  /** Seconds a visitor has to wait before the next web page fetch is allowed. 0 if allowed. */
+  public static function fetchWaitSeconds(Database $database): int {
+    return max(
+      self::waitSeconds($database, self::FETCH, self::clientIP(), null, self::FETCH_FREE_PER_IP,  self::HOUR),
+      self::waitSeconds($database, self::FETCH, null,            null, self::FETCH_FREE_PER_DAY, self::DAY),
+    );
+  }
+
+  /** The message for a visitor who has to wait before the next web page fetch. */
+  public static function fetchWaitMessage(int $seconds): string {
+    return 'Too many web page requests. Please try again in ' . self::formatWait($seconds) . '.';
   }
 }
