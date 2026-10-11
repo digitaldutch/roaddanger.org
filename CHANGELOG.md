@@ -1,5 +1,11 @@
 # Changelog
 
+11 october 2026 v779:
+- New transportation mode icons, all in one style: straight lines and hard corners.
+  The old cars looked too friendly for a website about crashes. The car has a higher bonnet and a sharp nose, the taxi a roof sign,
+  the truck is clearly bigger than the van. The bus, tram, train, tractor, pedestrian, bicycle, scooters, wheelchair and moped car follow the same style.
+- The one-sided crash icon, its filter button and the unknown icon are redrawn in the same style. The one-sided icon no longer depends on a font.
+
 11 october 2026 v778:
 - AGENTS.md: security rules (escaping, inline event handlers, credentials in the request body, rate limits).
 

@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="witte_lijnicoontjes" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
   <defs>
     <style>
       .cls-1 {
         fill: none;
         stroke: #000;
-        stroke-linecap: round;
-        stroke-linejoin: round;
+        stroke-linecap: square;
+        stroke-linejoin: miter;
         stroke-width: 2px;
       }
     </style>
   </defs>
-  <circle class="cls-1" cx="38.03" cy="34.18" r="4.41"/>
-  <circle class="cls-1" cx="11.24" cy="34.18" r="4.41"/>
-  <line class="cls-1" x1="33.41" y1="34.33" x2="16.21" y2="34.33"/>
-  <path class="cls-1" d="M43.33,34.33h5.62s0-2.14,0-2.14c0-3.59-2.36-6.75-5.8-7.77l-2.65-.79c-1.93-.57-3.57-1.84-4.62-3.56l-2.17-3.57c-1.47-2.42-4.1-3.89-6.93-3.89h-9.45c-2.83,0-5.46,1.48-6.93,3.89l-2.8,4.6c-.66,1.08-1.56,1.99-2.63,2.66h0c-2.37,1.48-3.81,4.08-3.81,6.88v3.69h5.62"/>
-  <line class="cls-1" x1="7.55" y1="22.59" x2="37.83" y2="22.59"/>
-  <line class="cls-1" x1="19.14" y1="13.09" x2="19.14" y2="22.11"/>
+  <circle class="cls-1" cx="12" cy="35" r="5"/>
+  <circle class="cls-1" cx="38" cy="35" r="5"/>
+  <path class="cls-1" d="M7,35H3V25L6.5,22L11,15H31L37,23H45L48,26V35H43"/>
+  <line class="cls-1" x1="17" y1="35" x2="33" y2="35"/>
+  <line class="cls-1" x1="11" y1="23" x2="37" y2="23"/>
+  <line class="cls-1" x1="22" y1="15.5" x2="22" y2="23"/>
+  <line class="cls-1" x1="48" y1="28" x2="43" y2="30"/>
 </svg>

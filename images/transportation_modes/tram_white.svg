@@ -1,27 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="witte_lijnicoontjes" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
   <defs>
     <style>
       .cls-1 {
         fill: none;
         stroke: #fff;
-        stroke-linecap: round;
-        stroke-linejoin: round;
+        stroke-linecap: square;
+        stroke-linejoin: miter;
         stroke-width: 2px;
       }
     </style>
   </defs>
-  <path class="cls-1" d="M10.06,34.64c.16.35.24.74.24,1.14,0,1.55-1.26,2.81-2.81,2.81s-2.81-1.26-2.81-2.81"/>
-  <path class="cls-1" d="M4.68,35.78c0-.38.07-.73.21-1.06"/>
-  <path class="cls-1" d="M45.04,34.54c.18.37.29.79.29,1.24,0,1.55-1.26,2.81-2.81,2.81s-2.81-1.26-2.81-2.81"/>
-  <path class="cls-1" d="M39.71,35.78c0-.39.08-.76.22-1.09"/>
-  <path class="cls-1" d="M48.68,34.45v-7.64c0-.87-1.61-8.67-1.61-8.67-.31-1.31-1.02-2.27-2.27-2.27h-3.14c.15,0-33.06,0-33.06,0h-3.14c-1.25,0-1.95.96-2.27,2.27,0,0-1.61,7.8-1.61,8.67v7.64s47.1,0,47.1,0Z"/>
-  <line class="cls-1" x1="1.58" y1="26.81" x2="48.29" y2="26.81"/>
-  <line class="cls-1" x1="30.39" y1="26.14" x2="30.39" y2="16.1"/>
-  <line class="cls-1" x1="21.01" y1="26.14" x2="21.01" y2="16.1"/>
-  <line class="cls-1" x1="11.89" y1="26.14" x2="11.89" y2="16.1"/>
-  <line class="cls-1" x1="30.13" y1="26.14" x2="30.13" y2="16.1"/>
-  <line class="cls-1" x1="39.25" y1="26.14" x2="39.25" y2="16.1"/>
-  <polygon class="cls-1" points="12.13 13.56 8.29 10.73 12.13 7.89 15.97 10.73 12.13 13.56"/>
-  <polygon class="cls-1" points="39.15 13.56 35.32 10.73 39.15 7.89 42.99 10.73 39.15 13.56"/>
+  <circle class="cls-1" cx="8" cy="37" r="3.5"/>
+  <circle class="cls-1" cx="42" cy="37" r="3.5"/>
+  <path class="cls-1" d="M4.5,37H2V15H48V37H45.5"/>
+  <line class="cls-1" x1="11.5" y1="37" x2="38.5" y2="37"/>
+  <line class="cls-1" x1="2" y1="27" x2="48" y2="27"/>
+  <line class="cls-1" x1="11" y1="16" x2="11" y2="27"/>
+  <line class="cls-1" x1="20" y1="16" x2="20" y2="27"/>
+  <line class="cls-1" x1="30" y1="16" x2="30" y2="27"/>
+  <line class="cls-1" x1="39" y1="16" x2="39" y2="27"/>
+  <polygon class="cls-1" points="12 13.5 8.5 10.5 12 7.5 15.5 10.5"/>
+  <polygon class="cls-1" points="38 13.5 34.5 10.5 38 7.5 41.5 10.5"/>
 </svg>

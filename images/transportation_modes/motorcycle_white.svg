@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="witte_lijnicoontjes" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
   <defs>
     <style>
       .cls-1 {
         fill: none;
         stroke: #fff;
-        stroke-linecap: round;
-        stroke-linejoin: round;
+        stroke-linecap: square;
+        stroke-linejoin: miter;
         stroke-width: 2px;
       }
     </style>
   </defs>
-  <circle class="cls-1" cx="41.6" cy="31.63" r="6.96"/>
-  <circle class="cls-1" cx="8.31" cy="31.63" r="6.96"/>
-  <line class="cls-1" x1="8.15" y1="31.84" x2="11.73" y2="25.77"/>
-  <polyline class="cls-1" points="41.51 31.58 30.22 12.05 27.19 12.05"/>
-  <path class="cls-1" d="M36.55,23.53h-13.32c-1.35,0-2.45-1.1-2.45-2.45h0c0-1.35,1.1-2.45,2.45-2.45h10.38l2.94,4.9Z"/>
-  <path class="cls-1" d="M33.42,26.09s-1.81.96-1.81,6.98h-8.55l-1.93-6.62h-4.57"/>
-  <path class="cls-1" d="M17.55,19.94h-7.12c-1.24,0-2.25,1.01-2.25,2.25v1.79"/>
-  <line class="cls-1" x1="28.34" y1="27.17" x2="28.34" y2="30.17"/>
+  <circle class="cls-1" cx="9" cy="33" r="6.5"/>
+  <circle class="cls-1" cx="41" cy="33" r="6.5"/>
+  <path class="cls-1" d="M41,33L31,13H27"/>
+  <path class="cls-1" d="M23,19H34L37,24H23Z"/>
+  <path class="cls-1" d="M23,20H16L10,21L8,25"/>
+  <path class="cls-1" d="M9,33L13,25"/>
+  <path class="cls-1" d="M31,24L29,32H21L18,26H13"/>
+  <line class="cls-1" x1="26" y1="27" x2="26" y2="30"/>
 </svg>
