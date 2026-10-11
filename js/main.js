@@ -1735,7 +1735,7 @@ async function showQuestionsForm(crashId, articleId) {
       const yesChecked = question.answer === 1? 'checked' : '';
       const noChecked = question.answer === 0? 'checked' : '';
       const ndChecked = question.answer === 2? 'checked' : '';
-      const tooltip = question.explanation? `<span class="iconTooltip" data-tippy-content="${escapeHtml(question.explanation)}"></span>` : '';
+      const tooltip = question.explanation? `<span class="iconTooltip" data-tippy-content="${escapeHtml(escapeHtml(question.explanation))}"></span>` : '';
       const answerJustification = question.answerJustification? escapeHtml(question.answerJustification) : '';
       const answeredWithAI = question.answered_by_type === Answered_by_type.ai? getHtmlAIIcon(question.ai_info) : '';
 
@@ -2060,7 +2060,7 @@ async function getArticleMetaData() {
 
   const domain = domainBlacklisted(urlArticle);
   if (domain) {
-    showMessage(`Links from "${domain.domain}" can not be added. ${domain.reason}`, 30);
+    showMessage(`Links from "${escapeHtml(domain.domain)}" can not be added. ${escapeHtml(domain.reason)}`, 30);
     return
   }
 
@@ -2356,7 +2356,7 @@ function deleteArticle(id) {
   closeAllPopups();
   const article = getArticleFromId(id);
 
-  confirmWarning(translate('Delete_article') + '<br>' + article.title.substr(0, 100),
+  confirmWarning(translate('Delete_article') + '<br>' + escapeHtml(article.title.substr(0, 100)),
     function (){deleteArticleDirect(id)},
     translate('Delete'), null, true);
 }

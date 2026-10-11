@@ -1,5 +1,11 @@
 # Changelog
 
+11 october 2026 v776:
+- Security: final check for cross-site scripting (XSS). All places that show text from users are escaped now.
+  - The title of an article was shown unescaped in the "delete article" question. A moderator could be attacked with a crafted title.
+  - Also escaped: the reason of a blocked website, prompt and model names and question texts on the research pages, tooltips of questions, and the email address in the password reset email.
+  - No other problems found in the pages, the url parameters and the reframe tools.
+
 11 october 2026 v775:
 - Account page redesigned: a profile card and a separate change password card. It also shows a log in button when you are not logged in.
 - Security: changing your email address or password needs your current password.

@@ -344,7 +344,7 @@ function getHtmlRowAITask(task) {
 <td>${task_status_to_text(task.task_status)}<button class="buttonTiny">Delete</button></td>
 <td>${htmlCreatedAt}</td>
 <td>${htmlProcessedAt}</td>
-<td class="td200">${task.ai_model?? ''}</td>
+<td class="td200">${escapeHtml(task.ai_model?? '')}</td>
 <td class="">${task.article_id} ${escapeHtml(task.article_title)}</td>
 <td class="td200">${task.questionnaire_id} ${escapeHtml(task.questionnaire_title)}</td>
 <td>${escapeHtml(task.info)}</td>
@@ -666,7 +666,7 @@ async function loadQuestionnaireResults() {
 
         htmlTableHead = '<tr><th style="text-align: left;">Question</th><th>Yes</th><th>No</th><th>n.d.</th></tr>';
         for (const question of questionnaire.questions) {
-          htmlTableBody += `<tr data-question-id="${question.question_id}"><td>${question.question_id} ${question.question}<td style="text-align: right;">${question.yes}</td><td style="text-align: right;">${question.no}</td><td style="text-align: right;">${question.not_determinable}</td></tr>`;
+          htmlTableBody += `<tr data-question-id="${question.question_id}"><td>${question.question_id} ${escapeHtml(question.question)}<td style="text-align: right;">${question.yes}</td><td style="text-align: right;">${question.no}</td><td style="text-align: right;">${question.not_determinable}</td></tr>`;
         }
 
       } else if (questionnaire.type === QuestionnaireType.bechdel) {
@@ -910,7 +910,7 @@ function getHtmlTableBodyAiModels() {
 function getHtmlTableBodyAiPrompts() {
   let htmlQueries = '';
   for (const prompt of tableData[1]) {
-    htmlQueries += `<tr id="tr1_${prompt.id}"><td>${prompt.id}</td><td>${prompt.model_id}</td><td>${prompt.user}</td><td>${prompt.function}</td>` +
+    htmlQueries += `<tr id="tr1_${prompt.id}"><td>${prompt.id}</td><td>${escapeHtml(prompt.model_id)}</td><td>${escapeHtml(prompt.user)}</td><td>${escapeHtml(prompt.function)}</td>` +
       `<td>${escapeHtml(truncateText(prompt.user_prompt, 30))}</td><td>${escapeHtml(truncateText(prompt.system_prompt, 30))}</td>` +
       `<td>${escapeHtml(truncateText(prompt.response_format, 30))}</td><td>${prompt.article_id??''}</td></tr>`;
   }
@@ -1035,7 +1035,7 @@ async function deleteAiPrompt() {
     return;
   }
 
-  confirmWarning(`Delete prompt?<br>Id: ${prompt.id}<br>Prompt: ${truncateText(prompt.user_prompt, 100)}`,
+  confirmWarning(`Delete prompt?<br>Id: ${prompt.id}<br>Prompt: ${escapeHtml(truncateText(prompt.user_prompt, 100))}`,
     async () => {
       let response
       const spinner = document.getElementById('spinnerLoadQueries');

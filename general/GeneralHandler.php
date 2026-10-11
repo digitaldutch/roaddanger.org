@@ -101,11 +101,12 @@ class GeneralHandler extends AjaxHandler {
       $host = getTrustedHost();
       $subject = $host . ' password reset';
       $emailEncoded = urlencode($email);
+      $emailHtml = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
       $tokenEncoded = urlencode($recoveryToken);
       $body = <<<HTML
 <p>Hi,</p>
 
-<p>We received a request to reset the password for $email. To reset your password, click the link below.
+<p>We received a request to reset the password for $emailHtml. To reset your password, click the link below.
 The link is valid for one hour:</p>
 
 <p><a href="https://$host/account/resetpassword?email=$emailEncoded&recoveryid=$tokenEncoded">Reset password</a></p>
