@@ -16,6 +16,7 @@ class GeneralHandler extends AjaxHandler {
         'sendPasswordResetInstructions' => $this->sendPasswordResetInstructions(),
         'saveNewPassword' => $this->saveNewPassword(),
         'saveUser' => $this->saveUser(),
+        'changePassword' => $this->changePassword(),
         'extractDataFromArticle' => $this->extractDataFromArticle(),
         'answerQuestionnairesForArticleWithAI' => $this->answerQuestionnairesForArticleWithAI(),
         'loadCountryMapOptions' => $this->loadCountryMapOptions(),
@@ -172,10 +173,53 @@ SQL;
   private function saveUser(): array {
     $newUser = $this->input;
 
+    // A new email address needs the current password. Without it, someone who gets into a logged in session
+    // (a shared computer, a stolen cookie) could lock the owner out of the account for good.
+    if ($this->user->loggedIn && $this->user->isEmailChanged($newUser)) {
+      $this->checkCurrentPassword((string)($newUser['currentPassword'] ?? ''));
+    }
+
     $this->user->save($newUser);
 
     return [];
   }
+
+  /**
+   * @throws Exception
+   */
+  private function changePassword(): array {
+    if (! $this->user->loggedIn) throw new \Exception('You are not logged in');
+
+    $this->checkCurrentPassword((string)($this->input['currentPassword'] ?? ''));
+
+    $this->user->changePassword((string)($this->input['password'] ?? ''), (string)($this->input['passwordConfirm'] ?? ''));
+
+    return [];
+  }
+
+  /**
+   * Stops the request when the current password is not correct. Wrong guesses count as failed logins, so a form that
+   * asks for the current password cannot be used to guess the password.
+   *
+   * @throws Exception
+   */
+  private function checkCurrentPassword(string $currentPassword): void {
+    $wait = RateLimit::loginWaitSeconds($this->database, $this->user->email);
+    if ($wait > 0) {
+      http_response_code(429);
+      dieWithJSONErrorMessage('Too many login attempts. Please try again in ' . RateLimit::formatWait($wait) . '.');
+    }
+
+    if ($currentPassword === '') throw new \Exception('Fill in your current password');
+
+    if (! $this->user->checkPassword($currentPassword)) {
+      RateLimit::record($this->database, RateLimit::LOGIN_FAILED, RateLimit::subjectHash($this->user->email));
+      throw new \Exception('Current password is incorrect');
+    }
+
+    RateLimit::clearLoginFailures($this->database, $this->user->email);
+  }
+
   private function loadUserData(): array {
     $this->user->getTranslations();
 

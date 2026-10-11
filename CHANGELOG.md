@@ -1,5 +1,13 @@
 # Changelog
 
+11 october 2026 v775:
+- Account page redesigned: a profile card and a separate change password card. It also shows a log in button when you are not logged in.
+- Security: changing your email address or password needs your current password.
+  - The current password field for the email address only appears when you change the email address.
+  - Wrong guesses count as failed logins, so these fields cannot be used to guess the password.
+  - Changing the password has its own server function (changePassword). The profile function no longer accepts a password.
+  - New texts profile, change_password, current_password and current_password_info, in English, German, Spanish, French and Dutch. Add them to the languages table before uploading. They are in install/init_data.sql for new websites.
+
 11 october 2026 v774:
 - Security: fetching a web page for the add article form is limited for visitors who are not moderators.
   - 60 free requests per hour per network, and 1000 per day for everybody. After that the block starts at 1 minute and doubles.

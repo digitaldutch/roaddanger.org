@@ -366,6 +366,25 @@ SQL;
   }
 
   /**
+   * True when the profile has a new email address. That needs the current password.
+   * Changing the name or the language does not.
+   */
+  public function isEmailChanged(array $newUser): bool {
+    return strtolower(trim((string)($newUser['email'] ?? ''))) !== strtolower($this->email);
+  }
+
+  /**
+   * Checks the password of the logged in user.
+   */
+  public function checkPassword(string $password): bool {
+    if (! $this->loggedIn || $password === '') return false;
+
+    $passwordHash = $this->database->fetchSingleValue('SELECT passwordhash FROM users WHERE id=:id', [':id' => $this->id]);
+
+    return is_string($passwordHash) && password_verify($password, $passwordHash);
+  }
+
+  /**
    * @throws Exception
    */
   public function save($newUser): void {
@@ -376,9 +395,8 @@ SQL;
     $lastName  = (string)($newUser['lastName'] ?? '');
     $email     = (string)($newUser['email'] ?? '');
     $language  = (string)($newUser['language'] ?? '');
-    $password  = (string)($newUser['password'] ?? '');
 
-    // Check everything first. Nothing is saved when something is wrong, so a rejected password cannot leave a half saved profile.
+    // Check everything first. Nothing is saved when something is wrong.
     if ($firstName === '')              throw new \Exception('First name is not filled in');
     if ($lastName === '')               throw new \Exception('Last name is not filled in');
     if (strlen($firstName) > 100)       throw new \Exception('First name is too long (> 100)');
@@ -396,16 +414,7 @@ SQL;
       if ($this->database->fetchSingleValue($sql, [':id' => $language]) == 0) throw new \Exception('Invalid language');
     }
 
-    $passwordHash = null;
-    if ($password !== '') {
-      if (strlen($password) < 6) throw new \Exception('Password must be at least 6 characters long');
-      if ($password !== ($newUser['passwordConfirm'] ?? null)) throw new \Exception('Password confirmation is not the same as the password');
-
-      $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-    }
-
-    // One statement: the profile and the password are saved together or not at all
-    $sql = 'UPDATE users SET firstname=:firstName, lastname=:lastName, email=:email, language=:language';
+    $sql = 'UPDATE users SET firstname=:firstName, lastname=:lastName, email=:email, language=:language WHERE id=:id';
     $params = [
       ':firstName' => $firstName,
       ':lastName'  => $lastName,
@@ -414,14 +423,25 @@ SQL;
       ':id'        => $this->id,
     ];
 
-    if ($passwordHash !== null) {
-      $sql .= ', passwordhash=:passwordhash, passwordrecoveryid=null';
-      $params[':passwordhash'] = $passwordHash;
-    }
+    $this->database->execute($sql, $params);
+  }
 
-    $this->database->execute($sql . ' WHERE id=:id', $params);
+  /**
+   * Saves a new password. The caller has checked the current password.
+   *
+   * @throws Exception
+   */
+  public function changePassword(string $password, string $passwordConfirm): void {
+    if (! $this->loggedIn) throw new \Exception('You are not logged in');
 
-    if ($passwordHash !== null) $this->deleteOtherStayLoggedInTokens();
+    if ($password === '')         throw new \Exception('No password provided');
+    if (strlen($password) < 6)    throw new \Exception('Password must be at least 6 characters long');
+    if ($password !== $passwordConfirm) throw new \Exception('Password confirmation is not the same as the password');
+
+    $sql = 'UPDATE users SET passwordhash=:passwordhash, passwordrecoveryid=null WHERE id=:id';
+    $this->database->execute($sql, [':passwordhash' => password_hash($password, PASSWORD_DEFAULT), ':id' => $this->id]);
+
+    $this->deleteOtherStayLoggedInTokens();
   }
 
   /**
