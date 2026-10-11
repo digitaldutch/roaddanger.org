@@ -28,6 +28,14 @@ In pull requests from others, do not change `$VERSION` or `CHANGELOG.md`. Descri
 * A few results are cached for several minutes in `cache/` (see `general/Cache.php`). Old data after a
   database change can be that cache.
 
+## Security
+* Text from users in `innerHTML` or in template strings must go through `escapeHtml()`. Urls from users in `href` or
+  `src` go through `safeUrl()`. Tooltips are plain text: do not use `allowHTML` with tippy.
+* Inline event handlers (`onclick="..."`) are a choice. Keep them. The site has no `script-src` policy, so escaping is
+  the protection against XSS.
+* Credentials and tokens are only read from the JSON request body, never from the url.
+* Ajax functions that cost money (AI, fetching web pages) are limited with `RateLimit`. Moderators are exempt.
+
 ## Database and installation
 * [install/](install/) holds the scripts to set up a website. This folder is **not uploaded to servers**.
   Do not put code in it that the running website needs.

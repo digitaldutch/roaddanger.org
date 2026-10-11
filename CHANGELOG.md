@@ -1,5 +1,8 @@
 # Changelog
 
+11 october 2026 v778:
+- AGENTS.md: security rules (escaping, inline event handlers, credentials in the request body, rate limits).
+
 11 october 2026 v777:
 - Security: tooltips are shown as plain text. No tooltip uses HTML, so allowHTML is removed from all tippy calls.
   Text that ends up in a tooltip can no longer be run as HTML.
