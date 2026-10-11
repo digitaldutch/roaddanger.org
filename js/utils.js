@@ -1542,8 +1542,8 @@ function setRadioGroupValue(name, value) {
 }
 
 function getHtmlAIIcon(ai_info) {
-  // The tooltip is shown as HTML by tippy: escape the AI info for that, and escape the whole text for the attribute
-  const AITooltip = translate('Answered_by_AI') + (ai_info ? ` | ${escapeHtml(ai_info)}` : '');
+  // Tooltips are shown as plain text by tippy: only the attribute needs escaping
+  const AITooltip = translate('Answered_by_AI') + (ai_info ? ` | ${ai_info}` : '');
   return `<div class="iconAI" data-tippy-content="${escapeHtml(AITooltip)}">AI</div>`;
 }
 

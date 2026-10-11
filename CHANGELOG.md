@@ -1,5 +1,9 @@
 # Changelog
 
+11 october 2026 v777:
+- Security: tooltips are shown as plain text. No tooltip uses HTML, so allowHTML is removed from all tippy calls.
+  Text that ends up in a tooltip can no longer be run as HTML.
+
 11 october 2026 v776:
 - Security: final check for cross-site scripting (XSS). All places that show text from users are escaped now.
   - The title of an article was shown unescaped in the "delete article" question. A moderator could be attacked with a crafted title.

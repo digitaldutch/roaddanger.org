@@ -761,7 +761,7 @@ async function loadQuestionnaireResults() {
       document.getElementById('tableQStatsBody').innerHTML = htmlTableBody;
       document.getElementById('headerStatistics').style.display = 'none';
 
-      tippy('[data-tippy-content]', {allowHTML: true});
+      tippy('[data-tippy-content]');
     }
 
   } catch (error) {

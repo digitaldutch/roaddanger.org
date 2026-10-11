@@ -687,7 +687,7 @@ async function loadCrashes(crashId=null, articleId=null){
 
     document.getElementById('cards').innerHTML += html;
     if (pageType === PageType.crash) showMapCrash(newCrashes[0]);
-    tippy('[data-tippy-content]', {allowHTML: true});
+    tippy('[data-tippy-content]');
   }
 
   if (observerSpinner) observerSpinner.unobserve(spinnerLoad);
@@ -1583,7 +1583,7 @@ function setEditCrashHumans(humans) {
 
   document.getElementById('editCrashPersons').innerHTML = html;
 
-  tippy('[data-tippy-content]', {allowHTML: true});
+  tippy('[data-tippy-content]');
 }
 function refreshSelectHumansIcons(humans) {
   let html = '';
@@ -1602,7 +1602,7 @@ function refreshSelectHumansIcons(humans) {
 
   if (!html) html = translate('No_humans_selected');
   document.getElementById('crashPersons').innerHTML = html;
-  tippy('[data-tippy-content]', {allowHTML: true});
+  tippy('[data-tippy-content]');
 }
 
 function setArticleCrashFields(crashID){
@@ -1735,7 +1735,7 @@ async function showQuestionsForm(crashId, articleId) {
       const yesChecked = question.answer === 1? 'checked' : '';
       const noChecked = question.answer === 0? 'checked' : '';
       const ndChecked = question.answer === 2? 'checked' : '';
-      const tooltip = question.explanation? `<span class="iconTooltip" data-tippy-content="${escapeHtml(escapeHtml(question.explanation))}"></span>` : '';
+      const tooltip = question.explanation? `<span class="iconTooltip" data-tippy-content="${escapeHtml(question.explanation)}"></span>` : '';
       const answerJustification = question.answerJustification? escapeHtml(question.answerJustification) : '';
       const answeredWithAI = question.answered_by_type === Answered_by_type.ai? getHtmlAIIcon(question.ai_info) : '';
 
@@ -1778,7 +1778,7 @@ async function showQuestionsForm(crashId, articleId) {
 
   for (const questionnaire of article.questionnaires) setQuestionnaireGUIVisibility(questionnaire);
 
-  tippy('[data-tippy-content]', {allowHTML: true});
+  tippy('[data-tippy-content]');
 
 }
 
@@ -1949,7 +1949,7 @@ async function aiAnswerQuestionnaires() {
       setQuestionnaireGUIVisibility(questionnaire);
     }
 
-    tippy('[data-tippy-content]', {allowHTML: true});
+    tippy('[data-tippy-content]');
 
   } finally {
     spinner.style.display = 'none';
