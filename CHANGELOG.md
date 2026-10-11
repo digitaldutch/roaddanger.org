@@ -1,5 +1,8 @@
 # Changelog
 
+11 october 2026 v780:
+- The bus icon has a higher roof and a raked windscreen. It looked like a box.
+
 11 october 2026 v779:
 - New transportation mode icons, all in one style: straight lines and hard corners.
   The old cars looked too friendly for a website about crashes. The car has a higher bonnet and a sharp nose, the taxi a roof sign,

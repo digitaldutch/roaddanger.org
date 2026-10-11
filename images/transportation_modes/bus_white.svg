@@ -13,12 +13,12 @@
   </defs>
   <circle class="cls-1" cx="9" cy="36" r="4"/>
   <circle class="cls-1" cx="41" cy="36" r="4"/>
-  <path class="cls-1" d="M5,36H2V15H48V36H45"/>
+  <path class="cls-1" d="M5,36H2V13H40L48,23V36H45"/>
   <line class="cls-1" x1="13" y1="36" x2="37" y2="36"/>
-  <line class="cls-1" x1="2" y1="27" x2="48" y2="27"/>
-  <line class="cls-1" x1="11" y1="16" x2="11" y2="27"/>
-  <line class="cls-1" x1="20" y1="16" x2="20" y2="27"/>
-  <line class="cls-1" x1="29" y1="16" x2="29" y2="27"/>
-  <line class="cls-1" x1="38" y1="16" x2="38" y2="36"/>
-  <line class="cls-1" x1="48" y1="31" x2="44" y2="32.5"/>
+  <line class="cls-1" x1="2" y1="26" x2="48" y2="26"/>
+  <line class="cls-1" x1="11" y1="14" x2="11" y2="26"/>
+  <line class="cls-1" x1="20" y1="14" x2="20" y2="26"/>
+  <line class="cls-1" x1="29" y1="14" x2="29" y2="26"/>
+  <line class="cls-1" x1="36" y1="14" x2="36" y2="36"/>
+  <line class="cls-1" x1="47.5" y1="31" x2="44.5" y2="32"/>
 </svg>
