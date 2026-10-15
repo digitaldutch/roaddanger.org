@@ -322,6 +322,7 @@ SQL;
       if ($article) {
         assertHttpUrl($article['url'] ?? null, 'article url');
         assertHttpUrl($article['urlimage'] ?? null, 'image url');
+        if (trim($article['alltext'] ?? '') === '') throw new \Exception('The full text of the article is required');
       }
 
       $isNewCrash = (! isset($crash['id'])) || ($crash['id'] <= 0);

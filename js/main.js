@@ -2131,6 +2131,7 @@ async function saveArticleCrash(){
   if (! articleEdited.url) {showError(translate('Article_link_not_filled_in')); return;}
   if (! articleEdited.title) {showError(translate('Article_title_not_filled_in')); return;}
   if (! articleEdited.text) {showError(translate('Article_summary_not_filled_in')); return;}
+  if (! articleEdited.alltext) {showError(translate('Article_full_text_not_filled_in')); return;}
   if (articleEdited.urlimage.startsWith('http://')) {showError(translate('Article_photo_link_unsafe')); return;}
   if (! articleEdited.sitename) {showError(translate('Article_media_source_not_filled_in')); return;}
   if (! articleEdited.date) {showError(translate('Article_date_not_filled_in')); return;}

@@ -1,5 +1,10 @@
 # Changelog
 
+15 october 2026 v781:
+- The full text of an article is now required when saving a crash, in the form and on the server. Research needs it.
+  The hint next to the field says to copy the text from the article if it is not filled automatically.
+  New text for the error and the hint in all languages (nl, en, de, es, fr).
+
 11 october 2026 v780:
 - The bus icon has a higher roof and a raked windscreen. It looked like a box.
 
