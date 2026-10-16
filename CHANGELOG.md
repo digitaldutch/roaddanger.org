@@ -1,5 +1,8 @@
 # Changelog
 
+16 october 2026 v785:
+- Top bar: the initials circle is a bit bigger (26 pixels), so it is as high as the Add button.
+
 16 october 2026 v784:
 - Top bar, small screens:
   - The title now stays in the middle of the screen. The buttons on the right can no longer push it aside.
