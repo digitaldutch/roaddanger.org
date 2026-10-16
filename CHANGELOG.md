@@ -1,5 +1,10 @@
 # Changelog
 
+16 october 2026 v791:
+- install/init_data.sql: the languages (de, en, es, fr, nl) are a copy of the live table again.
+  New: the texts for the full text hint and error, from_date and up_to_date in all languages, and the French corrections.
+  The English texts added_crashes and added_articles, removed on the live site, are gone.
+
 16 october 2026 v790:
 - Moderators can see that crashes or articles wait for moderation:
   - A dot on the profile button in the top bar.
