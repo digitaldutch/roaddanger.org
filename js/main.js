@@ -1997,6 +1997,8 @@ async function crashModerateOK(crash) {
 
     divModeration = document.getElementById('crashModerationdetails' + crash);
     if (divModeration) divModeration.remove();
+
+    loadUserData();
   }
 }
 
@@ -2015,6 +2017,8 @@ async function articleModerateOK(articleID) {
     if (divModeration) divModeration.remove();
     divModeration = document.getElementById('articleModerationdetails' + articleID);
     if (divModeration) divModeration.remove();
+
+    loadUserData();
   }
 }
 

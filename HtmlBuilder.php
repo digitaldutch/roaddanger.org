@@ -66,7 +66,7 @@ HTML;
 
     $navigation = self::getNavigation($languageNavItems);
 
-    $texts = translateArray(['Log_out', 'Log_in', 'Account', 'Location', 'Language']);
+    $texts = translateArray(['Log_out', 'Log_in', 'Account', 'Moderations', 'Location', 'Language']);
 
     return <<<HTML
 <!DOCTYPE html>
@@ -117,7 +117,7 @@ $navigation
       $buttons
       
       <span class="profileButtonWrap" style="position: relative;">
-        <div class="buttonHeader" onclick="profileClick(event);">
+        <div id="buttonProfileHeader" class="buttonHeader" onclick="profileClick(event);">
           <div id="profileInitials" class="profileInitials" style="display: none;"></div>
           <div id="buttonProfile" class="buttonIcon bgPersonWhite"></div>
           <div id="loginText" class="hideOnSmall buttonInsideMargin">...</div>
@@ -127,6 +127,7 @@ $navigation
         <div id="menuPerson" class="buttonPopupMenu">
           <div id="menuProfile" class="navigationSectionHeader"></div>
           <a href="/account">{$texts['Account']}</a>
+          <a href="/moderations/" data-moderator>{$texts['Moderations']}<span class="countBadge moderationCount" style="display: none;"></span></a>
           <div id="menuLogin" onclick="showLoginForm();">{$texts['Log_in']}</div> 
           <div id="menuLogout" style="display: none;" onclick="logOut();">{$texts['Log_out']}</div>
         </div>
@@ -266,7 +267,7 @@ HTML;
       <div class="navigationSectionHeader">{$texts['Admin']}</div>
   
       <div class="navigationSection">
-        <a href="/moderations/" class="navItem">{$texts['Moderations']}</a>
+        <a href="/moderations/" class="navItem">{$texts['Moderations']}<span class="countBadge moderationCount" style="display: none;"></span></a>
         <a href="/admin/humans" class="navItem" data-admin>{$texts['Humans']}</a>
         <a href="/admin/translations/" class="navItem" data-moderator>{$texts['Translations']}</a>
         <a href="/admin/longtexts/" class="navItem" data-admin>{$texts['Long_texts']}</a>

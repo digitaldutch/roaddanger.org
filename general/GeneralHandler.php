@@ -229,6 +229,12 @@ SQL;
       'countries' => $this->database->loadCountries(),
     ];
 
+    // Number of crashes in the moderation queue (same selection as the moderations page), so moderators see it
+    if ($this->user->isModerator()) {
+      $sql = "SELECT COUNT(*) FROM crashes c WHERE (c.awaitingmoderation=1) OR (c.id IN (SELECT crashid FROM articles WHERE awaitingmoderation=1));";
+      $result['moderationCount'] = intval($this->database->fetchSingleValue($sql));
+    }
+
     if (isset($this->input['getQuestionnaireCountries']) && $this->input['getQuestionnaireCountries'] === true) {
       $result['questionnaireCountries'] = $this->database->getQuestionnaireCountries();
     }

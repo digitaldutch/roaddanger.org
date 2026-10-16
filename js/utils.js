@@ -771,6 +771,15 @@ function initPage(){
   tippy('[data-tippy-content]');
 }
 
+// Moderators see that crashes wait for moderation: a dot on the profile button and a count in the menu
+function showModerationCount(count) {
+  document.querySelectorAll('.moderationCount').forEach(elCount => {
+    elCount.innerText = count;
+    elCount.style.display = count > 0? 'inline-block' : 'none';
+  });
+  document.getElementById('buttonProfileHeader')?.classList.toggle('hasDot', count > 0);
+}
+
 function initPageUser(){
   initPage();
   loadUserData();
@@ -781,6 +790,7 @@ async function loadUserData(options=[]) {
     const url = '/general/ajaxGeneral.php?function=loadUserData';
     const response = await fetchFromServer(url, options);
     if (response.user) updateLoginGUI(response.user);
+    if (response.moderationCount !== undefined) showModerationCount(response.moderationCount);
 
     return response;
   } catch (error) {

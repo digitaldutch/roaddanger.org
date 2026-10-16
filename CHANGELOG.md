@@ -1,5 +1,11 @@
 # Changelog
 
+16 october 2026 v790:
+- Moderators can see that crashes or articles wait for moderation:
+  - A dot on the profile button in the top bar.
+  - A count next to Moderations in the profile menu and in the main menu.
+  - The count updates when a crash or article is approved.
+
 16 october 2026 v789:
 - Export data: the crashes export loads all persons and articles with one query each, instead of two queries for every crash.
   With 21,000 crashes this takes 1.2 seconds instead of 4 on a local database. The exported data is identical.

@@ -742,6 +742,17 @@ h3, .pageSubTitleFont {
   background-color: var(--important-bgcolor);
 }
 
+/* Number of items waiting, next to a menu item */
+.countBadge {
+  margin-left: 8px;
+  padding: 0 7px;
+  border-radius: 9px;
+  background-color: var(--important-bgcolor);
+  color: #000;
+  font-size: 12px;
+  font-weight: bold;
+}
+
 .menuSelected {
   background-color: var(--selected-bgcolor) !important;
   color: var(--selected-color) !important;
