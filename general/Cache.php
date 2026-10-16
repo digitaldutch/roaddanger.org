@@ -36,6 +36,44 @@ class Cache {
     return file_exists($cache_filename) && (time() - filemtime($cache_filename) <= $maxAgeSeconds);
   }
 
+  /**
+   * Time (unix timestamp) the cache file for this key was saved. Null if there is no file.
+   */
+  static public function modifiedTime(string $key): int | null {
+    $cache_filename = self::fileNameFromKey($key);
+
+    return file_exists($cache_filename)? filemtime($cache_filename) : null;
+  }
+
+  /**
+   * Takes an exclusive lock for this key, without waiting. Returns a lock handle, or null if somebody else has the lock.
+   * Release it with unlock(). The operating system also releases it when the script ends, so a crash can not leave a lock behind.
+   * Use it so that only one request at a time creates something that is expensive to make.
+   */
+  static public function tryLock(string $key) {
+    $cacheFolder = self::getCacheFolder();
+    if (!file_exists($cacheFolder)) mkdir($cacheFolder, 0777);
+
+    $lockFilename = self::fileNameFromKey($key) . '.lock';
+    $handle = fopen($lockFilename, 'c');
+    if ($handle === false) return null;
+
+    if (! flock($handle, LOCK_EX | LOCK_NB)) {
+      fclose($handle);
+      return null;
+    }
+
+    // Keeps the lock file young, so cleanCache() does not remove it while somebody uses it
+    touch($lockFilename);
+
+    return $handle;
+  }
+
+  static public function unlock($handle): void {
+    flock($handle, LOCK_UN);
+    fclose($handle);
+  }
+
   static public function get(string $key, int $maxAgeSeconds = 60): string | null {
     $cache_filename = self::fileNameFromKey($key);
 

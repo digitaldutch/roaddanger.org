@@ -20,6 +20,53 @@ class ExportHandler extends AjaxHandler {
     }
   }
 
+  /**
+   * Returns the name of an export file in the cache folder. The file is renewed when it is older than 24 hours.
+   * Only one request at a time creates the file, because it uses a lot of memory and time.
+   * Other requests get the old file, or a message if there is no old file yet.
+   * After an attempt (also a failed one) there are no new attempts for 10 minutes.
+   */
+  private function getExport(string $filename, callable $createContent): array {
+    if (Cache::exists($filename, 24 * 3600)) return $this->getExportInfo($filename);
+
+    $oldFileExists = Cache::exists($filename, PHP_INT_MAX);
+
+    $lock = Cache::tryLock($filename);
+    if ($lock === null) {
+      if ($oldFileExists) return $this->getExportInfo($filename);
+      throw new \Exception('The export is being prepared. Try again in a minute.');
+    }
+
+    try {
+      // Another request may have finished the export while we were taking the lock
+      if (Cache::exists($filename, 24 * 3600)) return $this->getExportInfo($filename);
+
+      $attemptKey = $filename . '.attempt';
+      if (Cache::exists($attemptKey, 10 * 60)) {
+        if ($oldFileExists) return $this->getExportInfo($filename);
+        throw new \Exception('The export could not be created. Try again in 10 minutes.');
+      }
+      // Saved before we start: a crash (out of memory) does not run any code afterwards
+      Cache::set($attemptKey, (string)time());
+
+      Cache::set($filename, $createContent());
+    } finally {
+      Cache::unlock($lock);
+    }
+
+    return $this->getExportInfo($filename);
+  }
+
+  /**
+   * The browser saves the file with the date the export was made in the name, so downloads can be told apart.
+   */
+  private function getExportInfo(string $filename): array {
+    return [
+      'filename' => $filename,
+      'date' => date('Y-m-d', Cache::modifiedTime($filename)),
+    ];
+  }
+
   private function downloadCrashesData(): array {
     // Only admins can download the crashes with full text.
     // $includeAllText = $user->admin;
@@ -29,18 +76,20 @@ class ExportHandler extends AjaxHandler {
 
     $filename = $includeAllText? WEBSITE_NAME . '_data_all_text.json.gz' : WEBSITE_NAME . '_data.json.gz';
 
-    // Recreate the export if the existing file is older than 24 hours. The files are in the cache folder.
-    if (! Cache::exists($filename, 24 * 3600)) {
+    return $this->getExport($filename, fn() => $this->createCrashesExport($includeAllText));
+  }
 
-      // We need more memory to parse all data. 128MB allows a little over 10,000 crashes.
-      // 1028M should allow 80,000 crashes with all text.
-      // We should not use more than a safe percentage of the server-installed memory
-      ini_set('memory_limit', '1028M');
-      // 100,000 is the default
-      $maxDownloadCrashes = 100000;
+  private function createCrashesExport(bool $includeAllText): string {
 
-      // This can be much quicker using JSON_OBJECT() and JSON_ARRAYAGG()
-      $sql = <<<SQL
+    // We need more memory to parse all data. 128MB allows a little over 10,000 crashes.
+    // 1028M should allow 80,000 crashes with all text.
+    // We should not use more than a safe percentage of the server-installed memory
+    ini_set('memory_limit', '1028M');
+    // 100,000 is the default
+    $maxDownloadCrashes = 100000;
+
+    // This can be much quicker using JSON_OBJECT() and JSON_ARRAYAGG()
+    $sql = <<<SQL
 SELECT
 id,
 groupid,
@@ -52,10 +101,10 @@ hitrun
 FROM crashpersons
 WHERE crashid=:crashid
 SQL;
-      $DBStatementPersons = $this->database->prepare($sql);
+    $DBStatementPersons = $this->database->prepare($sql);
 
-      $allText = $includeAllText? 'alltext,' : '';
-      $sql = <<<SQL
+    $allText = $includeAllText? 'alltext,' : '';
+    $sql = <<<SQL
 SELECT
 id,
 sitename,
@@ -68,9 +117,9 @@ text AS 'summary'
 FROM articles
 WHERE crashid=:crashid AND awaitingmoderation=0
 SQL;
-      $DBStatementArticles = $this->database->prepare($sql);
+    $DBStatementArticles = $this->database->prepare($sql);
 
-      $sql = <<<SQL
+    $sql = <<<SQL
 SELECT 
 ac.id,
 ac.title,
@@ -88,74 +137,66 @@ ORDER BY date DESC
 LIMIT 0, $maxDownloadCrashes
 SQL;
 
-      $crashes = [];
-      $DBResults = $this->database->fetchAll($sql);
-      foreach ($DBResults as $crash) {
-        $crash['date'] = datetimeDBToISO8601($crash['date']);
+    $crashes = [];
+    $DBResults = $this->database->fetchAll($sql);
+    foreach ($DBResults as $crash) {
+      $crash['date'] = datetimeDBToISO8601($crash['date']);
 
-        // Load persons
-        $crash['persons'] = $this->database->fetchAllPrepared($DBStatementPersons, ['crashid' => $crash['id']]);
+      // Load persons
+      $crash['persons'] = $this->database->fetchAllPrepared($DBStatementPersons, ['crashid' => $crash['id']]);
 
-        // Load articles
-        $crash['articles'] = [];
-        $DBArticles = $this->database->fetchAllPrepared($DBStatementArticles, ['crashid' => $crash['id']]);
-        foreach ($DBArticles as $article) {
-          $article['publishedtime'] = datetimeDBToISO8601($article['publishedtime'] ?? '');
+      // Load articles
+      $crash['articles'] = [];
+      $DBArticles = $this->database->fetchAllPrepared($DBStatementArticles, ['crashid' => $crash['id']]);
+      foreach ($DBArticles as $article) {
+        $article['publishedtime'] = datetimeDBToISO8601($article['publishedtime'] ?? '');
 
-          $crash['articles'][] = $article;
-        }
-
-        $crashes[] = $crash;
+        $crash['articles'][] = $article;
       }
 
-      $dataOut = [
-        'crashes' => $crashes,
-      ];
-      $gzData = gzencode(json_encode($dataOut));
-      Cache::set($filename, $gzData);
+      $crashes[] = $crash;
     }
 
-    return [
-      'filename' => $filename,
+    $dataOut = [
+      'crashes' => $crashes,
     ];
+    return gzencode(json_encode($dataOut));
   }
 
   private function downloadResearchData(): array {
     $filename = WEBSITE_NAME . '_research_data.json.gz';
 
-    // Recreate the export if the existing file is older than 24 hours. The files are in the cache folder.
-    if (! Cache::exists($filename, 24 * 3600)) {
+    return $this->getExport($filename, fn() => $this->createResearchExport());
+  }
 
-      ini_set('memory_limit', '1028M');
+  private function createResearchExport(): string {
 
-      $sql = <<<SQL
+    ini_set('memory_limit', '1028M');
+
+    $sql = <<<SQL
 SELECT
-  id, text, active, question_order, explanation
+id, text, active, question_order, explanation
 FROM questions;
 SQL;
 
-      $questions = $this->database->fetchAll($sql);
+    $questions = $this->database->fetchAll($sql);
 
-      // Only answers about articles that are public. Not about crashes or articles that wait for moderation.
-      $sql = <<<SQL
+    // Only answers about articles that are public. Not about crashes or articles that wait for moderation.
+    $sql = <<<SQL
 SELECT
-  an.questionid, an.articleid, an.answer, an.explanation, an.answered_by_type, an.ai_info, an.answered_at
+an.questionid, an.articleid, an.answer, an.explanation, an.answered_by_type, an.ai_info, an.answered_at
 FROM answers an
-  JOIN articles ar ON ar.id = an.articleid
-  JOIN crashes c ON c.id = ar.crashid
+JOIN articles ar ON ar.id = an.articleid
+JOIN crashes c ON c.id = ar.crashid
 WHERE ar.awaitingmoderation=0 AND c.awaitingmoderation=0;
 SQL;
-      $answers = $this->database->fetchAll($sql);
+    $answers = $this->database->fetchAll($sql);
 
-      $dataOut = [
-        'questions' => $questions,
-        'answers' => $answers,
-      ];
+    $dataOut = [
+      'questions' => $questions,
+      'answers' => $answers,
+    ];
 
-      $gzData = gzencode(json_encode($dataOut));
-      Cache::set($filename, $gzData);
-    }
-
-    return ['filename' => $filename];
+    return gzencode(json_encode($dataOut));
   }
 }

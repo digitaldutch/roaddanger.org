@@ -1,5 +1,12 @@
 # Changelog
 
+16 october 2026 v788:
+- Export data: only one request at a time creates an export file. It takes a lot of memory and time, and the page can be called by anyone.
+  - Other requests get the existing file, even if it is older than 24 hours. Without a file they get the message to try again in a minute.
+  - After an attempt, also a failed one, a new export is not created for 10 minutes.
+  - The crashes download now shows error messages, like the research download already did.
+- The downloaded export file has the date the export was made in its name, for example roaddanger_data_all_text_2026-10-16.json.gz.
+
 16 october 2026 v787:
 - Export data fixes:
   - The exports no longer contain crashes and articles that are still waiting for moderation, and no answers about them.

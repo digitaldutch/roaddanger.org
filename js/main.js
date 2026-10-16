@@ -2620,9 +2620,15 @@ function downloadCrashesData() {
     try {
       const url = '/admin/ajaxExport.php?function=downloadCrashesData';
       const response = await fetchFromServer(url);
+      if (response.error) {
+        showError(response.error, 10);
+        return;
+      }
 
       const urlFile = '/cache/' + response.filename;
-      download(urlFile, response.filename);
+      download(urlFile, response.filename.replace('.json.gz', '_' + response.date + '.json.gz'));
+    } catch (error) {
+      showError(error.message);
     } finally {
       spinnerLoad.style.display = 'none';
     }
@@ -2638,9 +2644,13 @@ function downloadResearchData() {
     try {
       const url = '/admin/ajaxExport.php?function=downloadResearchData';
       const response = await fetchFromServer(url);
+      if (response.error) {
+        showError(response.error, 10);
+        return;
+      }
 
       const urlFile = '/cache/' + response.filename;
-      download(urlFile, response.filename);
+      download(urlFile, response.filename.replace('.json.gz', '_' + response.date + '.json.gz'));
     } catch (error) {
       showError(error.message)
     } finally {
