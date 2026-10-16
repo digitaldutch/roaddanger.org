@@ -123,6 +123,38 @@ class ArticleTextCleaner {
     return $result;
   }
 
+  /**
+   * The summary of an article is the start of its (cleaned) full text: the first paragraph, or more paragraphs if the
+   * first is short, up to about 300 characters, cut at the end of a sentence. It is shown on the crash cards and used by
+   * the search. It is always made from the full text. It is not typed in.
+   */
+  public static function makeSummary(string $text, int $maxLength = 300): string {
+    $paragraphs = [];
+    foreach (explode("\n\n", trim($text)) as $paragraph) {
+      $paragraph = trim(preg_replace('/\s+/u', ' ', $paragraph));
+      if ($paragraph !== '') $paragraphs[] = $paragraph;
+    }
+
+    // A heading in front of the first paragraph is not a summary: short, and no sentence mark at the end
+    while ((count($paragraphs) > 1) && (mb_strlen($paragraphs[0]) < 60) && (! preg_match('/[.!?:"”]$/u', $paragraphs[0]))) {
+      array_shift($paragraphs);
+    }
+
+    $summary = '';
+    foreach ($paragraphs as $paragraph) {
+      $summary = ($summary === '')? $paragraph : $summary . ' ' . $paragraph;
+      if (mb_strlen($summary) >= 150) break;
+    }
+
+    if (mb_strlen($summary) <= $maxLength) return $summary;
+
+    $cut = mb_substr($summary, 0, $maxLength);
+    if (preg_match('/^(.*[.!?])\s/su', $cut . ' ', $matches) && (mb_strlen($matches[1]) >= 100)) return $matches[1];
+
+    $lastSpace = mb_strrpos($cut, ' ');
+    return mb_substr($cut, 0, $lastSpace ?: $maxLength) . '…';
+  }
+
   private static function normalizeForCompare(string $text): string {
     $text = strtr($text, [
       "\u{201C}" => '"', "\u{201D}" => '"', "\u{201E}" => '"',

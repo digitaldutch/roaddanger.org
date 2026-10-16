@@ -1,5 +1,11 @@
 # Changelog
 
+16 october 2026 v795:
+- The summary of an article is always made from its full text when the article is saved: the first paragraph, or more if it is short, up to about 300 characters, cut at the end of a sentence.
+  A heading in front is skipped. Before, a summary that was filled was not changed when editing.
+- New script install/regenerate_summaries.php makes the summaries of the articles that are already in the database in the same way. Dry run by default, the old summaries are saved in a backup table and can be restored.
+  Articles without a full text keep their summary.
+
 16 october 2026 v794:
 - Article text cleaning: lines with the name, date and time of publication are removed ("Carin Beenen 11-02-19, 08:52 Laatste update: 12:40"). They were in 7% of the articles.
 - install/clean_article_texts.php:
