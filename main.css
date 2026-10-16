@@ -677,6 +677,22 @@ h3, .pageSubTitleFont {
   border-color: var(--button-selected-bgcolor);
 }
 
+/* Marks that filters are active. Used on the search icon in the top bar. */
+.buttonHeader.hasDot {
+  position: relative;
+}
+
+.buttonHeader.hasDot::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--important-bgcolor);
+}
+
 .menuSelected {
   background-color: var(--selected-bgcolor) !important;
   color: var(--selected-color) !important;
@@ -1920,6 +1936,11 @@ table.tableDragging td div {
 @media (max-width: 750px) {
   .hideOnMobile {
     display: none !important;
+  }
+
+  /* The right side of the top bar has four buttons. Equal columns would push the title off the screen. */
+  #topBar {
+    grid-template-columns: auto 1fr auto;
   }
 
   #largeTitle {

@@ -1,5 +1,10 @@
 # Changelog
 
+16 october 2026 v783:
+- Search icon in the top bar on all pages with filters. It opens the filters with the cursor in the search field.
+  The filter button scrolls out of view, the top bar does not. A dot on the icon shows that filters are active.
+- Small screens: the top bar has room for the extra icon (the title no longer gets pushed off the screen).
+
 16 october 2026 v782:
 - The summary field is removed from the add and edit crash window. It was confusing next to the full text.
   The summary shown in the lists and used in search is now made by the server from the start of the full text (max 300 characters, cut at the end of a sentence).

@@ -6,7 +6,7 @@ class HtmlBuilder {
       bool $showButtonAdd=false): string {
     global $VERSION;
 
-    $texts = translateArray(['Cookie_warning', 'More_info', 'Accept', 'Add']);
+    $texts = translateArray(['Cookie_warning', 'More_info', 'Accept', 'Add', 'Search']);
 
     if (! empty($pageTitle)) $title = $pageTitle . ' | ' . WEBSITE_NAME;
     else $title = WEBSITE_NAME;
@@ -27,7 +27,12 @@ class HtmlBuilder {
 HTML;
     } else $cookieWarning = '';
 
-    $buttons = '';
+    // Shown by Filter.js on pages that have filters. Opens the filters with the search field.
+    $buttons = <<<HTML
+<div id="buttonSearchHeader" class="buttonHeader" style="display: none;" data-tippy-content="{$texts['Search']}" onclick="filter.showFilters(true);">
+  <div class="buttonIcon bgSearchWhite"></div>
+</div>
+HTML;
     if ($showButtonAdd) {
       $buttons .= <<<HTML
 <div id="buttonNewCrash" class="buttonHeader buttonImportant" onclick="showNewCrashForm();">

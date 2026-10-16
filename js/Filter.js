@@ -22,6 +22,10 @@ class Filter {
     document.getElementById('searchText').addEventListener('keydown', this.onEnterKey);
     document.getElementById('searchSiteName').addEventListener('keydown', this.onEnterKey);
     document.getElementById('searchUserId').addEventListener('keydown', this.onEnterKey);
+
+    // The search icon in the top bar opens the filters. It is only useful on pages that have filters.
+    const buttonSearchHeader = document.getElementById('buttonSearchHeader');
+    if (buttonSearchHeader) buttonSearchHeader.style.display = 'inline-flex';
   }
 
   #onEnterKey(event) {
@@ -181,8 +185,10 @@ class Filter {
 
     return element && element.classList.contains('filtersOpen');
   }
-  showFilters(){
+  showFilters(focusSearch=false){
     openFilters();
+
+    if (focusSearch) document.getElementById('searchText').focus();
   }
 
   hideFilters(){
@@ -275,6 +281,10 @@ class Filter {
     }
 
     filterStatus.innerHTML = html;
+
+    // Dot on the search icon in the top bar: the filter bar scrolls out of view, the top bar does not.
+    const buttonSearchHeader = document.getElementById('buttonSearchHeader');
+    if (buttonSearchHeader) buttonSearchHeader.classList.toggle('hasDot', activeFilters.size > 0);
   }
 
   removeFilter(key) {
