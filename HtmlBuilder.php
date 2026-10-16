@@ -12,7 +12,6 @@ class HtmlBuilder {
     else $title = WEBSITE_NAME;
 
     $initScript = ($initFunction !== '') ? "<script>document.addEventListener('DOMContentLoaded', $initFunction)</script>" : '';
-    $navigation = self::getNavigation();
 
     $cookiesAccepted = $_COOKIE['cookiesAccepted'] ?? null === '1';
 
@@ -56,10 +55,16 @@ HTML;
 
     $languages = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");
     $languageOptions = '';
+    $languageNavItems = '';
     foreach ($languages as $language) {
       $class = $language['id'] === $user->languageId ? "class='menuSelected'" : '';
       $languageOptions .= "<div $class onclick=\"setLanguage('{$language['id']}')\">{$language['name']}</div>";
+
+      $classNav = 'navItem' . ($language['id'] === $user->languageId ? ' menuSelected' : '');
+      $languageNavItems .= "<div class='$classNav' onclick=\"setLanguage('{$language['id']}')\">{$language['name']}</div>";
     }
+
+    $navigation = self::getNavigation($languageNavItems);
 
     $texts = translateArray(['Log_out', 'Log_in', 'Account', 'Location', 'Language']);
 
@@ -111,11 +116,12 @@ $navigation
     <div style="display: flex; position: relative; justify-self: flex-end;">
       $buttons
       
-      <span style="position: relative;">
+      <span class="profileButtonWrap" style="position: relative;">
         <div class="buttonHeader" onclick="profileClick(event);">
+          <div id="profileInitials" class="profileInitials" style="display: none;"></div>
           <div id="buttonProfile" class="buttonIcon bgPersonWhite"></div>
-          <div id="loginText" class="hideOnMobile buttonInsideMargin">...</div>
-          <div id="loginName" class="hideOnMobile buttonInsideMargin"></div>
+          <div id="loginText" class="hideOnSmall buttonInsideMargin">...</div>
+          <div id="loginName" class="hideOnSmall buttonInsideMargin"></div>
         </div>
   
         <div id="menuPerson" class="buttonPopupMenu">
@@ -126,7 +132,7 @@ $navigation
         </div>
       </span>
   
-      <span style="position: relative;">
+      <span class="hideOnNarrow" style="position: relative;">
         <div id="buttonLanguages" class="buttonHeader" onclick="languageClick();">
           <div class="buttonIcon buttonInsideMargin bgLanguageWhite"></div>
         </div>
@@ -193,7 +199,7 @@ HTML;
     return $formConfirm;
   }
 
-  public static function getNavigation(): string {
+  public static function getNavigation(string $languageNavItems=''): string {
 
     global $VERSION;
     global $VERSION_DATE;
@@ -202,7 +208,7 @@ HTML;
       'Child_victims', 'Mosaic', 'Research_uva_2026', 'The_correspondent_week', 'Map', 'General', 'deadly_crashpartners',
       'Counterparty_in_crashes', 'Transportation_modes', 'Export_data', 'About_this_site', 'Humans', 'Moderations', 'Last_modified_crashes', 'Options',
       'Version', 'Questionnaires', 'Questionnaire_answers', 'Setup', 'Results', 'AI_prompt_builder', 'AI_tasks', 'Research',
-      'Graphs_and_statistics', 'Media_humanization_test', 'Tools', 'Reframe']);
+      'Graphs_and_statistics', 'Media_humanization_test', 'Tools', 'Reframe', 'Language']);
 
     $websiteTitle = WEBSITE_NAME;
 
@@ -249,6 +255,11 @@ HTML;
       <a href="/decorrespondent" class="navItem">{$texts['The_correspondent_week']}</a>
       <a href="/export/" class="navItem">{$texts['Export_data']}</a>
       <a href="/aboutthissite/" class="navItem">{$texts['About_this_site']}</a>
+    </div>
+
+    <div class="navigationSection navLanguage">
+      <div class="navigationSectionHeader">{$texts['Language']}</div>
+      $languageNavItems
     </div>
 
     <div id="navigationAdmin" data-moderator>    

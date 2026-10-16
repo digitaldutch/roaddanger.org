@@ -411,7 +411,7 @@ h3, .pageSubTitleFont {
 #topBar {
   display: grid;
   grid-auto-flow: row;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   padding: 3px;
   background-color: #000;
@@ -675,6 +675,55 @@ h3, .pageSubTitleFont {
 
 .buttonHeader:hover {
   border-color: var(--button-selected-bgcolor);
+}
+
+/* The name is shown in full when there is room. When the top bar is full, the name gets an ellipsis. */
+#loginName {
+  min-width: 0;
+  max-width: 25ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The buttons on the right may not be wider than their column, or they run over the title. */
+#topBar > div:last-child {
+  max-width: 100%;
+}
+
+/* Only the profile button (with the name) gets smaller when the top bar is full. */
+#topBar > div:last-child > * {
+  flex-shrink: 0;
+}
+
+#topBar > div:last-child > .profileButtonWrap {
+  flex-shrink: 1;
+}
+
+.profileButtonWrap {
+  min-width: 0;
+}
+
+#loginName.profileNameHidden {
+  display: none !important;
+}
+
+.profileButtonWrap .buttonHeader {
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.profileInitials {
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: #fff;
+  color: #000;
+  font-size: 11px;
+  font-weight: bold;
 }
 
 /* Marks that filters are active. Used on the search icon in the top bar. */
@@ -1766,6 +1815,11 @@ h3, .pageSubTitleFont {
   display: none;
 }
 
+/* The language button is in the top bar. On very narrow screens (see the media query at the end) it is in the navigation menu. */
+.navLanguage {
+  display: none;
+}
+
 .mirrorHorizontally {
   transform: scaleX(-1);
 }
@@ -1938,11 +1992,6 @@ table.tableDragging td div {
     display: none !important;
   }
 
-  /* The right side of the top bar has four buttons. Equal columns would push the title off the screen. */
-  #topBar {
-    grid-template-columns: auto 1fr auto;
-  }
-
   #largeTitle {
     font-size: 80px;
   }
@@ -1950,6 +1999,7 @@ table.tableDragging td div {
   .showOnMobile {
     display: flex !important;
   }
+
 
   #filterBar input[type=search] {
     max-width: 100px;
@@ -2122,5 +2172,23 @@ table.tableDragging td div {
 @media (max-width: 500px) {
   .accountButtons .button {
     width: 100%;
+  }
+}
+
+/* Small screens: no room for the name next to the initials. */
+@media (max-width: 520px) {
+  .hideOnSmall {
+    display: none !important;
+  }
+}
+
+/* Very narrow screens: the language button moves from the top bar to the navigation menu. */
+@media (max-width: 400px) {
+  .hideOnNarrow {
+    display: none !important;
+  }
+
+  .navLanguage {
+    display: block;
   }
 }

@@ -1,5 +1,13 @@
 # Changelog
 
+16 october 2026 v784:
+- Top bar, small screens:
+  - The title now stays in the middle of the screen. The buttons on the right can no longer push it aside.
+  - The language button moves to the navigation menu on screens narrower than 400 pixels.
+- Top bar, logged in: round badge with the initials of the first name (Jan Derk gives JD) instead of the person icon.
+  The first name is shown next to it when there is room, with the full name as tooltip.
+  If fewer than a few characters fit, only the initials are shown.
+
 16 october 2026 v783:
 - Search icon in the top bar on all pages with filters. It opens the filters with the cursor in the search field.
   The filter button scrolls out of view, the top bar does not. A dot on the icon shows that filters are active.

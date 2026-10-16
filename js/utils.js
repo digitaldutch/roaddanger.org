@@ -345,6 +345,28 @@ function setFilterCountry(countryId) {
   }
 }
 
+// The first name next to the initials is cut off with an ellipsis when the top bar is full.
+// A name with only a few letters left is useless, so it is hidden then and only the initials remain.
+function fitProfileName(){
+  const elName = document.getElementById('loginName');
+  if (! elName || (elName.style.display === 'none')) return;
+
+  const minWidth = 52;
+
+  elName.classList.remove('profileNameHidden');
+  const tooSmall = (elName.scrollWidth > elName.clientWidth) && (elName.clientWidth < minWidth);
+  elName.classList.toggle('profileNameHidden', tooSmall);
+}
+
+let profileNameObserver;
+function observeProfileName(){
+  if (profileNameObserver) return;
+
+  profileNameObserver = new ResizeObserver(fitProfileName);
+  profileNameObserver.observe(document.getElementById('topBar'));
+  document.fonts?.ready.then(fitProfileName);
+}
+
 function updateLoginGUI(userNew){
   user = userNew;
   const buttonProfile = document.getElementById('buttonProfile');
@@ -361,11 +383,23 @@ function updateLoginGUI(userNew){
     document.getElementById('loginName').style.display = 'inline-block';
     document.getElementById('loginText').style.display = 'none';
     document.getElementById('loginName').innerText = user.firstname;
+    document.getElementById('loginName').title = (user.firstname + ' ' + user.lastname).trim();
+
+    // Initials of the first name replace the person icon: "Jan Derk" gives JD, "Maria" gives M.
+    // Array.from keeps letters with accents and emoji in one piece.
+    const elInitials = document.getElementById('profileInitials');
+    elInitials.innerText = (user.firstname ?? '').trim().split(/\s+/).slice(0, 2).map(word => Array.from(word)[0] ?? '').join('').toUpperCase();
+    elInitials.style.display = 'flex';
+    buttonProfile.style.display = 'none';
+    observeProfileName();
+    fitProfileName();
     document.getElementById('menuProfile').innerHTML = escapeHtml(user.firstname) + ' ' + escapeHtml(user.lastname) + '<div class="smallFont">' + permissionToText(user.permission) + '</div>';
 
     buttonProfile.classList.remove('buttonProfile');
   } else {
     document.getElementById('loginName').style.display = 'none';
+    document.getElementById('profileInitials').style.display = 'none';
+    buttonProfile.style.display = '';
     document.getElementById('loginText').style.display = 'inline-block';
     document.getElementById('loginText').innerText = 'Log in';
     document.getElementById('menuProfile').innerText = '';
