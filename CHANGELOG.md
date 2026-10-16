@@ -1,5 +1,13 @@
 # Changelog
 
+16 october 2026 v792:
+- The full text of an article is cleaned when it is fetched and when it is saved (new class ArticleTextCleaner, rules in general/article_text_rules.php):
+  - Tidy paragraphs: one blank line between paragraphs, no trailing or double spaces, no hidden characters.
+  - Removed: tip requests and WhatsApp lines, newsletter and liveblog adverts, links to other articles, bylines, photo credits, dates and comment counts on a line of their own.
+  - The first paragraph is removed if the text repeats it, also with a place name in front ("Veenendaal - ..."). Subheadings of the article are kept.
+- New script install/clean_article_texts.php cleans the articles that are already in the database. Dry run by default, the old texts are saved in a backup table and can be restored.
+- Saving an article cuts the full text at 10,000 characters, not bytes. A multibyte character could be cut in half.
+
 16 october 2026 v791:
 - install/init_data.sql: the languages (de, en, es, fr, nl) are a copy of the live table again.
   New: the texts for the full text hint and error, from_date and up_to_date in all languages, and the French corrections.

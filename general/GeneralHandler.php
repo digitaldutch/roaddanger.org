@@ -2,6 +2,7 @@
 
 require_once 'AjaxHandler.php';
 require_once __DIR__ . '/RateLimit.php';
+require_once __DIR__ . '/ArticleTextCleaner.php';
 
 class GeneralHandler extends AjaxHandler {
 
@@ -342,7 +343,9 @@ SQL;
       if ($article) {
         assertHttpUrl($article['url'] ?? null, 'article url');
         assertHttpUrl($article['urlimage'] ?? null, 'image url');
-        if (trim($article['alltext'] ?? '') === '') throw new \Exception('The full text of the article is required');
+        // Also text that was pasted: remove what does not belong to the article and make tidy paragraphs
+        $article['alltext'] = ArticleTextCleaner::clean($article['alltext'] ?? '', $article['url'] ?? '', $article['sitename'] ?? '');
+        if (trim($article['alltext']) === '') throw new \Exception('The full text of the article is required');
       }
 
       $isNewCrash = (! isset($crash['id'])) || ($crash['id'] <= 0);
@@ -475,7 +478,7 @@ SQL;
           ':url'      => $article['url'],
           ':title'    => substr($article['title'], 0 , 500),
           ':text'     => $this->makeSummary($article['alltext']),
-          ':alltext'  => substr($article['alltext'], 0 , 10000),
+          ':alltext'  => mb_substr($article['alltext'], 0 , 10000),
           ':sitename' => substr($article['sitename'], 0 , 200),
           ':date'     => $article['date'],
           ':urlimage' => $article['urlimage'],
@@ -504,7 +507,7 @@ SQL;
           ':url'                => $article['url'],
           ':title'              => substr($article['title'], 0, 500),
           ':text'               => $this->makeSummary($article['alltext']),
-          ':alltext'            => substr($article['alltext'], 0, 10000),
+          ':alltext'            => mb_substr($article['alltext'], 0, 10000),
           ':sitename'           => substr($article['sitename'], 0, 200),
           ':publishedtime'      => $article['date'],
           ':urlimage'           => $article['urlimage'],
@@ -629,8 +632,14 @@ SQL;
     if ($newArticle) $urlExists = $this->urlExists($url);
     else $urlExists = false;
 
+    // The full text is the description and the article text from the page, cleaned. The user sees the result and can still change it.
+    $media = $resultParser['media'];
+    if (! empty($media['article_body'])) {
+      $media['alltext'] = ArticleTextCleaner::clean(($media['description'] ?? '') . "\n\n" . $media['article_body'], $url, $media['sitename'] ?? '');
+    }
+
     return [
-      'media' => $resultParser['media'],
+      'media' => $media,
       'tagcount' => $resultParser['tagCount'],
       'urlExists' => $urlExists,
     ];

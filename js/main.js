@@ -2041,13 +2041,8 @@ async function getArticleMetaData() {
     document.getElementById('editArticleUrlImage').value = meta.urlimage;
     document.getElementById('editArticleSiteName').value = meta.sitename;
 
-    if (meta.article_body) {
-      // The lead (description) is not always part of the article body. Add it only if the body does not start with it.
-      const description = (meta.description ?? '').trim();
-      const body = meta.article_body.trim();
-      const bodyHasLead = ! description || body.startsWith(description.substring(0, 50));
-      document.getElementById('editArticleAllText').value = bodyHasLead? body : description + '\n\n' + body;
-    }
+    // The server cleans the text: no repeated first paragraph, no tips, bylines or adverts, tidy paragraphs
+    if (meta.alltext) document.getElementById('editArticleAllText').value = meta.alltext;
 
     if (meta.published_time){
       try {
