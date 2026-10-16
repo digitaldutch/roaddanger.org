@@ -312,6 +312,20 @@ SQL;
   }
 
   /**
+   * The summary of an article is the start of the full text, cut at the end of a sentence. Max 300 characters.
+   */
+  private function makeSummary(string $fullText): string {
+    $text = trim(preg_replace('/\s+/u', ' ', $fullText));
+    if (mb_strlen($text) <= 300) return $text;
+
+    $cut = mb_substr($text, 0, 300);
+    if (preg_match('/^(.*[.!?])\s/su', $cut . ' ', $matches) && mb_strlen($matches[1]) >= 100) return $matches[1];
+
+    $lastSpace = mb_strrpos($cut, ' ');
+    return mb_substr($cut, 0, $lastSpace ?: 300) . '…';
+  }
+
+  /**
    * @throws Throwable
    */
   private function saveArticleCrash(): array {
@@ -443,7 +457,7 @@ SQL;
     crashid       = :crashId,
     url           = :url,
     title         = :title,
-    text          = :text,
+    text          = IF(text = '', :text, text),
     alltext       = :alltext,
     publishedtime = :date,
     sitename      = :sitename,
@@ -454,7 +468,7 @@ SQL;
           ':crashId'  => $crash['id'],
           ':url'      => $article['url'],
           ':title'    => substr($article['title'], 0 , 500),
-          ':text'     => substr($article['text'], 0 , 500),
+          ':text'     => $this->makeSummary($article['alltext']),
           ':alltext'  => substr($article['alltext'], 0 , 10000),
           ':sitename' => substr($article['sitename'], 0 , 200),
           ':date'     => $article['date'],
@@ -483,7 +497,7 @@ SQL;
           ':crashid'            => $article['crashid'],
           ':url'                => $article['url'],
           ':title'              => substr($article['title'], 0, 500),
-          ':text'               => substr($article['text'], 0, 500),
+          ':text'               => $this->makeSummary($article['alltext']),
           ':alltext'            => substr($article['alltext'], 0, 10000),
           ':sitename'           => substr($article['sitename'], 0, 200),
           ':publishedtime'      => $article['date'],

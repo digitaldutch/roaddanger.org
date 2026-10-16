@@ -1,5 +1,11 @@
 # Changelog
 
+16 october 2026 v782:
+- The summary field is removed from the add and edit crash window. It was confusing next to the full text.
+  The summary shown in the lists and used in search is now made by the server from the start of the full text (max 300 characters, cut at the end of a sentence).
+  An existing summary is not overwritten.
+- Fetch article: the description is only put in front of the full text if the article text does not already start with it. About 1 in 6 texts had the first paragraph twice.
+
 15 october 2026 v781:
 - The full text of an article is now required when saving a crash, in the form and on the server. Research needs it.
   The hint next to the field says to copy the text from the article if it is not filled automatically.

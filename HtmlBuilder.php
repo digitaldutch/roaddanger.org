@@ -373,7 +373,7 @@ HTML;
   }
 
   public static function getFormEditCrash(): string {
-    $texts = translateArray(['Article', 'Crash', 'Fetch_article', 'Link_url', 'Title', 'Media_source', 'Summary',
+    $texts = translateArray(['Article', 'Crash', 'Fetch_article', 'Link_url', 'Title', 'Media_source',
       'Full_text', 'Extract_data_from_text', 'Ai_extract_info',
       'Photo_link_url', 'Same_as_article', 'Select_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
       'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
@@ -422,9 +422,6 @@ HTML;
       <label for="editArticleTitle">{$texts['Title']}</label>
       <input id="editArticleTitle" class="popupInput" type="text" maxlength="500" autocomplete="off">
   
-      <label for="editArticleText">{$texts['Summary']}</label>
-      <textarea id="editArticleText" maxlength="500" style="height: 50px; resize: vertical;" class="popupInput" autocomplete="off"></textarea>
-   
       <label for="editArticleUrlImage">{$texts['Photo_link_url']}</label>
       <input id="editArticleUrlImage" class="popupInput" type="url" maxlength="1000" autocomplete="off">
       

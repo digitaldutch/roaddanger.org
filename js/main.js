@@ -1313,7 +1313,6 @@ function showEditCrashForm(isNewCrash=false) {
 
   document.getElementById('editArticleUrl').value = '';
   document.getElementById('editArticleTitle').value = '';
-  document.getElementById('editArticleText').value = '';
   document.getElementById('editArticleAllText').value = '';
   document.getElementById('editArticleUrlImage').value = '';
   document.getElementById('editArticleSiteName').value = '';
@@ -1669,7 +1668,6 @@ function editArticle(crashID, articleID=null) {
 
   document.getElementById('editArticleUrl').value = article.url;
   document.getElementById('editArticleTitle').value = article.title;
-  document.getElementById('editArticleText').value = article.text;
   document.getElementById('editArticleAllText').readonly = true;
   document.getElementById('editArticleAllText').value = '⌛';
 
@@ -2036,11 +2034,16 @@ async function getArticleMetaData() {
   function showMetaData(meta){
     document.getElementById('editArticleUrl').value = meta.url;
     document.getElementById('editArticleTitle').value = meta.title;
-    document.getElementById('editArticleText').value = meta.description;
     document.getElementById('editArticleUrlImage').value = meta.urlimage;
     document.getElementById('editArticleSiteName').value = meta.sitename;
 
-    if (meta.article_body) document.getElementById('editArticleAllText').value  = meta.description + '\n\n' +  meta.article_body;
+    if (meta.article_body) {
+      // The lead (description) is not always part of the article body. Add it only if the body does not start with it.
+      const description = (meta.description ?? '').trim();
+      const body = meta.article_body.trim();
+      const bodyHasLead = ! description || body.startsWith(description.substring(0, 50));
+      document.getElementById('editArticleAllText').value = bodyHasLead? body : description + '\n\n' + body;
+    }
 
     if (meta.published_time){
       try {
@@ -2114,7 +2117,6 @@ async function saveArticleCrash(){
     url: document.getElementById('editArticleUrl').value,
     sitename: document.getElementById('editArticleSiteName').value.trim(),
     title: document.getElementById('editArticleTitle').value.trim(),
-    text: document.getElementById('editArticleText').value.trim(),
     urlimage: document.getElementById('editArticleUrlImage').value.trim(),
     date: document.getElementById('editArticleDate').value,
     alltext: document.getElementById('editArticleAllText').value.trim(),
@@ -2130,7 +2132,6 @@ async function saveArticleCrash(){
 
   if (! articleEdited.url) {showError(translate('Article_link_not_filled_in')); return;}
   if (! articleEdited.title) {showError(translate('Article_title_not_filled_in')); return;}
-  if (! articleEdited.text) {showError(translate('Article_summary_not_filled_in')); return;}
   if (! articleEdited.alltext) {showError(translate('Article_full_text_not_filled_in')); return;}
   if (articleEdited.urlimage.startsWith('http://')) {showError(translate('Article_photo_link_unsafe')); return;}
   if (! articleEdited.sitename) {showError(translate('Article_media_source_not_filled_in')); return;}
@@ -2203,7 +2204,7 @@ async function saveArticleCrash(){
       article.url = articleEdited.url;
       article.sitename = articleEdited.sitename;
       article.title = articleEdited.title;
-      article.text = articleEdited.text;
+      if (response.article) article.text = response.article.text;
       article.urlimage = articleEdited.urlimage;
       article.date = articleEdited.date;
       article.hasalltext = articleEdited.alltext.length > 0;
