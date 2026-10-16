@@ -13,7 +13,9 @@
  *                                                                                Only articles where text is removed. Not the ones where only
  *                                                                                spaces and blank lines change.
  *   php -d xdebug.mode=off install/clean_article_texts.php --revert              Puts the old texts back (only if the text was not edited since).
- *   Add --database=name to use another database than the one in config_secret.php.
+ *   Add --config=path to use another config file than config_secret.php, for example the config of another website.
+ *   Add --database=name to use another database than the one in the config file.
+ * The dry run asks the database for a read-only session, so it can not change anything.
  *
  * - The old text of every changed article is saved in the table articles_alltext_backup. The table is created by --apply.
  * - Running it again is safe. Clean articles are not touched, and the first backup is never overwritten.
@@ -56,13 +58,15 @@ function removedParagraphs(string $old, string $new): array {
   return $removed;
 }
 
-$options = getopt('', ['apply', 'revert', 'skip-layout-only', 'database:']);
+$options = getopt('', ['apply', 'revert', 'skip-layout-only', 'database:', 'config:']);
 $apply = isset($options['apply']);
 $revert = isset($options['revert']);
 $skipLayoutOnly = isset($options['skip-layout-only']);
 if ($apply && $revert) exit("Use --apply or --revert, not both.\n");
 
-require_once __DIR__ . '/../config_secret.php';
+$configFile = $options['config'] ?? (__DIR__ . '/../config_secret.php');
+if (! is_file($configFile)) exit("Config file not found: $configFile\n");
+require_once $configFile;
 
 $databaseName = $options['database'] ?? DB_NAME;
 $pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . $databaseName . ';charset=utf8mb4', DB_USER, DB_PASSWORD, [
@@ -70,6 +74,10 @@ $pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . $databaseName . ';charset=
   PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 ]);
 
+// A dry run must never write. The database refuses all writes in a read-only session.
+if (! $apply && ! $revert) $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+
+echo "Config: $configFile\n";
 echo "Database: $databaseName on " . DB_HOST . "\n";
 echo $apply? "Mode: APPLY (changes the articles)\n" : ($revert? "Mode: REVERT (restores the old texts)\n" : "Mode: dry run (changes nothing)\n");
 

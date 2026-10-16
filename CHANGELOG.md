@@ -1,5 +1,8 @@
 # Changelog
 
+16 october 2026 v793:
+- install/clean_article_texts.php: option --config=path to use the config file of another website, and the dry run asks the database for a read-only session.
+
 16 october 2026 v792:
 - The full text of an article is cleaned when it is fetched and when it is saved (new class ArticleTextCleaner, rules in general/article_text_rules.php):
   - Tidy paragraphs: one blank line between paragraphs, no trailing or double spaces, no hidden characters.
