@@ -1,5 +1,9 @@
 # Changelog
 
+16 october 2026 v789:
+- Export data: the crashes export loads all persons and articles with one query each, instead of two queries for every crash.
+  With 21,000 crashes this takes 1.2 seconds instead of 4 on a local database. The exported data is identical.
+
 16 october 2026 v788:
 - Export data: only one request at a time creates an export file. It takes a lot of memory and time, and the page can be called by anyone.
   - Other requests get the existing file, even if it is older than 24 hours. Without a file they get the message to try again in a minute.

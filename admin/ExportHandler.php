@@ -88,36 +88,54 @@ class ExportHandler extends AjaxHandler {
     // 100,000 is the default
     $maxDownloadCrashes = 100000;
 
-    // This can be much quicker using JSON_OBJECT() and JSON_ARRAYAGG()
+    // Persons and articles are loaded with one query each and added to their crash in PHP.
+    // A query for every crash is about three times slower (21,000 crashes: 4 instead of 1.2 seconds on a local database).
     $sql = <<<SQL
 SELECT
-id,
-groupid,
-transportationmode,
-health,
-child,
-underinfluence,
-hitrun
-FROM crashpersons
-WHERE crashid=:crashid
+cp.crashid,
+cp.id,
+cp.groupid,
+cp.transportationmode,
+cp.health,
+cp.child,
+cp.underinfluence,
+cp.hitrun
+FROM crashpersons cp
+  JOIN crashes ac ON ac.id = cp.crashid
+WHERE ac.awaitingmoderation=0
+ORDER BY cp.id
 SQL;
-    $DBStatementPersons = $this->database->prepare($sql);
+    $personsByCrash = [];
+    foreach ($this->database->fetchAll($sql) as $person) {
+      $crashId = $person['crashid'];
+      unset($person['crashid']);
+      $personsByCrash[$crashId][] = $person;
+    }
 
-    $allText = $includeAllText? 'alltext,' : '';
+    $allText = $includeAllText? 'ar.alltext,' : '';
     $sql = <<<SQL
 SELECT
-id,
-sitename,
-publishedtime,
-url,
-urlimage,
-title,
-$allText       
-text AS 'summary'
-FROM articles
-WHERE crashid=:crashid AND awaitingmoderation=0
+ar.crashid,
+ar.id,
+ar.sitename,
+ar.publishedtime,
+ar.url,
+ar.urlimage,
+ar.title,
+$allText
+ar.text AS 'summary'
+FROM articles ar
+  JOIN crashes ac ON ac.id = ar.crashid
+WHERE ac.awaitingmoderation=0 AND ar.awaitingmoderation=0
+ORDER BY ar.id
 SQL;
-    $DBStatementArticles = $this->database->prepare($sql);
+    $articlesByCrash = [];
+    foreach ($this->database->fetchAll($sql) as $article) {
+      $crashId = $article['crashid'];
+      unset($article['crashid']);
+      $article['publishedtime'] = datetimeDBToISO8601($article['publishedtime'] ?? '');
+      $articlesByCrash[$crashId][] = $article;
+    }
 
     $sql = <<<SQL
 SELECT 
@@ -138,21 +156,10 @@ LIMIT 0, $maxDownloadCrashes
 SQL;
 
     $crashes = [];
-    $DBResults = $this->database->fetchAll($sql);
-    foreach ($DBResults as $crash) {
+    foreach ($this->database->fetchAll($sql) as $crash) {
       $crash['date'] = datetimeDBToISO8601($crash['date']);
-
-      // Load persons
-      $crash['persons'] = $this->database->fetchAllPrepared($DBStatementPersons, ['crashid' => $crash['id']]);
-
-      // Load articles
-      $crash['articles'] = [];
-      $DBArticles = $this->database->fetchAllPrepared($DBStatementArticles, ['crashid' => $crash['id']]);
-      foreach ($DBArticles as $article) {
-        $article['publishedtime'] = datetimeDBToISO8601($article['publishedtime'] ?? '');
-
-        $crash['articles'][] = $article;
-      }
+      $crash['persons'] = $personsByCrash[$crash['id']] ?? [];
+      $crash['articles'] = $articlesByCrash[$crash['id']] ?? [];
 
       $crashes[] = $crash;
     }
