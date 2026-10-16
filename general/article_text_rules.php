@@ -35,6 +35,11 @@ return [
     '/^foto[\'’]?s?$/iu',
     '/^foto[\'’]s\s+(\p{Lu}[\p{L}.\'’-]*(\s+|$)){1,5}$/iu',
 
+    // Name, date and time of publication: "Carin Beenen 11-02-19, 08:52 Laatste update: 12:40"
+    '/^\d{0,3}\p{Lu}[\p{L}.\'’-]*(\s+[\p{L}.\'’,-]+){0,6},?\s+\d{1,2}-\d{1,2}-\d{2,4},\s+\d{1,2}[:.]\d{2}(\s+(?i:laatste update):\s*(\d{1,2}-\d{1,2}-\d{2,4},\s*)?\d{1,2}[:.]\d{2})?(\s+(?i:bron):\s*[^.]{1,40})?$/u',
+    '/^\p{Lu}[\p{L}.\'’-]*(\s+[\p{L}.\'’,-]+){0,6}\s+\d{1,2}\s+\p{L}+\.?\s+\d{4}\s+(?i:laatste update):\s*\d{1,2}-\d{1,2}-\d{2,4},\s*\d{1,2}[:.]\d{2}$/u',
+    '/^\d{1,2}-\d{1,2}-\d{2,4},\s+\d{1,2}[:.]\d{2}\s*\|.{0,40}$/u',
+
     // Date and time of publication, and numbers (comment counts) on a line of their own
     '/^\d{1,2}[ -]\p{L}+[ -]\d{2,4}(\s+(om|-|,)\s+\d{1,2}[:.]\d{2}( uur)?)?$/iu',
     '/^\d{1,4}$/u',

@@ -15,6 +15,7 @@
  *   php -d xdebug.mode=off install/clean_article_texts.php --revert              Puts the old texts back (only if the text was not edited since).
  *   Add --config=path to use another config file than config_secret.php, for example the config of another website.
  *   Add --database=name to use another database than the one in the config file.
+ *   Add --port=3307 to connect to another port than the standard one, for example an SSH tunnel next to a local MySQL.
  * The dry run asks the database for a read-only session, so it can not change anything.
  *
  * - The old text of every changed article is saved in the table articles_alltext_backup. The table is created by --apply.
@@ -40,6 +41,9 @@ function shortText(string $text, int $length = 70): string {
 }
 
 function normalizeSpaces(string $text): string {
+  // Hidden characters (zero-width spaces, soft hyphens) are removed by the cleaner. That is not a removed line.
+  $text = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}\x{00AD}]/u', '', $text);
+
   return trim(preg_replace('/\s+/u', ' ', str_replace("\u{00A0}", ' ', $text)));
 }
 
@@ -58,7 +62,7 @@ function removedParagraphs(string $old, string $new): array {
   return $removed;
 }
 
-$options = getopt('', ['apply', 'revert', 'skip-layout-only', 'database:', 'config:']);
+$options = getopt('', ['apply', 'revert', 'skip-layout-only', 'database:', 'config:', 'port:']);
 $apply = isset($options['apply']);
 $revert = isset($options['revert']);
 $skipLayoutOnly = isset($options['skip-layout-only']);
@@ -69,16 +73,22 @@ if (! is_file($configFile)) exit("Config file not found: $configFile\n");
 require_once $configFile;
 
 $databaseName = $options['database'] ?? DB_NAME;
-$pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . $databaseName . ';charset=utf8mb4', DB_USER, DB_PASSWORD, [
-  PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-  PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-]);
+$port = isset($options['port'])? (int)$options['port'] : null;
+$dsn = 'mysql:host=' . DB_HOST . ($port? ';port=' . $port : '') . ';dbname=' . $databaseName . ';charset=utf8mb4';
+try {
+  $pdo = new PDO($dsn, DB_USER, DB_PASSWORD, [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+  ]);
+} catch (PDOException $e) {
+  exit("Could not connect to " . DB_HOST . ($port? ":$port" : '') . ": " . $e->getMessage() . "\nIs the SSH tunnel open?\n");
+}
 
 // A dry run must never write. The database refuses all writes in a read-only session.
 if (! $apply && ! $revert) $pdo->exec('SET SESSION TRANSACTION READ ONLY');
 
 echo "Config: $configFile\n";
-echo "Database: $databaseName on " . DB_HOST . "\n";
+echo "Database: $databaseName on " . DB_HOST . ($port? ":$port" : '') . "\n";
 echo $apply? "Mode: APPLY (changes the articles)\n" : ($revert? "Mode: REVERT (restores the old texts)\n" : "Mode: dry run (changes nothing)\n");
 
 if ($apply || $revert) {

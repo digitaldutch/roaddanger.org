@@ -1,5 +1,11 @@
 # Changelog
 
+16 october 2026 v794:
+- Article text cleaning: lines with the name, date and time of publication are removed ("Carin Beenen 11-02-19, 08:52 Laatste update: 12:40"). They were in 7% of the articles.
+- install/clean_article_texts.php:
+  - Option --port=3307 for an SSH tunnel next to a local MySQL, and a clear message if the connection fails.
+  - The report no longer counts a removed hidden character (soft hyphen, zero-width space) as a removed line.
+
 16 october 2026 v793:
 - install/clean_article_texts.php: option --config=path to use the config file of another website, and the dry run asks the database for a read-only session.
 
