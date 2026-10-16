@@ -66,7 +66,7 @@ title,
 $allText       
 text AS 'summary'
 FROM articles
-WHERE crashid=:crashid
+WHERE crashid=:crashid AND awaitingmoderation=0
 SQL;
       $DBStatementArticles = $this->database->prepare($sql);
 
@@ -83,10 +83,12 @@ ac.unilateral,
 ac.pet, 
 ac.trafficjam
 FROM crashes ac
+WHERE ac.awaitingmoderation=0
 ORDER BY date DESC 
 LIMIT 0, $maxDownloadCrashes
 SQL;
 
+      $crashes = [];
       $DBResults = $this->database->fetchAll($sql);
       foreach ($DBResults as $crash) {
         $crash['date'] = datetimeDBToISO8601($crash['date']);
@@ -98,12 +100,11 @@ SQL;
         $crash['articles'] = [];
         $DBArticles = $this->database->fetchAllPrepared($DBStatementArticles, ['crashid' => $crash['id']]);
         foreach ($DBArticles as $article) {
-          $crash['publishedtime'] = datetimeDBToISO8601($crash['publishedtime'] ?? '');
+          $article['publishedtime'] = datetimeDBToISO8601($article['publishedtime'] ?? '');
 
           $crash['articles'][] = $article;
         }
 
-        $ids[] = $crash['id'];
         $crashes[] = $crash;
       }
 
@@ -127,9 +128,6 @@ SQL;
 
       ini_set('memory_limit', '1028M');
 
-      // 100,000 is the default
-      $maxDownload = 100000;
-
       $sql = <<<SQL
 SELECT
   id, text, active, question_order, explanation
@@ -138,10 +136,14 @@ SQL;
 
       $questions = $this->database->fetchAll($sql);
 
+      // Only answers about articles that are public. Not about crashes or articles that wait for moderation.
       $sql = <<<SQL
 SELECT
-  questionid, articleid, answer, explanation, answered_by_type, ai_info, answered_at
-FROM answers;
+  an.questionid, an.articleid, an.answer, an.explanation, an.answered_by_type, an.ai_info, an.answered_at
+FROM answers an
+  JOIN articles ar ON ar.id = an.articleid
+  JOIN crashes c ON c.id = ar.crashid
+WHERE ar.awaitingmoderation=0 AND c.awaitingmoderation=0;
 SQL;
       $answers = $this->database->fetchAll($sql);
 

@@ -1,5 +1,12 @@
 # Changelog
 
+16 october 2026 v787:
+- Export data fixes:
+  - The exports no longer contain crashes and articles that are still waiting for moderation, and no answers about them.
+  - The publication date of an article is now in ISO 8601, like the crash date. It was in the database format, and each crash had an empty publishedtime field.
+  - Removed unused variables.
+- The cache cleanup ran at almost every save instead of once per hour (a test value of 6 seconds was left in).
+
 16 october 2026 v786:
 - Export data: the generated export files (crashes and research data, renewed after 24 hours) are now stored in the cache folder instead of the admin folder.
   The cache folder is cleaned automatically and is not in git. The old files in the admin folder can be deleted.

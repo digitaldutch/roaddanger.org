@@ -101,7 +101,7 @@ class Cache {
     $lastCleanup = self::getLastCleanupTime();
 
     // Only run cleanup once per hour
-    if (time() - $lastCleanup < 6) return;
+    if (time() - $lastCleanup < 3600) return;
 
     $cacheFolder = self::getCacheFolder();
     if (!file_exists($cacheFolder)) return;
