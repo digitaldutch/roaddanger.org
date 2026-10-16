@@ -1,5 +1,9 @@
 # Changelog
 
+16 october 2026 v786:
+- Export data: the generated export files (crashes and research data, renewed after 24 hours) are now stored in the cache folder instead of the admin folder.
+  The cache folder is cleaned automatically and is not in git. The old files in the admin folder can be deleted.
+
 16 october 2026 v785:
 - Top bar: the initials circle is a bit bigger (26 pixels), so it is as high as the Add button.
 

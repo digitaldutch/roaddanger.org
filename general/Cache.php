@@ -26,6 +26,16 @@ class Cache {
     return self::getCacheFolder() . $key;
   }
 
+  /**
+   * True if the cache has a file for this key that is not older than the maximum age.
+   * Use this instead of get() for large files that are only downloaded and do not need to be loaded into memory.
+   */
+  static public function exists(string $key, int $maxAgeSeconds = 60): bool {
+    $cache_filename = self::fileNameFromKey($key);
+
+    return file_exists($cache_filename) && (time() - filemtime($cache_filename) <= $maxAgeSeconds);
+  }
+
   static public function get(string $key, int $maxAgeSeconds = 60): string | null {
     $cache_filename = self::fileNameFromKey($key);
 
@@ -63,6 +73,8 @@ class Cache {
     // Writing to a temp file and renaming allows longer access for readers, and the rename is atomic on Linux
     $tempFilename = tempnam($cacheFolder, $key);
     file_put_contents($tempFilename, $data, LOCK_EX);
+    // tempnam() creates a file only the owner can read. The web server must be able to send the file to a browser.
+    chmod($tempFilename, 0644);
     rename($tempFilename, $cacheFilename);
 }
 

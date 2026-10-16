@@ -1,6 +1,7 @@
 <?php
 
 require_once '../general/AjaxHandler.php';
+require_once '../general/Cache.php';
 class ExportHandler extends AjaxHandler {
 
   public function handleRequest(): void {
@@ -28,8 +29,8 @@ class ExportHandler extends AjaxHandler {
 
     $filename = $includeAllText? WEBSITE_NAME . '_data_all_text.json.gz' : WEBSITE_NAME . '_data.json.gz';
 
-    // Recreate backup if existing backup file older than 24 hours
-    if ((!file_exists($filename)) || (time()-filemtime($filename) > 24 * 3600)) {
+    // Recreate the export if the existing file is older than 24 hours. The files are in the cache folder.
+    if (! Cache::exists($filename, 24 * 3600)) {
 
       // We need more memory to parse all data. 128MB allows a little over 10,000 crashes.
       // 1028M should allow 80,000 crashes with all text.
@@ -110,7 +111,7 @@ SQL;
         'crashes' => $crashes,
       ];
       $gzData = gzencode(json_encode($dataOut));
-      file_put_contents($filename, $gzData);
+      Cache::set($filename, $gzData);
     }
 
     return [
@@ -121,8 +122,8 @@ SQL;
   private function downloadResearchData(): array {
     $filename = WEBSITE_NAME . '_research_data.json.gz';
 
-    // Recreate backup if existing backup file older than 24 hours
-    if ((!file_exists($filename)) || (time()-filemtime($filename) > 24 * 3600)) {
+    // Recreate the export if the existing file is older than 24 hours. The files are in the cache folder.
+    if (! Cache::exists($filename, 24 * 3600)) {
 
       ini_set('memory_limit', '1028M');
 
@@ -150,7 +151,7 @@ SQL;
       ];
 
       $gzData = gzencode(json_encode($dataOut));
-      file_put_contents($filename, $gzData);
+      Cache::set($filename, $gzData);
     }
 
     return ['filename' => $filename];

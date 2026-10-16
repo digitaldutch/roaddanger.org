@@ -2621,7 +2621,7 @@ function downloadCrashesData() {
       const url = '/admin/ajaxExport.php?function=downloadCrashesData';
       const response = await fetchFromServer(url);
 
-      const urlFile = '/admin/' + response.filename;
+      const urlFile = '/cache/' + response.filename;
       download(urlFile, response.filename);
     } finally {
       spinnerLoad.style.display = 'none';
@@ -2639,7 +2639,7 @@ function downloadResearchData() {
       const url = '/admin/ajaxExport.php?function=downloadResearchData';
       const response = await fetchFromServer(url);
 
-      const urlFile = '/admin/' + response.filename;
+      const urlFile = '/cache/' + response.filename;
       download(urlFile, response.filename);
     } catch (error) {
       showError(error.message)
