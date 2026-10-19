@@ -391,7 +391,7 @@ HTML;
 
   public static function getFormEditCrash(): string {
     $texts = translateArray(['Article', 'Crash', 'Fetch_article', 'Link_url', 'Title', 'Media_source',
-      'Full_text', 'Extract_data_from_text', 'Ai_extract_info',
+      'Full_text', 'Continue_to_crash_data', 'Ai_extract_info', 'Extracting_crash_data',
       'Photo_link_url', 'Same_as_article', 'Select_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
       'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
       'Location', 'Characteristics', 'Save', 'Cancel',
@@ -407,15 +407,17 @@ HTML;
     <div id="editHeader" class="popupHeader"></div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
 
+    <div class="editTabs">
+      <div id="tabEditArticle" class="editTab editTabSelected" onclick="showEditTab('article');">{$texts['Article']}</div>
+      <div id="tabEditCrash" class="editTab" onclick="showEditTab('crash');">{$texts['Crash']}</div>
+    </div>
+
     <div style="overflow-y: auto">
-    <div class="flexColumn">
-      
-      <div class="formSubHeader" style="display: flex; align-items: center; justify-content: space-between;">
-        <div>{$texts['Article']}</div>
-        <div id="articleInfo" class="smallFont" style="font-weight: normal;">ID: 123</div>
-      </div>
-    
-      
+    <div id="panelEditArticle" class="flexColumn">
+
+      <div id="articleInfo" class="smallFont" style="text-align: right;"></div>
+
+
       <input id="articleIDHidden" type="hidden">
   
       <div class="labelDiv">
@@ -450,22 +452,19 @@ HTML;
         <span class="iconTooltip" data-tippy-content="{$texts['Full_text_info']}"></span>
       </div>
       <textarea id="editArticleAllText" maxlength="10000" style="height: 150px; resize: vertical;" class="popupInput" autocomplete="off"></textarea>
-    
-      <div style="display: flex; flex-direction: column;">
-        <div style="display: flex; align-items: center;">
-      
-          <button class="button buttonGray" style="margin: 5px 0;" onclick="extractDataFromArticle();">{$texts['Extract_data_from_text']}</button>
-          <img id="spinnerExtractData" src="/images/spinner_black.svg" style="display: none; height: 17px; margin-left: 5px;" alt="Spinner">
-        </div>
-        <div id="ai_extract_info" class="smallFont notice">{$texts['Ai_extract_info']}</div>
-      </div>  
     </div>
 
-    <div class="flexColumn">
-      <div class="formSubHeader">{$texts['Crash']}</div>
-     
+    <div id="panelEditCrash" class="flexColumn" style="display: none;">
+      <div id="spinnerExtractData" class="spinnerLine" style="margin: 60px 0; flex-direction: column; align-items: center;">
+        <img src="/images/spinner_black.svg" style="height: 40px;" alt="Spinner">
+        <div style="margin-top: 15px;">{$texts['Extracting_crash_data']}</div>
+      </div>
+
+      <div id="crashFields" class="flexColumn">
+      <div id="ai_extract_info" class="smallFont aiDoneNotice">{$texts['Ai_extract_info']}</div>
+
       <input id="crashIDHidden" type="hidden">
-  
+
       <div class="labelDiv">
         <label for="editCrashDate">{$texts['Date']}</label>
         <span class="iconTooltip" data-tippy-content="{$texts['Accident_date_info']}"></span>
@@ -475,13 +474,13 @@ HTML;
         <span class="button buttonGray buttonLine" onclick="copyCrashDateFromArticle();">{$texts['Same_as_article']}</span>
       </div>
           
-      <div class="labelDiv">
-        <div>{$texts['Involved_humans']}</div>   
+      <div class="labelDiv editSection">
+        <div>{$texts['Involved_humans']}</div>
         <div id="editCrashPersons"></div>
         <div class="button buttonGray" role="button" style="margin: 5px 0;" onclick="showSelectHumansForm();">{$texts['Select_humans']}</div>
       </div>
 
-      <div class="labelDiv">
+      <div class="labelDiv editSection">
         <div>{$texts['Characteristics']}</div>
         <div style="display: flex;">
           <span id="editCrashUnilateral" class="menuButton bgUnilateral" data-tippy-content="{$texts['One-sided_crash']}" onclick="toggleSelectionButton(this);"></span>      
@@ -490,12 +489,15 @@ HTML;
         </div>
       </div>
       
-      <div class="labelDiv">
-        <div>{$texts['Location']} $htmlLocation
+      <div class="labelDiv editSection">
+        <div>{$texts['Location']}
         <span class="iconTooltip" data-tippy-content="{$texts['Edit_location_instructions']}"></span></div>
-            
+
         <input id="editCrashLatitude" type="hidden"><input id="editCrashLongitude" type="hidden">
-        <div id="locationDescription" class="smallFont"></div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 3px;">
+          $htmlLocation
+          <div id="locationDescription" class="smallFont"></div>
+        </div>
 
         <div style="position: relative;">
           <div style="position: absolute; z-index: 1; top: 10px; left: 10px; user-select: none;">
@@ -505,14 +507,16 @@ HTML;
           <div id="mapEdit"></div>
         </div>
 
-      </div>      
-      
+      </div>
+
+      </div>
     </div>
     </div>
-            
+
     <div class="popupFooter">
-      <input type="button" class="button" value="{$texts['Save']}" onclick="saveArticleCrash();">
-      <input type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">
+      <input id="buttonContinueCrashData" type="button" class="button" style="display: none;" value="{$texts['Continue_to_crash_data']}" onclick="showEditTab('crash');">
+      <input id="buttonSaveArticleCrash" type="button" class="button" value="{$texts['Save']}" onclick="saveArticleCrash();">
+      <input id="buttonCancelEdit" type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">
     </div>    
   </form>
   

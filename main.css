@@ -321,6 +321,29 @@ h3, .pageSubTitleFont {
   margin-top: 10px;
 }
 
+.editTabs {
+  display: flex;
+  border-bottom: 1px solid #bbbbbb;
+  margin-bottom: 5px;
+}
+
+.editTab {
+  padding: 6px 16px;
+  cursor: pointer;
+  font-weight: bold;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  user-select: none;
+}
+
+.editTab:hover {
+  background-color: #eeeeee;
+}
+
+.editTabSelected {
+  border-bottom-color: var(--button-selected-bgcolor);
+}
+
 .postButtonArea {
   display: inline-block;
   position: absolute;
@@ -1836,8 +1859,31 @@ h3, .pageSubTitleFont {
 }
 
 #mapEdit {
-  height: 350px;
+  height: 260px;
   margin-top: 10px;
+}
+
+.editSection {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #eeeeee;
+}
+
+.aiDoneNotice {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin: 5px 0 10px 0;
+  padding: 6px 10px;
+  border-radius: 4px;
+  color: #000000;
+  background-color: #e6f4ea;
+}
+
+.aiDoneNotice::before {
+  content: '\2713';
+  font-weight: bold;
+  color: #1e7e34;
 }
 
 #mapCrash {

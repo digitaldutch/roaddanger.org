@@ -1298,6 +1298,60 @@ function showNewCrashForm() {
   showMapEdit();
 }
 
+// A new crash goes in two steps: article first, then the crash data, which the AI extracts from the article
+let editIsNewCrash = false;
+let editExtractedKey = null;
+let editExtracting = false;
+
+function articleExtractKey() {
+  return JSON.stringify([
+    document.getElementById('editArticleDate').value,
+    document.getElementById('editArticleTitle').value.trim(),
+    document.getElementById('editArticleAllText').value.trim()]);
+}
+
+function setEditTab(tab) {
+  const isCrash = tab === 'crash';
+  document.getElementById('panelEditArticle').style.display = isCrash? 'none' : 'flex';
+  document.getElementById('panelEditCrash').style.display = isCrash? 'flex' : 'none';
+  document.getElementById('tabEditArticle').classList.toggle('editTabSelected', ! isCrash);
+  document.getElementById('tabEditCrash').classList.toggle('editTabSelected', isCrash);
+
+  // The map is created while its tab is hidden and has no size then. Measure it again when it can be seen.
+  if (isCrash && mapEdit) mapEdit.resize();
+
+  // A new crash can only be saved from the crash tab, after the crash data is there.
+  // Until then the only button is the one that continues to the crash data.
+  const firstStep = editIsNewCrash && ! isCrash;
+  document.getElementById('buttonContinueCrashData').style.display = firstStep? '' : 'none';
+  document.getElementById('buttonSaveArticleCrash').style.display = firstStep? 'none' : '';
+  document.getElementById('buttonCancelEdit').style.display = firstStep? 'none' : '';
+}
+
+async function showEditTab(tab) {
+  if (tab !== 'crash' || ! editIsNewCrash) {
+    setEditTab(tab);
+    return;
+  }
+
+  // The AI is still working on it: show the tab, do not ask again
+  if (editExtracting) {
+    setEditTab('crash');
+    return;
+  }
+
+  // New crash: go to the crash data and let the AI fill it in
+  if (! document.getElementById('editArticleDate').value) {showError(translate('Article_date_not_filled_in')); return;}
+  if (! document.getElementById('editArticleTitle').value.trim()) {showError(translate('Article_title_not_filled_in')); return;}
+  if (! document.getElementById('editArticleAllText').value.trim()) {showError(translate('Article_full_text_not_filled_in')); return;}
+
+  const key = articleExtractKey();
+  if (key !== editExtractedKey && editExtractedKey !== null && ! confirm(translate('Replace_crash_data_question'))) return;
+
+  setEditTab('crash');
+  if (key !== editExtractedKey) await extractDataFromArticle(key);
+}
+
 function showEditCrashForm(isNewCrash=false) {
   closeAllPopups();
 
@@ -1334,9 +1388,14 @@ function showEditCrashForm(isNewCrash=false) {
 
   document.getElementById('formEditCrash').style.display = 'flex';
 
-  document.getElementById('editArticleUrl').focus();
-
   document.getElementById('ai_extract_info').style.display = 'none';
+
+  editIsNewCrash = isNewCrash;
+  editExtractedKey = null;
+  editExtracting = false;
+  setEditTab('article');
+
+  document.getElementById('editArticleUrl').focus();
 }
 
 function addPersonPropertiesHtml(){
@@ -1360,29 +1419,13 @@ function addPersonPropertiesHtml(){
   document.getElementById('personHealthButtons').innerHTML = htmlButtons;
 }
 
-async function extractDataFromArticle() {
-  event.preventDefault();
-
+// Fills the crash fields with the data the AI extracts from the article. The caller has checked the article fields.
+async function extractDataFromArticle(key) {
   const spinner = document.getElementById('spinnerExtractData');
 
   const date = document.getElementById('editArticleDate').value;
   const text = document.getElementById('editArticleAllText').value;
   const title = document.getElementById('editArticleTitle').value;
-
-  if (! date) {
-    showError(translate('Add_article_date'));
-    return;
-  }
-
-  if (! text.trim()) {
-    showError(translate('Add_full_article_text'));
-    return;
-  }
-
-  if (! title.trim()) {
-    showError(translate('Add_article_title'));
-    return;
-  }
 
   const url = '/general/ajaxGeneral.php?function=extractDataFromArticle';
   const data = {
@@ -1391,12 +1434,22 @@ async function extractDataFromArticle() {
     date: date,
   };
 
+  // The fields are hidden while the AI works, so nothing is typed that the answer would overwrite
+  const fields = document.getElementById('crashFields');
+  const buttonSave = document.getElementById('buttonSaveArticleCrash');
+
   try {
-    spinner.style.display = 'inline-flex';
+    editExtracting = true;
+    fields.style.display = 'none';
+    spinner.style.display = 'flex';
+    buttonSave.disabled = true;
 
     const response = await fetchFromServer(url, data);
 
-    if (response.error) showError(response.error, 10);
+    if (response.error) {
+      showError(response.error, 10);
+      return;
+    }
 
     const crash = response.data;
     editCrashPersons = [];
@@ -1443,13 +1496,27 @@ async function extractDataFromArticle() {
     document.getElementById('editCrashLongitude').value = longitude;
 
     showMapEdit(latitude, longitude).then(
-      () => {mapEdit.setZoom(12);}
+      () => {
+        mapEdit.resize();
+        mapEdit.setZoom(12);
+      }
     );
 
     document.getElementById('ai_extract_info').style.display = 'flex';
 
+  } catch (error) {
+    // The crash tab stays open with the fields as they are, so the data can be filled in by hand
+    showError(error.message, 10);
+
   } finally {
+    // Also after a failure: going back and forth must not ask again, or the data filled in by hand is overwritten
+    editExtractedKey = key;
+    editExtracting = false;
+
     spinner.style.display = 'none';
+    fields.style.display = '';
+    buttonSave.disabled = false;
+    if (mapEdit) mapEdit.resize();
   }
 }
 
@@ -1676,6 +1743,9 @@ function editArticle(crashID, articleID=null) {
   document.getElementById('editArticleDate').value = dateToISO(article.publishedtime);
 
   document.getElementById('formEditCrash').style.display = 'flex';
+
+  // Editing the crash from the crash menu starts at the crash data, editing an article at the article
+  if (! articleID) setEditTab('crash');
 
   getArticleText(article.id).then(
     text => {

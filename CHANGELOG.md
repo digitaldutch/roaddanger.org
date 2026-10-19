@@ -1,5 +1,15 @@
 # Changelog
 
+19 october 2026 v796:
+- The window to add or edit a crash has two tabs: Article and Crash.
+- A new crash starts at the Article tab with one button, "Continue to crash data". It checks date, title and full text, opens the Crash tab and extracts the crash data from the article with AI.
+  - The Crash tab shows a spinner and a wait text while the AI works, then the fields with a notice to check the data.
+  - Going back and forth does not extract again. If the article changed, it asks before the crash data is replaced. A failed extraction is not repeated, so data filled in by hand is kept.
+  - The button "Extract data with AI" is gone.
+- Editing a crash from the crash menu opens the Crash tab, editing an article opens the Article tab. Adding an article to an existing crash does not extract data.
+- The map on the Crash tab has the right size when the tab opens. The tab is tidier: groups with a line between them, country and address on one row, a lower map.
+- New texts: continue_to_crash_data, extracting_crash_data, replace_crash_data_question. Changed: ai_extract_info. No longer used: extract_data_from_text, add_article_date, add_full_article_text.
+
 16 october 2026 v795:
 - The summary of an article is always made from its full text when the article is saved: the first paragraph, or more if it is short, up to about 300 characters, cut at the end of a sentence.
   A heading in front is skipped. Before, a summary that was filled was not changed when editing.
