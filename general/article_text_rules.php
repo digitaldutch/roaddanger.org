@@ -44,6 +44,13 @@ return [
     // Date and time of publication, and numbers (comment counts) on a line of their own
     '/^\d{1,2}[ -]\p{L}+[ -]\d{2,4}(\s+(om|-|,)\s+\d{1,2}[:.]\d{2}( uur)?)?$/iu',
     '/^\d{1,4}$/u',
+
+    // Place, date and time of publication on a line of their own: "Groningen 19 oktober 16:08"
+    '/^\p{Lu}[\p{L}.\'’-]*(\s+[\p{L}.\'’-]+){0,3}\s+\d{1,2}\s+\p{L}+\.?(\s+\d{4})?,?\s+\d{1,2}[:.]\d{2}( uur)?$/u',
+
+    // Navigation to the previous and next article of a blog (WordPress)
+    '/^(bericht|berichten|artikel|post|posts)[ -]?navigatie$/iu',
+    '/^(post|posts|article) navigation$/iu',
   ],
 
   // Lines that only say who wrote the article. The line itself and the name on the next line are removed.

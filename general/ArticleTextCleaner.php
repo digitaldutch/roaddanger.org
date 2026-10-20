@@ -91,7 +91,10 @@ class ArticleTextCleaner {
   private static function removeDuplicateLead(array $paragraphs): array {
     if (count($paragraphs) < 2) return $paragraphs;
 
+    // A description often starts with the place, date and time of publication ("Groningen 19 oktober 16:08 Maandagmiddag ...").
+    // The article text does not have it on that line, so it is left out of the comparison. See also the rules file.
     $first = self::normalizeForCompare($paragraphs[0]);
+    $first = preg_replace('/^\p{Lu}[\p{L}.\'’-]*(\s+[\p{L}.\'’-]+){0,3}\s+\d{1,2}\s+\p{L}+\.?(\s+\d{4})?,?\s+\d{1,2}[:.]\d{2}( uur)?\s+/u', '', $first) ?? $first;
     if (mb_strlen($first) < self::MIN_LEAD_LENGTH) return $paragraphs;
 
     // A first paragraph that is cut off with ... is a duplicate if the text continues with the words before the ...

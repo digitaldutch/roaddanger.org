@@ -1,5 +1,10 @@
 # Changelog
 
+20 october 2026 v798:
+- Article text cleaning:
+  - Removed: a line with place, date and time of publication on its own ("Groningen 19 oktober 16:08") and the navigation of a blog ("Bericht navigatie", "Berichtnavigatie", "Post navigation").
+  - A first paragraph that starts with place, date and time ("Groningen 19 oktober 16:08 Maandagmiddag ...") is also recognised as a repeat of the text that follows. This happens when the description of a page is put in front of the article text.
+
 20 october 2026 v797:
 - New page /bookmarklet/ with a bookmark for websites that block the server (Cloudflare check). The user drags it to the bookmarks bar once and clicks it on the article page. The page is sent from the browser of the user to the website, the server reads it like a downloaded page and the add crash window opens with the article filled in. Nothing is saved on the server.
   - Text that the user selected on the page is used as the full text.
