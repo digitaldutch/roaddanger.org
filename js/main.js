@@ -156,6 +156,8 @@ async function initMain() {
   initWatchPopStart();
 
   loadPageContent(pageType, url, crashID, articleID);
+
+  if (pageType === PageType.recent) showPendingBookmarkArticle();
 }
 
 // Make initMain globally accessible for DOMContentLoaded event
@@ -2104,25 +2106,138 @@ function copyCrashDateFromArticle(){
   document.getElementById('editCrashDate').value  = document.getElementById('editArticleDate').value;
 }
 
-async function getArticleMetaData() {
-  function showMetaData(meta){
-    document.getElementById('editArticleUrl').value = meta.url;
-    document.getElementById('editArticleTitle').value = meta.title;
-    document.getElementById('editArticleUrlImage').value = meta.urlimage;
-    document.getElementById('editArticleSiteName').value = meta.sitename;
+let readabilityLoading = null;
 
-    // The server cleans the text: no repeated first paragraph, no tips, bylines or adverts, tidy paragraphs
-    if (meta.alltext) document.getElementById('editArticleAllText').value = meta.alltext;
+function loadReadability() {
+  if (typeof Readability !== 'undefined') return Promise.resolve();
 
-    if (meta.published_time){
-      try {
-        const datetime = new Date(meta.published_time);
-        document.getElementById('editArticleDate').value = dateToISO(datetime);
-      } catch (e) {
-        // Silent exception. Do nothing as dates can be invalid
-      }
+  if (! readabilityLoading) {
+    readabilityLoading = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = '/scripts/Readability.js?v=0.6.0';
+      script.onload = resolve;
+      script.onerror = () => {
+        readabilityLoading = null;
+        reject(new Error('Readability could not be loaded'));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  return readabilityLoading;
+}
+
+// Finds the article in the html of a page with Readability (scripts/Readability.js), for pages that have no article text
+// in their tags. The page is read in a document in memory: scripts in it do not run and images are not loaded.
+// Returns the text with a blank line between paragraphs, or null.
+async function articleFromHtml(html) {
+  try {
+    await loadReadability();
+
+    const article = new Readability(new DOMParser().parseFromString(html, 'text/html')).parse();
+    if (! article) return null;
+
+    const body = new DOMParser().parseFromString(article.content, 'text/html').body;
+    const blocks = 'h1, h2, h3, h4, h5, h6, p, li, blockquote';
+    const paragraphs = [];
+    body.querySelectorAll(blocks).forEach(element => {
+      // Take the innermost blocks only, so a text in a blockquote is not added twice
+      if (element.querySelector(blocks)) return;
+      const text = element.textContent.replace(/\s+/g, ' ').trim();
+      if (text) paragraphs.push(text);
+    });
+
+    const text = paragraphs.length > 0? paragraphs.join('\n\n') : article.textContent.replace(/\s+/g, ' ').trim();
+    if (! text) return null;
+
+    return {text: text, title: article.title, sitename: article.siteName};
+
+  } catch (e) {
+    // The user can still select or paste the text
+    return null;
+  }
+}
+
+// The text the page gives is the description and the article, as for a page with tags. The server cleans it
+// like every article text, so the user sees what will be saved.
+async function fillArticleTextFromHtml(html, meta) {
+  const article = await articleFromHtml(html);
+  if (! article) return;
+
+  const fieldText = document.getElementById('editArticleAllText');
+  const fieldTitle = document.getElementById('editArticleTitle');
+  const fieldSiteName = document.getElementById('editArticleSiteName');
+
+  if (! fieldTitle.value.trim() && article.title) fieldTitle.value = article.title;
+  if (! fieldSiteName.value.trim() && article.sitename) fieldSiteName.value = article.sitename;
+
+  let text = article.text;
+  if (meta.description) text = meta.description + '\n\n' + text;
+
+  try {
+    const response = await fetchFromServer('/general/ajaxGeneral.php?function=cleanArticleText',
+      {text: text, url: meta.url ?? '', sitename: fieldSiteName.value});
+    if (response.text) text = response.text;
+  } catch (e) {
+    // The text is cleaned again when the article is saved
+  }
+
+  // Do not replace what the user has typed or pasted in the meantime
+  if (fieldText.value.trim()) return;
+
+  fieldText.value = text.slice(0, 10000);
+}
+
+function fillArticleFromMeta(meta){
+  document.getElementById('editArticleUrl').value = meta.url ?? '';
+  document.getElementById('editArticleTitle').value = meta.title ?? '';
+  document.getElementById('editArticleUrlImage').value = meta.urlimage ?? '';
+  document.getElementById('editArticleSiteName').value = meta.sitename ?? '';
+
+  // The server cleans the text: no repeated first paragraph, no tips, bylines or adverts, tidy paragraphs
+  if (meta.alltext) document.getElementById('editArticleAllText').value = meta.alltext;
+
+  if (meta.published_time){
+    try {
+      const datetime = new Date(meta.published_time);
+      document.getElementById('editArticleDate').value = dateToISO(datetime);
+    } catch (e) {
+      // Silent exception. Do nothing as dates can be invalid
     }
   }
+}
+
+// The bookmark (see /bookmarklet/) sends the article from the browser of the visitor, for websites that block the server.
+// The page has been read by the server and the data waits in this tab. Open the add window with it.
+function showPendingBookmarkArticle() {
+  let data = null;
+  try {
+    data = JSON.parse(sessionStorage.getItem('bookmarkArticle'));
+  } catch (e) {
+    return;
+  }
+  if (! data || ! data.media) return;
+
+  // After logging in the page is loaded again and this runs again
+  if (! user.loggedin) {
+    showLoginForm();
+    return;
+  }
+
+  try {
+    sessionStorage.removeItem('bookmarkArticle');
+  } catch (e) {
+    // The data is only used once if possible
+  }
+
+  showNewCrashForm();
+  fillArticleFromMeta(data.media);
+
+  if (! data.media.alltext && data.html) fillArticleTextFromHtml(data.html, data.media);
+}
+
+async function getArticleMetaData() {
+  const showMetaData = fillArticleFromMeta;
 
   const urlArticle = document.getElementById('editArticleUrl').value.trim();
   if (! urlArticle) {
@@ -2155,9 +2270,14 @@ async function getArticleMetaData() {
       if (response.urlExists) {
         showMessage(translate('article_has_already_been_added') + `<br><a href='/${response.urlExists.crashId}' style='text-decoration: underline;'>${translate('Article')}</a>`, 30);
       } else if (response.tagcount.total === 0) {
-        if (response.media.cloudflare) showMessage(translate('No_data_found_cloudflare'), 30);
-        else showMessage(translate('No_data_found_on_web_page'), 30);
-      } else showMetaData(response.media);
+        // The bookmark reads the page in the browser of the visitor, which the website may let in when it blocks the server
+        const linkBookmark = `<br><a href='/bookmarklet/' target='bookmarklet' style='text-decoration: underline;'>${translate('Bookmarklet_title')}</a>`;
+        if (response.media.cloudflare) showMessage(translate('No_data_found_cloudflare') + linkBookmark, 30);
+        else showMessage(translate('No_data_found_on_web_page') + linkBookmark, 30);
+      } else {
+        showMetaData(response.media);
+        if (response.html) fillArticleTextFromHtml(response.html, response.media);
+      }
 
       document.getElementById('spiderResults').innerHTML = `
 <div>${translate('Tags_found')}</div>

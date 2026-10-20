@@ -31,6 +31,7 @@ class GeneralHandler extends AjaxHandler {
         'crashModerateOK' => $this->crashModerateOK(),
         'articleModerateOK' => $this->articleModerateOK(),
         'getArticleWebpageMetaData' => $this->getArticleWebpageMetaData(),
+        'cleanArticleText' => $this->cleanArticleText(),
         'mergeCrashes' => $this->mergeCrashes(),
         'saveLanguage' => $this->saveLanguage(),
         'saveAnswer' => $this->saveAnswer(),
@@ -618,17 +619,33 @@ SQL;
     if ($newArticle) $urlExists = $this->urlExists($url);
     else $urlExists = false;
 
-    // The full text is the description and the article text from the page, cleaned. The user sees the result and can still change it.
-    $media = $resultParser['media'];
-    if (! empty($media['article_body'])) {
-      $media['alltext'] = ArticleTextCleaner::clean(($media['description'] ?? '') . "\n\n" . $media['article_body'], $url, $media['sitename'] ?? '');
-    }
+    $media = addCleanedAllText($resultParser['media'], $url);
 
-    return [
+    $result = [
       'media' => $media,
       'tagcount' => $resultParser['tagCount'],
       'urlExists' => $urlExists,
     ];
+
+    // No article text in the tags of the page: the add window looks for it in the page itself (Readability, see main.js)
+    $html = (string)($resultParser['html'] ?? '');
+    if (empty($media['alltext']) && $resultParser['tagCount']['total'] > 0 && strlen($html) <= 1500 * 1024) {
+      $result['html'] = $html;
+    }
+
+    return $result;
+  }
+
+  /**
+   * The text of an article that was found in the page by the browser (Readability), cleaned like every article text:
+   * no repeated first paragraph, no tips, bylines or photo credits, tidy paragraphs. Nothing is saved.
+   */
+  private function cleanArticleText(): array {
+    $text = mb_substr((string)($this->input['text'] ?? ''), 0, 50000);
+    $url = (string)($this->input['url'] ?? '');
+    $sitename = (string)($this->input['sitename'] ?? '');
+
+    return ['text' => ArticleTextCleaner::clean($text, $url, $sitename)];
   }
 
   private function mergeCrashes(): array {

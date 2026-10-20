@@ -427,6 +427,37 @@ class TMetaParser {
 }
 
 /**
+ * The full text of an article is the description and the article text from the page, cleaned. The user sees the result
+ * and can still change it.
+ */
+function addCleanedAllText(array $media, string $url): array {
+  require_once __DIR__ . '/ArticleTextCleaner.php';
+
+  if (! empty($media['article_body'])) {
+    $media['alltext'] = ArticleTextCleaner::clean(($media['description'] ?? '') . "\n\n" . $media['article_body'], $url, $media['sitename'] ?? '');
+  }
+
+  return $media;
+}
+
+/**
+ * The same result as parseMetaDataFromUrl, for a page that the visitor downloaded in their own browser (bookmarklet).
+ * The server does not download anything, so the url is not requested and the html is untrusted data like any other input.
+ */
+function parseMetaDataFromHtml(string $url, string $pageHtml): array {
+  $parser = new TMetaParser($url);
+
+  $metaData = $parser->getPageMediaMetaData($pageHtml, $url);
+  $tagCount = $parser->getTagStats($metaData);
+  $media = addCleanedAllText($parser->mediaTagsFromMetaData($metaData), $url);
+
+  return [
+    'media' => $media,
+    'tagCount' => $tagCount,
+  ];
+}
+
+/**
  * @throws InvalidArgumentException when the url is not allowed
  */
 function parseMetaDataFromUrl(string $url): array {
@@ -459,5 +490,6 @@ function parseMetaDataFromUrl(string $url): array {
   return [
     'media' => $media,
     'tagCount' => $tagCount,
+    'html' => $pageHtml,
   ];
 }

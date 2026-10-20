@@ -34,6 +34,7 @@ return [
     '/^foto van auteur$/iu',
     '/^foto[\'’]?s?$/iu',
     '/^foto[\'’]s\s+(\p{Lu}[\p{L}.\'’-]*(\s+|$)){1,5}$/iu',
+    '/^©\s*[^.]{1,80}$/u',
 
     // Name, date and time of publication: "Carin Beenen 11-02-19, 08:52 Laatste update: 12:40"
     '/^\d{0,3}\p{Lu}[\p{L}.\'’-]*(\s+[\p{L}.\'’,-]+){0,6},?\s+\d{1,2}-\d{1,2}-\d{2,4},\s+\d{1,2}[:.]\d{2}(\s+(?i:laatste update):\s*(\d{1,2}-\d{1,2}-\d{2,4},\s*)?\d{1,2}[:.]\d{2})?(\s+(?i:bron):\s*[^.]{1,40})?$/u',

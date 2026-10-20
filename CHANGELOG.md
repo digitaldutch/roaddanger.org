@@ -1,5 +1,16 @@
 # Changelog
 
+20 october 2026 v797:
+- New page /bookmarklet/ with a bookmark for websites that block the server (Cloudflare check). The user drags it to the bookmarks bar once and clicks it on the article page. The page is sent from the browser of the user to the website, the server reads it like a downloaded page and the add crash window opens with the article filled in. Nothing is saved on the server.
+  - Text that the user selected on the page is used as the full text.
+  - Without text in the page tags, the add window finds the article in the page with Readability (new library scripts/Readability.js, Apache 2.0, version 0.6.0). The text is cleaned by the server, so the user sees what will be saved.
+  - The same for the fetch button: if the page has no article text in its tags, the server also returns the page and the window looks for the article in it.
+  - The message when fetching is blocked or finds no data has a link to the bookmark page.
+- New ajax function cleanArticleText: cleans a text like an article text, without saving.
+- Article text cleaning: a short line that starts with © is a photo credit and is removed.
+- parseMetaDataFromHtml and addCleanedAllText in general/meta_parser_utils.php are shared by the fetch button and the bookmark.
+- New texts: bookmarklet_title, bookmarklet_intro, bookmarklet_install, bookmarklet_use, bookmarklet_select, bookmarklet_link_text.
+
 19 october 2026 v796:
 - The window to add or edit a crash has two tabs: Article and Crash.
 - A new crash starts at the Article tab with one button, "Continue to crash data". It checks date, title and full text, opens the Crash tab and extracts the crash data from the article with AI.
