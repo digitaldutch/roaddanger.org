@@ -1,5 +1,10 @@
 # Changelog
 
+20 october 2026 v799:
+- Article text cleaning:
+  - The rules for the DPG Media websites are shared by ad.nl, bd.nl, bndestem.nl, destentor.nl, ed.nl, gelderlander.nl, pzc.nl, parool.nl, trouw.nl and volkskrant.nl: "Maak ons je Google-favoriet", "Interessant voor jou", "Blijf op de hoogte" and the name of the editorial team ("Redactie", "112Redactie"). Destentor keeps its own section names.
+  - A date and time on a line of its own is also removed with a comma directly after the year ("20 oktober 2026, 09:49"), with a dash or with a space.
+
 20 october 2026 v798:
 - Article text cleaning:
   - Removed: a line with place, date and time of publication on its own ("Groningen 19 oktober 16:08") and the navigation of a blog ("Bericht navigatie", "Berichtnavigatie", "Post navigation").

@@ -11,6 +11,17 @@
  * - To find new lines: look for lines that occur in many articles of the same website.
  */
 
+// Lines that DPG Media adds to the text of its regional and national news websites (see 'sites' below)
+$dpgMediaRules = [
+  '/^maak ons je google-favoriet$/iu',
+  '/^blijf op de hoogte$/iu',
+  '/^krijg een melding bij belangrijk nieuws\b.*$/iu',
+  '/^mis nooit meer het laatste nieuws$/iu',
+  '/^interessant voor jou$/iu',
+  // The name of the editorial team, also joined to the number of the section: "112Redactie"
+  '/^(112 ?)?redactie$/iu',
+];
+
 return [
   'general' => [
     // Request for tips and WhatsApp messages
@@ -42,7 +53,7 @@ return [
     '/^\d{1,2}-\d{1,2}-\d{2,4},\s+\d{1,2}[:.]\d{2}\s*\|.{0,40}$/u',
 
     // Date and time of publication, and numbers (comment counts) on a line of their own
-    '/^\d{1,2}[ -]\p{L}+[ -]\d{2,4}(\s+(om|-|,)\s+\d{1,2}[:.]\d{2}( uur)?)?$/iu',
+    '/^\d{1,2}[ -]\p{L}+[ -]\d{2,4}((\s+om\s+|\s*[-,]\s+|\s+)\d{1,2}[:.]\d{2}( uur)?)?$/iu',
     '/^\d{1,4}$/u',
 
     // Place, date and time of publication on a line of their own: "Groningen 19 oktober 16:08"
@@ -59,13 +70,18 @@ return [
   ],
 
   'sites' => [
-    'destentor.nl' => [
-      '/^maak ons je google-favoriet$/iu',
-      '/^blijf op de hoogte$/iu',
-      '/^krijg een melding bij belangrijk nieuws\b.*$/iu',
-      '/^mis nooit meer het laatste nieuws$/iu',
+    'ad.nl' => $dpgMediaRules,
+    'bd.nl' => $dpgMediaRules,
+    'bndestem.nl' => $dpgMediaRules,
+    'destentor.nl' => array_merge($dpgMediaRules, [
       '/^(eten en drinken|aanbiedingen|van de lezer|algemeen verslaggever)$/iu',
-    ],
+    ]),
+    'ed.nl' => $dpgMediaRules,
+    'gelderlander.nl' => $dpgMediaRules,
+    'pzc.nl' => $dpgMediaRules,
+    'parool.nl' => $dpgMediaRules,
+    'trouw.nl' => $dpgMediaRules,
+    'volkskrant.nl' => $dpgMediaRules,
     'weblogzwolle.nl' => [
       '/^algemeen redactie$/iu',
     ],
