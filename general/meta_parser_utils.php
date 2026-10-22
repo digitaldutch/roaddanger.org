@@ -49,16 +49,33 @@ function checkPublicWebUrl(string $url): array {
 /**
  * The command to download a page with the headless browser. The url is checked and passed as one quoted argument.
  * On Linux the browser is stopped after 60 seconds.
+ * The browser gets its own profile folder ($profileDir), which the caller removes afterwards. Without it, the
+ * browser leaves a profile with cache of several MB in the home folder on every run.
  *
  * @throws InvalidArgumentException when the url is not allowed
  */
-function buildHeadlessBrowserCommand(string $url): string {
+function buildHeadlessBrowserCommand(string $url, string $profileDir): string {
   checkPublicWebUrl($url);
 
   $headlessCommand = PHP_OS_FAMILY === 'Windows'? HEADLESS_BROWSER_COMMAND_WINDOWS : HEADLESS_BROWSER_COMMAND;
   $timeout = (PHP_OS_FAMILY === 'Windows')? '' : 'timeout 60 ';
 
-  return $timeout . $headlessCommand . ' ' . escapeshellarg($url);
+  return $timeout . $headlessCommand . ' --user-data-dir=' . escapeshellarg($profileDir) . ' ' . escapeshellarg($url);
+}
+
+/**
+ * Removes a folder with its content. Used for the temporary profile of the headless browser.
+ */
+function removeFolder(string $dir): void {
+  if (! is_dir($dir)) return;
+
+  $items = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+    RecursiveIteratorIterator::CHILD_FIRST);
+  foreach ($items as $item) {
+    $item->isDir() && ! $item->isLink() ? @rmdir($item->getPathname()) : @unlink($item->getPathname());
+  }
+  @rmdir($dir);
 }
 
 class TMetaParser {
@@ -111,9 +128,14 @@ class TMetaParser {
   }
 
   function downloadUsingHeadlessBrowser($urlDownload): null|string {
-    $command = buildHeadlessBrowserCommand($urlDownload);
+    $profileDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'headless_' . bin2hex(random_bytes(8));
 
-    exec($command, $output, $statusCode);
+    try {
+      $command = buildHeadlessBrowserCommand($urlDownload, $profileDir);
+      exec($command, $output, $statusCode);
+    } finally {
+      removeFolder($profileDir);
+    }
 
     if ($statusCode === 0) {
       return implode("\n", $output);

@@ -1,5 +1,9 @@
 # Changelog
 
+22 october 2026 v800:
+- The headless browser, used to fetch articles, now gets a temporary profile folder (--user-data-dir) that is removed after each run. Before, every run left a profile with cache of several MB in the home folder of the server, which filled the disk.
+  - New function removeFolder in general/meta_parser_utils.php. buildHeadlessBrowserCommand has a second parameter, the profile folder.
+
 20 october 2026 v799:
 - Article text cleaning:
   - The rules for the DPG Media websites are shared by ad.nl, bd.nl, bndestem.nl, destentor.nl, ed.nl, gelderlander.nl, pzc.nl, parool.nl, trouw.nl and volkskrant.nl: "Maak ons je Google-favoriet", "Interessant voor jou", "Blijf op de hoogte" and the name of the editorial team ("Redactie", "112Redactie"). Destentor keeps its own section names.
