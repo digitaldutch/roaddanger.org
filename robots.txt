@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /$
+Allow: /about/
+Allow: /main.css
+Allow: /js/
+Allow: /scripts/
+Allow: /images/
+Allow: /fonts/
+Disallow: /

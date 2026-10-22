@@ -19,7 +19,7 @@ class HtmlBuilder {
       $cookieWarning = <<<HTML
     <div id="cookieWarning" class="flexRow">
       <div>{$texts['Cookie_warning']}
-        <a href="/aboutthissite/#cookies" style="text-decoration: underline; color: inherit;">{$texts['More_info']}</a>
+        <a href="/about/#cookies" style="text-decoration: underline; color: inherit;">{$texts['More_info']}</a>
       </div>
       <div class="button" onclick="acceptCookies();">{$texts['Accept']}</div>
     </div>
@@ -255,7 +255,7 @@ HTML;
       <div class="navigationSectionHeader">{$texts['Other']}</div>      
       <a href="/decorrespondent" class="navItem">{$texts['The_correspondent_week']}</a>
       <a href="/export/" class="navItem">{$texts['Export_data']}</a>
-      <a href="/aboutthissite/" class="navItem">{$texts['About_this_site']}</a>
+      <a href="/about/" class="navItem">{$texts['About_this_site']}</a>
     </div>
 
     <div class="navigationSection navLanguage">

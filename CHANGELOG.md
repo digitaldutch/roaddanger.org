@@ -1,5 +1,9 @@
 # Changelog
 
+22 october 2026 v801:
+- New robots.txt: search engines and other crawlers that follow the rules may only fetch the home page and the about page, with the files these pages need.
+- The page /aboutthissite/ is now /about/ (there is no redirect from the old url). The links in the cookie banner, the menu and the long texts (child_victims_info, counter_party_info, website_info) are changed, also in install/init_data.sql.
+
 22 october 2026 v800:
 - The headless browser, used to fetch articles, now gets a temporary profile folder (--user-data-dir) that is removed after each run. Before, every run left a profile with cache of several MB in the home folder of the server, which filled the disk.
   - New function removeFolder in general/meta_parser_utils.php. buildHeadlessBrowserCommand has a second parameter, the profile folder.
