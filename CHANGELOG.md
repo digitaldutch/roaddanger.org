@@ -1,5 +1,9 @@
 # Changelog
 
+26 october 2026 v807:
+- Edit crash, map: a new button Remove location removes the pin. Clicking the marker no longer asks "Delete location?". Before, this question also appeared after moving the marker.
+  New text remove_location in the table languages. Change edit_location_instructions too: it still says "Click marker to delete a location".
+
 26 october 2026 v806:
 - New column crashes.locationaccuracy: the estimated accuracy of the place in metres, NULL if unknown. Add the column to the database before you upload this version:
   `ALTER TABLE crashes ADD COLUMN locationaccuracy int unsigned NULL COMMENT 'estimated accuracy of the place in metres. NULL: unknown' AFTER locationdescription;`

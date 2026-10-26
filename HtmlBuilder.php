@@ -395,7 +395,7 @@ HTML;
       'Photo_link_url', 'Same_as_article', 'Select_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
       'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
       'Location', 'Characteristics', 'Save', 'Cancel',
-      'Fetching_web_page', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions']);
+      'Fetching_web_page', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions', 'Remove_location']);
 
     $htmlLocation = self::getSearchLocationHtml( 'editCrashCountry');
 
@@ -504,6 +504,7 @@ HTML;
             <div class="buttonMap bgZoomIn" onclick="zoomEditMap(1);"></div>
             <div class="buttonMap bgZoomOut" onclick="zoomEditMap(-1);"></div>
           </div>
+          <button id="buttonRemoveLocation" type="button" class="button buttonGray buttonTiny" style="display: none; position: absolute; z-index: 1; bottom: 25px; left: 5px;" onclick="removeCrashLocation();">{$texts['Remove_location']}</button>
           <div id="mapEdit"></div>
         </div>
 

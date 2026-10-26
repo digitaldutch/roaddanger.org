@@ -2877,15 +2877,8 @@ async function showMapEdit(latitude, longitude) {
       const markerElement = document.createElement('div');
       markerElement.innerHTML = `<img class="mapMarker" src="/images/pin.svg" alt="marker">`;
       markerElement.id = 'marker';
-      markerElement.addEventListener('click', (e) => {
-        e.stopPropagation();
-        confirmMessage(`Delete location?`, () => {
-          document.getElementById('editCrashLatitude').value  = '';
-          document.getElementById('editCrashLongitude').value = '';
-          document.getElementById('editCrashLocationAccuracy').value = '';
-          deleteCrashMarker();
-        });
-       });
+      // A click on the marker must not reach the map, as that would place a new marker
+      markerElement.addEventListener('click', (e) => e.stopPropagation());
 
       markerEdit = new mapboxgl.Marker(markerElement, {anchor: 'bottom', draggable: true})
         .setLngLat([longitude, latitude])
@@ -2895,6 +2888,7 @@ async function showMapEdit(latitude, longitude) {
           saveMarkerPosition(lngLat);
         })
     }
+    document.getElementById('buttonRemoveLocation').style.display = '';
   }
 
   function deleteCrashMarker(){
@@ -2902,6 +2896,7 @@ async function showMapEdit(latitude, longitude) {
       markerEdit.remove();
       markerEdit = null;
     }
+    document.getElementById('buttonRemoveLocation').style.display = 'none';
   }
 
   const countryOptions = await getCountryMapOptions();
@@ -2946,6 +2941,17 @@ async function showMapEdit(latitude, longitude) {
   }
 
   if (showMarker) setCrashMarker(latitude, longitude);
+}
+
+function removeCrashLocation() {
+  document.getElementById('editCrashLatitude').value  = '';
+  document.getElementById('editCrashLongitude').value = '';
+  document.getElementById('editCrashLocationAccuracy').value = '';
+  if (markerEdit) {
+    markerEdit.remove();
+    markerEdit = null;
+  }
+  document.getElementById('buttonRemoveLocation').style.display = 'none';
 }
 
 function zoomEditMap(direction) {
