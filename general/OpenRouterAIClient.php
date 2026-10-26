@@ -146,7 +146,9 @@ class OpenRouterAIClient {
   public function chatWithMeta(string $user_prompt, string $systemPrompt = '', string $model = self::DEFAULT_MODEL,
                                string $responseFormat = ''): array {
 
-    $responseOpenRouter = $this->chatFromOpenRouter($user_prompt, $systemPrompt, $model, $responseFormat);
+    $start = microtime(true);
+    $responseOpenRouter = $this->chatFromOpenRouter($user_prompt, $systemPrompt, $model, $responseFormat, true);
+    $latencyMs = (int)round((microtime(true) - $start) * 1000);
 
     return [
       'response' => $responseOpenRouter['choices'][0]['message']['content'],
@@ -154,6 +156,8 @@ class OpenRouterAIClient {
       'model' => $responseOpenRouter['model'],
       'tokens_prompt' => $responseOpenRouter['usage']['prompt_tokens'],
       'tokens_completion' => $responseOpenRouter['usage']['completion_tokens'],
+      'cost' => $responseOpenRouter['usage']['cost'] ?? null,
+      'latency_ms' => $latencyMs,
     ];
   }
 
@@ -161,7 +165,8 @@ class OpenRouterAIClient {
    * @throws Exception
    */
   private function chatFromOpenRouter(string $userPrompt, string $systemPrompt = '',
-                                     string $model = self::DEFAULT_MODEL, string $responseFormat = ''): array {
+                                     string $model = self::DEFAULT_MODEL, string $responseFormat = '',
+                                     bool $includeUsage = false): array {
     if (strlen($userPrompt) > 10000) {
       throw new \Exception('The "User prompt" exceeds the maximum allowed length of 10000 characters');
     }
@@ -196,6 +201,9 @@ class OpenRouterAIClient {
     if (! empty($responseFormat)) {
       $postData['response_format'] = json_decode($responseFormat);
     }
+
+    // The answer then includes the cost of this request in usage.cost
+    if ($includeUsage) $postData['usage'] = ['include' => true];
 
     $url = 'https://openrouter.ai/api/v1/chat/completions';
     return $this->callServer($url, $postData);

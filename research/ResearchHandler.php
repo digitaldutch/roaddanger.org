@@ -27,11 +27,14 @@ class ResearchHandler extends AjaxHandler {
           'aiInit' => $this->aiInit(),
           'aiGetAvailableModels' => $this->aiGetAvailableModels(),
           'aiGetGenerationInfo' => $this->aiGetGenerationInfo(),
+          'aiGetCredits' => $this->aiGetCredits(),
           'loadArticle' => $this->loadArticle(),
+          'aiFindTestArticles' => $this->aiFindTestArticles(),
           'selectAiModel' => $this->selectAiModel(),
           'removeAiModel' => $this->removeAiModel(),
           'updateModelsDatabase' => $this->updateModelsDatabase(),
           'aiSavePrompt' => $this->aiSavePrompt(),
+          'aiUseOnLive' => $this->aiUseOnLive(),
           'aiGetPromptList' => $this->aiGetPromptList(),
           'aiDeletePrompt' => $this->aiDeletePrompt(),
           'loadArticlesToAnswer' => $this->loadArticlesToAnswer(),
@@ -725,9 +728,6 @@ SQL;
 
     if (empty($this->input['articleId'])) $this->input['articleId'] = null;
 
-    // The column function is unique. Prompts without a function must have NULL: an empty text is a value too.
-    if (trim($this->input['function'] ?? '') === '') $this->input['function'] = null;
-
     if (! empty ($this->input['id'])) {
 
       if (! $this->mayEditPrompt($this->input['id'])) throw new \Exception("You cannot save somebody else's prompt");
@@ -738,7 +738,6 @@ model_id = :model_id,
 user_prompt = :user_prompt,
 system_prompt = :system_prompt,
 response_format = :response_format,
-`function` = :function,
 article_id = :article_id
 WHERE id = :id;                                                                                              ;                                                                                              
 SQL;
@@ -749,7 +748,6 @@ SQL;
         ':user_prompt' => $this->input['userPrompt'],
         ':system_prompt' => $this->input['systemPrompt'],
         ':response_format' => $this->input['responseFormat'],
-        ':function' => $this->input['function'],
         ':article_id' => $this->input['articleId'],
       ];
 
@@ -759,8 +757,8 @@ SQL;
       if (! $this->user->isModerator()) throw new \Exception("You have no permission to save a prompt");
 
       $SQL = <<<SQL
-INSERT INTO ai_prompts (user_id, model_id, user_prompt, system_prompt, response_format, `function`, article_id) 
-VALUES (:user_id, :model_id, :user_prompt, :system_prompt, :response_format, :function, :article_id);                                                                                              ;                                                                                              
+INSERT INTO ai_prompts (user_id, model_id, user_prompt, system_prompt, response_format, article_id) 
+VALUES (:user_id, :model_id, :user_prompt, :system_prompt, :response_format, :article_id);                                                                                              ;                                                                                              
 SQL;
 
       $params = [
@@ -769,7 +767,6 @@ SQL;
         ':user_prompt' => $this->input['userPrompt'],
         ':system_prompt' => $this->input['systemPrompt'],
         ':response_format' => $this->input['responseFormat'],
-        ':function' => $this->input['function'],
         ':article_id' => $this->input['articleId'],
       ];
 
@@ -783,6 +780,43 @@ SQL;
   }
 
   /**
+   * Makes a prompt the prompt that the website uses for a place (function). The prompt that has the place now loses it,
+   * but stays in the list. Both changes happen together: the website never has a place without a prompt.
+   * @throws Exception
+   */
+  private function aiUseOnLive(): array {
+    require_once '../general/AiPromptFunctions.php';
+
+    $promptId = (int)($this->input['promptId'] ?? 0);
+    $function = (string)($this->input['function'] ?? '');
+
+    if (! AiPromptFunctions::exists($function)) throw new \Exception('Unknown place on the website');
+
+    $sql = "SELECT COALESCE(`function`, '') FROM ai_prompts WHERE id=:id;";
+    $currentFunction = $this->database->fetchSingleValue($sql, [':id' => $promptId]);
+    if ($currentFunction === false || $currentFunction === null) throw new \Exception('Prompt not found');
+
+    // A prompt has one place. Moving a prompt that the website uses would leave its place without a prompt.
+    if ($currentFunction === $function) return ['previousId' => null];
+    if ($currentFunction !== '') throw new \Exception('The website already uses this prompt for another place. Use another prompt for this place.');
+
+    $previousId = $this->database->fetchSingleValue("SELECT id FROM ai_prompts WHERE `function`=:function;", [':function' => $function]);
+
+    $this->database->beginTransaction();
+    try {
+      // The function is unique: first free it, then give it to this prompt
+      $this->database->execute("UPDATE ai_prompts SET `function` = NULL WHERE `function` = :function;", [':function' => $function]);
+      $this->database->execute("UPDATE ai_prompts SET `function` = :function WHERE id = :id;", [':function' => $function, ':id' => $promptId]);
+      $this->database->commit();
+    } catch (\Throwable $e) {
+      $this->database->rollback();
+      throw $e;
+    }
+
+    return ['previousId' => $previousId === false? null : (int)$previousId];
+  }
+
+  /**
    * @throws Exception
    */
   private function aiDeletePrompt(): array {
@@ -791,7 +825,7 @@ SQL;
     $sql = "SELECT `function` FROM ai_prompts WHERE id=:id;";
     $params = [':id' => $this->input['id']];
     $function = $this->database->fetchSingleValue($sql, $params);
-    if (! empty($function)) throw new \Exception("Cannot delete an AI prompt with a function. Remove the function first.");
+    if (! empty($function)) throw new \Exception("Cannot delete a prompt that the website uses. Use another prompt on the live website for this place first.");
 
     if (! $this->mayEditPrompt($this->input['id'])) throw new \Exception("You cannot delete somebody else's prompt");
 
@@ -834,6 +868,43 @@ SQL;
     return [
       'article' => $article,
     ];
+  }
+
+  /**
+   * The articles to test a prompt on: the latest ones, or a random selection from the recent ones.
+   * Only the data to show a list. The prompt test loads the text of the article itself.
+   */
+  private function aiFindTestArticles(): array {
+    $count = max(1, min(50, (int)($this->input['count'] ?? 10)));
+    $mode = $this->input['mode'] ?? 'latest';
+
+    $where = "alltext IS NOT NULL AND LENGTH(alltext) >= 300";
+    $params = [];
+    if ($mode === 'random') {
+      $maxId = (int)$this->database->fetchSingleValue("SELECT MAX(id) FROM articles;");
+      $where .= " AND id > :minId";
+      $params[':minId'] = $maxId - 5000;
+      $order = 'RAND()';
+    } else {
+      $order = 'id DESC';
+    }
+
+    $sql = "SELECT id, crashid, title, DATE(publishedtime) AS date FROM articles WHERE $where ORDER BY $order LIMIT $count;";
+
+    return [
+      'articles' => $this->database->fetchAll($sql, $params),
+    ];
+  }
+
+  /**
+   * @throws Exception
+   */
+  private function aiGetCredits(): array {
+    require_once '../general/OpenRouterAIClient.php';
+
+    $openrouter = new OpenRouterAIClient();
+
+    return ['credits' => $openrouter->getCredits()];
   }
 
   /**
@@ -974,9 +1045,12 @@ SQL;
     $models = $this->getAIModels();
     $credits = $openrouter->getCredits();
 
+    require_once '../general/AiPromptFunctions.php';
+
     return [
       'models' => $models,
       'credits' => $credits,
+      'functions' => AiPromptFunctions::all(),
     ];
   }
 

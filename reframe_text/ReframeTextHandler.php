@@ -21,7 +21,8 @@ class ReframeTextHandler {
         RateLimit::record($database, RateLimit::AI);
       }
 
-      $prompt = $database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE `function`='article_reframe_text';");
+      $prompt = $database->fetchObject("SELECT model_id, user_prompt, system_prompt, response_format FROM ai_prompts WHERE `function`='article_reframe';");
+      if ($prompt === false) throw new \Exception("AI prompt function 'article_reframe' not found");
 
       require_once '../general/OpenRouterAIClient.php';
 

@@ -2249,3 +2249,49 @@ table.tableDragging td div {
     display: block;
   }
 }
+
+/* AI prompt builder: library, editor and test next to each other */
+.pbPage { width: 1600px; max-width: 100%; box-sizing: border-box; margin: 0 auto; padding: 5px 10px; }
+.pbTitleRow { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.pbGrid { display: grid; grid-template-columns: 210px minmax(360px, 1fr) minmax(420px, 1.25fr); gap: 12px; align-items: start; }
+@media (max-width: 1100px) { .pbGrid { grid-template-columns: 1fr; } }
+.pbPanel { background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 6px; padding: 8px 10px; min-width: 0; }
+.pbPanelHeader { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 15px; }
+.pbButtons { display: flex; gap: 4px; }
+.pbButtons .button, .pbRow .button { min-width: 50px; margin-left: 0; padding: 3px 8px; }
+.pbRow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 4px 0; }
+.pbRow .inputForm { flex: 1; min-width: 120px; }
+.pbTextarea { height: 130px; resize: vertical; padding: 4px; font-size: 12px; }
+.pbDetails { margin: 8px 0; }
+.pbDetails summary { cursor: pointer; }
+.pbList { display: flex; flex-direction: column; gap: 3px; max-height: 80vh; overflow: auto; }
+.pbListItem { padding: 4px 6px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; font-size: 12px; overflow-wrap: anywhere; }
+.pbListItem:hover { background: rgba(255, 255, 255, 0.12); }
+.pbListItem.selected { background: rgba(255, 255, 255, 0.22); border-color: rgba(255, 255, 255, 0.4); }
+.pbListMeta { font-size: 10px; opacity: 0.75; }
+.pbBadge { display: inline-block; padding: 0 6px; border-radius: 8px; font-size: 10px; background: #cfe9c9; color: #123a0f; margin-left: 4px; }
+.pbResults { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.pbCard { background: #f3f3f1; color: #111; border-radius: 6px; padding: 8px 10px; }
+.pbCard a { color: #b3140a; }
+.pbCardTitle { font-weight: bold; margin-bottom: 4px; }
+.pbCardMeta { font-weight: normal; font-size: 11px; color: #555; }
+.pbChips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 5px; }
+.pbChip { padding: 0 7px; border-radius: 8px; font-size: 11px; background: #ddd; color: #222; }
+.pbChipOk { background: #cfe9c9; color: #123a0f; }
+.pbChipError { background: #f5c2bd; color: #6b0f08; }
+.pbParsed { font-size: 12px; line-height: 1.5; }
+.pbLabel { color: #666; display: inline-block; min-width: 62px; }
+.pbCard pre { white-space: pre-wrap; word-break: break-word; font-size: 11px; background: #e6e6e3; padding: 5px; border-radius: 4px; margin: 4px 0 0; max-height: 300px; overflow: auto; }
+.pbCard details { margin-top: 4px; font-size: 11px; }
+.pbCard summary { cursor: pointer; color: #555; }
+.pbArticle { white-space: pre-wrap; max-height: 260px; overflow: auto; font-size: 12px; background: #e6e6e3; padding: 5px; border-radius: 4px; margin-top: 4px; }
+.pbEmpty { opacity: 0.8; padding: 6px 0; }
+#aiFormatStatus.ok { color: #9be39b; }
+#aiFormatStatus.error { color: #ffb4ab; }
+
+.pbLive { margin: 8px 0; padding: 6px 8px; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 6px; }
+.pbLive .button { margin: 6px 0 0 0; }
+.pbLiveTitle { font-size: 13px; margin-bottom: 2px; }
+.pbPlace { display: flex; gap: 8px; align-items: flex-start; padding: 6px 8px; margin: 3px 0; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; }
+.pbPlace:hover { background: #f0f0f0; }
+.pbPlace input { margin-top: 3px; }

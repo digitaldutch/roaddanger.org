@@ -413,99 +413,105 @@ HTML;
 
     return <<<HTML
 <div id="pageMain">
-  <div class="pageInner"> 
-    <div class="pageSubTitle">AI prompt builder</div>
-    <div id="aiInfo" class="smallFont" style="text-align: right;">&nbsp;</div> 
-  
+  <div class="pbPage">
+    <div class="pbTitleRow">
+      <div class="pageSubTitle" style="margin: 5px 0;">AI prompt builder</div>
+      <div id="aiInfo" class="smallFont">&nbsp;</div>
+    </div>
+
     <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
 
-    <div id="aiForm" style="display: none;">
-      <div class="labelDiv">AI model</div>
-      <div class="smallFont">To help you choose, read the <a href="https://openrouter.ai/rankings" target="openrouter">list of most popular AI models</a>.</div>
-      <div style="display: flex;">
-        <select id="aiModel" class="inputForm" oninput="aiModelChange();"></select>
-        <button class="button buttonGray buttonLine" onclick="showAddAiModelForm();">Add</button>
-        <button class="button buttonGray buttonLine" onclick="removeAiModel();">Remove</button>
-        <button class="button buttonGray buttonLine" onclick="updateAiModelsInfo();">Update All</button>
-      </div>
-      <div id="aiModelInfo" class="smallFont"></div>
-      
-      <input type="hidden" id="aiPromptId" value="">
-      <input type="hidden" id="aiCrashId" value="">
+    <div id="aiForm" class="pbGrid" style="display: none;">
 
-      <div>
-        <div class="labelDiv">System function</div>
-        <div class="smallFont">AI queries with a system function are used in the website. Do not change if you don't know what you're doing.</div>
-        <select id="aiFunction">
-          <option value="">[none]</option>
-          <option value="article_analyst">Article analyst</option>
-          <option value="translator">Translator</option>
-          <option value="questionnaire_answerer">Questionnaire Agent</option>
-          <option value="article_reframe_UVA">Article reframe (UVA)</option>
-          <option value="article_reframe">Article reframe</option>
-        </select>
-      </div>
-            
-      <div class="labelDiv">System prompt</div>
-      <textarea id="aiSystemPrompt" class="inputForm" style="height: 100px; resize: vertical;"></textarea> 
-    
-      <div id="section_structured_outputs" style="display: none;">
-        <div class="labelDiv">Response format [JSON]</div>
-        <div class="smallFont">For models supporting structured ouputs. Read instructions on the <a href="https://openrouter.ai/docs/features/structured-outputs" target="openrouter">openrouter.ai website</a>.</div>
-        <textarea id="aiResponseFormat" class="inputForm" style="height: 100px; resize: vertical;"></textarea> 
-      </div>
-      
-      <div class="labelDiv">User prompt <span class="smallFont" id="promptInfo"></span></div>
-      <div class="smallFont">Tags:
-      <button class="buttonTiny" onclick="insertAITag('article_title');">[article_title]</button> 
-      <button class="buttonTiny" onclick="insertAITag('article_text');">[article_text]</button> 
-      <button class="buttonTiny" onclick="insertAITag('questionnaires');">[questionnaires]</button> 
-      These are replaced by the media article title, full text and questionnaire questions.</div>
-      <textarea id="aiPrompt" class="inputForm" style="height: 100px; resize: vertical;"></textarea>
-      
-      <div id="articleSection">
-      
-        <div style="display: flex; justify-content: space-between;">
-          <div>Article
-            <span class="smallFont"> 
-              ID <input class="inputSmall" type="text" id="aiArticleId" style="width: 50px;">
-              <button class="buttonTiny" onclick="loadAiArticle();">Load from ID</button>
-              <button class="buttonTiny" onclick="viewAiCrash();">View Crash</button>
-            </span>
-          </div>
-          <div>
-            <button class="buttonTiny" onclick="loadAiArticle('latest');">Latest</button>
-            <button class="buttonTiny" onclick="loadAiArticle('back');">Back</button>
-            <button class="buttonTiny" onclick="loadAiArticle('next');">Next</button>      
-          </div>
-        
+      <aside class="pbPanel pbLibrary">
+        <div class="pbPanelHeader"><span>Prompts</span><button class="buttonTiny" onclick="aiNewPrompt();">New</button></div>
+        <div id="aiPromptList" class="pbList">Loading...</div>
+      </aside>
+
+      <section class="pbPanel pbEditor">
+        <input type="hidden" id="aiPromptId" value="">
+        <input type="hidden" id="aiArticleId" value="">
+
+        <div class="pbPanelHeader">
+          <span id="promptInfo">New prompt</span>
+          <span class="pbButtons">
+            <button class="button buttonGray buttonLine" onclick="aiSavePrompt();">Save</button>
+            <button class="button buttonGray buttonLine" onclick="aiSaveCopyPrompt();">Save copy</button>
+            <button class="button buttonRed buttonLine" onclick="deleteAiPrompt();">Delete</button>
+          </span>
         </div>
 
-        <div id="aiArticle" class="readOnlyInput" style="min-height: 100px; max-height: 300px; margin-top: 5px; resize: vertical; overflow: auto;"></div>    
-      </div>
+        <div class="labelDiv">AI model</div>
+        <div class="pbRow">
+          <select id="aiModel" class="inputForm" oninput="aiModelChange();"></select>
+          <button class="button buttonGray buttonLine" onclick="showAddAiModelForm();">Add</button>
+          <button class="button buttonGray buttonLine" onclick="removeAiModel();">Remove</button>
+          <button class="button buttonGray buttonLine" onclick="updateAiModelsInfo();">Update all</button>
+        </div>
+        <div id="aiModelSummary" class="smallFont"></div>
+        <details class="pbDetails"><summary>About this model</summary><div id="aiModelInfo" class="smallFont"></div></details>
 
-      <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
-      <div style="display: flex; justify-content: flex-end; margin: 10px 0;">
-        <button class="button buttonImportant" onclick="aiRunPrompt();" style="margin-left: 0">Run prompt</button>     
-        <button class="button button buttonGray" onclick="showLoadAiPromptForm();">Load</button>     
-        <button class="button button buttonGray" onclick="aiNewPrompt();">New</button>     
-        <button class="button button buttonGray" onclick="aiSavePrompt();">Save</button>     
-        <button class="button button buttonGray" onclick="aiSaveCopyPrompt();">Save copy</button>     
-      </div>    
-    </div>
-    
-    <div id="spinnerRunPrompt" style="display: none; margin: 5px 0; justify-content: center;"><img alt="Spinner" src="/images/spinner.svg"></div>
+        <div class="labelDiv">System prompt</div>
+        <textarea id="aiSystemPrompt" class="inputForm pbTextarea"></textarea>
 
-    <div id="groupAiResponse" style="display: none">
-      <div>Server response <button class="buttonTiny" onclick="copyServerResponse();">Copy</button></div>
-      <div id="aiResponse" class="readOnlyInput" style=""></div>    
-      <div class="smallFont">
-        <button class="buttonTiny" style="border: none; margin-left: 0;" onclick="showGenerationSummary();">Refresh</button>
-        <span id="aiResponseMeta"></span>
-      </div>
+        <div class="labelDiv">User prompt</div>
+        <div class="smallFont">Insert:
+          <button class="buttonTiny" onclick="insertAITag('article_title');">[article_title]</button>
+          <button class="buttonTiny" onclick="insertAITag('article_text');">[article_text]</button>
+          <button class="buttonTiny" onclick="insertAITag('questionnaires');">[questionnaires]</button>
+          <span>(replaced by the title and full text of the article, and the questionnaire questions)</span>
+        </div>
+        <textarea id="aiPrompt" class="inputForm pbTextarea"></textarea>
+
+        <div id="section_structured_outputs" style="display: none;">
+          <div class="labelDiv">Output format (JSON)
+            <span id="aiFormatStatus" class="smallFont"></span>
+            <button class="buttonTiny" onclick="aiCompactResponseFormat();">Compact</button>
+            <a class="smallFont" href="https://openrouter.ai/docs/features/structured-outputs" target="openrouter">instructions</a>
+          </div>
+          <textarea id="aiResponseFormat" class="inputForm pbTextarea" oninput="aiCheckResponseFormat();"></textarea>
+        </div>
+
+        <div id="aiLiveBox" class="pbLive"></div>
+      </section>
+
+      <section class="pbPanel pbTest">
+        <div class="pbPanelHeader"><span>Test</span><span id="aiTestSummary" class="smallFont"></span></div>
+        <div class="pbRow">
+          <select id="aiTestMode" class="inputForm" style="width: auto;" oninput="aiTestModeChange();">
+            <option value="latest">Latest articles</option>
+            <option value="random">Random recent articles</option>
+            <option value="id">One article by ID</option>
+          </select>
+          <label id="aiTestCountLabel">Number <input type="number" id="aiTestCount" value="10" min="1" max="50" class="inputSmall" style="width: 50px;"></label>
+          <label id="aiTestIdLabel" style="display: none;">ID <input type="text" id="aiTestArticleId" class="inputSmall" style="width: 70px;"></label>
+          <button class="button buttonImportant buttonLine" id="aiRunButton" onclick="aiRunTest();">Run test</button>
+          <button class="button buttonGray buttonLine" id="aiStopButton" style="display: none;" onclick="aiStopTest();">Stop</button>
+        </div>
+        <div id="aiTestResults" class="pbResults">
+          <div class="smallFont pbEmpty">Pick the articles to test the prompt on and click Run test.</div>
+        </div>
+      </section>
+
     </div>
-    
-  </div> 
+  </div>
+</div>
+
+<div id="formUseOnLive" class="popupOuter">
+  <div class="formFixed" onclick="event.stopPropagation();">
+
+    <div class="popupHeader">Where should the website use this prompt?</div>
+    <div class="popupCloseCross" onclick="closePopupForm();"></div>
+
+    <div id="useOnLivePlaces" class="flexColumn"></div>
+    <div id="useOnLiveInfo" class="infoBlock" style="display: none; margin: 8px 0;"></div>
+
+    <div class="popupFooter">
+      <button class="button" style="margin-left: 0;" onclick="aiUseOnLive();">Use on live website</button>
+      <button class="button buttonGray" onclick="closePopupForm();">Cancel</button>
+    </div>
+
+  </div>
 </div>
 
 <div id="formAddAiModel" class="popupOuter">
@@ -541,41 +547,6 @@ HTML;
     
     <div class="popupFooter">
       <button class="button" style="margin-left: 0;" onclick="addAiModel();">Add</button>
-      <button class="button buttonGray" onclick="closePopupForm();">Cancel</button>
-    </div>
-    
-  </div>
-</div>
-
-<div id="formLoadAiModel" class="popupOuter">
-  <div class="formFullPage" onclick="event.stopPropagation();" style="width: 100%;">
-
-    <div id="headerQuestion" class="popupHeader">Load prompt</div>
-    <div class="popupCloseCross" onclick="closePopupForm();"></div>
-    
-    <div class="formScrolling">
-      <table class="dataTable tableWhiteHeader">
-        <thead>
-          <tr>
-            <th>Id</th>
-            <th>Model</th>
-            <th>Owner</th>
-            <th>Function</th>
-            <th>User prompt</th>
-            <th>System prompt</th>
-            <th>Response format</th>
-            <th>Article Id</th>
-          </tr>
-        </thead>
-        <tbody id="loadAiQueriesBody" onclick="clickaiPromptRow()" ondblclick="loadAiPrompt();"></tbody>
-      </table>      
-    </div>
-
-    <div id="spinnerLoadQueries" style="margin: 5px 0;justify-content: center;"><img alt="Spinner" src="/images/spinner.svg"></div>
-          
-    <div class="popupFooter">
-      <button class="button" style="margin-left: 0;" onclick="loadAiPrompt();">Load</button>
-      <button class="button buttonRed" onclick="deleteAiPrompt();">Delete</button>
       <button class="button buttonGray" onclick="closePopupForm();">Cancel</button>
     </div>
     

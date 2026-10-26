@@ -1,5 +1,18 @@
 # Changelog
 
+26 october 2026 v805:
+- New AI prompt builder page (research/ai_prompt_builder):
+  - Three columns: the list of prompts, the editor and the test. The list replaces the Load window. A prompt that the website uses has a label with the name of its place.
+  - Test a prompt on the latest articles, random recent articles or one article. Three run at the same time, with a Stop button. Every article gets a card with the people per vehicle, the place, the time, the cost and the tokens, and the raw response and the article text to open. At the top: the median time and the cost in total and per 1000.
+  - The output format has a check for valid JSON and shows the number of characters of the 5000 that the database holds. A Compact button makes the JSON shorter.
+  - Saving checks the output format. Save, Save copy and Delete keep working. Save copy makes a prompt that the website does not use.
+  - OpenRouterAIClient::chatWithMeta also returns the cost (usage.cost) and the time of the request. New ajax functions aiFindTestArticles and aiGetCredits.
+- "Use on live website" instead of the select System function:
+  - New general/AiPromptFunctions.php lists the places on the website where an AI prompt is used, with a name and a description: article_analyst, questionnaire_answerer, article_reframe_UVA, article_reframe and translator (planned).
+  - A prompt that the website does not use has a button Use on live website. It opens a window with the places and the prompt that each place uses now. The new prompt replaces the old one in one step (ajax function aiUseOnLive). The old prompt stays in the list without a place.
+  - Saving a prompt does not change its function any more. A prompt that the website uses cannot be deleted. A prompt that the website uses cannot get another place.
+- The page /reframe_text/ asks for the prompt article_reframe. Before it looked for article_reframe_text, that does not exist, so the page gave an error. A missing prompt gives a clear message.
+
 26 october 2026 v804:
 - AI prompt builder: saving a prompt without a function (also Save copy) failed with "Duplicate entry '' for key web_function" when another prompt already had an empty function. An empty function is now saved as NULL, as the column is unique. A prompt without a function is shown as [none].
 

@@ -1,6 +1,9 @@
 let aiModels;
-let lastGenerationId;
 let aiPrompt = null;
+let aiPromptList = [];
+let aiFunctions = {};
+let aiTestRunning = false;
+let aiTestStop = false;
 let questionnaire = null;
 
 async function initResearch(){
@@ -804,43 +807,54 @@ function selectedAiModel() {
 
 function aiModelChange() {
   const model = selectedAiModel();
+  if (! model) return;
 
   const cost_input = (model.cost_input * 1e6).toFixed(2);
   const cost_output = (model.cost_output * 1e6).toFixed(2);
   const structured_outputs = model.structured_outputs? ' | structured outputs' : '';
 
-  document.getElementById('aiModelInfo').innerHTML =
-    `Created ${model.created.toLocaleDateString()}` +
-    ` | $${cost_input}/M input tokens | $${cost_output}/M ouput tokens` +
-    ` | ${model.context_length.toLocaleString()} context` +
-    structured_outputs +
-    `<br><br>` + model.description;
+  document.getElementById('aiModelSummary').innerText =
+    `$${cost_input}/M input tokens | $${cost_output}/M output tokens | ${model.context_length.toLocaleString()} context` + structured_outputs;
+  document.getElementById('aiModelInfo').innerText = `Created ${model.created.toLocaleDateString()}\n\n${model.description}`;
 
   showStructuredOutputSection(model.structured_outputs);
 }
 
-async function showLoadAiPromptForm() {
-  const spinner = document.getElementById('spinnerLoadQueries');
-  const tableBodyQueries = document.getElementById('loadAiQueriesBody');
+async function loadAiPromptList() {
+  const url = '/research/ajaxResearch.php?function=aiGetPromptList';
+  const response = await fetchFromServer(url);
 
-  try {
-    tableBodyQueries.innerHTML = '';
-    document.getElementById('formLoadAiModel').style.display = 'flex';
-
-    spinner.style.display = 'flex';
-
-    const url = '/research/ajaxResearch.php?function=aiGetPromptList';
-    const response = await fetchFromServer(url);
-
-    tableData[1] = response.queries;
-    selectedTableData[1] = null;
-
-    tableBodyQueries.innerHTML = getHtmlTableBodyAiPrompts();
-
-  } finally {
-    spinner.style.display = 'none';
+  if (response.error) {
+    showError(response.error);
+    return;
   }
+
+  aiPromptList = response.queries;
+  renderAiPromptList();
 }
+
+function renderAiPromptList() {
+  const box = document.getElementById('aiPromptList');
+  if (! aiPromptList.length) {
+    box.innerHTML = '<div class="smallFont">No prompts yet</div>';
+    return;
+  }
+
+  const selectedId = Number(document.getElementById('aiPromptId').value);
+  // Prompts that the website uses first
+  const prompts = [...aiPromptList].sort((a, b) => (b.function ? 1 : 0) - (a.function ? 1 : 0) || b.id - a.id);
+
+  box.innerHTML = prompts.map(prompt => {
+    const model = aiModels.find(m => m.id === prompt.model_id);
+    const badge = prompt.function? `<span class="pbBadge" title="${escapeHtml(prompt.function)}">${escapeHtml(aiFunctionName(prompt.function))}</span>` : '';
+    const selected = Number(prompt.id) === selectedId? ' selected' : '';
+    return `<div class="pbListItem${selected}" onclick="loadAiPrompt(${Number(prompt.id)});">` +
+      `<div><b>#${Number(prompt.id)}</b>${badge}</div>` +
+      `<div>${escapeHtml(truncateText(prompt.user_prompt, 60))}</div>` +
+      `<div class="pbListMeta">${escapeHtml(model? model.name : prompt.model_id)} · ${escapeHtml(prompt.user)}</div></div>`;
+  }).join('');
+}
+
 async function showAddAiModelForm() {
   const spinner = document.getElementById('spinnerLoadAddModels');
   const tableBodyModels = document.getElementById('addAiModelsBody');
@@ -907,17 +921,6 @@ function getHtmlTableBodyAiModels() {
   return htmlModels;
 }
 
-function getHtmlTableBodyAiPrompts() {
-  let htmlQueries = '';
-  for (const prompt of tableData[1]) {
-    htmlQueries += `<tr id="tr1_${prompt.id}"><td>${prompt.id}</td><td>${escapeHtml(prompt.model_id)}</td><td>${escapeHtml(prompt.user)}</td><td>${escapeHtml(prompt.function)}</td>` +
-      `<td>${escapeHtml(truncateText(prompt.user_prompt, 30))}</td><td>${escapeHtml(truncateText(prompt.system_prompt, 30))}</td>` +
-      `<td>${escapeHtml(truncateText(prompt.response_format, 30))}</td><td>${prompt.article_id??''}</td></tr>`;
-  }
-
-  return htmlQueries;
-}
-
 function doFilterAiModels() {
   document.getElementById('addAiModelsBody').innerHTML = getHtmlTableBodyAiModels();
 }
@@ -930,10 +933,6 @@ function clickAiModelRow() {
   const div = document.getElementById('addAiModelInfo');
   div.innerHTML = `<b>${escapeHtml(model.name)}</b><br>${escapeHtml(model.description)}`;
   div.style.display = 'block';
-}
-
-function clickaiPromptRow() {
-  tableDataClick(event, 1);
 }
 
 async function addAiModel() {
@@ -963,8 +962,22 @@ async function addAiModel() {
   }
 }
 
-async function loadAiPrompt() {
-  aiPrompt = selectedTableData[1];
+function showAiPromptInfo() {
+  renderAiLiveBox();
+
+  const id = document.getElementById('aiPromptId').value;
+  const info = document.getElementById('promptInfo');
+  if (! id) {
+    info.innerText = 'New prompt';
+    return;
+  }
+
+  info.innerText = `Prompt #${id}` + (aiPrompt? ` | ${aiPrompt.user}` : '');
+  if (aiPrompt && aiPrompt.function) info.innerText += ` | live: ${aiFunctionName(aiPrompt.function)}`;
+}
+
+function loadAiPrompt(id) {
+  aiPrompt = aiPromptList.find(p => Number(p.id) === Number(id));
 
   if (! aiPrompt) {
     showError('No AI prompt selected');
@@ -978,22 +991,15 @@ async function loadAiPrompt() {
 
   document.getElementById('aiPromptId').value = aiPrompt.id;
   document.getElementById('aiModel').value = aiPrompt.model_id;
-  document.getElementById('aiSystemPrompt').value = aiPrompt.system_prompt;
-  document.getElementById('aiPrompt').value = aiPrompt.user_prompt;
-  document.getElementById('aiResponseFormat').value = aiPrompt.response_format;
-  document.getElementById('aiFunction').value = aiPrompt.function ?? '';
+  document.getElementById('aiSystemPrompt').value = aiPrompt.system_prompt ?? '';
+  document.getElementById('aiPrompt').value = aiPrompt.user_prompt ?? '';
+  document.getElementById('aiResponseFormat').value = aiPrompt.response_format ?? '';
+  document.getElementById('aiArticleId').value = aiPrompt.article_id ?? '';
 
-  document.getElementById('aiArticleId').value = aiPrompt.article_id;
-  document.getElementById('aiArticle').innerText = '';
-
-  document.getElementById('promptInfo').innerText = `id: ${aiPrompt.id} | user: ${aiPrompt.user}`;
-  if (aiPrompt.function) document.getElementById('promptInfo').innerText += ` | function: ${aiPrompt.function}`;
-
-  document.getElementById('formLoadAiModel').style.display = 'none';
-
-  loadArticle(aiPrompt.article_id);
-
-  showStructuredOutputSection(model && model.structured_outputs);
+  showAiPromptInfo();
+  aiModelChange();
+  aiCheckResponseFormat();
+  renderAiPromptList();
 }
 
 function showStructuredOutputSection(show) {
@@ -1001,62 +1007,29 @@ function showStructuredOutputSection(show) {
 
 }
 
-async function loadArticle(id) {
-  const divArticle = document.getElementById('aiArticle');
-  const divArticleId = document.getElementById('aiArticleId');
-  const divCrashId = document.getElementById('aiCrashId');
-  divArticle.innerText = '';
-  divCrashId.value = null;
-  divArticleId.value = null;
-
-  if (id) {
-    const url = '/research/ajaxResearch.php?function=loadArticle';
-    const response = await fetchFromServer(url, {id: id});
-
-    if (response.error) {
-      showError(response.error);
-      return;
-    }
-
-    divArticleId.value = response.article.id;
-    divCrashId.value = response.article.crashid;
-    divArticle.innerText =
-      'Date:\n ' + response.article.date + '\n\n' +
-      'Title:\n ' + response.article.title + '\n\n' +
-      'Text:\n' + response.article.text;
-  }
-}
-
 async function deleteAiPrompt() {
-  const prompt = selectedTableData[1];
+  const id = document.getElementById('aiPromptId').value;
+  const prompt = aiPromptList.find(p => Number(p.id) === Number(id));
 
   if (! prompt) {
-    showError('No AI prompt selected');
+    showError('This prompt is not saved');
     return;
   }
 
   confirmWarning(`Delete prompt?<br>Id: ${prompt.id}<br>Prompt: ${escapeHtml(truncateText(prompt.user_prompt, 100))}`,
     async () => {
-      let response
-      const spinner = document.getElementById('spinnerLoadQueries');
-      try {
-        spinner.style.display = 'flex';
-
-        const url = '/research/ajaxResearch.php?function=aiDeletePrompt';
-        response = await fetchFromServer(url, {id: prompt.id});
-
-      } finally {
-        spinner.style.display = 'none';
-      }
+      const url = '/research/ajaxResearch.php?function=aiDeletePrompt';
+      const response = await fetchFromServer(url, {id: prompt.id});
 
       if (response.error) {
         showError(response.error);
         return;
       }
 
-      showLoadAiPromptForm();
+      aiNewPrompt();
+      await loadAiPromptList();
     }, 'Delete prompt'
-    )
+  );
 }
 
 function removeAiModel() {
@@ -1098,8 +1071,9 @@ async function initAIPromptBuilder() {
     }
 
     aiModels = response.models;
+    aiFunctions = response.functions;
 
-    let htmlSelectModels;
+    let htmlSelectModels = '';
     aiModels.forEach(model => {
       model.created = new Date(model.created);
 
@@ -1111,9 +1085,12 @@ async function initAIPromptBuilder() {
 
     updateCreditsLeft(response.credits);
     document.getElementById('aiModel').innerHTML = htmlSelectModels;
-    document.getElementById('aiForm').style.display = 'block';
+    // The style of the page (a grid) applies again
+    document.getElementById('aiForm').style.display = '';
 
     aiModelChange();
+    await loadAiPromptList();
+    showAiPromptInfo();
 
     if (response.error) showError(response.error);
   } finally {
@@ -1646,122 +1623,325 @@ function insertAITag(tagName) {
   element.selectionStart = element.selectionEnd = start + tag.length;
 }
 
-async function aiRunPrompt() {
+function aiCheckResponseFormat() {
+  const text = document.getElementById('aiResponseFormat').value.trim();
+  const status = document.getElementById('aiFormatStatus');
+  if (! text) {
+    status.className = 'smallFont';
+    status.innerText = '';
+    return true;
+  }
 
-  const spinner = document.getElementById('spinnerRunPrompt');
+  // The database column holds 5000 characters
+  const length = `${text.length.toLocaleString()} of 5,000 characters`;
   try {
-    spinner.style.display = 'flex';
+    JSON.parse(text);
+    status.className = text.length > 5000? 'smallFont error' : 'smallFont ok';
+    status.innerText = `valid JSON, ${length}`;
+    return true;
+  } catch (e) {
+    status.className = 'smallFont error';
+    status.innerText = `${e.message}, ${length}`;
+    return false;
+  }
+}
 
-    const model = selectedAiModel();
+function aiCompactResponseFormat() {
+  const element = document.getElementById('aiResponseFormat');
+  try {
+    element.value = JSON.stringify(JSON.parse(element.value));
+  } catch (e) {
+    showError('The output format is not valid JSON');
+  }
+  aiCheckResponseFormat();
+}
 
-    const divResponse = document.getElementById('aiResponse');
-    const divMeta =document.getElementById('aiResponseMeta');
-    const groupResponse = document.getElementById('groupAiResponse');
+function aiTestModeChange() {
+  const mode = document.getElementById('aiTestMode').value;
+  document.getElementById('aiTestCountLabel').style.display = mode === 'id'? 'none' : '';
+  document.getElementById('aiTestIdLabel').style.display = mode === 'id'? '' : 'none';
+}
 
-    divResponse.innerText = '';
-    divMeta.innerText = '';
-    groupResponse.style.display = 'none';
+function aiStopTest() {
+  aiTestStop = true;
+}
 
-    const data = {
-      model: document.getElementById('aiModel').value,
-      userPrompt: document.getElementById('aiPrompt').value,
-      systemPrompt: document.getElementById('aiSystemPrompt').value,
-      responseFormat: model?.structured_outputs? document.getElementById('aiResponseFormat').value : '',
-      articleId: document.getElementById('aiArticleId').value,
+function aiMedian(values) {
+  if (! values.length) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+function aiShowTestSummary(results, total) {
+  const done = results.filter(r => r);
+  const valid = done.filter(r => r.valid).length;
+  const errors = done.filter(r => r.error).length;
+  const cost = done.reduce((sum, r) => sum + (r.cost ?? 0), 0);
+  const seconds = aiMedian(done.filter(r => r.latency_ms).map(r => r.latency_ms)) / 1000;
+
+  let text = `${done.length} of ${total} done | ${valid} valid`;
+  if (errors) text += ` | ${errors} failed`;
+  if (done.length) text += ` | ${seconds.toFixed(1)} s median | ${formatCost(cost)} in total | ${formatCost(cost / done.length * 1000)} per 1000`;
+  document.getElementById('aiTestSummary').innerText = text;
+}
+
+function aiRenderParsed(value) {
+  if (! value || typeof value !== 'object' || Array.isArray(value)) return `<div>${escapeHtml(String(value))}</div>`;
+
+  let html = '';
+
+  if (Array.isArray(value.transportation_modes)) {
+    const counts = {};
+    value.transportation_modes.forEach(v => { counts[v.transportation_mode] = (counts[v.transportation_mode] ?? 0) + 1; });
+    const seen = {};
+    const lines = value.transportation_modes.map(vehicle => {
+      const mode = String(vehicle.transportation_mode);
+      seen[mode] = (seen[mode] ?? 0) + 1;
+      const name = counts[mode] > 1? `${mode} ${seen[mode]}` : mode;
+      const humans = (vehicle.humans ?? []).map(h => h.health + (h.child? ' (child)' : '')).join(', ');
+      return `<b>${escapeHtml(name)}</b>: ${escapeHtml(humans || 'nobody')}`;
+    });
+    html += `<div><span class="pbLabel">People</span><span>${lines.join('<br><span class="pbLabel"></span>')}</span></div>`;
+  }
+
+  const location = value.location;
+  if (location && typeof location === 'object') {
+    const text = location.geocoder_prompt || location.description || '';
+    let map = '';
+    const latitude = Number(location.coordinates?.latitude);
+    const longitude = Number(location.coordinates?.longitude);
+    if (location.coordinates && isFinite(latitude) && isFinite(longitude)) {
+      map = ` (AI coordinates <a target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=15/${latitude}/${longitude}">map</a>)`;
     }
+    html += `<div><span class="pbLabel">Place</span>${escapeHtml(text)}${map}</div>`;
+  }
 
-    if (data.userPrompt.length < 1) {showError('User prompt is empty'); return;}
+  for (const [key, item] of Object.entries(value)) {
+    if (key === 'transportation_modes' || key === 'location') continue;
+    html += `<div><span class="pbLabel">${escapeHtml(key)}</span>${escapeHtml(typeof item === 'object'? JSON.stringify(item) : String(item))}</div>`;
+  }
 
-    divResponse.innerText = '...';
+  return html;
+}
 
-    const url = '/research/ajaxResearch.php?function=aiRunPrompt';
-    const serverResponse = await fetchFromServer(url, data);
+function aiCreateResultCard(article) {
+  const card = document.createElement('div');
+  card.className = 'pbCard';
+  card.innerHTML =
+    `<div class="pbCardTitle"><span class="link" onclick="viewCrashInTab(${Number(article.crashid)});">${escapeHtml(article.title)}</span> ` +
+    `<span class="pbCardMeta">#${Number(article.id)} | ${escapeHtml(article.date ?? '')}</span></div>` +
+    `<div class="pbBody smallFont">Waiting...</div>` +
+    `<details class="pbArticleDetails"><summary>Article text</summary><div class="pbArticle">Loading...</div></details>`;
 
-    if (serverResponse.error) {
-      divResponse.innerText = 'ERROR: ' + serverResponse.error;
+  // The text of the article is only loaded when somebody opens it
+  card.querySelector('.pbArticleDetails').addEventListener('toggle', async (event) => {
+    const details = event.target;
+    if (! details.open || details.dataset.loaded) return;
+    details.dataset.loaded = '1';
+
+    const response = await fetchFromServer('/research/ajaxResearch.php?function=loadArticle', {id: article.id});
+    details.querySelector('.pbArticle').innerText = response.error? response.error : response.article.text;
+  });
+
+  return card;
+}
+
+function aiFillResultCard(card, result) {
+  let chips = '';
+  if (result.error) {
+    chips = `<span class="pbChip pbChipError">failed</span>`;
+  } else {
+    chips += result.valid? `<span class="pbChip pbChipOk">valid JSON</span>` : `<span class="pbChip">text</span>`;
+    if (result.invalidFormat) chips += `<span class="pbChip pbChipError">not as the output format</span>`;
+    chips += `<span class="pbChip">${(result.latency_ms / 1000).toFixed(1)} s</span>`;
+    if (result.cost !== null && result.cost !== undefined) chips += `<span class="pbChip">${formatCost(result.cost)}</span>`;
+    chips += `<span class="pbChip">${Number(result.tokens_prompt)} → ${Number(result.tokens_completion)} tokens</span>`;
+    chips += `<span class="pbChip link" onclick="showFullGenerationInfo('${escapeHtml(result.id)}');">all info</span>`;
+  }
+
+  let body = `<div class="pbChips">${chips}</div>`;
+  if (result.error) {
+    body += `<div>${escapeHtml(result.error)}</div>`;
+  } else {
+    body += `<div class="pbParsed">${aiRenderParsed(result.valid? result.parsed : result.response)}</div>` +
+      `<details><summary>Raw response</summary><pre>${escapeHtml(result.response)}</pre></details>`;
+  }
+
+  const element = card.querySelector('.pbBody');
+  element.className = 'pbBody';
+  element.innerHTML = body;
+}
+
+async function aiRunTestOne(article, data) {
+  const result = {};
+  const serverResponse = await fetchFromServer('/research/ajaxResearch.php?function=aiRunPrompt', {...data, articleId: article.id});
+
+  if (serverResponse.error) {
+    result.error = serverResponse.error;
+    return result;
+  }
+
+  Object.assign(result, serverResponse);
+  try {
+    result.parsed = JSON.parse(serverResponse.response);
+    result.valid = true;
+  } catch (e) {
+    result.valid = false;
+  }
+
+  // With an output format: do the top level fields that are required come back?
+  if (result.valid && data.responseFormat) {
+    const schema = JSON.parse(data.responseFormat)?.json_schema?.schema;
+    const required = schema?.required ?? [];
+    result.invalidFormat = required.some(field => ! (field in result.parsed));
+  }
+
+  return result;
+}
+
+async function aiRunTest() {
+  if (aiTestRunning) return;
+
+  const model = selectedAiModel();
+  if (! model) {showError('No model selected'); return;}
+
+  const data = {
+    model: model.id,
+    userPrompt: document.getElementById('aiPrompt').value,
+    systemPrompt: document.getElementById('aiSystemPrompt').value,
+    responseFormat: model.structured_outputs? document.getElementById('aiResponseFormat').value.trim() : '',
+  };
+
+  if (data.userPrompt.length < 1) {showError('User prompt is empty'); return;}
+  if (! aiCheckResponseFormat()) {showError('The output format is not valid JSON'); return;}
+
+  const mode = document.getElementById('aiTestMode').value;
+  const results = document.getElementById('aiTestResults');
+  let articles;
+
+  aiTestRunning = true;
+  aiTestStop = false;
+  document.getElementById('aiRunButton').style.display = 'none';
+  document.getElementById('aiStopButton').style.display = '';
+
+  try {
+    if (mode === 'id') {
+      const id = document.getElementById('aiTestArticleId').value.trim();
+      if (! /^\d+$/.test(id)) {showError('Enter an article ID'); return;}
+
+      document.getElementById('aiArticleId').value = id;
+      const response = await fetchFromServer('/research/ajaxResearch.php?function=loadArticle', {id: id});
+      if (response.error) {showError(response.error); return;}
+      articles = [response.article];
     } else {
-      // Add the AI model to the response
-      let AIResponse;
-      try {
-        const parsedResponse = JSON.parse(serverResponse.response);
-        AIResponse = {model: model.name, ...parsedResponse};
-      } catch (e) {
-        // If the response is not valid JSON, display as plain text
-        AIResponse = {model: model.name, response: serverResponse.response};
-      }
-      divResponse.innerText = JSON.stringify(AIResponse);
-
-      lastGenerationId = serverResponse.id;
-
-      // Wait for a second, otherwise the meta-info is not yet available
-      divMeta.innerText = 'Checking prompt meta info...';
-      setTimeout(() => {showGenerationSummary();}, 2000);
+      const response = await fetchFromServer('/research/ajaxResearch.php?function=aiFindTestArticles',
+        {mode: mode, count: document.getElementById('aiTestCount').value});
+      if (response.error) {showError(response.error); return;}
+      articles = response.articles;
     }
 
-    groupResponse.style.display = 'block';
+    if (! articles.length) {showError('No articles found'); return;}
+
+    results.innerHTML = '';
+    const cards = articles.map(article => {
+      const card = aiCreateResultCard(article);
+      results.appendChild(card);
+      return card;
+    });
+
+    const outcomes = new Array(articles.length).fill(null);
+    aiShowTestSummary(outcomes, articles.length);
+
+    let next = 0;
+    // A few at the same time: much faster, and not so many that the AI service limits us
+    const worker = async () => {
+      while (! aiTestStop) {
+        const i = next++;
+        if (i >= articles.length) return;
+
+        let outcome;
+        try {
+          outcome = await aiRunTestOne(articles[i], data);
+        } catch (e) {
+          outcome = {error: e.message};
+        }
+        outcomes[i] = outcome;
+        aiFillResultCard(cards[i], outcome);
+        aiShowTestSummary(outcomes, articles.length);
+      }
+    };
+    await Promise.all([worker(), worker(), worker()]);
+
+    // The cards of articles that were not run because of Stop
+    cards.forEach((card, i) => { if (! outcomes[i]) card.querySelector('.pbBody').innerText = 'Not run'; });
+
+    const credits = await fetchFromServer('/research/ajaxResearch.php?function=aiGetCredits');
+    if (! credits.error) updateCreditsLeft(credits.credits);
 
   } finally {
-    spinner.style.display = 'none';
+    aiTestRunning = false;
+    document.getElementById('aiRunButton').style.display = '';
+    document.getElementById('aiStopButton').style.display = 'none';
   }
 }
 
 function aiNewPrompt() {
   aiPrompt = null;
 
-  document.getElementById('aiPromptId').value = null;
-  document.getElementById('aiModel').value = null;
-  document.getElementById('aiPrompt').value = null;
-  document.getElementById('aiSystemPrompt').value = null;
-  document.getElementById('aiResponseFormat').value = null;
-  document.getElementById('aiFunction').value = '';
+  document.getElementById('aiPromptId').value = '';
+  document.getElementById('aiPrompt').value = '';
+  document.getElementById('aiSystemPrompt').value = '';
+  document.getElementById('aiResponseFormat').value = '';
+  document.getElementById('aiArticleId').value = '';
 
-  document.getElementById('promptInfo').innerText = ``;
+  showAiPromptInfo();
+  aiCheckResponseFormat();
+  renderAiPromptList();
 }
+
 async function aiSavePrompt() {
 
   async function savePrompt() {
-    const spinner = document.getElementById('spinnerRunPrompt');
-    try {
-      spinner.style.display = 'flex';
+    const model = selectedAiModel();
+    if (! model) {showError('No model selected'); return;}
 
-      const model = selectedAiModel();
-      if (! model) {showError('No model selected'); return;}
-
-      const data = {
-        id: document.getElementById('aiPromptId').value,
-        modelId: document.getElementById('aiModel').value,
-        userPrompt: document.getElementById('aiPrompt').value,
-        systemPrompt: document.getElementById('aiSystemPrompt').value,
-        function: document.getElementById('aiFunction').value,
-        responseFormat: model.structured_outputs? document.getElementById('aiResponseFormat').value : '',
-        articleId: document.getElementById('aiArticleId').value,
-      }
-
-      if (data.userPrompt.length < 1) {showError('User prompt is empty'); return;}
-
-      const url = '/research/ajaxResearch.php?function=aiSavePrompt';
-      const response = await fetchFromServer(url, data);
-
-      if (response.error) {
-        showError(response.error);
-        return;
-      }
-
-      showMessage('Prompt saved');
-      if (! data.id) {
-        data.id = response.id;
-        data.user = user.firstname + ' ' + user.lastname;
-        document.getElementById('promptInfo').innerText = `id: ${data.id} | user: ${data.user}`;
-        document.getElementById('aiPromptId').value = data.id;
-      }
-
-    } finally {
-      spinner.style.display = 'none';
+    const data = {
+      id: document.getElementById('aiPromptId').value,
+      modelId: document.getElementById('aiModel').value,
+      userPrompt: document.getElementById('aiPrompt').value,
+      systemPrompt: document.getElementById('aiSystemPrompt').value,
+      responseFormat: model.structured_outputs? document.getElementById('aiResponseFormat').value : '',
+      articleId: document.getElementById('aiArticleId').value,
     }
+
+    if (data.userPrompt.length < 1) {showError('User prompt is empty'); return;}
+    if (data.responseFormat && ! aiCheckResponseFormat()) {showError('The output format is not valid JSON'); return;}
+    if (data.responseFormat.length > 5000) {showError('The output format is longer than 5000 characters. The database cannot hold that.'); return;}
+
+    const url = '/research/ajaxResearch.php?function=aiSavePrompt';
+    const response = await fetchFromServer(url, data);
+
+    if (response.error) {
+      showError(response.error);
+      return;
+    }
+
+    showMessage('Prompt saved');
+    if (! data.id) {
+      data.id = response.id;
+      document.getElementById('aiPromptId').value = data.id;
+    }
+
+    // Refresh the list. The saved prompt is the loaded prompt from now on.
+    await loadAiPromptList();
+    aiPrompt = aiPromptList.find(p => Number(p.id) === Number(data.id)) ?? null;
+    showAiPromptInfo();
+    renderAiPromptList();
   }
 
   if (aiPrompt && aiPrompt.function) {
-    confirmWarning(`This prompt is actively used on this website.<br><br>Current function: ${escapeHtml(aiPrompt.function)}<br><br>Are you really, really sure you want to overwrite it?`,
+    confirmWarning(`This prompt is actively used on this website.<br><br>Used for: ${escapeHtml(aiFunctionName(aiPrompt.function))}<br><br>Are you really, really sure you want to overwrite it?`,
       savePrompt,
       `Yes overwrite`
     );
@@ -1769,101 +1949,104 @@ async function aiSavePrompt() {
 
 }
 
-function aiSaveCopyPrompt() {
-  // A copy is a new prompt. It does not get the function of the original: a function can only belong to one prompt.
-  aiPrompt = null;
-  document.getElementById('aiPromptId').value = null;
-  document.getElementById('aiFunction').value = '';
-  aiSavePrompt();
+function aiFunctionName(fn) {
+  return aiFunctions[fn]?.name ?? fn;
 }
 
-function copyServerResponse() {
-  const response = document.getElementById('aiResponse').innerText;
-  copyToClipboard(response);
-  showMessage('Copied to clipboard', 1);
-}
+function renderAiLiveBox() {
+  const box = document.getElementById('aiLiveBox');
 
-async function loadAiArticle(command='') {
-  const articleId = document.getElementById('aiArticleId').value;
-
-  if (! articleId && (command !== 'latest')) {
-    showError('No article ID found');
+  if (! document.getElementById('aiPromptId').value || ! aiPrompt) {
+    box.innerHTML = `<div class="pbLiveTitle">Live website</div><div class="smallFont">Save the prompt first. Then you can use it on the live website.</div>`;
     return;
   }
 
-  const url = '/research/ajaxResearch.php?function=loadArticle';
-  const response = await fetchFromServer(url, {id: articleId, command: command});
+  if (aiPrompt.function) {
+    const description = aiFunctions[aiPrompt.function]?.description ?? '';
+    box.innerHTML = `<div class="pbLiveTitle"><span class="pbBadge">Live</span> ${escapeHtml(aiFunctionName(aiPrompt.function))}</div>` +
+      `<div class="smallFont">${escapeHtml(description)} What you save here is used by the website immediately.</div>`;
+    return;
+  }
 
+  box.innerHTML = `<div class="pbLiveTitle">Live website</div>` +
+    `<div class="smallFont">The website does not use this prompt. It is only used in tests.</div>` +
+    `<button class="button buttonGray buttonLine" onclick="showUseOnLiveForm();">Use on live website...</button>`;
+}
+
+function showUseOnLiveForm() {
+  if (! aiPrompt || aiPrompt.function) return;
+
+  // Only the saved prompt can go live
+  const saved = aiPrompt;
+  const model = selectedAiModel();
+  const unsaved = document.getElementById('aiModel').value !== saved.model_id ||
+    document.getElementById('aiSystemPrompt').value !== (saved.system_prompt ?? '') ||
+    document.getElementById('aiPrompt').value !== (saved.user_prompt ?? '') ||
+    (model?.structured_outputs && document.getElementById('aiResponseFormat').value !== (saved.response_format ?? ''));
+  if (unsaved) {
+    showError('This prompt has changes that are not saved. Only the saved prompt can go live. Save it first.');
+    return;
+  }
+
+  document.getElementById('useOnLivePlaces').innerHTML = Object.entries(aiFunctions).map(([key, place]) => {
+    const current = aiPromptList.find(p => p.function === key);
+    const currentModel = current? aiModels.find(m => m.id === current.model_id) : null;
+    const now = current? `Now: prompt #${Number(current.id)}, ${escapeHtml(currentModel? currentModel.name : current.model_id)}` : 'Now: no prompt';
+    const planned = place.planned? ' (planned)' : '';
+    return `<label class="pbPlace"><input type="radio" name="useOnLivePlace" value="${escapeHtml(key)}" onchange="aiUseOnLiveSelected();">` +
+      `<span><b>${escapeHtml(place.name)}</b>${planned}<br><span class="smallFont">${escapeHtml(place.description)}<br>${now}</span></span></label>`;
+  }).join('');
+
+  document.getElementById('useOnLiveInfo').style.display = 'none';
+  document.getElementById('formUseOnLive').style.display = 'flex';
+}
+
+function aiUseOnLiveSelected() {
+  const key = document.querySelector('input[name="useOnLivePlace"]:checked')?.value;
+  const current = aiPromptList.find(p => p.function === key);
+
+  let text = current?
+    `This replaces prompt #${current.id}. It stays in the list, but the website no longer uses it.` :
+    'The website has no prompt for this place now.';
+  if (aiFunctions[key]?.planned) text += ' The website does not use this place yet.';
+
+  const info = document.getElementById('useOnLiveInfo');
+  info.innerText = text;
+  info.style.display = 'block';
+}
+
+async function aiUseOnLive() {
+  const key = document.querySelector('input[name="useOnLivePlace"]:checked')?.value;
+  if (! key) {
+    showError('Choose a place on the website');
+    return;
+  }
+
+  const id = aiPrompt.id;
+  const response = await fetchFromServer('/research/ajaxResearch.php?function=aiUseOnLive', {promptId: id, function: key});
   if (response.error) {
     showError(response.error);
     return;
   }
 
-  document.getElementById('aiArticleId').value = response.article.id;
-  document.getElementById('aiCrashId').value = response.article.crashid;
-  document.getElementById('aiArticle').innerText =
-    'Date:\n ' + response.article.date + '\n\n' +
-    'Title:\n ' + response.article.title + '\n\n' +
-    'Text:\n' + response.article.text;
+  closePopupForm();
+  showMessage(`Prompt #${id} is now used on the live website: ${escapeHtml(aiFunctionName(key))}`);
+
+  await loadAiPromptList();
+  aiPrompt = aiPromptList.find(p => Number(p.id) === Number(id)) ?? null;
+  showAiPromptInfo();
+  renderAiPromptList();
 }
 
-function viewAiCrash() {
-  const articleId = document.getElementById('aiCrashId').value;
-  if (! articleId) {
-    showError('No article ID found');
-    return;
-  }
-
-  viewCrashInTab(articleId);
+function aiSaveCopyPrompt() {
+  // A copy is a new prompt. It is not used by the website: a place on the website has one prompt.
+  aiPrompt = null;
+  document.getElementById('aiPromptId').value = null;
+  aiSavePrompt();
 }
 
 function updateCreditsLeft(creditsLeft) {
   document.getElementById('aiInfo').innerHTML = `Openrouter.ai credits left: €${creditsLeft.toFixed(6)}`;
-}
-
-async function showGenerationSummary() {
-  if (! lastGenerationId) {
-    showError('No generation id');
-    return;
-  }
-
-  const divMeta =document.getElementById('aiResponseMeta');
-  divMeta.innerText = 'Checking prompt meta info...';
-
-  const url = '/research/ajaxResearch.php?function=aiGetGenerationInfo';
-
-  let response = null;
-  const maxRetries = 3;
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    response = await fetchFromServer(url, {id: lastGenerationId});
-
-    if (!response.error) {
-      break;
-    }
-
-    if (attempt < maxRetries) {
-      divMeta.innerText = `Retrying (${attempt}/${maxRetries})...`;
-
-      // Sleep for a short time before retrying
-      await new Promise(resolve => setTimeout(resolve, 3000));
-    }
-  }
-
-  if (response.error) {
-    divMeta.innerHTML = 'Error: ' + response.error;
-    return;
-  }
-
-  const generation = response.generation;
-  divMeta.innerHTML = generation.model +
-    ` | tokens ${generation.native_tokens_prompt} → ${generation.native_tokens_completion}` +
-    ` | cost ${formatCost(generation.total_cost)} ${formatCost(generation.total_cost * 1000)}/k` +
-    ` | tps ${generation.tps.toFixed(1)}` +
-    ` | latency ${generation.latency}` +
-    ` | <span class="link" onclick="showFullGenerationInfo('${generation.id}');">all info</span>`;
-
-  updateCreditsLeft(response.credits);
 }
 
 function formatCost(cost) {
