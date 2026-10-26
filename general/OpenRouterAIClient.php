@@ -1,6 +1,7 @@
 <?php
 
-require_once '../config_secret.php';
+// A script can have loaded another config already, for example the config of another website
+if (! defined('OPENROUTER_API_KEY')) require_once '../config_secret.php';
 
 class OpenRouterAIClient {
   private const string DEFAULT_MODEL = 'openrouter/auto';

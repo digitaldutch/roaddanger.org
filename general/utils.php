@@ -687,6 +687,97 @@ function distanceKilometers(float $latitude1, float $longitude1, float $latitude
   return 12742 * asin(sqrt($a));
 }
 
+/**
+ * The coordinates of the place that the AI found in an article, from the geocoder. $location is the location of the
+ * answer of the AI (geocoder_prompt, country_code, coordinates and optional geocoder_fallback).
+ *
+ * HERE is the first choice: it is the only one that finds intersections ("A & B"). A result is not used when it is far
+ * from the coordinates of the AI: the geocoder then found a place with the same name elsewhere.
+ * For the Netherlands PDOK is asked when HERE finds nothing, or only the town for a text with a street: PDOK finds the
+ * small paths, roads and junctions that HERE does not know. Returns latitude, longitude, resultType, accuracyMeters,
+ * simplified and source (here or pdok), or null.
+ */
+function geocodeAiLocation(object $location): ?array {
+  $prompt = trim((string)($location->geocoder_prompt ?? ''));
+  $countryCode = $location->country_code ?? null;
+  $aiLatitude = $location->coordinates->latitude ?? null;
+  $aiLongitude = $location->coordinates->longitude ?? null;
+  $hasAiCoordinates = is_numeric($aiLatitude) && is_numeric($aiLongitude);
+  $isFarFromAi = fn(array $result, int $kilometers) => $hasAiCoordinates &&
+    distanceKilometers($result['latitude'], $result['longitude'], (float)$aiLatitude, (float)$aiLongitude) > $kilometers;
+
+  $result = geocodeLocation($prompt, $countryCode, $location->geocoder_fallback ?? null);
+  if ($result) {
+    $result['source'] = 'here';
+    if ($isFarFromAi($result, $result['simplified']? 25 : 50)) $result = null;
+  }
+
+  if ($countryCode === 'NL' && $prompt !== '') {
+    $townOnly = $result && in_array($result['resultType'], ['locality', 'administrativeArea', 'district', 'postalCodePoint']);
+    $parts = pdokQueryParts($prompt);
+
+    // A street was asked and HERE found nothing, or only the town
+    if ((! $result || $townOnly) && count($parts) >= 2) {
+      $pdok = pdokGeocode(implode(' ', $parts));
+      // A town from PDOK is not better than the town from HERE
+      if ($pdok && ($pdok['resultType'] !== 'locality' || ! $result) && ! $isFarFromAi($pdok, 25)) $result = $pdok;
+    }
+  }
+
+  return $result;
+}
+
+/**
+ * The words of a geocoder text for PDOK: without the country and without "&" (PDOK has no intersections).
+ */
+function pdokQueryParts(string $prompt): array {
+  $parts = array_map('trim', explode(',', str_replace('&', ' ', $prompt)));
+  if (count($parts) > 1 && preg_match('/^(the )?(netherlands|nederland)$/i', end($parts))) array_pop($parts);
+
+  return array_values(array_filter($parts, fn($part) => $part !== ''));
+}
+
+/**
+ * The Dutch government geocoder (PDOK Locatieserver). Free, and it knows small paths, roads and junction pieces.
+ * A road is found as one place: the middle of the whole road, so the result for a long road is not exact.
+ */
+function pdokGeocode(string $query): ?array {
+  try {
+    $url = 'https://api.pdok.nl/bzk/locatieserver/search/v3_1/free?' . http_build_query([
+      'q' => $query,
+      'rows' => 1,
+      'fq' => 'type:(adres OR weg OR woonplaats)',
+      'fl' => 'type,weergavenaam,centroide_ll',
+    ]);
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) return null;
+
+    $document = json_decode($response, true)['response']['docs'][0] ?? null;
+    if (! $document || ! preg_match('/POINT\(([-\d.]+) ([-\d.]+)\)/', $document['centroide_ll'] ?? '', $match)) return null;
+
+    $type = $document['type'];
+
+    return [
+      'latitude' => (float)$match[2],
+      'longitude' => (float)$match[1],
+      'resultType' => ['adres' => 'houseNumber', 'weg' => 'street', 'woonplaats' => 'locality'][$type] ?? $type,
+      'accuracyMeters' => ['adres' => 30, 'weg' => 2000, 'woonplaats' => 5000][$type] ?? 5000,
+      'simplified' => $type !== 'adres',
+      'source' => 'pdok',
+    ];
+
+  } catch (Throwable $e) {
+    return null;
+  }
+}
+
 function hereGeocode(string $query, ?string $hereCountries): ?array {
   try {
     // Using HERE map service. Preferred over OpenStreetMap-based services as it is better in places and does intersections

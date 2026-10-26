@@ -493,7 +493,7 @@ HTML;
         <div>{$texts['Location']}
         <span class="iconTooltip" data-tippy-content="{$texts['Edit_location_instructions']}"></span></div>
 
-        <input id="editCrashLatitude" type="hidden"><input id="editCrashLongitude" type="hidden">
+        <input id="editCrashLatitude" type="hidden"><input id="editCrashLongitude" type="hidden"><input id="editCrashLocationAccuracy" type="hidden">
         <div style="display: flex; align-items: center; gap: 10px; margin-top: 3px;">
           $htmlLocation
           <div id="locationDescription" class="smallFont"></div>

@@ -1378,6 +1378,7 @@ function showEditCrashForm(isNewCrash=false) {
   document.getElementById('locationDescription').innerText = '';
   document.getElementById('editCrashLatitude').value = '';
   document.getElementById('editCrashLongitude').value = '';
+  document.getElementById('editCrashLocationAccuracy').value = '';
   document.getElementById('locationDescription').value = '';
   document.getElementById('editCrashCountry').value = user.countryid;
 
@@ -1487,15 +1488,19 @@ async function extractDataFromArticle(key) {
 
     let latitude;
     let longitude;
+    // How exact the place is, in metres. Only the geocoder knows. The coordinates of the AI are not exact.
+    let accuracy = '';
     if (crash.location.geocoder_coordinates) {
       latitude = crash.location.geocoder_coordinates.latitude;
       longitude = crash.location.geocoder_coordinates.longitude;
+      accuracy = crash.location.geocoder_coordinates.accuracyMeters ?? '';
     } else {
       latitude = crash.location.coordinates.latitude;
       longitude = crash.location.coordinates.longitude;
     }
     document.getElementById('editCrashLatitude').value = latitude;
     document.getElementById('editCrashLongitude').value = longitude;
+    document.getElementById('editCrashLocationAccuracy').value = accuracy;
 
     showMapEdit(latitude, longitude).then(
       () => {
@@ -1684,6 +1689,7 @@ function setArticleCrashFields(crashID){
   document.getElementById('editCrashDate').value = dateToISO(crashDatetime);
   document.getElementById('editCrashLatitude').value = crash.latitude;
   document.getElementById('editCrashLongitude').value = crash.longitude;
+  document.getElementById('editCrashLocationAccuracy').value = crash.locationaccuracy ?? '';
   document.getElementById('locationDescription').innerText = crash.locationdescription;
   document.getElementById('editCrashCountry').value = crash.countryid;
 
@@ -2336,6 +2342,10 @@ async function saveArticleCrash(){
   // Both latitude and longitude need to be defined or they both are set to null
   if (! latitude)  longitude = null;
   if (! longitude) latitude  = null;
+
+  // How exact the place is, in metres. Without a place it is unknown.
+  let locationAccuracy = parseInt(document.getElementById('editCrashLocationAccuracy').value);
+  if (isNaN(locationAccuracy) || latitude === null) locationAccuracy = null;
   crashEdited = {
     id: document.getElementById('crashIDHidden').value,
     date: document.getElementById('editCrashDate').value,
@@ -2343,6 +2353,7 @@ async function saveArticleCrash(){
     latitude: latitude,
     longitude: longitude,
     locationdescription: locationDescription,
+    locationaccuracy: locationAccuracy,
     persons: editCrashPersons,
     unilateral: document.getElementById('editCrashUnilateral').classList.contains('buttonSelected'),
     pet: document.getElementById('editCrashPet').classList.contains('buttonSelected'),
@@ -2384,6 +2395,7 @@ async function saveArticleCrash(){
     crash.countryid = crashEdited.countryid;
     crash.latitude = crashEdited.latitude;
     crash.longitude = crashEdited.longitude;
+    crash.locationaccuracy = crashEdited.locationaccuracy;
     crash.unilateral = crashEdited.unilateral;
     crash.pet = crashEdited.pet;
     crash.trafficjam = crashEdited.trafficjam;
@@ -2855,6 +2867,8 @@ async function showMapEdit(latitude, longitude) {
   function saveMarkerPosition(lngLat){
     document.getElementById('editCrashLatitude').value = lngLat.lat.toFixed(6);
     document.getElementById('editCrashLongitude').value = lngLat.lng.toFixed(6);
+    // A person placed the pin: assume that it is exact
+    document.getElementById('editCrashLocationAccuracy').value = 25;
   }
 
   function setCrashMarker(latitude, longitude){
@@ -2868,6 +2882,7 @@ async function showMapEdit(latitude, longitude) {
         confirmMessage(`Delete location?`, () => {
           document.getElementById('editCrashLatitude').value  = '';
           document.getElementById('editCrashLongitude').value = '';
+          document.getElementById('editCrashLocationAccuracy').value = '';
           deleteCrashMarker();
         });
        });

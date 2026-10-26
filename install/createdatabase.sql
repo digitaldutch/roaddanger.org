@@ -146,6 +146,7 @@ create table crashes
   pet                 tinyint(1) default 0                   null,
   streamdatetime      timestamp  default current_timestamp() not null,
   locationdescription text                                   null,
+  locationaccuracy    int unsigned                           null comment 'estimated accuracy of the place in metres. NULL: unknown',
   constraint crashes_countries_id_fk
     foreign key (countryid) references countries (id)
       on update cascade on delete set null,

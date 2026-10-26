@@ -1,5 +1,18 @@
 # Changelog
 
+26 october 2026 v806:
+- New column crashes.locationaccuracy: the estimated accuracy of the place in metres, NULL if unknown. Add the column to the database before you upload this version:
+  `ALTER TABLE crashes ADD COLUMN locationaccuracy int unsigned NULL COMMENT 'estimated accuracy of the place in metres. NULL: unknown' AFTER locationdescription;`
+  If the database refuses because of old dates 0000-00-00, run `SET SESSION sql_mode = 'NO_ENGINE_SUBSTITUTION';` first. The column is also in install/createdatabase.sql.
+  - Add and edit crash save it, and the crash data loads it. The AI answer fills it from the geocoder (50 m for an intersection, up to a few kilometres for a road or a town). A person who places or moves the pin on the map sets it to 25 m. Deleting the pin empties it.
+- Better coordinates from the AI answer: new function geocodeAiLocation in general/utils.php, also used by the add crash window.
+  - HERE stays the first choice, as it is the only one that finds intersections. A result that is far from the coordinates of the AI is not used.
+  - For the Netherlands, PDOK (the Dutch government geocoder, free) is asked when HERE finds nothing, or only the town for a text with a street. PDOK finds small paths, roads and junction pieces that HERE does not know. New function pdokGeocode.
+- New script install/backfill_locations.php adds the place to crashes that have none. The AI reads the article (new prompt function article_location, made with --create-prompt or in the AI prompt builder) and the geocoder finds the coordinates.
+  - Dry run by default, --validate to compare with crashes that have a place, --apply to add the places, --revert to remove them. Every crash seen is in the table crashes_location_backfill. Several parts can run at the same time (--part=2/4).
+  - Only places that are exact to 3000 metres are added (--max-accuracy). The accuracy is saved in crashes.locationaccuracy if the column exists.
+- OpenRouterAIClient does not load config_secret.php again if a script loaded a config already. The place article_location is in general/AiPromptFunctions.php.
+
 26 october 2026 v805:
 - New AI prompt builder page (research/ai_prompt_builder):
   - Three columns: the list of prompts, the editor and the test. The list replaces the Load window. A prompt that the website uses has a label with the name of its place.

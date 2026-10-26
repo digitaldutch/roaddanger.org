@@ -279,19 +279,9 @@ SQL;
     $AIResponse = $openrouter->chatAboutArticle('article_analyst', $article);
     $AIResponse = json_decode($AIResponse);
 
-    // Get coordinates also from geocoder as AI is not very good at it yet. Only results in the country of the crash count.
-    $location = $AIResponse->location;
-    $location->geocoder_coordinates = geocodeLocation($location->geocoder_prompt, $location->country_code ?? null,
-      $location->geocoder_fallback ?? null);
-
-    // The geocoder can find a place with the same name elsewhere, and a result for a less detailed text can be far off.
-    // When it is far from the coordinates of the AI, use those: in tests the AI was then the closest every time.
-    $found = $location->geocoder_coordinates;
-    if ($found && isset($location->coordinates->latitude, $location->coordinates->longitude)) {
-      $kilometers = distanceKilometers($found['latitude'], $found['longitude'], $location->coordinates->latitude,
-        $location->coordinates->longitude);
-      if ($kilometers > ($found['simplified'] ? 25 : 50)) $location->geocoder_coordinates = null;
-    }
+    // Get coordinates also from geocoder as AI is not very good at it yet. When the geocoder finds nothing that fits,
+    // the page uses the coordinates of the AI.
+    $AIResponse->location->geocoder_coordinates = geocodeAiLocation($AIResponse->location);
 
     return ['data' => $AIResponse];
   }
@@ -350,6 +340,10 @@ SQL;
       $crashIsAwaitingModeration = $moderationRequired && $isNewCrash;
       $articleIsAwaitingModeration = $moderationRequired && (! $crashIsAwaitingModeration);
 
+      // How exact the place is, in metres. NULL: unknown, and always NULL without a place.
+      $locationAccuracy = (! empty($crash['latitude']) && ! empty($crash['longitude']) && is_numeric($crash['locationaccuracy'] ?? null))?
+        max(0, min(1000000, (int)$crash['locationaccuracy'])) : null;
+
       $this->database->beginTransaction();
 
       // Check if new article url already in the database
@@ -377,6 +371,7 @@ SQL;
     longitude           = :longitude,
     location            = POINT(:longitude2, :latitude2), 
     locationdescription = :locationdescription,
+    locationaccuracy    = :locationaccuracy,
     unilateral          = :unilateral,
     pet                 = :pet,
     trafficjam          = :trafficjam
@@ -393,6 +388,7 @@ SQL;
           ':latitude2' => empty($crash['latitude'])?  null : $crash['latitude'],
           ':longitude2' => empty($crash['longitude'])? null : $crash['longitude'],
           ':locationdescription' => $crash['locationdescription'],
+          ':locationaccuracy' => $locationAccuracy,
           ':unilateral' => intval($crash['unilateral']),
           ':pet' => intval($crash['pet']),
           ':trafficjam' => intval($crash['trafficjam']),
@@ -406,8 +402,8 @@ SQL;
       } else {
         // New crash
         $sql = <<<SQL
-  INSERT INTO crashes (userid, awaitingmoderation, title, date, countryid, location, latitude, longitude, locationdescription, unilateral, pet, trafficjam)
-  VALUES (:userid, :awaitingmoderation, :title, :date, :countryId, POINT(:longitude2, :latitude2), :latitude, :longitude, :locationdescription, :unilateral, :pet, :trafficjam);
+  INSERT INTO crashes (userid, awaitingmoderation, title, date, countryid, location, latitude, longitude, locationdescription, locationaccuracy, unilateral, pet, trafficjam)
+  VALUES (:userid, :awaitingmoderation, :title, :date, :countryId, POINT(:longitude2, :latitude2), :latitude, :longitude, :locationdescription, :locationaccuracy, :unilateral, :pet, :trafficjam);
 SQL;
 
         $params = [
@@ -421,6 +417,7 @@ SQL;
           ':latitude2' => $crash['latitude'],
           ':longitude2' => $crash['longitude'],
           ':locationdescription' => $crash['locationdescription'],
+          ':locationaccuracy' => $locationAccuracy,
           ':unilateral' => intval($crash['unilateral']),
           ':pet' => intval($crash['pet']),
           ':trafficjam' => intval($crash['trafficjam']),
@@ -861,6 +858,7 @@ c.countryid,
 ST_X(c.location) AS longitude,
 ST_Y(c.location) AS latitude,
 c.locationdescription,
+c.locationaccuracy,
 c.unilateral,
 c.pet, 
 c.trafficjam, 
