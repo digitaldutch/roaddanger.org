@@ -1,5 +1,12 @@
 # Changelog
 
+26 october 2026 v802:
+- Better coordinates in the add crash window. The geocoder (HERE) in geocodeLocation (general/utils.php):
+  - Only accepts a result in the country that the AI gives (in=countryCode). Before, a street or village with the same name in another country could be returned. New file general/iso_country_codes.php converts the two letter country code to the three letter code of HERE.
+  - When nothing is found, the optional text geocoder_fallback of the AI (town and country) and less detailed versions of the text are tried, at most 4 requests. Every version keeps a town and a country, as a road number alone is found anywhere.
+  - Returns the result type (houseNumber, intersection, street, locality, ...), a rough accuracy in metres (accuracyMeters) and simplified (true for a less detailed text). A request has a time limit of 10 seconds.
+  - extractDataFromArticle does not use a result that is far from the coordinates of the AI (more than 50 km, or 25 km for a less detailed text). The coordinates of the AI are used then.
+
 22 october 2026 v801:
 - New robots.txt: search engines and other crawlers that follow the rules may only fetch the home page and the about page, with the files these pages need.
 - The page /aboutthissite/ is now /about/ (there is no redirect from the old url). The links in the cookie banner, the menu and the long texts (child_victims_info, counter_party_info, website_info) are changed, also in install/init_data.sql.

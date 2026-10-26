@@ -626,15 +626,76 @@ function replaceAI_QuestionnaireTags(string $text, array $questionnairesData): s
 }
 
 
-function geocodeLocation($locationPrompt): ?array {
+/**
+ * Finds the coordinates of a place description with the HERE geocoder.
+ * Only results in the given country are accepted: a village or street name also exists in other countries.
+ * When nothing is found, the optional fallback text (town and country) and less detailed versions of the text are tried.
+ * Returns latitude, longitude, the HERE result type (houseNumber, intersection, street, locality, ...), a rough
+ * accuracy in metres and 'simplified', true when the result is for a less detailed text, or null.
+ */
+function geocodeLocation(?string $locationPrompt, ?string $countryCode = null, ?string $fallbackPrompt = null): ?array {
   if (! defined('HERE_API_KEY')) return null;
 
+  require_once __DIR__ . '/iso_country_codes.php';
+  $hereCountries = hereCountryCodes($countryCode);
+
+  foreach (geocoderQueries((string)$locationPrompt, $fallbackPrompt) as [$query, $simplified]) {
+    $result = hereGeocode($query, $hereCountries);
+    if (! $result) continue;
+
+    $result['simplified'] = $simplified;
+    // A street found for a text without the street is not as exact as it seems
+    if ($simplified) $result['accuracyMeters'] = max($result['accuracyMeters'], 2000);
+    return $result;
+  }
+
+  return null;
+}
+
+/**
+ * The texts to try, best first, as [text, simplified]: the prompt, the fallback text and less detailed versions of the
+ * prompt. News about a road says "near", "between two exits" or a direction, and the geocoder cannot match that.
+ * Every version keeps at least a town and a country: a road number alone is found anywhere. At most 4 requests.
+ */
+function geocoderQueries(string $prompt, ?string $fallbackPrompt): array {
+  $prompt = trim($prompt);
+  $queries = [[$prompt, false]];
+  if ($fallbackPrompt !== null) $queries[] = [trim($fallbackPrompt), true];
+
+  // "Highway 60 near Otniel, Israel": the place after "near"
+  if (preg_match('/\b(?:near|nabij|bei)\s+([^,&]+,.+)$/iu', $prompt, $match)) $queries[] = [trim($match[1]), true];
+
+  // Without the first parts, which are the most detailed: "Best-One shop, Tonteg, Wales, UK" -> "Tonteg, Wales, UK"
+  $parts = array_map('trim', explode(',', $prompt));
+  for ($i = 1; $i <= count($parts) - 2; $i++) $queries[] = [implode(', ', array_slice($parts, $i)), true];
+
+  $found = [];
+  foreach ($queries as [$text, $simplified]) {
+    if ($text === '' || strlen($text) > 200 || isset($found[$text])) continue;
+    if ($simplified && ! str_contains($text, ',')) continue;
+    $found[$text] = [$text, $simplified];
+  }
+
+  return array_slice(array_values($found), 0, 4);
+}
+
+function distanceKilometers(float $latitude1, float $longitude1, float $latitude2, float $longitude2): float {
+  $deltaLatitude = deg2rad($latitude2 - $latitude1);
+  $deltaLongitude = deg2rad($longitude2 - $longitude1);
+  $a = sin($deltaLatitude / 2) ** 2 + cos(deg2rad($latitude1)) * cos(deg2rad($latitude2)) * sin($deltaLongitude / 2) ** 2;
+
+  return 12742 * asin(sqrt($a));
+}
+
+function hereGeocode(string $query, ?string $hereCountries): ?array {
   try {
     // Using HERE map service. Preferred over OpenStreetMap-based services as it is better in places and does intersections
-    $url = "https://geocode.search.hereapi.com/v1/geocode?q=" . urlencode($locationPrompt) . "&apiKey=" . HERE_API_KEY;
+    $url = 'https://geocode.search.hereapi.com/v1/geocode?limit=1&q=' . urlencode($query)
+      . ($hereCountries ? '&in=countryCode:' . $hereCountries : '') . '&apiKey=' . HERE_API_KEY;
 
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     $response = curl_exec($ch);
 
     if (curl_errno($ch)) {
@@ -649,22 +710,35 @@ function geocodeLocation($locationPrompt): ?array {
       throw new \RuntimeException("Geocoder error: Received response code $httpCode");
     }
 
-    $data = json_decode($response, true);
+    $item = json_decode($response, true)['items'][0] ?? null;
+    if (! $item) return null;
 
-    // Check if the response contains results
-    if (isset($data['items']) && count($data['items']) > 0) {
-      $position = $data['items'][0]['position'];
-      return [
-        'latitude' => $position['lat'],
-        'longitude' => $position['lng']
-      ];
-    } else {
-      throw new \RuntimeException("Geocoder error: No results found for the given address: $locationPrompt");
-    }
+    return [
+      'latitude' => $item['position']['lat'],
+      'longitude' => $item['position']['lng'],
+      'resultType' => $item['resultType'] ?? '',
+      'accuracyMeters' => hereAccuracyMeters($item),
+    ];
 
   } catch (Throwable $e) {
     return null;
   }
+}
+
+function hereAccuracyMeters(array $item): int {
+  $fixed = ['houseNumber' => 30, 'pointAddress' => 30, 'place' => 50, 'intersection' => 50, 'addressBlock' => 100];
+  $type = $item['resultType'] ?? '';
+  if (isset($fixed[$type])) return $fixed[$type];
+
+  // Streets, districts and towns: half the diagonal of the area that HERE gives
+  $view = $item['mapView'] ?? null;
+  if ($view) {
+    $northSouthMetres = ($view['north'] - $view['south']) * 111320;
+    $eastWestMetres = ($view['east'] - $view['west']) * 111320 * cos(deg2rad(($view['north'] + $view['south']) / 2));
+    return max(50, (int)round(sqrt($northSouthMetres ** 2 + $eastWestMetres ** 2) / 2));
+  }
+
+  return 5000;
 }
 
 /**

@@ -279,9 +279,19 @@ SQL;
     $AIResponse = $openrouter->chatAboutArticle('article_analyst', $article);
     $AIResponse = json_decode($AIResponse);
 
-    // Get coordinates also from geocoder as AI is not very good at it yet
-    $geocoder_prompt = $AIResponse->location->geocoder_prompt;
-    $AIResponse->location->geocoder_coordinates = geocodeLocation($geocoder_prompt);
+    // Get coordinates also from geocoder as AI is not very good at it yet. Only results in the country of the crash count.
+    $location = $AIResponse->location;
+    $location->geocoder_coordinates = geocodeLocation($location->geocoder_prompt, $location->country_code ?? null,
+      $location->geocoder_fallback ?? null);
+
+    // The geocoder can find a place with the same name elsewhere, and a result for a less detailed text can be far off.
+    // When it is far from the coordinates of the AI, use those: in tests the AI was then the closest every time.
+    $found = $location->geocoder_coordinates;
+    if ($found && isset($location->coordinates->latitude, $location->coordinates->longitude)) {
+      $kilometers = distanceKilometers($found['latitude'], $found['longitude'], $location->coordinates->latitude,
+        $location->coordinates->longitude);
+      if ($kilometers > ($found['simplified'] ? 25 : 50)) $location->geocoder_coordinates = null;
+    }
 
     return ['data' => $AIResponse];
   }
