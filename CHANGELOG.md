@@ -1,5 +1,8 @@
 # Changelog
 
+26 october 2026 v804:
+- AI prompt builder: saving a prompt without a function (also Save copy) failed with "Duplicate entry '' for key web_function" when another prompt already had an empty function. An empty function is now saved as NULL, as the column is unique. A prompt without a function is shown as [none].
+
 26 october 2026 v803:
 - AI prompt builder:
   - The Save button did nothing for a prompt that was loaded from the list and has no function. Now it is saved.

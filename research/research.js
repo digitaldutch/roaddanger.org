@@ -981,7 +981,7 @@ async function loadAiPrompt() {
   document.getElementById('aiSystemPrompt').value = aiPrompt.system_prompt;
   document.getElementById('aiPrompt').value = aiPrompt.user_prompt;
   document.getElementById('aiResponseFormat').value = aiPrompt.response_format;
-  document.getElementById('aiFunction').value = aiPrompt.function;
+  document.getElementById('aiFunction').value = aiPrompt.function ?? '';
 
   document.getElementById('aiArticleId').value = aiPrompt.article_id;
   document.getElementById('aiArticle').innerText = '';

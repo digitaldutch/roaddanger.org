@@ -725,6 +725,9 @@ SQL;
 
     if (empty($this->input['articleId'])) $this->input['articleId'] = null;
 
+    // The column function is unique. Prompts without a function must have NULL: an empty text is a value too.
+    if (trim($this->input['function'] ?? '') === '') $this->input['function'] = null;
+
     if (! empty ($this->input['id'])) {
 
       if (! $this->mayEditPrompt($this->input['id'])) throw new \Exception("You cannot save somebody else's prompt");
