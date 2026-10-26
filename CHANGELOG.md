@@ -1,5 +1,10 @@
 # Changelog
 
+26 october 2026 v803:
+- AI prompt builder:
+  - The Save button did nothing for a prompt that was loaded from the list and has no function. Now it is saved.
+  - Save copy makes a new prompt without the function of the original, as a function can only belong to one prompt. Before, it asked if you wanted to overwrite and then failed on the unique function.
+
 26 october 2026 v802:
 - Better coordinates in the add crash window. The geocoder (HERE) in geocodeLocation (general/utils.php):
   - Only accepts a result in the country that the AI gives (in=countryCode). Before, a street or village with the same name in another country could be returned. New file general/iso_country_codes.php converts the two letter country code to the three letter code of HERE.

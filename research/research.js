@@ -1760,19 +1760,20 @@ async function aiSavePrompt() {
     }
   }
 
-  if (aiPrompt) {
-    if (aiPrompt.function) {
-      confirmWarning(`This prompt is actively used on this website.<br><br>Current function: ${escapeHtml(aiPrompt.function)}<br><br>Are you really, really sure you want to overwrite it?`,
-        savePrompt,
-        `Yes overwrite`
-      );
-    }
+  if (aiPrompt && aiPrompt.function) {
+    confirmWarning(`This prompt is actively used on this website.<br><br>Current function: ${escapeHtml(aiPrompt.function)}<br><br>Are you really, really sure you want to overwrite it?`,
+      savePrompt,
+      `Yes overwrite`
+    );
   } else savePrompt();
 
 }
 
 function aiSaveCopyPrompt() {
+  // A copy is a new prompt. It does not get the function of the original: a function can only belong to one prompt.
+  aiPrompt = null;
   document.getElementById('aiPromptId').value = null;
+  document.getElementById('aiFunction').value = '';
   aiSavePrompt();
 }
 
