@@ -1325,6 +1325,8 @@ function setEditTab(tab) {
   // A new crash can only be saved from the crash tab, after the crash data is there.
   // Until then the only button is the one that continues to the crash data.
   const firstStep = editIsNewCrash && ! isCrash;
+  // An existing crash: the AI can read the article again
+  document.getElementById('buttonReadFromArticle').style.display = editIsNewCrash? 'none' : '';
   document.getElementById('buttonContinueCrashData').style.display = firstStep? '' : 'none';
   document.getElementById('buttonSaveArticleCrash').style.display = firstStep? 'none' : '';
   document.getElementById('buttonCancelEdit').style.display = firstStep? 'none' : '';
@@ -1352,6 +1354,19 @@ async function showEditTab(tab) {
 
   setEditTab('crash');
   if (key !== editExtractedKey) await extractDataFromArticle(key);
+}
+
+// Existing crash: fill the crash fields again with the data the AI reads in the article. Nothing is saved until Save.
+async function readCrashDataFromArticle() {
+  if (editExtracting) return;
+
+  if (! document.getElementById('editArticleDate').value) {showError(translate('Article_date_not_filled_in')); return;}
+  if (! document.getElementById('editArticleTitle').value.trim()) {showError(translate('Article_title_not_filled_in')); return;}
+  if (! document.getElementById('editArticleAllText').value.trim()) {showError(translate('Article_full_text_not_filled_in')); return;}
+
+  if (! confirm(translate('Replace_crash_data_question'))) return;
+
+  await extractDataFromArticle(articleExtractKey());
 }
 
 function showEditCrashForm(isNewCrash=false) {

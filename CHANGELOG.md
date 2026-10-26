@@ -1,5 +1,9 @@
 # Changelog
 
+26 october 2026 v808:
+- Edit crash, crash tab: a new button Read data from article. The AI reads the article again and fills date, humans, characteristics and place, as when you add a crash. It asks first if the data may be replaced. Nothing is saved until you click Save.
+  New text read_data_from_article in the table languages.
+
 26 october 2026 v807:
 - Edit crash, map: a new button Remove location removes the pin. Clicking the marker no longer asks "Delete location?". Before, this question also appeared after moving the marker.
   New text remove_location in the table languages. Change edit_location_instructions too: it still says "Click marker to delete a location".

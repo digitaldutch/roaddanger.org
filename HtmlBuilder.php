@@ -395,7 +395,7 @@ HTML;
       'Photo_link_url', 'Same_as_article', 'Select_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
       'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
       'Location', 'Characteristics', 'Save', 'Cancel',
-      'Fetching_web_page', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions', 'Remove_location']);
+      'Fetching_web_page', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions', 'Remove_location', 'Read_data_from_article']);
 
     $htmlLocation = self::getSearchLocationHtml( 'editCrashCountry');
 
@@ -461,6 +461,9 @@ HTML;
       </div>
 
       <div id="crashFields" class="flexColumn">
+      <div id="buttonReadFromArticle" style="display: none;">
+        <span class="button buttonGray buttonLine" role="button" style="margin: 0 0 8px 0;" onclick="readCrashDataFromArticle();">{$texts['Read_data_from_article']}</span>
+      </div>
       <div id="ai_extract_info" class="smallFont aiDoneNotice">{$texts['Ai_extract_info']}</div>
 
       <input id="crashIDHidden" type="hidden">
