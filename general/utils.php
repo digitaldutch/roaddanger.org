@@ -252,6 +252,9 @@ function addPersonsWhereSql(&$sqlWhere, $filter): void {
   }
 }
 
+// Crashes with a place that is less accurate than this are not on the map
+const MAP_MAX_ACCURACY_METERS = 3000;
+
 function getCrashesWhere($filter, $SQLWhere='', $params=[]): array {
 
   // Only do full-text search if the text has 3 characters or more
@@ -310,7 +313,8 @@ SQL;
   addPersonsWhereSql($SQLWhere, $filter);
 
   if (isset($filter['area'])) {
-    $sqlArea = "MBRContains(ST_GeomFromText(:bboxWkt), c.location)";
+    // The map: a place that is not accurate would look like an exact place. The crash is still in the lists.
+    $sqlArea = "MBRContains(ST_GeomFromText(:bboxWkt), c.location) AND (c.locationaccuracy IS NULL OR c.locationaccuracy <= " . MAP_MAX_ACCURACY_METERS . ")";
 
     addSQLWhere($SQLWhere, $sqlArea);
 

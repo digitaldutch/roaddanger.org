@@ -1,5 +1,8 @@
 # Changelog
 
+26 october 2026 v810:
+- The map does not show crashes with a place that is less accurate than 3000 metres (crashes.locationaccuracy, constant MAP_MAX_ACCURACY_METERS in general/utils.php). A pin in the middle of a town would look like an exact place. The crash stays in the lists and on its own page. Crashes without a known accuracy stay on the map.
+
 26 october 2026 v809:
 - Duplicate check when you add a crash: after the AI has read the article, a yellow box shows crashes that may be the same (new file general/SimilarCrashes.php, ajax function findSimilarCrashes).
   - Only crashes of the day before, the same day or the day after, in the same country. A crash that is too far away for the accuracy of both places is never the same. Two exact places count heavily, two towns hardly. Common words in the title, the same kinds of vehicles and the same day also count; people in other vehicles count against.
