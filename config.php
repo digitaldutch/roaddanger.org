@@ -1,5 +1,5 @@
 <?php
-$VERSION = 811;
+$VERSION = 812;
 $VERSION_DATE = '27 October 2026';
 
 // Passwords and API keys live in config_secret.php, which is excluded from git.

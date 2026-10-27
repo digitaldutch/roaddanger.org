@@ -17,7 +17,7 @@ class SimilarCrashes {
 
   /**
    * @param array $crash date (Y-m-d), countryId, latitude, longitude, accuracy (metres), title, modes (transportation modes of the people)
-   * @return array crashes, best match first. Each has id, title, date, distanceKm, locationMatch, titleSimilarity, sameModes and score
+   * @return array crashes, best match first. Each has id, title, date, distanceKm, locationMatch, exactPlace, titleSimilarity, commonWords (only when the title counted), sameModes, sameDay and score
    */
   public static function find(Database $database, array $crash, ?int $excludeCrashId = null, ?int $userId = null): array {
     $date = $crash['date'] ?? null;
@@ -65,6 +65,7 @@ LIMIT 500";
 
       $distanceKm = null;
       $locationMatch = null;
+      $exactPlace = false;
       if ($hasPlace && $candidate['latitude'] !== null && $candidate['longitude'] !== null) {
         $distanceKm = distanceKilometers($latitude, $longitude, (float)$candidate['latitude'], (float)$candidate['longitude']);
         $candidateAccuracy = (int)$candidate['locationaccuracy'] ?: self::DEFAULT_ACCURACY_METERS;
@@ -75,13 +76,16 @@ LIMIT 500";
 
         // Only two exact places say a lot. Two towns that are close to each other say little.
         $locationMatch = true;
-        $score += ($accuracy + $candidateAccuracy <= 1000) ? 3 : 1;
+        $exactPlace = $accuracy + $candidateAccuracy <= 1000;
+        $score += $exactPlace ? 3 : 1;
       }
 
       // Common words such as 'auto' are in many titles: it takes at least two words of five letters or more
       $candidateWords = self::words($candidate['title'] . ' ' . $candidate['articletitles']);
       $similarity = self::similarity($titleWords, $candidateWords);
-      if ($similarity >= 0.4 && count(array_intersect($titleWords, $candidateWords)) >= 2) $score += 2;
+      $commonWords = array_values(array_intersect($titleWords, $candidateWords));
+      $titleMatch = $similarity >= 0.4 && count($commonWords) >= 2;
+      if ($titleMatch) $score += 2;
 
       $sameModes = null;
       $ownModes = array_keys($candidateModes[(int)$candidate['id']] ?? []);
@@ -103,8 +107,11 @@ LIMIT 500";
         'date' => $candidate['date'],
         'distanceKm' => $distanceKm === null ? null : round($distanceKm, 1),
         'locationMatch' => $locationMatch,
+        'exactPlace' => $exactPlace,
         'titleSimilarity' => round($similarity, 2),
+        'commonWords' => $titleMatch ? array_slice($commonWords, 0, 5) : [],
         'sameModes' => $sameModes,
+        'sameDay' => $candidate['date'] === $date,
         'score' => $score,
       ];
     }

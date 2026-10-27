@@ -369,6 +369,9 @@ SQL;
       $locationAccuracy = (! empty($crash['latitude']) && ! empty($crash['longitude']) && is_numeric($crash['locationaccuracy'] ?? null))?
         max(0, min(1000000, (int)$crash['locationaccuracy'])) : null;
 
+      // Only add the article to an existing crash: the data of the crash stays as it is
+      $articleOnly = (! $isNewCrash) && ! empty($this->input['articleOnly']) && $article && empty($article['id']);
+
       $this->database->beginTransaction();
 
       // Check if new article url already in the database
@@ -379,7 +382,9 @@ SQL;
 
       $streamToTopType = StreamTopType::new;
 
-      if (! $isNewCrash) {
+      if ($articleOnly) {
+        $streamToTopType = StreamTopType::articleAdded;
+      } else if (! $isNewCrash) {
         // Update existing crash
         $streamToTopType = StreamTopType::edited;
 
@@ -453,26 +458,28 @@ SQL;
       }
 
       // Save crash persons
-      $sql = "DELETE FROM crashpersons WHERE crashid=:crashId;";
-      $params = ['crashId' => $crash['id']];
-      $this->database->execute($sql, $params);
+      if (! $articleOnly) {
+        $sql = "DELETE FROM crashpersons WHERE crashid=:crashId;";
+        $params = ['crashId' => $crash['id']];
+        $this->database->execute($sql, $params);
 
-      $sql = <<<SQL
-INSERT INTO crashpersons (crashid, groupid, transportationmode, health, child, underinfluence, hitrun) 
+        $sql = <<<SQL
+INSERT INTO crashpersons (crashid, groupid, transportationmode, health, child, underinfluence, hitrun)
 VALUES (:crashid, :groupid, :transportationmode, :health, :child, :underinfluence, :hitrun);
 SQL;
-      $dbStatement = $this->database->prepare($sql);
-      foreach ($crash['persons'] AS $person){
-        $params = [
-          ':crashid'            => $crash['id'],
-          ':groupid'            => $person['groupid']?? null,
-          ':transportationmode' => $person['transportationmode'],
-          ':health'             => $person['health'],
-          ':child'              => intval($person['child']),
-          ':underinfluence'     => intval($person['underinfluence']),
-          ':hitrun'             => intval($person['hitrun']),
-        ];
-        $dbStatement->execute($params);
+        $dbStatement = $this->database->prepare($sql);
+        foreach ($crash['persons'] AS $person){
+          $params = [
+            ':crashid'            => $crash['id'],
+            ':groupid'            => $person['groupid']?? null,
+            ':transportationmode' => $person['transportationmode'],
+            ':health'             => $person['health'],
+            ':child'              => intval($person['child']),
+            ':underinfluence'     => intval($person['underinfluence']),
+            ':hitrun'             => intval($person['hitrun']),
+          ];
+          $dbStatement->execute($params);
+        }
       }
 
       if ($article['id'] > 0){

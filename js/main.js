@@ -1348,10 +1348,13 @@ async function showEditTab(tab) {
   if (! document.getElementById('editArticleAllText').value.trim()) {showError(translate('Article_full_text_not_filled_in')); return;}
 
   const key = articleExtractKey();
-  if (key !== editExtractedKey && editExtractedKey !== null && ! confirm(translate('Replace_crash_data_question'))) return;
+  const showCrashTab = async () => {
+    setEditTab('crash');
+    if (key !== editExtractedKey) await extractDataFromArticle(key);
+  };
 
-  setEditTab('crash');
-  if (key !== editExtractedKey) await extractDataFromArticle(key);
+  if (key !== editExtractedKey && editExtractedKey !== null) confirmMessage(escapeHtml(translate('Replace_crash_data_question')), showCrashTab);
+  else await showCrashTab();
 }
 
 // Show crashes that may be the same crash, so a crash is not added twice. A failure is not shown: this is only a hint.
@@ -1376,8 +1379,26 @@ async function checkSimilarCrashes() {
 
     let html = `<div>${escapeHtml(translate('Similar_crashes_found'))}</div><ul style="margin: 3px 0 0 0; padding-left: 20px;">`;
     for (const crash of response.crashes) {
-      const distance = crash.distanceKm === null? '' : `, ${crash.distanceKm} km`;
-      html += `<li><a href="/${parseInt(crash.id)}" target="_blank">${escapeHtml(crash.title)}</a> (${escapeHtml(crash.date)}${distance})</li>`;
+      const id = parseInt(crash.id);
+
+      // Why this crash looks the same
+      const reasons = [];
+      if (crash.locationMatch) {
+        const distance = crash.distanceKm < 1? '< 1' : crash.distanceKm;
+        reasons.push(`${translate(crash.exactPlace? 'Similar_reason_exact_place' : 'Similar_reason_near_place')} (${distance} km)`);
+      }
+      if (crash.sameDay) reasons.push(translate('Similar_reason_same_day'));
+      if (crash.commonWords.length > 0) reasons.push(`${translate('Similar_reason_title_words')}: ${crash.commonWords.join(', ')}`);
+      if (crash.sameModes) reasons.push(translate('Similar_reason_same_modes'));
+
+      // The button is only for a new crash. An existing crash is edited, so its article is already part of it.
+      const button = editIsNewCrash?
+        `<button type="button" class="button buttonTiny" style="margin: 3px 0 0 0;" onclick="addArticleToFoundCrash(${id}, this.dataset.title)" data-title="${escapeHtml(crash.title)}">${escapeHtml(translate('Add_article_to_this_crash'))}</button>` : '';
+
+      html += `<li style="margin-bottom: 6px;">
+        <a href="/${id}" target="_blank" rel="noopener">${escapeHtml(crash.title)}</a> (${escapeHtml(crash.date)})
+        ${reasons.map(reason => `<div>✓ ${escapeHtml(reason)}</div>`).join('')}
+        ${button}</li>`;
     }
     html += '</ul>';
 
@@ -1396,9 +1417,7 @@ async function readCrashDataFromArticle() {
   if (! document.getElementById('editArticleTitle').value.trim()) {showError(translate('Article_title_not_filled_in')); return;}
   if (! document.getElementById('editArticleAllText').value.trim()) {showError(translate('Article_full_text_not_filled_in')); return;}
 
-  if (! confirm(translate('Replace_crash_data_question'))) return;
-
-  await extractDataFromArticle(articleExtractKey());
+  confirmMessage(escapeHtml(translate('Replace_crash_data_question')), () => extractDataFromArticle(articleExtractKey()));
 }
 
 function showEditCrashForm(isNewCrash=false) {
@@ -2353,11 +2372,9 @@ async function getArticleMetaData() {
   }
 }
 
-async function saveArticleCrash(){
-  let crashEdited;
-  let articleEdited;
-
-  articleEdited = {
+// The article fields of the edit window. Shows an error and returns null if a field is not right.
+function getEditedArticle() {
+  const articleEdited = {
     id: document.getElementById('articleIDHidden').value,
     url: document.getElementById('editArticleUrl').value,
     sitename: document.getElementById('editArticleSiteName').value.trim(),
@@ -2372,15 +2389,47 @@ async function saveArticleCrash(){
   const domain = domainBlacklisted(articleEdited.url);
   if (domain) {
     showError(`Website ${domain.domain} can not be added. ${domain.reason}`);
-    return
+    return null;
   }
 
-  if (! articleEdited.url) {showError(translate('Article_link_not_filled_in')); return;}
-  if (! articleEdited.title) {showError(translate('Article_title_not_filled_in')); return;}
-  if (! articleEdited.alltext) {showError(translate('Article_full_text_not_filled_in')); return;}
-  if (articleEdited.urlimage.startsWith('http://')) {showError(translate('Article_photo_link_unsafe')); return;}
-  if (! articleEdited.sitename) {showError(translate('Article_media_source_not_filled_in')); return;}
-  if (! articleEdited.date) {showError(translate('Article_date_not_filled_in')); return;}
+  if (! articleEdited.url) {showError(translate('Article_link_not_filled_in')); return null;}
+  if (! articleEdited.title) {showError(translate('Article_title_not_filled_in')); return null;}
+  if (! articleEdited.alltext) {showError(translate('Article_full_text_not_filled_in')); return null;}
+  if (articleEdited.urlimage.startsWith('http://')) {showError(translate('Article_photo_link_unsafe')); return null;}
+  if (! articleEdited.sitename) {showError(translate('Article_media_source_not_filled_in')); return null;}
+  if (! articleEdited.date) {showError(translate('Article_date_not_filled_in')); return null;}
+
+  return articleEdited;
+}
+
+// Add window: the crash is already in the database. Only the article is added, the data of that crash stays as it is.
+async function addArticleToFoundCrash(crashId, crashTitle) {
+  const articleEdited = getEditedArticle();
+  if (! articleEdited) return;
+
+  confirmMessage(`${escapeHtml(translate('Add_article_to_found_crash_question'))}<br><br><b>${escapeHtml(crashTitle)}</b>`, async () => {
+    const serverData = {
+      article: articleEdited,
+      crash: {id: crashId},
+      articleOnly: true,
+    };
+    const response = await fetchFromServer('/general/ajaxGeneral.php?function=saveArticleCrash', serverData);
+
+    if (response.error) {
+      showError(response.error, 10);
+      return;
+    }
+
+    showMessage(translate('Saved'), 1);
+    window.location.href = createCrashURL(response.crashId, crashTitle);
+  }, translate('Add_article_to_this_crash'));
+}
+
+async function saveArticleCrash(){
+  let crashEdited;
+
+  const articleEdited = getEditedArticle();
+  if (! articleEdited) return;
 
   let latitude = document.getElementById('editCrashLatitude').value;
   let longitude = document.getElementById('editCrashLongitude').value;

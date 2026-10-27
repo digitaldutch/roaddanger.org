@@ -1,5 +1,11 @@
 # Changelog
 
+27 october 2026 v812:
+- Add crash popup, duplicate check: each crash that may be the same has a button Add article to this crash. Only the article is added, the data of that crash does not change (saveArticleCrash option articleOnly, also works for helpers). Then you go to that crash.
+- The duplicate check shows why a crash looks the same, one line each: same place (with the distance) or place nearby, same day, the same words in the title, same transportation modes. The link opens in a new tab.
+- The questions "Replace crash data?" and the new one use the confirm window of the site, not the one of the browser.
+  New texts in the table languages: add_article_to_this_crash, add_article_to_found_crash_question, similar_reason_exact_place, similar_reason_near_place, similar_reason_same_day, similar_reason_title_words, similar_reason_same_modes.
+
 27 october 2026 v811:
 - Add and edit crash popups: the blue focus border of a field was cut off on the left side. The scrolling area now has a little room around the fields.
 
