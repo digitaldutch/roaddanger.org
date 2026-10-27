@@ -1750,6 +1750,85 @@ h3, .pageSubTitleFont {
   border-radius: 3px;
 }
 
+.searchRowSelected, .searchRowSelected:hover {
+  border-color: #1e7e34;
+  box-shadow: inset 0 0 0 1px #1e7e34;
+  background-color: #f1f9f3;
+}
+
+.mergeRemove, .mergeKeep {
+  background-color: #ffffff;
+  border: 1px solid #dddddd;
+  border-left-width: 5px;
+}
+
+.mergeRemove {
+  border-left-color: #d9534f;
+}
+
+.mergeKeep {
+  border-left-color: #1e7e34;
+}
+
+.mergeSelectHint {
+  padding: 18px 10px;
+  text-align: center;
+  color: #666666;
+}
+
+.mergeCard {
+  display: flex;
+  gap: 10px;
+  padding: 8px;
+}
+
+.mergeThumb {
+  flex: none;
+  width: 96px;
+  height: 72px;
+  border-radius: 5px;
+  overflow: hidden;
+  background-color: #eeeeee;
+}
+
+.mergeThumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mergeBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.mergeTitle {
+  font-weight: bold;
+  line-height: 1.25;
+}
+
+.mergeMeta {
+  margin-top: 2px;
+  font-size: 13px;
+  color: #666666;
+}
+
+.mergePersons {
+  margin-top: 5px;
+}
+
+.mergeLikely {
+  display: inline-block;
+  margin-bottom: 3px;
+  padding: 0 7px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #000000;
+  background-color: #ffc20e;
+}
+
 .searchRow:hover {
   color: var(--color-hover);
   background-color: var(--hover-bgcolor);
@@ -1884,6 +1963,20 @@ h3, .pageSubTitleFont {
   content: '\2713';
   font-weight: bold;
   color: #1e7e34;
+}
+
+.similarNotice {
+  display: none;
+  margin: 5px 0 10px 0;
+  padding: 6px 10px;
+  border-radius: 4px;
+  color: #000000;
+  background-color: #fff3cd;
+}
+
+.button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 #mapCrash {

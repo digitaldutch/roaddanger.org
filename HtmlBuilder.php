@@ -465,6 +465,7 @@ HTML;
         <span class="button buttonGray buttonLine" role="button" style="margin: 0 0 8px 0;" onclick="readCrashDataFromArticle();">{$texts['Read_data_from_article']}</span>
       </div>
       <div id="ai_extract_info" class="smallFont aiDoneNotice">{$texts['Ai_extract_info']}</div>
+      <div id="similarCrashes" class="smallFont similarNotice" style="display: none;"></div>
 
       <input id="crashIDHidden" type="hidden">
 
@@ -589,7 +590,8 @@ HTML;
   }
 
   public static function getFormMergeCrash(): string {
-    $texts = translateArray(['Cancel', 'Merge', 'Date', 'Crash', 'Merge_crashes', 'Search']);
+    $texts = translateArray(['Cancel', 'Merge', 'Merge_crashes', 'Search', 'Merge_crashes_explanation', 'Merge_remove_crash',
+      'Merge_keep_crash', 'Merge_swap', 'Merge_no_similar']);
 
     return <<<HTML
 <div id="formMergeCrash" class="popupOuter" onclick="closePopupForm();">
@@ -599,19 +601,20 @@ HTML;
     <div class="popupHeader">{$texts['Merge_crashes']}</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
 
-    <input id="mergeFromCrashIDHidden" type="hidden">
+    <div class="smallFont">{$texts['Merge_crashes_explanation']}</div>
 
     <div class="flexColumn">
-      <div class="formSubHeader">{$texts['Crash']}</div>
-     
-      <div id="mergeCrashFrom" class="crashRow"></div>
+      <div class="formSubHeader">{$texts['Merge_remove_crash']}</div>
+      <div id="mergeCrashFrom" class="crashRow mergeRemove"></div>
     </div>
-            
+
+    <div style="text-align: center;">
+      <span id="buttonMergeSwap" class="button buttonGray buttonLine" role="button" style="display: none; margin: 5px 0 0 0;" data-tippy-content="{$texts['Merge_swap']}" onclick="swapMergeCrashes();">&#8645;</span>
+    </div>
+
     <div id="mergeCrashSection" class="flexColumn">
-      <div class="formSubHeader">{$texts['Merge']}</div>
-     
-      <input id="mergeToCrashIDHidden" type="hidden">
-      <div id="mergeCrashTo" class="crashRow"></div>  
+      <div class="formSubHeader">{$texts['Merge_keep_crash']}</div>
+      <div id="mergeCrashTo" class="crashRow mergeKeep"></div>
   
       <div class="flexRow">
         
@@ -620,25 +623,16 @@ HTML;
           <input id="mergeCrashSearch" class="popupInput" style="margin-right: 5px;" type="search" autocomplete="off"  placeholder="{$texts['Search']}" onkeyup="searchMergeCrashDelayed();">
         </div>
         
-        <div class="flexColumn">
-        <label>{$texts['Date']}</label>
-        <select id="mergeCrashSearchDay" oninput="searchMergeCrashDelayed();">
-          <option value=""></option>
-          <option value="0">Same day</option>
-          <option value="1">1 day margin</option>
-          <option value="2">2 days margin</option>
-          <option value="7">7 days margin</option>
-          <option value="30">30 days margin</option>
-        </select>
-        </div>
       </div>
 
       <div id="spinnerMerge" class="spinnerLine"><img src="/images/spinner.svg" alt="Spinner"></div>
-      <div id="mergeSearchResults"></div>  
+      <div id="mergeListTitle" class="formSubHeader"></div>
+      <div id="mergeSearchResults"></div>
+      <div id="mergeEmptyHint" class="mergeSelectHint" style="display: none;">{$texts['Merge_no_similar']}</div>
     </div>
             
     <div class="popupFooter">
-      <input id="buttonMergeArticle" type="button" class="button" value="{$texts['Merge']}" onclick="mergeCrash();">
+      <input id="buttonMergeArticle" type="button" class="button" value="{$texts['Merge']}" onclick="mergeCrash();" disabled>
       <input type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">
     </div>    
   </form>

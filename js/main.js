@@ -1,7 +1,5 @@
 let crashes = [];
-let crashesFound = [];
 let articles = [];
-let articlesFound = [];
 let editCrashPersons = [];
 let spinnerLoad;
 let pageType;
@@ -1356,6 +1354,40 @@ async function showEditTab(tab) {
   if (key !== editExtractedKey) await extractDataFromArticle(key);
 }
 
+// Show crashes that may be the same crash, so a crash is not added twice. A failure is not shown: this is only a hint.
+async function checkSimilarCrashes() {
+  const box = document.getElementById('similarCrashes');
+  box.style.display = 'none';
+
+  const data = {
+    crashId: document.getElementById('crashIDHidden').value || null,
+    date: document.getElementById('editCrashDate').value || document.getElementById('editArticleDate').value,
+    countryId: document.getElementById('editCrashCountry').value,
+    latitude: document.getElementById('editCrashLatitude').value,
+    longitude: document.getElementById('editCrashLongitude').value,
+    accuracy: document.getElementById('editCrashLocationAccuracy').value,
+    title: document.getElementById('editArticleTitle').value,
+    modes: editCrashPersons.map(person => person.transportationmode),
+  };
+
+  try {
+    const response = await fetchFromServer('/general/ajaxGeneral.php?function=findSimilarCrashes', data);
+    if (response.error || ! response.crashes || response.crashes.length === 0) return;
+
+    let html = `<div>${escapeHtml(translate('Similar_crashes_found'))}</div><ul style="margin: 3px 0 0 0; padding-left: 20px;">`;
+    for (const crash of response.crashes) {
+      const distance = crash.distanceKm === null? '' : `, ${crash.distanceKm} km`;
+      html += `<li><a href="/${parseInt(crash.id)}" target="_blank">${escapeHtml(crash.title)}</a> (${escapeHtml(crash.date)}${distance})</li>`;
+    }
+    html += '</ul>';
+
+    box.innerHTML = html;
+    box.style.display = 'block';
+  } catch (error) {
+    // Only a hint
+  }
+}
+
 // Existing crash: fill the crash fields again with the data the AI reads in the article. Nothing is saved until Save.
 async function readCrashDataFromArticle() {
   if (editExtracting) return;
@@ -1407,6 +1439,7 @@ function showEditCrashForm(isNewCrash=false) {
   document.getElementById('formEditCrash').style.display = 'flex';
 
   document.getElementById('ai_extract_info').style.display = 'none';
+  document.getElementById('similarCrashes').style.display = 'none';
 
   editIsNewCrash = isNewCrash;
   editExtractedKey = null;
@@ -1525,6 +1558,8 @@ async function extractDataFromArticle(key) {
     );
 
     document.getElementById('ai_extract_info').style.display = 'flex';
+
+    checkSimilarCrashes();
 
   } catch (error) {
     // The crash tab stays open with the fields as they are, so the data can be filled in by hand
@@ -2587,133 +2622,212 @@ function deleteCrash(crashId) {
     translate('Delete'));
 }
 
-function crashRowHTML(crash, isSearch=false){
+// The merge window has two crashes: the one that is removed (mergeFrom) and the one that is kept (mergeTo).
+// Each has the crash and its articles, as the crashes of the search are not in the lists of the page.
+let mergeFrom = null;
+let mergeTo = null;
+const mergeSearchItems = {};
 
-  function innerHTML(crash, allArticles) {
-    const htmlPersons = getCrashHumansIcons(crash, false);
+function distanceKilometers(latitude1, longitude1, latitude2, longitude2) {
+  const toRadians = degrees => degrees * Math.PI / 180;
+  const a = Math.sin(toRadians(latitude2 - latitude1) / 2) ** 2 +
+    Math.cos(toRadians(latitude1)) * Math.cos(toRadians(latitude2)) * Math.sin(toRadians(longitude2 - longitude1) / 2) ** 2;
 
-    const crashArticles = getCrashArticles(crash.id, allArticles);
-    let img = '';
-    let title = '';
+  return 12742 * Math.asin(Math.sqrt(a));
+}
+
+// One crash in the merge window. A list row has the title of the first article and can be clicked.
+function mergeCrashRowHTML(item, isListRow=false) {
+  const crash = item.crash;
+  const crashArticles = getCrashArticles(crash.id, item.articles);
+
+  let htmlTitles = '';
+  if (isListRow) {
     if (crashArticles.length > 0) {
-      title = crashArticles[0].title;
-      img = `<img class="thumbnail" src="${safeUrl(crashArticles[0].urlimage)}">`
+      htmlTitles = `<div class="mergeTitle">${escapeHtml(crashArticles[0].title)}</div>`;
     }
-
-    return `
-  <div class="flexRow" style="justify-content: space-between;">
-    <div style="padding: 3px;">
-      ${escapeHtml(title)}
-      <div class="smallFont">#${crash.id} ${crash.date.toLocaleDateString()}</div>
-      <div>${htmlPersons}</div>
-    </div>
-    <div class="thumbnailWrapper">${img}</div>
-  </div>`;
+  } else {
+    htmlTitles = crashArticles.map(article =>
+      `<div class="mergeTitle">${escapeHtml(article.title)}</div><div class="mergeMeta">${escapeHtml(article.sitename)}</div>`).join('');
   }
 
-  if (isSearch) {
-    const html = innerHTML(crash, articlesFound);
-    return `<div class="searchRow" onclick="mergeSearchResultClick(${crash.id})">${html}</div>`;
-  } else return innerHTML(crash, articles);
+  const img = crashArticles.length > 0 && crashArticles[0].urlimage?
+    `<img src="${safeUrl(crashArticles[0].urlimage)}" alt="">` : '';
+
+  // Compared with the crash that is removed
+  const isOther = mergeFrom && crash.id !== mergeFrom.crash.id;
+  let dateText = crash.date.toLocaleDateString();
+  if (isOther) {
+    const days = Math.round((crash.date - mergeFrom.crash.date) / 86400000);
+    if (days === 0) dateText += ` (${translate('Merge_same_day')})`;
+    else dateText += ` (${translate(days > 0? 'Merge_days_later' : 'Merge_days_earlier').replace('{n}', Math.abs(days))})`;
+  }
+
+  const meta = [`#${crash.id}`, dateText];
+  if (isListRow && crashArticles.length > 1) meta.push(`+${crashArticles.length - 1}`);
+  if (crash.locationdescription) meta.push(escapeHtml(crash.locationdescription));
+  if (isOther && crash.latitude && crash.longitude && mergeFrom.crash.latitude && mergeFrom.crash.longitude) {
+    const distance = distanceKilometers(
+      parseFloat(mergeFrom.crash.latitude), parseFloat(mergeFrom.crash.longitude),
+      parseFloat(crash.latitude), parseFloat(crash.longitude));
+    meta.push(`${distance < 10? distance.toFixed(1) : Math.round(distance)} km`);
+  }
+
+  return `
+  <div class="mergeCard">
+    <div class="mergeThumb">${img}</div>
+    <div class="mergeBody">
+      ${htmlTitles}
+      <div class="mergeMeta">${meta.join(' · ')}</div>
+      <div class="mergePersons">${getCrashHumansIcons(crash, false)}</div>
+    </div>
+  </div>`;
 }
 
 function showMergeCrashForm(id) {
   closeAllPopups();
   const crash = getCrashFromId(id);
 
-  document.getElementById('mergeFromCrashIDHidden').value     = crash.id;
+  mergeFrom = {crash: crash, articles: articles.filter(article => article.crashid === crash.id)};
+  mergeTo = null;
+
   document.getElementById('mergeCrashSearch').value           = '';
-  document.getElementById('mergeCrashSearchDay').value        = 0; // Same day
-  document.getElementById('mergeToCrashIDHidden').value       = '';
-  document.getElementById('mergeCrashTo').innerHTML           = '';
-  document.getElementById('mergeCrashTo').style.display       = 'none';
   document.getElementById('mergeSearchResults').innerHTML     = '';
-  document.getElementById('mergeSearchResults').style.display = 'none';
-  document.getElementById('mergeCrashFrom').innerHTML         = crashRowHTML(crash);
+  document.getElementById('mergeListTitle').innerText         = '';
+  document.getElementById('mergeEmptyHint').style.display     = 'none';
   document.getElementById('formMergeCrash').style.display     = 'flex';
   document.getElementById('spinnerMerge').style.display       = 'block';
 
+  refreshMergeSelection();
   searchMergeCrash();
 }
 
-function searchMergeCrashDelayed() {
-  document.getElementById('spinnerMerge').style.display       = 'block';
-  document.getElementById('mergeCrashTo').innerHTML           = '';
-  document.getElementById('mergeCrashTo').style.display       = 'none';
-  document.getElementById('mergeSearchResults').innerHTML     = '';
-  document.getElementById('mergeSearchResults').style.display = 'none';
-  document.getElementById('mergeToCrashIDHidden').value       = '';
+// Shows the crash that is removed and the one that is kept
+function refreshMergeSelection() {
+  document.getElementById('mergeCrashFrom').innerHTML = mergeCrashRowHTML(mergeFrom);
 
-  clearTimeout(searchMergeCrashDelayed.timeout);
-  searchMergeCrashDelayed.timeout = setTimeout(searchMergeCrash,500);
+  const elementTo = document.getElementById('mergeCrashTo');
+  elementTo.innerHTML = mergeTo? mergeCrashRowHTML(mergeTo) :
+    `<div class="mergeSelectHint">${escapeHtml(translate('Merge_select_crash'))}</div>`;
+
+  document.getElementById('buttonMergeSwap').style.display = mergeTo? '' : 'none';
+  document.getElementById('buttonMergeArticle').disabled = ! mergeTo;
+
+  // Mark the selected row in the list
+  document.querySelectorAll('#mergeSearchResults .searchRow').forEach(row => {
+    row.classList.toggle('searchRowSelected', mergeTo !== null && parseInt(row.dataset.crashId) === mergeTo.crash.id);
+  });
 }
 
+function swapMergeCrashes() {
+  if (! mergeTo) return;
+
+  [mergeFrom, mergeTo] = [mergeTo, mergeFrom];
+  searchMergeCrash();
+  refreshMergeSelection();
+}
+
+function searchMergeCrashDelayed() {
+  document.getElementById('spinnerMerge').style.display = 'block';
+
+  clearTimeout(searchMergeCrashDelayed.timeout);
+  searchMergeCrashDelayed.timeout = setTimeout(searchMergeCrash, 500);
+}
+
+// Crashes that look like the crash that is removed, the most likely first. Each has the crash and its articles.
+async function loadMergeSuggestions() {
+  const crash = mergeFrom.crash;
+  const data = {
+    withData: true,
+    crashId: crash.id,
+    date: dateToISO(crash.date),
+    countryId: crash.countryid,
+    latitude: crash.latitude,
+    longitude: crash.longitude,
+    accuracy: crash.locationaccuracy,
+    title: mergeFrom.articles.length > 0? mergeFrom.articles[0].title : '',
+    modes: crash.persons.map(person => person.transportationmode),
+  };
+
+  const response = await fetchFromServer('/general/ajaxGeneral.php?function=findSimilarCrashes', data);
+  if (response.error) throw new Error(response.error);
+  if (! response.data) return [];
+
+  prepareCrashesServerData(response.data);
+
+  return response.crashes.map(similar => response.data.crashes.find(found => found.id === similar.id)).filter(Boolean)
+    .map(found => ({crash: found, articles: response.data.articles.filter(article => article.crashid === found.id)}));
+}
+
+// A search on text, near the date of the crash that is removed. The nearest first.
+async function searchMergeCrashesOnText(text) {
+  const crash = mergeFrom.crash;
+  const marginDays = 60;
+
+  const serverData = {
+    count: 30,
+    filter: {
+      text:     text,
+      period:   'custom',
+      dateFrom: dateToISO(crash.date.addDays(-marginDays)),
+      dateTo:   dateToISO(crash.date.addDays(marginDays)),
+    },
+  };
+
+  const response = await fetchFromServer('/general/ajaxGeneral.php?function=loadCrashes', serverData);
+  if (response.error) throw new Error(response.error);
+
+  prepareCrashesServerData(response);
+
+  const distance = found => (crash.latitude && crash.longitude && found.latitude && found.longitude)?
+    distanceKilometers(parseFloat(crash.latitude), parseFloat(crash.longitude), parseFloat(found.latitude), parseFloat(found.longitude)) :
+    Infinity;
+
+  return response.crashes.filter(found => found.id !== crash.id)
+    .sort((a, b) => distance(a) - distance(b))
+    .map(found => ({crash: found, articles: response.articles.filter(article => article.crashid === found.id)}));
+}
+
+// Without a search text the list has the crashes that look the same. With a text it has the search results.
 async function searchMergeCrash() {
+  const text = document.getElementById('mergeCrashSearch').value.trim().toLowerCase();
+  const fromId = mergeFrom.crash.id;
+
   try {
-    const crashID    = parseInt(document.getElementById('mergeFromCrashIDHidden').value);
-    const crash      = getCrashFromId(crashID);
+    const items = text? await searchMergeCrashesOnText(text) : await loadMergeSuggestions();
 
-    const dateSearch = document.getElementById('mergeCrashSearchDay').value;
-    let dateFrom;
-    let dateTo;
-    if (dateSearch === '0'){
-      dateFrom = crash.date;
-      dateTo   = crash.date;
-    } else if (isInt(dateSearch)) {
-      dateFrom = crash.date.addDays(-dateSearch);
-      dateTo   = crash.date.addDays(dateSearch);
+    // The person has searched again or swapped while the server was working
+    if (fromId !== mergeFrom.crash.id || text !== document.getElementById('mergeCrashSearch').value.trim().toLowerCase()) return;
+
+    let html = '';
+    for (const item of items) {
+      mergeSearchItems[item.crash.id] = item;
+      html += `<div class="searchRow" data-crash-id="${item.crash.id}" onclick="mergeSearchResultClick(${item.crash.id})">${mergeCrashRowHTML(item, true)}</div>`;
     }
-
-    const serverData = {
-      count: 10,
-      filter: {
-        text:     document.getElementById('mergeCrashSearch').value.trim().toLowerCase(),
-        period:   'custom',
-        dateFrom: dateToISO(dateFrom),
-        dateTo:   dateToISO(dateTo),
-      },
-    };
-
-    const url      = '/general/ajaxGeneral.php?function=loadCrashes';
-    const response = await fetchFromServer(url, serverData);
-
-    if (response.error) showError(response.error);
-    else if (response.ok){
-      prepareCrashesServerData(response);
-      crashesFound  = response.crashes;
-      articlesFound = response.articles;
-
-      let html = '';
-      crashesFound.forEach(crashFound => {if (crashFound.id !== crash.id) html += crashRowHTML(crashFound, true);});
-      document.getElementById('mergeSearchResults').innerHTML     = html;
-      document.getElementById('mergeSearchResults').style.display = 'block';
-    }
+    document.getElementById('mergeSearchResults').innerHTML = html;
+    document.getElementById('mergeListTitle').innerText = (! text && items.length > 0)? translate('Merge_likely_same') : '';
+    document.getElementById('mergeEmptyHint').style.display = items.length === 0? 'block' : 'none';
+    refreshMergeSelection();
+  } catch (error) {
+    showError(error.message);
   } finally {
     document.getElementById('spinnerMerge').style.display = 'none';
   }
 }
 
-function mergeSearchResultClick(crashID) {
-  const crash = crashesFound.find(crash => crash.id === crashID);
-  let html = '';
-  let crashId = '';
-  if (crash) {
-    html  = crashRowHTML(crash);
-    crashId = crash.id;
-  }
-
-  document.getElementById('mergeToCrashIDHidden').value   = crashId;
-  document.getElementById('mergeCrashTo').innerHTML       = html;
-  document.getElementById('mergeCrashTo').style.display   = 'block';
+function mergeSearchResultClick(crashId) {
+  mergeTo = mergeSearchItems[crashId] ?? null;
+  refreshMergeSelection();
 }
 
 function mergeCrash() {
-  const fromID = parseInt(document.getElementById('mergeFromCrashIDHidden').value);
-  const toID = parseInt(document.getElementById('mergeToCrashIDHidden').value);
-  if (! toID) showError(translate('No_merge_crash_selected'));
+  if (! mergeTo) {
+    showError(translate('No_merge_crash_selected'));
+    return;
+  }
 
-  const crashFrom = getCrashFromId(parseInt(fromID));
-  const crashTo = crashesFound.find(crash => crash.id === toID);
+  const fromID = mergeFrom.crash.id;
+  const toID = mergeTo.crash.id;
 
   async function mergeCrashesOnServer(fromID, toID){
     const url= `/general/ajaxGeneral.php?function=mergeCrashes&idFrom=${fromID}&idTo=${toID}`;
@@ -2722,7 +2836,7 @@ function mergeCrash() {
     if (response.error) showError(response.error);
     else {
       articles.forEach(article => {if (article.crashid === fromID) article.crashid = toID;});
-      crashes.filter(crash => crash.id !== fromID);
+      crashes = crashes.filter(crash => crash.id !== fromID);
 
       // Update GUI
       // Delete from crash
@@ -2740,8 +2854,10 @@ function mergeCrash() {
     }
   }
 
+  const titleOf = item => item.articles.length > 0? item.articles[0].title : '';
   confirmMessage(translate('Merge_crashes') +
-    `<ul><li>${crashFrom.id} | ${escapeHtml(crashFrom.title)}</li><li>${crashTo.id} | ${escapeHtml(crashTo.title)}</li></ul>`,
+    `<ul><li>${escapeHtml(translate('Merge_remove_crash'))}: #${fromID} ${escapeHtml(titleOf(mergeFrom))}</li>` +
+    `<li>${escapeHtml(translate('Merge_keep_crash'))}: #${toID} ${escapeHtml(titleOf(mergeTo))}</li></ul>`,
     function () {
       mergeCrashesOnServer(fromID, toID);
     }, translate('Ok'));

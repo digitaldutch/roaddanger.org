@@ -3,6 +3,7 @@
 require_once 'AjaxHandler.php';
 require_once __DIR__ . '/RateLimit.php';
 require_once __DIR__ . '/ArticleTextCleaner.php';
+require_once __DIR__ . '/SimilarCrashes.php';
 
 class GeneralHandler extends AjaxHandler {
 
@@ -19,6 +20,7 @@ class GeneralHandler extends AjaxHandler {
         'saveUser' => $this->saveUser(),
         'changePassword' => $this->changePassword(),
         'extractDataFromArticle' => $this->extractDataFromArticle(),
+        'findSimilarCrashes' => $this->findSimilarCrashes(),
         'answerQuestionnairesForArticleWithAI' => $this->answerQuestionnairesForArticleWithAI(),
         'loadCountryMapOptions' => $this->loadCountryMapOptions(),
         'loadCrashes' => $this->loadCrashes(),
@@ -284,6 +286,29 @@ SQL;
     $AIResponse->location->geocoder_coordinates = geocodeAiLocation($AIResponse->location);
 
     return ['data' => $AIResponse];
+  }
+
+  /**
+   * Crashes that may be the same as the crash that is being added or edited.
+   * @throws Exception
+   */
+  private function findSimilarCrashes(): array {
+    if (! $this->user->loggedIn) throw new \Exception('Not logged in');
+
+    $crash = $this->input ?? [];
+    $excludeId = (int)($crash['crashId'] ?? 0) ?: null;
+
+    $similar = SimilarCrashes::find($this->database, $crash, $excludeId, $this->user->id);
+    $response = ['crashes' => $similar];
+
+    // The merge window shows the crashes with their articles
+    if (! empty($crash['withData']) && count($similar) > 0) {
+      $this->input['filter'] = [];
+      $data = $this->loadCrashes(array_map(fn($row) => (int)$row['id'], $similar));
+      $response['data'] = ['crashes' => $data['crashes'], 'articles' => $data['articles']];
+    }
+
+    return $response;
   }
 
   /**
@@ -854,6 +879,7 @@ c.streamtopuserid,
 c.streamtoptype,
 c.awaitingmoderation,
 c.date,
+c.title,
 c.countryid,
 ST_X(c.location) AS longitude,
 ST_Y(c.location) AS latitude,

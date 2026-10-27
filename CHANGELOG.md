@@ -1,5 +1,15 @@
 # Changelog
 
+26 october 2026 v809:
+- Duplicate check when you add a crash: after the AI has read the article, a yellow box shows crashes that may be the same (new file general/SimilarCrashes.php, ajax function findSimilarCrashes).
+  - Only crashes of the day before, the same day or the day after, in the same country. A crash that is too far away for the accuracy of both places is never the same. Two exact places count heavily, two towns hardly. Common words in the title, the same kinds of vehicles and the same day also count; people in other vehicles count against.
+- Merge crashes window made clearer:
+  - The crash at the top is deleted and its articles move to the crash that you keep. Both have a title for each article, a place and the people. A swap button changes which one is kept.
+  - The list shows the crashes that look the same, most likely first. Typing a text searches 60 days around the crash. The date margin select is gone.
+  - Each crash in the list shows the distance and the difference in days. The selected crash has a green frame. The Merge button is off until a crash is selected.
+  - Merge without a selected crash showed an error and then went on anyway. The crash list of the page was not updated after a merge.
+  New texts in the table languages: similar_crashes_found, merge_crashes_explanation, merge_remove_crash, merge_keep_crash, merge_select_crash, merge_likely_same, merge_swap, merge_no_similar, merge_same_day, merge_days_later, merge_days_earlier.
+
 26 october 2026 v808:
 - Edit crash, crash tab: a new button Read data from article. The AI reads the article again and fills date, humans, characteristics and place, as when you add a crash. It asks first if the data may be replaced. Nothing is saved until you click Save.
   New text read_data_from_article in the table languages.
