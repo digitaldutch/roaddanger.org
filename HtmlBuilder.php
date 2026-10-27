@@ -412,7 +412,7 @@ HTML;
       <div id="tabEditCrash" class="editTab" onclick="showEditTab('crash');">{$texts['Crash']}</div>
     </div>
 
-    <div style="overflow-y: auto">
+    <div style="overflow-y: auto; padding: 3px; margin: -3px;">
     <div id="panelEditArticle" class="flexColumn">
 
       <div id="articleInfo" class="smallFont" style="text-align: right;"></div>
@@ -540,7 +540,7 @@ HTML;
       <div>$crashDetails</div>
     </div>
     
-    <div style="overflow-y: auto">
+    <div style="overflow-y: auto; padding: 3px; margin: -3px;">
       <div id="crashDetails" class="flexColumn"></div>    
     </div>      
   </div>

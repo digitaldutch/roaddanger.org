@@ -1,5 +1,8 @@
 # Changelog
 
+27 october 2026 v811:
+- Add and edit crash popups: the blue focus border of a field was cut off on the left side. The scrolling area now has a little room around the fields.
+
 26 october 2026 v810:
 - The map does not show crashes with a place that is less accurate than 3000 metres (crashes.locationaccuracy, constant MAP_MAX_ACCURACY_METERS in general/utils.php). A pin in the middle of a town would look like an exact place. The crash stays in the lists and on its own page. Crashes without a known accuracy stay on the map.
 
