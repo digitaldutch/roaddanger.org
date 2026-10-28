@@ -13,7 +13,8 @@ Website: [roaddanger.org](https://www.roaddanger.org)
   stricter MySQL 8 defaults.
 * Optional: the Chromium headless browser to download article url's. See `HEADLESS_BROWSER_COMMAND` in [config.php](config.php).
 * Optional: an [OpenRouter](https://openrouter.ai) API key for the AI features and a [HERE](https://developer.here.com) API key
-  for finding crash coordinates.
+  for finding crash coordinates. HERE is used because it finds intersections, gives an accuracy for each result
+  and can be limited to a country. Its free plan has a monthly limit of transactions: check the current number on the HERE pricing page.
 
 ### Installation ###
 1. Put all files on a webserver with PHP support.

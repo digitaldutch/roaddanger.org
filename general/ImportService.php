@@ -328,16 +328,19 @@ class ImportService {
     $this->database->beginTransaction();
     $this->inTransaction = true;
 
+    // Unlike crashes entered by hand, an import does not move a crash to the top of the stream: the stream times are the
+    // publication time of the article, and an article added to a crash leaves the crash where it is
     $origin = ['origin' => 'api', 'originname' => $article['source']];
     $awaitingModeration = $this->autoApprove ? 0 : 1;
 
     if ($result['status'] === 'created') {
       $sql = <<<SQL
-INSERT INTO crashes (userid, awaitingmoderation, title, date, countryid, location, latitude, longitude, locationdescription, locationaccuracy, unilateral, pet, trafficjam, origin, originname)
-VALUES (:userid, :awaitingmoderation, :title, :date, :countryid, POINT(:longitude2, :latitude2), :latitude, :longitude, :locationdescription, :locationaccuracy, :unilateral, :pet, :trafficjam, :origin, :originname);
+INSERT INTO crashes (userid, awaitingmoderation, title, date, countryid, location, latitude, longitude, locationdescription, locationaccuracy, unilateral, pet, trafficjam, origin, originname, streamdatetime)
+VALUES (:userid, :awaitingmoderation, :title, :date, :countryid, POINT(:longitude2, :latitude2), :latitude, :longitude, :locationdescription, :locationaccuracy, :unilateral, :pet, :trafficjam, :origin, :originname, :streamdatetime);
 SQL;
       $this->database->execute($sql, [
         ':userid' => $this->userId, ':awaitingmoderation' => $awaitingModeration, ':title' => $article['title'],
+        ':streamdatetime' => $article['published'],
         ':date' => $crash['date'], ':countryid' => $crash['countryid'],
         ':latitude' => $crash['latitude'], ':longitude' => $crash['longitude'],
         ':latitude2' => $crash['latitude'], ':longitude2' => $crash['longitude'],
@@ -358,27 +361,21 @@ SQL;
 
       // The article of a new crash is published with the crash
       $articleAwaitingModeration = 0;
-      $streamTopType = StreamTopType::new;
     } else {
       $articleAwaitingModeration = $awaitingModeration;
-      $streamTopType = StreamTopType::articleAdded;
     }
 
     $sql = <<<SQL
-INSERT INTO articles (userid, awaitingmoderation, crashid, url, title, text, alltext, publishedtime, sitename, urlimage, origin, originname)
-VALUES (:userid, :awaitingmoderation, :crashid, :url, :title, :text, :alltext, :publishedtime, :sitename, :urlimage, :origin, :originname);
+INSERT INTO articles (userid, awaitingmoderation, crashid, url, title, text, alltext, publishedtime, sitename, urlimage, origin, originname, streamdatetime)
+VALUES (:userid, :awaitingmoderation, :crashid, :url, :title, :text, :alltext, :publishedtime, :sitename, :urlimage, :origin, :originname, :publishedtime2);
 SQL;
     $this->database->execute($sql, [
       ':userid' => $this->userId, ':awaitingmoderation' => $articleAwaitingModeration, ':crashid' => $result['crashId'],
       ':url' => $article['url'], ':title' => $article['title'], ':text' => $article['text'], ':alltext' => $article['alltext'],
       ':publishedtime' => $article['published'], ':sitename' => $article['sitename'], ':urlimage' => $article['urlimage'],
-      ':origin' => $origin['origin'], ':originname' => $origin['originname'],
+      ':origin' => $origin['origin'], ':originname' => $origin['originname'], ':publishedtime2' => $article['published'],
     ]);
     $result['articleId'] = (int)$this->database->lastInsertID();
-
-    $this->database->execute(
-      'UPDATE crashes SET streamdatetime=current_timestamp, streamtoptype=:type, streamtopuserid=:userid WHERE id=:id',
-      [':type' => $streamTopType->value, ':userid' => $this->userId, ':id' => $result['crashId']]);
 
     $this->database->commit();
     $this->inTransaction = false;

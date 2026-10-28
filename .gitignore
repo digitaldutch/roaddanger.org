@@ -5,3 +5,4 @@ config_secret.php
 /scratch
 /workers/task_worker.lock
 /workers/task_worker_status.json
+TODO.md

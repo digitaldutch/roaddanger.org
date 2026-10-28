@@ -1,5 +1,9 @@
 # Changelog
 
+28 october 2026 v821:
+- Import API: imported crashes and articles do not go to the top of the stream (Recent, Last changed). The stream time is the publication time of the article, and an article added to an existing crash leaves the crash where it is. Crashes entered by hand still go to the top.
+- README: why HERE is used and a note about its free plan. TODO.md is ignored by git.
+
 28 october 2026 v820:
 - New admin page API tokens (Admin menu, /admin/api_tokens): admins make, revoke and delete the tokens of the import API. The owner of a token must be a moderator or an admin, and a token stops working when its owner is no longer one. The token is shown once; only a hash is saved. The command line script workers/create_api_token.php checks the owner too.
 
