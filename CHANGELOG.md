@@ -1,5 +1,8 @@
 # Changelog
 
+28 october 2026 v818:
+- Cleaning of article texts: rules for 1twente.nl (photo credit News United, Google preferred source advert, tip line, closing line). A line like "Vandaag 18:17" is removed for all websites.
+
 28 october 2026 v817:
 - Export page: the option to include the full text of the articles uses the checkbox images of the menus (white on the dark page) instead of the browser checkbox (.exportOption in main.css).
 

@@ -56,6 +56,9 @@ return [
     '/^\d{1,2}[ -]\p{L}+[ -]\d{2,4}((\s+om\s+|\s*[-,]\s+|\s+)\d{1,2}[:.]\d{2}( uur)?)?$/iu',
     '/^\d{1,4}$/u',
 
+    // Relative date and time of publication on a line of their own: "Vandaag 18:17", "Gisteren om 09:30"
+    '/^(vandaag|gisteren|eergisteren)(\s+om)?\s+\d{1,2}[:.]\d{2}( uur)?$/iu',
+
     // Place, date and time of publication on a line of their own: "Groningen 19 oktober 16:08"
     '/^\p{Lu}[\p{L}.\'’-]*(\s+[\p{L}.\'’-]+){0,3}\s+\d{1,2}\s+\p{L}+\.?(\s+\d{4})?,?\s+\d{1,2}[:.]\d{2}( uur)?$/u',
 
@@ -82,6 +85,14 @@ return [
     'parool.nl' => $dpgMediaRules,
     'trouw.nl' => $dpgMediaRules,
     'volkskrant.nl' => $dpgMediaRules,
+    '1twente.nl' => [
+      // Photo credit: "News United / Dennis Bakker"
+      '/^news united\s*\/.{1,60}$/iu',
+      '/^maak 1twente jouw voorkeursbron in google$/iu',
+      '/^google heeft een nieuwe instelling\..*$/iu',
+      '/^tip onze redactie via mail of telefoon\..*$/iu',
+      '/^het laatste nieuws uit twente$/iu',
+    ],
     'weblogzwolle.nl' => [
       '/^algemeen redactie$/iu',
     ],
