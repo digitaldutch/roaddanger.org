@@ -1183,7 +1183,6 @@ print(len(data['crashes']), 'crashes')</pre>
           "url": "https://example.com/news/cyclist-killed",
           "urlimage": "https://example.com/images/cyclist.jpg",
           "title": "Cyclist killed by a truck at a crossing",
-          "alltext": "The full text of the article...",
           "summary": "A 54-year-old cyclist died after a collision with a truck."
         }
       ]
@@ -1235,8 +1234,8 @@ print(len(data['crashes']), 'crashes')</pre>
         <tr><td>url</td><td>string</td><td>Link to the article on the website of the publisher.</td></tr>
         <tr><td>urlimage</td><td>string</td><td>Link to the image of the article. Can be empty.</td></tr>
         <tr><td>title</td><td>string</td><td>Title of the article.</td></tr>
-        <tr><td>alltext</td><td>string or null</td><td>Text of the article, as far as it could be read. Can be empty or partial, for example if the article is behind a paywall.</td></tr>
-        <tr><td>summary</td><td>string</td><td>Short summary of the article.</td></tr>
+                <tr><td>summary</td><td>string</td><td>Short summary of the article.</td></tr>
+        <tr><td>alltext</td><td>string or null</td><td>Full text of the article. Not in the public file (copyright). Only in the download for moderators, which has this extra field.</td></tr>
       </tbody>
     </table>
 

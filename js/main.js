@@ -3011,7 +3011,7 @@ function downloadCrashesData() {
       }
 
       const urlFile = '/cache/' + response.filename;
-      download(urlFile, response.filename.replace('.json.gz', '_' + response.date + '.json.gz'));
+      download(urlFile, response.downloadname ?? response.filename.replace('.json.gz', '_' + response.date + '.json.gz'));
     } catch (error) {
       showError(error.message);
     } finally {

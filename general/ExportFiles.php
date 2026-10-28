@@ -60,13 +60,21 @@ class ExportFiles {
     ];
   }
 
-  public function crashes(): array {
-    // NOTE: Everyone can download all data including full texts
-    $includeAllText = true;
+  /**
+   * The crashes export. Without the full text of the articles it is public (api/crashes.php). The full text is
+   * only for moderators: the licence of some sources does not allow publishing it. The cache folder is public, so
+   * the file with the full text has a name that cannot be guessed. Only moderators are told the name.
+   */
+  public function crashes(bool $includeAllText = false): array {
+    if (! $includeAllText) {
+      return $this->getExport(WEBSITE_NAME . '_data.json.gz', fn() => $this->createCrashesExport(false));
+    }
 
-    $filename = $includeAllText? WEBSITE_NAME . '_data_all_text.json.gz' : WEBSITE_NAME . '_data.json.gz';
+    $token = substr(hash_hmac('sha256', 'export_all_text', DB_PASSWORD), 0, 32);
+    $info = $this->getExport(WEBSITE_NAME . '_data_all_text_' . $token . '.json.gz', fn() => $this->createCrashesExport(true));
+    $info['downloadname'] = WEBSITE_NAME . '_data_all_text_' . $info['date'] . '.json.gz';
 
-    return $this->getExport($filename, fn() => $this->createCrashesExport($includeAllText));
+    return $info;
   }
 
   private function createCrashesExport(bool $includeAllText): string {
