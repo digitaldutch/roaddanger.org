@@ -1,5 +1,15 @@
 # Changelog
 
+28 october 2026 v819:
+- New import API for articles from other sources: POST /api/import (api/import.php, general/ImportService.php, described on the export page). It checks if the article is known (same source and id, same url, or same title on about the same day), reads the crash data with the AI or takes it from the request, adds the article to a crash that fits (SimilarCrashes) or makes a new crash. Crashes that may be the same get status review. Imported crashes and articles wait for moderation. Articles may have no url.
+- Tokens: `php workers/create_api_token.php --user=ID --name="Name"` (also --autoapprove, --max-ai). Only a hash is saved. Every import is saved in the table import_articles.
+- Crashes and articles have an origin (user, api or ai) and originname. The crash and article show API and the source as the one who added it. Articles without url show the site name without a link.
+- install/lexisnexis_csv_to_jsonl.py and install/import_lexisnexis_csv.php: import of the Lexis Nexis csv of the students (4979 articles, 3387 crash events).
+  Add to the database before you upload this version (also in install/createdatabase.sql):
+  `ALTER TABLE crashes ADD COLUMN origin varchar(10) NOT NULL DEFAULT 'user' COMMENT 'who entered it: user, api or ai' AFTER locationaccuracy, ADD COLUMN originname varchar(50) NULL COMMENT 'for api: the source, for example lexisnexis' AFTER origin;`
+  `ALTER TABLE articles ADD COLUMN origin varchar(10) NOT NULL DEFAULT 'user' COMMENT 'who entered it: user, api or ai' AFTER ai_questionnaire_status, ADD COLUMN originname varchar(50) NULL COMMENT 'for api: the source, for example lexisnexis' AFTER origin;`
+  and the tables api_tokens and import_articles (create table statements at the end of install/createdatabase.sql).
+
 28 october 2026 v818:
 - Cleaning of article texts: rules for 1twente.nl (photo credit News United, Google preferred source advert, tip line, closing line). A line like "Vandaag 18:17" is removed for all websites.
 

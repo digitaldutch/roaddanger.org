@@ -1018,7 +1018,7 @@ function getCrashCard(crash, detailsPage=false) {
   }
 
   const htmlTopIcons = getCrashTopIcons(crash);
-  let crashHeader = crash.date.toLocaleDateString() + ' | ' + translate('Crash_added_by') + ' ' + escapeHtml(crash.user);
+  let crashHeader = crash.date.toLocaleDateString() + ' | ' + translate('Crash_added_by') + ' ' + escapeHtml(addedByName(crash));
   let titleModified = '';
   if (crash.streamtopuser) {
     switch (crash.streamtoptype) {
@@ -1185,14 +1185,14 @@ ${translate('Approval_required')}
     <div class="articleTitle">${escapeHtml(article.title)}</div>
 
     <div class="smallFont articleTitleSmall">
-      <a href="${safeUrl(article.url)}" target="article" rel="noopener noreferrer" onclick="event.stopPropagation();"><span class="cardSiteName">${escapeHtml(article.sitename)}</span></a> 
-      | ${article.publishedtime.toLocaleDateString()} | ${translate('added_by')} ${escapeHtml(article.user)}
+      ${articleSiteLink(article)} 
+      | ${article.publishedtime.toLocaleDateString()} | ${translate('added_by')} ${escapeHtml(addedByName(article))}
     </div>  
   </div>
   
-  <a href="${safeUrl(article.url)}" target="article" rel="noopener noreferrer" onclick="event.stopPropagation();">
+  ${article.url? `<a href="${safeUrl(article.url)}" target="article" rel="noopener noreferrer" onclick="event.stopPropagation();">` : '<div>'}
     <div class="articleImageWrapper"><img class="articleImage" src="${safeUrl(article.urlimage)}" onerror="this.style.display='none';"></div>
-  </a>
+  ${article.url? '</a>' : '</div>'}
   
   <div class="articleBody">
     <span class="postButtonArea" onclick="event.stopPropagation();">
@@ -1783,7 +1783,7 @@ function setArticleCrashFields(crashID){
 function openArticleLink(event, articleID) {
   event.stopPropagation();
   const article = getArticleFromId(articleID);
-  window.open(article.url,"article");
+  if (article.url) window.open(article.url,"article");
 }
 
 function showAllText(element, articleDivId, articleId){
@@ -1867,7 +1867,7 @@ async function showQuestionsForm(crashId, articleId) {
 
   document.getElementById('questionsArticleId').value = article.id;
   document.getElementById('questionsArticleTitle').innerText = article.title;
-  document.getElementById('questionsArticle').innerHTML = `<a href="${safeUrl(article.url)}" target="article" rel="noopener noreferrer">${escapeHtml(article.sitename)}</a>`;
+  document.getElementById('questionsArticle').innerHTML = articleSiteLink(article, false);
   document.getElementById('questionsCrashButtons').innerHTML = getCrashHumansIcons(crash) + htmlUnilateral;
   document.getElementById('questionsArticleText').innerText  = '⌛';
 
@@ -2399,7 +2399,7 @@ function getEditedArticle() {
     return null;
   }
 
-  if (! articleEdited.url) {showError(translate('Article_link_not_filled_in')); return null;}
+  if (! articleEdited.url && ! articleEdited.id) {showError(translate('Article_link_not_filled_in')); return null;}
   if (! articleEdited.title) {showError(translate('Article_title_not_filled_in')); return null;}
   if (! articleEdited.alltext) {showError(translate('Article_full_text_not_filled_in')); return null;}
   if (articleEdited.urlimage.startsWith('http://')) {showError(translate('Article_photo_link_unsafe')); return null;}

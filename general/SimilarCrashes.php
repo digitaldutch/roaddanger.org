@@ -19,7 +19,7 @@ class SimilarCrashes {
    * @param array $crash date (Y-m-d), countryId, latitude, longitude, accuracy (metres), title, modes (transportation modes of the people)
    * @return array crashes, best match first. Each has id, title, date, distanceKm, locationMatch, exactPlace, titleSimilarity, commonWords (only when the title counted), sameModes, sameDay and score
    */
-  public static function find(Database $database, array $crash, ?int $excludeCrashId = null, ?int $userId = null): array {
+  public static function find(Database $database, array $crash, ?int $excludeCrashId = null, ?int $userId = null, int $minScore = self::MIN_SCORE): array {
     $date = $crash['date'] ?? null;
     if (! $date || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) return [];
 
@@ -99,7 +99,7 @@ LIMIT 500";
 
       if ($candidate['date'] === $date) $score += 1;
 
-      if ($score < self::MIN_SCORE) continue;
+      if ($score < $minScore) continue;
 
       $results[] = [
         'id' => (int)$candidate['id'],

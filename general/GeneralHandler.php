@@ -895,6 +895,8 @@ c.locationaccuracy,
 c.unilateral,
 c.pet, 
 c.trafficjam, 
+c.origin,
+c.originname,
 CONCAT(u.firstname, ' ', u.lastname) AS user, 
 CONCAT(tu.firstname, ' ', tu.lastname) AS streamtopuser 
 FROM crashes c
@@ -1179,6 +1181,8 @@ SELECT
   ar.sitename,
   ar.url,
   ar.urlimage,
+  ar.origin,
+  ar.originname,
   CONCAT(u.firstname, ' ', u.lastname) AS user 
 FROM articles ar
 JOIN users u on u.id = ar.userid

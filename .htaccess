@@ -17,4 +17,7 @@ FallbackResource /index.php
 
   # Stable url for automatic downloads of the crash data
   RewriteRule ^api/crashes\.json\.gz$ api/crashes.php [L]
+
+  # Import API for articles from other sources
+  RewriteRule ^api/import$ api/import.php [L]
 </IfModule>

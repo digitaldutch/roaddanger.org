@@ -1304,6 +1304,66 @@ print(len(data['crashes']), 'crashes')</pre>
       </div>
     </div>
 
+    <h2>Import articles (API)</h2>
+
+    <div>Organisations that collect articles about traffic crashes can send them to roaddanger.org. You need a token: ask the maintainer.
+    For each article the server checks if we have it already (same source and id, same url, or same title on about the same day).
+    If not, the data of the crash is read from the article by the AI (or you send it with the article), and the article is added
+    to a crash that is the same, or a new crash is made. Imported crashes and articles wait for moderation and show the source as the one who added them.</div>
+
+    <h3>Request</h3>
+    <div>POST https://roaddanger.org/api/import with Content-Type application/json. The token is only read from the body.
+    At most 50 articles per request. With <i>dryRun</i> true nothing is saved: you see what would happen.</div>
+    <div class="codeBlockWrap">
+      <pre class="codeBlock">{
+  "token": "your token",
+  "dryRun": false,
+  "articles": [
+    {
+      "source": "mynewsarchive",
+      "externalid": "A1234",
+      "title": "Cyclist killed by a truck at a crossing",
+      "alltext": "The text of the article...",
+      "date": "2026-10-26T14:30:00+01:00",
+      "sitename": "Example News",
+      "url": "https://example.com/news/cyclist-killed"
+    }
+  ]
+}</pre>
+      <button class="codeCopyButton" onclick="copyCodeBlock(this);">Copy</button>
+    </div>
+
+    <table class="dataTable specFields">
+      <thead><tr><th>field</th><th>description</th></tr></thead>
+      <tbody>
+        <tr><td>source</td><td>Required. Name of your source, letters, numbers, - and _.</td></tr>
+        <tr><td>externalid</td><td>Id of the article in your system. An article with the same source and externalid is imported once.</td></tr>
+        <tr><td>title</td><td>Required.</td></tr>
+        <tr><td>alltext</td><td>Required. The text of the article (maximum 10,000 characters).</td></tr>
+        <tr><td>date</td><td>Required. When the article was published, ISO 8601.</td></tr>
+        <tr><td>sitename</td><td>Name of the news website or newspaper.</td></tr>
+        <tr><td>url, urlimage</td><td>Link to the article and to its image. Can be empty if you have no link, but then we can only find duplicates on title.</td></tr>
+        <tr><td>crash</td><td>Optional. The data of the crash, if you have it: date, countryid, latitude, longitude, locationaccuracy (metres), locationdescription,
+        unilateral, pet, trafficjam and persons (with transportationmode, health, child, underinfluence, hitrun, groupid). The names and numbers of the data specification above can be used.
+        Without it the AI reads the article. That is limited per day for each token.</td></tr>
+        <tr><td>crashid</td><td>Optional. Add the article to this crash, without any check.</td></tr>
+        <tr><td>uncertain</td><td>Optional. Set to <i>create</i> to make a new crash when a crash that may be the same is found. Without it the answer is status review.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Answer</h3>
+    <div>For each article, in the same order: <i>status</i>, <i>message</i>, <i>crashId</i>, <i>articleId</i> and the <i>matches</i> that were found.</div>
+    <table class="dataTable specFields">
+      <thead><tr><th>status</th><th>description</th></tr></thead>
+      <tbody>
+        <tr><td>created</td><td>A new crash was made with the article.</td></tr>
+        <tr><td>attached</td><td>The article was added to a crash that was already there (crashId).</td></tr>
+        <tr><td>duplicate</td><td>We have the article already (articleId, crashId). Nothing was saved.</td></tr>
+        <tr><td>review</td><td>A crash that may be the same exists, but it is not sure. Nothing was saved. See matches.</td></tr>
+        <tr><td>error</td><td>See message. You can send the article again.</td></tr>
+      </tbody>
+    </table>
+
     <div id="spinnerResearch" class="spinnerLine"><img src="/images/spinner.svg"></div>
             
   </div>

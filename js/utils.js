@@ -1574,6 +1574,26 @@ function copyToClipboard(text) {
 /**
  * Copy button of a code block: copies the text of the pre element before the button.
  */
+/**
+ * Who entered a crash or article: the user, or the source if it was imported with the API.
+ */
+function addedByName(item) {
+  if (item.origin === 'api') return 'API' + (item.originname? ' ' + item.originname : '');
+  if (item.origin === 'ai') return 'AI';
+  return item.user;
+}
+
+/**
+ * The site name of an article, with a link to the article. Imported articles can have no link.
+ */
+function articleSiteLink(article, stopPropagation=true) {
+  const name = escapeHtml(article.sitename);
+  if (! article.url) return `<span class="cardSiteName">${name}</span>`;
+
+  const onclick = stopPropagation? ' onclick="event.stopPropagation();"' : '';
+  return `<a href="${safeUrl(article.url)}" target="article" rel="noopener noreferrer"${onclick}><span class="cardSiteName">${name}</span></a>`;
+}
+
 function copyCodeBlock(button) {
   navigator.clipboard.writeText(button.previousElementSibling.textContent).then(() => {
     showMessage('Copied to clipboard', 2);

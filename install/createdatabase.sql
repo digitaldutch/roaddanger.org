@@ -147,6 +147,8 @@ create table crashes
   streamdatetime      timestamp  default current_timestamp() not null,
   locationdescription text                                   null,
   locationaccuracy    int unsigned                           null comment 'estimated accuracy of the place in metres. NULL: unknown',
+  origin              varchar(10) default 'user'             not null comment 'who entered it: user, api or ai',
+  originname          varchar(50)                            null comment 'for api: the source, for example lexisnexis',
   constraint crashes_countries_id_fk
     foreign key (countryid) references countries (id)
       on update cascade on delete set null,
@@ -202,6 +204,8 @@ create table articles
   urlimage                varchar(1000)                                not null,
   sitename                varchar(200)                                 not null,
   ai_questionnaire_status smallint                                     null comment '1: pending; 2: completed; 3: error',
+  origin                  varchar(10)    default 'user'                not null comment 'who entered it: user, api or ai',
+  originname              varchar(50)                                  null comment 'for api: the source, for example lexisnexis',
   constraint articles___fk_crashes
     foreign key (crashid) references crashes (id)
       on update cascade on delete cascade,
@@ -293,3 +297,47 @@ create table rate_limit_events
   index rate_limit_events__kind_ip_created (kind, ip, created_at),
   index rate_limit_events__kind_subject_created (kind, subject, created_at)
 );
+
+create table api_tokens
+(
+  id          int auto_increment
+    primary key,
+  userid      int                                   not null comment 'the user that is the owner of what the token imports',
+  name        varchar(100)                          not null,
+  tokenhash   char(64)                              not null comment 'sha256 of the token. The token itself is only shown once',
+  active      tinyint(1) default 1                  not null,
+  autoapprove tinyint(1) default 0                  not null comment '1: imported crashes and articles are published without moderation',
+  maxaiperday int        default 200                not null comment 'how many articles per day the AI may read for this token',
+  createtime  timestamp  default current_timestamp() not null,
+  lastused    timestamp                             null,
+  constraint api_tokens_tokenhash_uindex
+    unique (tokenhash),
+  constraint api_tokens_users_id_fk
+    foreign key (userid) references users (id)
+      on update cascade on delete cascade
+);
+
+create table import_articles
+(
+  id            int auto_increment
+    primary key,
+  tokenid       int                                   null,
+  source        varchar(50)                           not null comment 'where the article comes from, for example lexisnexis',
+  externalid    varchar(100)                          null comment 'id of the article at the source. An article is imported once per source and id',
+  status        varchar(20)                           not null comment 'created, attached, duplicate, review or error',
+  message       varchar(500)                          null,
+  crashid       int                                   null,
+  articleid     int                                   null,
+  usedai        tinyint(1) default 0                  not null,
+  payload       longtext                              null comment 'the article and crash data as received (json)',
+  createtime    timestamp  default current_timestamp() not null,
+  processedtime timestamp                             null,
+  constraint import_articles_source_externalid_uindex
+    unique (source, externalid),
+  constraint import_articles_api_tokens_id_fk
+    foreign key (tokenid) references api_tokens (id)
+      on update cascade on delete set null
+);
+
+create index import_articles__index_status
+  on import_articles (status);
