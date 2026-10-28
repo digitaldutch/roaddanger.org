@@ -161,6 +161,10 @@ h3, .pageSubTitleFont {
   padding: 5px 10px;
 }
 
+.pageInnerWide {
+  width: 1100px;
+}
+
 .pageInnerScroll {
   display: flex;
   flex-direction: column;
@@ -1644,6 +1648,18 @@ h3, .pageSubTitleFont {
   background-color: #ffffff;
 }
 
+/* On the dark pages the page scrolls and the header is not sticky */
+#pageMain .tableWhiteHeader th {
+  background-color: transparent;
+  position: static;
+}
+
+/* Tables on the dark pages: tinted rows and light links */
+#pageMain .dataTable tr.bgRed { background-color: rgba(242, 56, 37, 0.45); }
+#pageMain .dataTable tr.bgOrange { background-color: rgba(255, 190, 13, 0.3); }
+#pageMain .dataTable a { color: #fdae91; }
+#pageMain .dataTable tr:hover a { color: var(--color-hover); }
+
 .dataTable input[type='checkbox']{
   margin: 0 2px;
 }
@@ -2058,8 +2074,53 @@ h3, .pageSubTitleFont {
 
 .editableCell {
   color: #000000 !important;
-  background-color: #ffffff !important;
-  padding: 0 3px;
+  background-color: #e8e2dc !important;
+  padding: 5px 8px;
+  cursor: text;
+}
+
+.dataTable:not(.noBorder) td.editableCell {
+  border-bottom-color: #8a8580;
+}
+
+.editableCell:hover {
+  background-color: #f1ece7 !important;
+}
+
+.editableCell:focus {
+  background-color: #fbf8f4 !important;
+  outline: 2px solid #000000;
+  outline-offset: -2px;
+}
+
+/* Row with a select and buttons above a table on the dark admin pages */
+.adminToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 5px 0 12px 0;
+}
+
+.adminToolbar .button {
+  margin-left: 0;
+}
+
+.adminToolbar .filterBarInput {
+  min-width: 140px;
+  color: #ffffff;
+  background-color: rgba(0, 0, 0, 0.45);
+  border-color: rgba(255, 255, 255, 0.5);
+  border-radius: 3px;
+}
+
+.adminToolbar .filterBarInput option {
+  color: #000000;
+}
+
+.adminToolbar .buttonGray, .adminToolbar .buttonRed {
+  background-color: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.7);
 }
 
 .translationArea {

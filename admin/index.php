@@ -16,9 +16,11 @@ else die('Internal error: Unknown page type');
 
 function htmlNoAdmin(){
   return <<<HTML
+<div id="pageMain">
 <div id="main" class="pageInner">
   <div style="text-align: center;">You are not an administrator. Log in as an administrator.</div>
   <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
+</div>
 </div>
 HTML;
 }
@@ -66,7 +68,8 @@ if ((! $user->loggedIn) || (! $user->isModerator())) {
       $texts = translateArray(['Admin', 'Humans', 'Id', 'Name', 'Last_active', 'Permission', 'Articles', 'Registered']);
 
       $mainHTML = <<<HTML
-<div id="main" class="scrollPage">
+<div id="pageMain">
+<div id="main" class="pageInner pageInnerWide">
   <div class="pageSubTitle">{$texts['Admin']} - {$texts['Humans']}</div>
   
   <div class="panelTableOverflow">
@@ -90,6 +93,7 @@ if ((! $user->loggedIn) || (! $user->isModerator())) {
   </div>
   
 </div>
+</div>
 HTML;
     }
 
@@ -98,7 +102,8 @@ HTML;
     if (! $user->admin) $mainHTML = htmlNoAdmin();
     else {
       $mainHTML = <<<HTML
-<div id="main" class="scrollPage">
+<div id="pageMain">
+<div id="main" class="pageInner pageInnerWide">
   <div class="pageSubTitle">Admin - API tokens</div>
 
   <div class="smallFont" style="margin-bottom: 15px;">
@@ -133,6 +138,7 @@ HTML;
     <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
   </div>
 </div>
+</div>
 HTML;
     }
   } else if ($pageType === PageType::translations) {
@@ -147,12 +153,13 @@ HTML;
     $texts  = translateArray(['Translations', 'Translation', 'Admin', 'Id', 'English', 'New', 'Delete', 'Save']);
 
     $mainHTML = <<<HTML
-<div id="main" class="pageInner scrollPage" style="max-width: fit-content;">
+<div id="pageMain">
+<div id="main" class="pageInner pageInnerWide">
   <div class="pageSubTitle">{$texts['Admin']} - {$texts['Translations']}</div>
 
   <div class="smallFont" style="margin-bottom: 10px; text-align: center;">Help making this website more accessible by translating these texts into your own language.</div>
 
-  <div style="margin-bottom: 5px;">
+  <div class="adminToolbar">
     <select id="selectLanguage" class="filterBarInput active" oninput="changeUserLanguage();">$languageOptions</select>
 
     <button class="button" onclick="saveTranslations();">{$texts['Save']}</button>
@@ -172,6 +179,7 @@ HTML;
   
   <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
 
+</div>
 </div>
 HTML;
 
@@ -201,9 +209,9 @@ HTML;
   <div class="pageSubTitle">{$texts['Admin']} - {$texts['Long_texts']}</div>
   <div class="smallFont" style="margin-bottom: 10px;">Help making this website more accessible by translating these texts into your own language.</div>
 
-  <div style="display: flex; margin-bottom: 5px;">
+  <div class="adminToolbar">
     <select id="selectLongText" class="filterBarInput active" oninput="loadLongText();">$longTextOptions</select>
-    <select id="selectLanguage" class="filterBarInput active" style="margin-left: 5px;" oninput="loadLongText();">$languageOptions</select>
+    <select id="selectLanguage" class="filterBarInput active" oninput="loadLongText();">$languageOptions</select>
     <button class="button" onclick="saveLongText();">{$texts['Save']}</button>
   </div>
 
