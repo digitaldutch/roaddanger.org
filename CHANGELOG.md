@@ -1,5 +1,8 @@
 # Changelog
 
+28 october 2026 v822:
+- Admin page API tokens: same layout as the other admin pages, the table no longer needs a horizontal scrollbar.
+
 28 october 2026 v821:
 - Import API: imported crashes and articles do not go to the top of the stream (Recent, Last changed). The stream time is the publication time of the article, and an article added to an existing crash leaves the crash where it is. Crashes entered by hand still go to the top.
 - README: why HERE is used and a note about its free plan. TODO.md is ignored by git.

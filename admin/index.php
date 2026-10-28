@@ -98,7 +98,7 @@ HTML;
     if (! $user->admin) $mainHTML = htmlNoAdmin();
     else {
       $mainHTML = <<<HTML
-<div id="main" class="pageInner scrollPage">
+<div id="main" class="scrollPage">
   <div class="pageSubTitle">Admin - API tokens</div>
 
   <div class="smallFont" style="margin-bottom: 15px;">
@@ -124,7 +124,7 @@ HTML;
   </form>
 
   <div class="panelTableOverflow">
-    <table class="dataTable tableWhiteHeader noWrap">
+    <table class="dataTable tableWhiteHeader">
       <thead>
         <tr><th>Name</th><th>Owner</th><th>Auto approve</th><th>AI per day</th><th>Imported</th><th>Created</th><th>Last used</th><th></th></tr>
       </thead>
