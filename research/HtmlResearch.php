@@ -15,7 +15,10 @@ class HtmlResearch {
     }
 
     return <<<HTML
-<div id="main" class="scrollPage" style="padding: 5px;">
+<div id="pageMain">
+<div id="main" class="pageInner pageInnerWide">
+
+  <div class="pageSubTitle">Questionnaires | Setup</div>
 
   <div class="tabBar" onclick="tabBarClick();">
     <div id="tab_questionnaires" class="tabSelected">Questionnaires</div>
@@ -24,13 +27,13 @@ class HtmlResearch {
 
   <div class="tabContent" id="tabContent_questionnaires">
 
-    <div style="margin-bottom: 5px;">
+    <div class="adminToolbar">
       <button class="button" onclick="newQuestionnaire();" data-inline-admin>{$texts['New']}</button>
       <button class="button" onclick="editQuestionnaire();" data-inline-admin>{$texts['Edit']}</button>
       <button class="button buttonRed" onclick="deleteQuestionnaire();" data-inline-admin>{$texts['Delete']}</button>
     </div>
   
-    <table id="table_questionnaires" class="dataTable" style="min-width: 500px;">
+    <table id="table_questionnaires" class="dataTable headNotSticky" style="min-width: 500px;">
       <thead>
         <tr><th>Id</th><th>Title</th><th>Type</th><th>Country ID</th><th>Questions active</th><th>Results public</th><th>Exclude unilateral</th></tr>
       </thead>
@@ -42,14 +45,14 @@ class HtmlResearch {
   </div>
 
   <div class="tabContent" id="tabContent_questions" style="display: none;">
-    <div style="margin-bottom: 5px;">
+    <div class="adminToolbar">
       <button class="button" onclick="newQuestion();" data-inline-admin>{$texts['New']}</button>
       <button class="button" onclick="editQuestion();" data-inline-admin>{$texts['Edit']}</button>
       <button class="button buttonRed" onclick="deleteQuestion();" data-inline-admin>{$texts['Delete']}</button>
     </div>
     <div class="smallFont" style="margin: 0 0 5px 5px;">Sort questions with drag and drop.</div>
   
-    <table id="table_questions" class="dataTable" style="min-width: 500px;">
+    <table id="table_questions" class="dataTable headNotSticky" style="min-width: 500px;">
       <thead>
         <tr><th>Id</th><th>Question</th><th>AI prompt / explanation <span style="font-weight: normal;">(For AI. Be explicit and test!)</span></th></tr>
       </thead>
@@ -60,6 +63,7 @@ class HtmlResearch {
     <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
   </div>
 
+</div>
 </div>
 
 <div id="formQuestion" class="popupOuter">

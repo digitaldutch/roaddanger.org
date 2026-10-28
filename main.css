@@ -1614,6 +1614,29 @@ h3, .pageSubTitleFont {
   background-color: var(--menu-header-bgcolor);
 }
 
+/* Tabs on the dark pages: an underline instead of a grey block */
+#pageMain .tabBar {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+#pageMain .tabBar > div {
+  margin-bottom: -1px;
+  border-bottom: 3px solid transparent;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+#pageMain .tabBar > div:hover {
+  color: #ffffff;
+  background-color: transparent;
+  border-bottom-color: rgba(255, 255, 255, 0.5);
+}
+
+#pageMain .tabBar > .tabSelected {
+  color: #ffffff !important;
+  background-color: transparent;
+  border-bottom-color: #ffffff;
+}
+
 .dataTable {
   width: 100%;
   border-spacing: 0;
@@ -2104,14 +2127,32 @@ h3, .pageSubTitleFont {
 
 .adminToolbar .button {
   margin-left: 0;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.adminToolbar .filterBarInput, .adminToolbar .inputForm {
+  height: 30px;
+  box-sizing: border-box;
+  font-size: 14px;
+  color: #000000;
+  background-color: #e8e2dc;
+  border: none;
+  border-radius: 3px;
+  padding: 0 8px;
 }
 
 .adminToolbar .filterBarInput {
   min-width: 140px;
-  color: #ffffff;
-  background-color: rgba(0, 0, 0, 0.45);
-  border-color: rgba(255, 255, 255, 0.5);
-  border-radius: 3px;
+}
+
+.adminToolbar .inputForm::placeholder {
+  color: #7a756f;
+}
+
+.adminToolbar .filterBarInput:focus, .adminToolbar .inputForm:focus {
+  background-color: #fbf8f4;
+  outline: 2px solid #000000;
+  outline-offset: -2px;
 }
 
 .adminToolbar .filterBarInput option {
@@ -2466,6 +2507,6 @@ table.tableDragging td div {
 #export h3 { font-size: 17px; font-weight: bold; margin: 30px 0 8px 0; }
 
 /* Checkbox on the export page: the checkbox images of the menus, in white on the dark page */
-.exportOption { position: relative; display: inline-block; padding-left: 26px; text-align: left; cursor: pointer; user-select: none; }
-.exportOption .checkbox { top: 2px; filter: invert(1); }
+.exportOption { position: relative; display: inline-block; padding-left: 30px; min-height: 22px; line-height: 22px; text-align: left; cursor: pointer; user-select: none; }
+.exportOption .checkbox { top: 1px; width: 22px; height: 22px; background-size: 22px; filter: invert(1); }
 .exportOption.optionChecked .checkbox { background-image: url("/images/checkbox_checked.svg"); }

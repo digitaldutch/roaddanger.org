@@ -120,11 +120,11 @@ HTML;
     </div>
   </div>
 
-  <form onsubmit="createApiToken(); return false;" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 20px;">
+  <form class="adminToolbar" onsubmit="createApiToken(); return false;" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 20px;">
     <label>Owner (moderator or admin)<br><select id="tokenUser" class="filterBarInput active" required></select></label>
     <label>Name<br><input id="tokenName" class="inputForm" type="text" maxlength="100" placeholder="For example Lexis Nexis" required></label>
     <label>AI per day<br><input id="tokenMaxAi" class="inputForm" type="number" min="0" max="10000" value="200" style="width: 90px;"></label>
-    <label style="white-space: nowrap;"><input id="tokenAutoApprove" type="checkbox"> Approve automatically</label>
+    <div id="tokenAutoApprove" class="exportOption" style="margin-bottom: 4px; white-space: nowrap;" onclick="this.classList.toggle('optionChecked');"><span class="checkbox"></span>Approve automatically</div>
     <input type="submit" class="button" value="Create token">
   </form>
 

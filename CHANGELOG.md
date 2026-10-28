@@ -1,5 +1,8 @@
 # Changelog
 
+28 october 2026 v824:
+- Admin pages: inputs and selects above a table are off-white like the editable cells, buttons have a light frame so they show on the black side, the checkbox of the API token form uses the checkbox images (a bit larger, also on the Export page). The Questionnaires setup page has the red gradient, and tabs on the red pages have an underline instead of a grey block.
+
 28 october 2026 v823:
 - Admin pages (Humans, API tokens, Translations, Long texts) have the red gradient of the main page. Tables on these pages have a transparent header and tinted rows (admin red, moderator yellow). The select and buttons above a table are one row (.adminToolbar). The editable cells of the translations are off-white with black text and a black frame when you type.
 

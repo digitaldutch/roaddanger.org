@@ -474,7 +474,7 @@ async function createApiToken() {
       userid: parseInt(document.getElementById('tokenUser').value),
       name: document.getElementById('tokenName').value,
       maxaiperday: parseInt(document.getElementById('tokenMaxAi').value) || 0,
-      autoapprove: document.getElementById('tokenAutoApprove').checked,
+      autoapprove: document.getElementById('tokenAutoApprove').classList.contains('optionChecked'),
     });
     if (response.error) {
       showError(response.error);
@@ -485,7 +485,7 @@ async function createApiToken() {
     document.getElementById('newTokenText').innerText = response.token;
     document.getElementById('newTokenResult').style.display = 'block';
     document.getElementById('tokenName').value = '';
-    document.getElementById('tokenAutoApprove').checked = false;
+    document.getElementById('tokenAutoApprove').classList.remove('optionChecked');
 
     await loadApiTokens();
   } catch (error) {
