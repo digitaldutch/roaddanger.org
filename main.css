@@ -2388,3 +2388,8 @@ table.tableDragging td div {
 .pbPlace { display: flex; gap: 8px; align-items: flex-start; padding: 6px 8px; margin: 3px 0; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; }
 .pbPlace:hover { background: #f0f0f0; }
 .pbPlace input { margin-top: 3px; }
+
+.codeBlockWrap { position: relative; margin: 5px 0 20px 0; }
+.codeBlock { font-family: Consolas, "Courier New", monospace; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; background: rgba(0, 0, 0, 0.35); padding: 10px 12px; border-radius: 5px; margin: 0; padding-right: 70px; }
+.codeCopyButton { position: absolute; top: 6px; right: 6px; padding: 2px 8px; font-size: 12px; cursor: pointer; border: 1px solid #888; border-radius: 4px; background: rgba(255, 255, 255, 0.15); color: #fff; }
+.codeCopyButton:hover { background: rgba(255, 255, 255, 0.3); }

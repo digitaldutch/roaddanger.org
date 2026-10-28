@@ -1103,14 +1103,40 @@ HTML;
 
     <h2>Download crash and article data</h2>
 
-    <div>All crash data is available in gzip JSON format. The download is refreshed every 24 hours.
-    </div> 
-    
+    <div>All crash data is available in gzip JSON format. The download is updated every 24 hours.
+    </div>
+
     <div class="buttonBar" style="justify-content: center; margin-bottom: 30px;">
       <button class="button buttonImportant" onclick="downloadCrashesData();">Download crashes and articles</button>
-    </div>  
+    </div>
     <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
-    
+
+    <h3>Automatic download</h3>
+
+    <div>To download the data automatically, use this stable url:</div>
+    <div class="codeBlockWrap" style="margin-bottom: 10px;">
+      <pre class="codeBlock">https://roaddanger.org/api/crashes.json.gz</pre>
+      <button class="codeCopyButton" onclick="copyCodeBlock(this);">Copy</button>
+    </div>
+    <ul>
+      <li>The file is updated once a day. Download it once a day at most.</li>
+      <li>The server supports <i>If-Modified-Since</i> and <i>ETag</i>. If the file did not change, the answer is 304 and nothing is downloaded.</li>
+      <li>If the answer is 503, the file is being made. Try again after the number of seconds in the <i>Retry-After</i> header.</li>
+    </ul>
+    <div>Download only if the file is newer than your copy (curl):</div>
+    <div class="codeBlockWrap">
+      <pre class="codeBlock">curl -sS --fail -R -z roaddanger.json.gz -o roaddanger.json.gz https://roaddanger.org/api/crashes.json.gz</pre>
+      <button class="codeCopyButton" onclick="copyCodeBlock(this);">Copy</button>
+    </div>
+    <div>Read the file in Python:</div>
+    <div class="codeBlockWrap">
+      <pre class="codeBlock">import gzip, json, urllib.request
+with urllib.request.urlopen('https://roaddanger.org/api/crashes.json.gz') as response:
+    data = json.loads(gzip.decompress(response.read()))
+print(len(data['crashes']), 'crashes')</pre>
+      <button class="codeCopyButton" onclick="copyCodeBlock(this);">Copy</button>
+    </div>
+
     <h3>Data specification</h3>
     
     <div>Persons > transportation mode</div>

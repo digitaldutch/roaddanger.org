@@ -1,5 +1,10 @@
 # Changelog
 
+28 october 2026 v813:
+- Stable url for automatic downloads of the crash data: https://roaddanger.org/api/crashes.json.gz (new api/crashes.php, rewrite rule in .htaccess). It sends the daily export, makes it when it is older than 24 hours, and supports If-Modified-Since and ETag (answer 304 if unchanged). No session or cookie. Do not use the /cache/ urls for this: they can change.
+- The export code moved from admin/ExportHandler.php to general/ExportFiles.php, used by the export page and the api.
+- Export page: a new part Automatic download with the url, notes, a curl and a Python example. Code blocks have a fixed width font and a Copy button (copyCodeBlock in js/utils.js, .codeBlock styles in main.css).
+
 27 october 2026 v812:
 - Add crash popup, duplicate check: each crash that may be the same has a button Add article to this crash. Only the article is added, the data of that crash does not change (saveArticleCrash option articleOnly, also works for helpers). Then you go to that crash.
 - The duplicate check shows why a crash looks the same, one line each: same place (with the distance) or place nearby, same day, the same words in the title, same transportation modes. The link opens in a new tab.

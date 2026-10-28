@@ -14,4 +14,7 @@ FallbackResource /index.php
   RewriteEngine On
   RewriteCond %{HTTP_HOST} ^(www\.)?hetongeluk\.nl$ [NC]
   RewriteRule ^ https://roaddanger.org%{REQUEST_URI} [R=301,L,NE]
+
+  # Stable url for automatic downloads of the crash data
+  RewriteRule ^api/crashes\.json\.gz$ api/crashes.php [L]
 </IfModule>

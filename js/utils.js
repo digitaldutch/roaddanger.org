@@ -1571,6 +1571,21 @@ function copyToClipboard(text) {
   });
 }
 
+/**
+ * Copy button of a code block: copies the text of the pre element before the button.
+ */
+function copyCodeBlock(button) {
+  navigator.clipboard.writeText(button.previousElementSibling.textContent).then(() => {
+    showMessage('Copied to clipboard', 2);
+
+    button.textContent = 'Copied';
+    setTimeout(() => button.textContent = 'Copy', 2000);
+  }).catch(error => {
+    console.error('Failed to copy text:', error);
+    showError('Failed to copy to clipboard');
+  });
+}
+
 function getBaseDomain() {
   const parts = window.location.hostname.split('.');
   return parts.length >= 2 ? parts.slice(-2).join('.') : window.location.hostname;
