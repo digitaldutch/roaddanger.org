@@ -1,5 +1,8 @@
 # Changelog
 
+28 october 2026 v825:
+- research/HtmlResearch.php: line endings changed.
+
 28 october 2026 v824:
 - Admin pages: inputs and selects above a table are off-white like the editable cells, buttons have a light frame so they show on the black side, the checkbox of the API token form uses the checkbox images (a bit larger, also on the Export page). The Questionnaires setup page has the red gradient, and tabs on the red pages have an underline instead of a grey block.
 
