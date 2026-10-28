@@ -3007,7 +3007,7 @@ function downloadCrashesData() {
     spinnerLoad.style.display = 'block';
     try {
       const url = '/admin/ajaxExport.php?function=downloadCrashesData';
-      const includeAllText = document.getElementById('exportIncludeAllText').checked;
+      const includeAllText = document.getElementById('exportIncludeAllText').classList.contains('optionChecked');
       const response = await fetchFromServer(url, {includeAllText});
       if (response.error) {
         showError(response.error, 10);

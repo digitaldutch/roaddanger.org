@@ -1,5 +1,8 @@
 # Changelog
 
+28 october 2026 v817:
+- Export page: the option to include the full text of the articles uses the checkbox images of the menus (white on the dark page) instead of the browser checkbox (.exportOption in main.css).
+
 28 october 2026 v816:
 - Export page: moderators get a checkbox Include the full text of the articles (alltext), off by default. Without it they get the public file. The server checks that the user is a moderator (ajaxExport option includeAllText).
 

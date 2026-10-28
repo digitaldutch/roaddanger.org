@@ -1110,7 +1110,7 @@ HTML;
       <button class="button buttonImportant" onclick="downloadCrashesData();">Download crashes and articles</button>
     </div>
     <div id="exportAllTextOption" style="display: none; text-align: center; margin-bottom: 30px;">
-      <label><input type="checkbox" id="exportIncludeAllText"> Include the full text of the articles (field alltext). Only for moderators.</label>
+      <div id="exportIncludeAllText" class="exportOption" onclick="this.classList.toggle('optionChecked');"><span class="checkbox"></span>Include the full text of the articles (field alltext). Only for moderators.</div>
     </div>
     <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
 
