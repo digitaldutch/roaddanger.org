@@ -9,7 +9,7 @@ class ExportHandler extends AjaxHandler {
       $exports = new ExportFiles($this->database);
 
       $response = match ($this->command) {
-        'downloadCrashesData' => $exports->crashes($this->user->isModerator()),
+        'downloadCrashesData' => $exports->crashes($this->user->isModerator() && ! empty($this->input['includeAllText'])),
         'downloadResearchData' => $exports->research(),
 
         default => throw new \Exception('Invalid command'),

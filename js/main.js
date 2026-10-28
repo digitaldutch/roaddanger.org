@@ -140,6 +140,9 @@ async function initMain() {
   const tbodyCountries = document.getElementById('tbodyCountries');
   if (tbodyCountries) tbodyCountries.innerHTML = countries.map(country => `<tr><td>${escapeHtml(country.id)}</td><td>${escapeHtml(country.name)}</td></tr>`).join('');
 
+  const exportAllTextOption = document.getElementById('exportAllTextOption');
+  if (exportAllTextOption && user.moderator) exportAllTextOption.style.display = 'block';
+
   initFilterPersons();
 
   spinnerLoad = document.getElementById('spinnerLoad');
@@ -3004,7 +3007,8 @@ function downloadCrashesData() {
     spinnerLoad.style.display = 'block';
     try {
       const url = '/admin/ajaxExport.php?function=downloadCrashesData';
-      const response = await fetchFromServer(url);
+      const includeAllText = document.getElementById('exportIncludeAllText').checked;
+      const response = await fetchFromServer(url, {includeAllText});
       if (response.error) {
         showError(response.error, 10);
         return;

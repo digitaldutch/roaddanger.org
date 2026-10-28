@@ -1,5 +1,8 @@
 # Changelog
 
+28 october 2026 v816:
+- Export page: moderators get a checkbox Include the full text of the articles (alltext), off by default. Without it they get the public file. The server checks that the user is a moderator (ajaxExport option includeAllText).
+
 28 october 2026 v815:
 - The public export (and /api/crashes.json.gz) no longer has the full text of the articles (alltext): the licence of some sources does not allow publishing it. Moderators get a download with alltext. The cache folder is public, so that file has a name that cannot be guessed (made with the database password). The download name stays roaddanger_data_all_text_date.json.gz.
 - Export page: the field description of alltext is a row of its own.

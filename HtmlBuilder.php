@@ -1106,8 +1106,11 @@ HTML;
     <div>All crash data is available in gzip JSON format. The download is updated every 24 hours.
     </div>
 
-    <div class="buttonBar" style="justify-content: center; margin-bottom: 30px;">
+    <div class="buttonBar" style="justify-content: center; margin-bottom: 10px;">
       <button class="button buttonImportant" onclick="downloadCrashesData();">Download crashes and articles</button>
+    </div>
+    <div id="exportAllTextOption" style="display: none; text-align: center; margin-bottom: 30px;">
+      <label><input type="checkbox" id="exportIncludeAllText"> Include the full text of the articles (field alltext). Only for moderators.</label>
     </div>
     <div id="spinnerLoad"><img src="/images/spinner.svg"></div>
 
