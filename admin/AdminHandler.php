@@ -15,6 +15,10 @@ class AdminHandler extends AjaxHandler {
       $response = match($this->command) {
         'loadUsers' => $this->loadUsers(),
         'saveUser' => $this->saveUser(),
+        'loadApiTokens' => $this->loadApiTokens(),
+        'createApiToken' => $this->createApiToken(),
+        'setApiTokenActive' => $this->setApiTokenActive(),
+        'deleteApiToken' => $this->deleteApiToken(),
         'deleteUser' => $this->deleteUser(),
         'saveNewTranslation' => $this->saveNewTranslation(),
         'deleteTranslation' => $this->deleteTranslation(),
@@ -64,6 +68,67 @@ SQL;
     return [
       'users' => $users,
     ];
+  }
+
+  /**
+   * The tokens of the import API (api/import.php) and the moderators and admins that can own one.
+   */
+  private function loadApiTokens(): array {
+    $sql = <<<SQL
+SELECT
+  t.id, t.name, t.active, t.autoapprove, t.maxaiperday, t.createtime, t.lastused,
+  u.id AS userid, CONCAT(u.firstname, ' ', u.lastname) AS username, u.email,
+  (SELECT COUNT(*) FROM import_articles ia WHERE ia.tokenid = t.id) AS imported
+FROM api_tokens t
+JOIN users u ON u.id = t.userid
+ORDER BY t.id DESC
+SQL;
+    $tokens = $this->database->fetchAll($sql);
+    foreach ($tokens as &$token) {
+      $token['createtime'] = datetimeDBToISO8601($token['createtime']);
+      $token['lastused'] = $token['lastused'] === null ? null : datetimeDBToISO8601($token['lastused']);
+    }
+
+    // permission: 1 admin, 2 moderator
+    $owners = $this->database->fetchAll("SELECT id, CONCAT(firstname, ' ', lastname) AS name, email FROM users WHERE permission IN (1, 2) ORDER BY firstname, lastname");
+
+    return ['tokens' => $tokens, 'owners' => $owners];
+  }
+
+  /**
+   * Makes a token. It is returned once: only a hash is saved.
+   * @throws Exception
+   */
+  private function createApiToken(): array {
+    $userId = (int)($this->input['userid'] ?? 0);
+    $name = trim((string)($this->input['name'] ?? ''));
+    if ($name === '') throw new \Exception('Name is required');
+    if (mb_strlen($name) > 100) throw new \Exception('Name is too long');
+
+    $owner = $this->database->fetch('SELECT id FROM users WHERE id=:id AND permission IN (1, 2)', [':id' => $userId]);
+    if (! $owner) throw new \Exception('The owner must be a moderator or an admin');
+
+    $token = bin2hex(random_bytes(32));
+    $this->database->execute(
+      'INSERT INTO api_tokens (userid, name, tokenhash, autoapprove, maxaiperday) VALUES (:userid, :name, :hash, :autoapprove, :maxai)',
+      [':userid' => $userId, ':name' => $name, ':hash' => hash('sha256', $token),
+       ':autoapprove' => empty($this->input['autoapprove']) ? 0 : 1,
+       ':maxai' => max(0, min(10000, (int)($this->input['maxaiperday'] ?? 200)))]);
+
+    return ['token' => $token, 'name' => $name];
+  }
+
+  private function setApiTokenActive(): array {
+    $this->database->execute('UPDATE api_tokens SET active=:active WHERE id=:id',
+      [':active' => empty($this->input['active']) ? 0 : 1, ':id' => (int)($this->input['id'] ?? 0)]);
+
+    return [];
+  }
+
+  private function deleteApiToken(): array {
+    $this->database->execute('DELETE FROM api_tokens WHERE id=:id', [':id' => (int)($this->input['id'] ?? 0)]);
+
+    return [];
   }
 
   private function saveUser(): array {

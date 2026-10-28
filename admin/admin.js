@@ -13,6 +13,8 @@ async function initAdmin(){
     initObserver(loadUsers);
 
     await loadUsers();
+  } else if (url.pathname.startsWith('/admin/api_tokens')) {
+    await loadApiTokens();
   } else if (url.pathname.startsWith('/admin/translations')) {
 
     window.onbeforeunload = function() {
@@ -432,3 +434,83 @@ async function saveLongText() {
   }
 }
 
+async function loadApiTokens() {
+  spinnerLoad.style.display = 'block';
+  try {
+    const response = await fetchFromServer('/admin/ajaxAdmin.php?function=loadApiTokens');
+    if (response.error) {
+      showError(response.error);
+      return;
+    }
+
+    const selectedUser = document.getElementById('tokenUser').value;
+    document.getElementById('tokenUser').innerHTML = response.owners
+      .map(owner => `<option value="${owner.id}">${escapeHtml(owner.name)} (${escapeHtml(owner.email)})</option>`).join('');
+    if (selectedUser) document.getElementById('tokenUser').value = selectedUser;
+
+    document.getElementById('tableBody').innerHTML = response.tokens.map(token => `<tr${token.active? '' : ' style="opacity: 0.5;"'}>
+<td>${escapeHtml(token.name)}${token.active? '' : ' (revoked)'}</td>
+<td>${escapeHtml(token.username)}<br><span class="smallFont">${escapeHtml(token.email)}</span></td>
+<td>${token.autoapprove? 'yes' : 'no'}</td>
+<td style="text-align: right;">${token.maxaiperday}</td>
+<td style="text-align: right;">${token.imported}</td>
+<td>${datetimeToAge(new Date(token.createtime))}</td>
+<td>${token.lastused? datetimeToAge(new Date(token.lastused)) : 'never'}</td>
+<td>
+  <button class="buttonTiny" onclick="setApiTokenActive(${token.id}, ${token.active? 'false' : 'true'});">${token.active? 'Revoke' : 'Activate'}</button>
+  <button class="buttonTiny" onclick="deleteApiToken(${token.id});">Delete</button>
+</td>
+</tr>`).join('');
+  } catch (error) {
+    showError(error.message);
+  } finally {
+    spinnerLoad.style.display = 'none';
+  }
+}
+
+async function createApiToken() {
+  try {
+    const response = await fetchFromServer('/admin/ajaxAdmin.php?function=createApiToken', {
+      userid: parseInt(document.getElementById('tokenUser').value),
+      name: document.getElementById('tokenName').value,
+      maxaiperday: parseInt(document.getElementById('tokenMaxAi').value) || 0,
+      autoapprove: document.getElementById('tokenAutoApprove').checked,
+    });
+    if (response.error) {
+      showError(response.error);
+      return;
+    }
+
+    document.getElementById('newTokenName').innerText = response.name;
+    document.getElementById('newTokenText').innerText = response.token;
+    document.getElementById('newTokenResult').style.display = 'block';
+    document.getElementById('tokenName').value = '';
+    document.getElementById('tokenAutoApprove').checked = false;
+
+    await loadApiTokens();
+  } catch (error) {
+    showError(error.message);
+  }
+}
+
+async function setApiTokenActive(id, active) {
+  try {
+    const response = await fetchFromServer('/admin/ajaxAdmin.php?function=setApiTokenActive', {id, active});
+    if (response.error) showError(response.error);
+    else await loadApiTokens();
+  } catch (error) {
+    showError(error.message);
+  }
+}
+
+function deleteApiToken(id) {
+  confirmMessage('Delete this token? Programs that use it stop working.', async () => {
+    try {
+      const response = await fetchFromServer('/admin/ajaxAdmin.php?function=deleteApiToken', {id});
+      if (response.error) showError(response.error);
+      else await loadApiTokens();
+    } catch (error) {
+      showError(error.message);
+    }
+  }, 'Delete');
+}

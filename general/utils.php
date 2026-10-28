@@ -21,6 +21,7 @@ enum PageType {
   case translations;
   case longTexts;
   case humans;
+  case apiTokens;
   case questionnaireSetup;
   case questionnaireResults;
   case answerQuestionnaires;

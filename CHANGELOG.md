@@ -1,5 +1,8 @@
 # Changelog
 
+28 october 2026 v820:
+- New admin page API tokens (Admin menu, /admin/api_tokens): admins make, revoke and delete the tokens of the import API. The owner of a token must be a moderator or an admin, and a token stops working when its owner is no longer one. The token is shown once; only a hash is saved. The command line script workers/create_api_token.php checks the owner too.
+
 28 october 2026 v819:
 - New import API for articles from other sources: POST /api/import (api/import.php, general/ImportService.php, described on the export page). It checks if the article is known (same source and id, same url, or same title on about the same day), reads the crash data with the AI or takes it from the request, adds the article to a crash that fits (SimilarCrashes) or makes a new crash. Crashes that may be the same get status review. Imported crashes and articles wait for moderation. Articles may have no url.
 - Tokens: `php workers/create_api_token.php --user=ID --name="Name"` (also --autoapprove, --max-ai). Only a hash is saved. Every import is saved in the table import_articles.

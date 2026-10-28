@@ -18,8 +18,8 @@ $database = new Database();
 $database->open();
 
 $userId = (int)$options['user'];
-$user = $database->fetch('SELECT id, email FROM users WHERE id=:id', [':id' => $userId]);
-if (! $user) die("User $userId does not exist\n");
+$user = $database->fetch('SELECT id, email FROM users WHERE id=:id AND permission IN (1, 2)', [':id' => $userId]);
+if (! $user) die("User $userId does not exist or is not a moderator or admin\n");
 
 $token = bin2hex(random_bytes(32));
 $database->execute(

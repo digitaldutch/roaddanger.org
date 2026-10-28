@@ -9,6 +9,7 @@ global $VERSION;
 
 $uri = urldecode($_SERVER['REQUEST_URI']);
 if      (str_starts_with($uri, '/admin/humans')) $pageType = PageType::humans;
+else if (str_starts_with($uri, '/admin/api_tokens')) $pageType = PageType::apiTokens;
 else if (str_starts_with($uri, '/admin/translations')) $pageType = PageType::translations;
 else if (str_starts_with($uri, '/admin/longtexts')) $pageType = PageType::longTexts;
 else die('Internal error: Unknown page type');
@@ -93,6 +94,47 @@ HTML;
     }
 
     $htmlEnd = HtmlBuilder::getFormEditUser();
+  } else if ($pageType === PageType::apiTokens) {
+    if (! $user->admin) $mainHTML = htmlNoAdmin();
+    else {
+      $mainHTML = <<<HTML
+<div id="main" class="pageInner scrollPage">
+  <div class="pageSubTitle">Admin - API tokens</div>
+
+  <div class="smallFont" style="margin-bottom: 15px;">
+    A token lets a moderator or an organisation import articles with the import API (see the Export page).
+    Imported crashes and articles are shown as added by the API and the source, and wait for moderation, unless the token is set to approve automatically.
+    Only the hash of a token is saved. A token is shown once, when it is made.
+  </div>
+
+  <div id="newTokenResult" style="display: none; margin-bottom: 20px;">
+    <div>Token for <span id="newTokenName"></span>. Copy it now: it is not shown again.</div>
+    <div class="codeBlockWrap">
+      <pre id="newTokenText" class="codeBlock"></pre>
+      <button class="codeCopyButton" onclick="copyCodeBlock(this);">Copy</button>
+    </div>
+  </div>
+
+  <form onsubmit="createApiToken(); return false;" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 20px;">
+    <label>Owner (moderator or admin)<br><select id="tokenUser" class="filterBarInput active" required></select></label>
+    <label>Name<br><input id="tokenName" class="inputForm" type="text" maxlength="100" placeholder="For example Lexis Nexis" required></label>
+    <label>AI per day<br><input id="tokenMaxAi" class="inputForm" type="number" min="0" max="10000" value="200" style="width: 90px;"></label>
+    <label style="white-space: nowrap;"><input id="tokenAutoApprove" type="checkbox"> Approve automatically</label>
+    <input type="submit" class="button" value="Create token">
+  </form>
+
+  <div class="panelTableOverflow">
+    <table class="dataTable tableWhiteHeader noWrap">
+      <thead>
+        <tr><th>Name</th><th>Owner</th><th>Auto approve</th><th>AI per day</th><th>Imported</th><th>Created</th><th>Last used</th><th></th></tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div id="spinnerLoad"><img alt="Spinner" src="/images/spinner.svg"></div>
+  </div>
+</div>
+HTML;
+    }
   } else if ($pageType === PageType::translations) {
 
     $languages       = $database->fetchAll("SELECT id, name FROM languages ORDER BY name;");

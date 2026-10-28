@@ -55,7 +55,9 @@ class ImportService {
   public static function findToken(Database $database, string $token): ?array {
     if (! preg_match('/^[a-f0-9]{64}$/', $token)) return null;
 
-    $row = $database->fetch('SELECT * FROM api_tokens WHERE tokenhash=:hash AND active=1', [':hash' => hash('sha256', $token)]);
+    $row = $database->fetch(
+      'SELECT t.* FROM api_tokens t JOIN users u ON u.id = t.userid WHERE t.tokenhash=:hash AND t.active=1 AND u.permission IN (1, 2)',
+      [':hash' => hash('sha256', $token)]);
     if (! $row) return null;
 
     $database->execute('UPDATE api_tokens SET lastused=current_timestamp WHERE id=:id', [':id' => $row['id']]);

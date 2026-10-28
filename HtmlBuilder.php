@@ -269,6 +269,7 @@ HTML;
       <div class="navigationSection">
         <a href="/moderations/" class="navItem">{$texts['Moderations']}<span class="countBadge moderationCount" style="display: none;"></span></a>
         <a href="/admin/humans" class="navItem" data-admin>{$texts['Humans']}</a>
+        <a href="/admin/api_tokens" class="navItem" data-admin>API tokens</a>
         <a href="/admin/translations/" class="navItem" data-moderator>{$texts['Translations']}</a>
         <a href="/admin/longtexts/" class="navItem" data-admin>{$texts['Long_texts']}</a>
         <a href="/research/ai_prompt_builder/" class="navItem" data-admin>{$texts['AI_prompt_builder']}</a>        
