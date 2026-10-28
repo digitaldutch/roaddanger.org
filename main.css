@@ -2393,3 +2393,13 @@ table.tableDragging td div {
 .codeBlock { font-family: Consolas, "Courier New", monospace; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; background: rgba(0, 0, 0, 0.35); padding: 10px 12px; border-radius: 5px; margin: 0; padding-right: 70px; }
 .codeCopyButton { position: absolute; top: 6px; right: 6px; padding: 2px 8px; font-size: 12px; cursor: pointer; border: 1px solid #888; border-radius: 4px; background: rgba(255, 255, 255, 0.15); color: #fff; }
 .codeCopyButton:hover { background: rgba(255, 255, 255, 0.3); }
+.specTables { display: flex; flex-wrap: wrap; gap: 10px 40px; margin: 5px 0 20px 0; }
+.specTables > div > div { margin-bottom: 4px; }
+.specTables .dataTable { width: auto; margin: 0; }
+.specFields { width: auto; margin: 4px 0 20px 0; }
+.specFields td { vertical-align: top; }
+.specFields td:first-child { font-family: Consolas, "Courier New", monospace; font-size: 13px; white-space: nowrap; }
+
+#export h2 { font-size: 20px; margin: 40px 0 10px 0; padding-bottom: 6px; border-bottom: 2px solid rgba(255, 255, 255, 0.5); }
+#export h2:first-child { margin-top: 0; }
+#export h3 { font-size: 17px; font-weight: bold; margin: 30px 0 8px 0; }

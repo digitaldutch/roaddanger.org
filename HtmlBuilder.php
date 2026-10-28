@@ -1138,23 +1138,140 @@ print(len(data['crashes']), 'crashes')</pre>
     </div>
 
     <h3>Data specification</h3>
-    
-    <div>Persons > transportation mode</div>
-    
-    <table class="dataTable" style="width: auto; margin: 0 0 20px 0;">
-      <thead>
-      <tr><th>id</th><th>name</th></tr>
-      </thead>
-      <tbody id="tbodyTransportationMode"></tbody>
-    </table>        
 
-    <div>Persons > health</div>
-    <table class="dataTable" style="width: auto; margin: 0 0 20px 0;">
-      <thead>
-      <tr><th>id</th><th>name</th></tr>
-      </thead>
-      <tbody id="tbodyHealth"></tbody>
+    <div>The JSON file has one array <i>crashes</i>. Each crash has an array of <i>persons</i> and an array of <i>articles</i>.
+    Only crashes and articles that are published are included (not the ones that wait for moderation). Example, shortened:</div>
+    <div class="codeBlockWrap">
+      <pre class="codeBlock">{
+  "crashes": [
+    {
+      "id": 12345,
+      "title": "Cyclist killed by a truck at a crossing",
+      "text": "A 54-year-old cyclist died after a collision with a truck.",
+      "date": "2026-10-26T00:00:00+01:00",
+      "longitude": 6.0830,
+      "latitude": 52.5125,
+      "countryid": "NL",
+      "unilateral": 0,
+      "pet": 0,
+      "trafficjam": 0,
+      "persons": [
+        {
+          "id": 301,
+          "groupid": 1,
+          "transportationmode": 2,
+          "health": 3,
+          "child": 0,
+          "underinfluence": 0,
+          "hitrun": 0
+        },
+        {
+          "id": 302,
+          "groupid": 2,
+          "transportationmode": 12,
+          "health": 1,
+          "child": 0,
+          "underinfluence": 0,
+          "hitrun": 0
+        }
+      ],
+      "articles": [
+        {
+          "id": 9876,
+          "sitename": "Example News",
+          "publishedtime": "2026-10-26T14:30:00+01:00",
+          "url": "https://example.com/news/cyclist-killed",
+          "urlimage": "https://example.com/images/cyclist.jpg",
+          "title": "Cyclist killed by a truck at a crossing",
+          "alltext": "The full text of the article...",
+          "summary": "A 54-year-old cyclist died after a collision with a truck."
+        }
+      ]
+    }
+  ]
+}</pre>
+      <button class="codeCopyButton" onclick="copyCodeBlock(this);">Copy</button>
+    </div>
+
+    <div>Crash</div>
+    <table class="dataTable specFields">
+      <thead><tr><th>field</th><th>type</th><th>description</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>integer</td><td>Crash id. The page of a crash is https://roaddanger.org/ followed by the id.</td></tr>
+        <tr><td>title</td><td>string</td><td>Title of the crash.</td></tr>
+        <tr><td>text</td><td>string or null</td><td>Short description of the crash.</td></tr>
+        <tr><td>date</td><td>string</td><td>Date of the crash, ISO 8601. The time is always 00:00 (the time of the crash is not known).</td></tr>
+        <tr><td>longitude, latitude</td><td>number or null</td><td>Place of the crash in degrees (WGS 84). The accuracy of the place varies: in a town it can be the middle of the town.</td></tr>
+        <tr><td>countryid</td><td>string or null</td><td>Country code of two letters, see the country table below. UN: unknown.</td></tr>
+        <tr><td>unilateral</td><td>0, 1 or null</td><td>1: only one transportation mode was involved.</td></tr>
+        <tr><td>pet</td><td>0 or 1</td><td>1: an animal was involved.</td></tr>
+        <tr><td>trafficjam</td><td>0 or 1</td><td>1: the crash caused a traffic jam or disruption.</td></tr>
+        <tr><td>persons</td><td>array</td><td>The people in the crash, see below.</td></tr>
+        <tr><td>articles</td><td>array</td><td>The news reports about the crash, see below.</td></tr>
+      </tbody>
     </table>
+
+    <div>Persons</div>
+    <table class="dataTable specFields">
+      <thead><tr><th>field</th><th>type</th><th>description</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>integer</td><td>Person id.</td></tr>
+        <tr><td>groupid</td><td>integer or null</td><td>People in the same crash with the same groupid belong together, for example the same vehicle.</td></tr>
+        <tr><td>transportationmode</td><td>integer</td><td>See the transportation mode table below.</td></tr>
+        <tr><td>health</td><td>integer or null</td><td>See the health table below.</td></tr>
+        <tr><td>child</td><td>integer or null</td><td>1: a child.</td></tr>
+        <tr><td>underinfluence</td><td>0, 1 or null</td><td>1: under the influence of alcohol or drugs.</td></tr>
+        <tr><td>hitrun</td><td>0, 1 or null</td><td>1: fled the scene.</td></tr>
+      </tbody>
+    </table>
+
+    <div>Articles</div>
+    <table class="dataTable specFields">
+      <thead><tr><th>field</th><th>type</th><th>description</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>integer</td><td>Article id.</td></tr>
+        <tr><td>sitename</td><td>string</td><td>Name of the news website.</td></tr>
+        <tr><td>publishedtime</td><td>string</td><td>Time the article was published, ISO 8601.</td></tr>
+        <tr><td>url</td><td>string</td><td>Link to the article on the website of the publisher.</td></tr>
+        <tr><td>urlimage</td><td>string</td><td>Link to the image of the article. Can be empty.</td></tr>
+        <tr><td>title</td><td>string</td><td>Title of the article.</td></tr>
+        <tr><td>alltext</td><td>string or null</td><td>Text of the article, as far as it could be read. Can be empty or partial, for example if the article is behind a paywall.</td></tr>
+        <tr><td>summary</td><td>string</td><td>Short summary of the article.</td></tr>
+      </tbody>
+    </table>
+
+    
+    <div class="specTables">
+      <div>
+        <div>Persons > transportation mode</div>
+        <table class="dataTable">
+          <thead>
+          <tr><th>id</th><th>name</th></tr>
+          </thead>
+          <tbody id="tbodyTransportationMode"></tbody>
+        </table>
+      </div>
+
+      <div>
+        <div>Persons > health</div>
+        <table class="dataTable">
+          <thead>
+          <tr><th>id</th><th>name</th></tr>
+          </thead>
+          <tbody id="tbodyHealth"></tbody>
+        </table>
+      </div>
+
+      <div>
+        <div>Crash > countryid</div>
+        <table class="dataTable">
+          <thead>
+          <tr><th>id</th><th>name</th></tr>
+          </thead>
+          <tbody id="tbodyCountries"></tbody>
+        </table>
+      </div>
+    </div>
 
     <h2>Research questions and answers</h2>
 
@@ -1170,16 +1287,20 @@ print(len(data['crashes']), 'crashes')</pre>
 
     <h3>Data specification</h3>
 
-    <div>Answers > answered_by_type</div>
-    <table class="dataTable" style="width: auto; margin: 0 0 20px 0;">
-      <thead>
-      <tr><th>id</th><th>name</th></tr>
-      </thead>
-      <tbody id="tbodyAnswers"></tbody>
-      <tr><td>1</td><td>Human</td></tr>
-      <tr><td>2</td><td>AI</td></tr>
-    </table>
-
+    <div class="specTables">
+      <div>
+        <div>Answers > answered_by_type</div>
+        <table class="dataTable">
+          <thead>
+          <tr><th>id</th><th>name</th></tr>
+          </thead>
+          <tbody id="tbodyAnswers">
+            <tr><td>1</td><td>Human</td></tr>
+            <tr><td>2</td><td>AI</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
     <div id="spinnerResearch" class="spinnerLine"><img src="/images/spinner.svg"></div>
             

@@ -136,6 +136,10 @@ async function initMain() {
   questionnaireCountries = data.questionnaireCountries;
   countries = data.countries;
 
+  // Export page: the country codes of the data specification
+  const tbodyCountries = document.getElementById('tbodyCountries');
+  if (tbodyCountries) tbodyCountries.innerHTML = countries.map(country => `<tr><td>${escapeHtml(country.id)}</td><td>${escapeHtml(country.name)}</td></tr>`).join('');
+
   initFilterPersons();
 
   spinnerLoad = document.getElementById('spinnerLoad');

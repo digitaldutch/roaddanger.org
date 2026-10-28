@@ -1,5 +1,10 @@
 # Changelog
 
+28 october 2026 v814:
+- Export page, data specification: a description of all fields of crashes, persons and articles (type, null values, date format), a shortened JSON example with a Copy button, and a table of the country codes (loaded from the countries of the website).
+- The tables of codes (transportation mode, health, countryid) are next to each other. The rows of answered_by_type were outside the table body.
+- The headings h2 and h3 on the export page are easier to tell apart from the text (styles under #export in main.css).
+
 28 october 2026 v813:
 - Stable url for automatic downloads of the crash data: https://roaddanger.org/api/crashes.json.gz (new api/crashes.php, rewrite rule in .htaccess). It sends the daily export, makes it when it is older than 24 hours, and supports If-Modified-Since and ETag (answer 304 if unchanged). No session or cookie. Do not use the /cache/ urls for this: they can change.
 - The export code moved from admin/ExportHandler.php to general/ExportFiles.php, used by the export page and the api.
