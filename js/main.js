@@ -2736,8 +2736,8 @@ function mergeCrashRowHTML(item, isListRow=false, options={}) {
   }
 
   const meta = crash.id? [`#${crash.id}`, dateText] : [dateText];
-  if ((isListRow || compact) && item.stars) meta.unshift(similarStarsHTML(item.stars));
-  if (isListRow && crashArticles.length > 1) meta.push(`+${crashArticles.length - 1}`);
+  const starsHTML = ((isListRow || compact) && item.stars)? similarStarsHTML(item.stars) + ' ' : '';
+  if (isListRow && crashArticles.length > 1) meta.push(`${crashArticles.length} ${translate('articles')}`);
   if (crash.locationdescription) meta.push(escapeHtml(crash.locationdescription));
   if (isOther && crash.latitude && crash.longitude && compareTo.latitude && compareTo.longitude) {
     const distance = distanceKilometers(
@@ -2751,7 +2751,7 @@ function mergeCrashRowHTML(item, isListRow=false, options={}) {
     <div class="mergeThumb">${img}</div>
     <div class="mergeBody">
       ${htmlTitles}
-      <div class="mergeMeta">${meta.join(' · ')}</div>
+      <div class="mergeMeta">${starsHTML}${meta.join(' · ')}</div>
       <div class="mergePersons">${getCrashHumansIcons(crash, false)}</div>
     </div>
     ${options.buttonHTML ?? ''}
