@@ -2320,14 +2320,13 @@ function showPendingBookmarkArticle() {
     // The data is only used once if possible
   }
 
-  showNewCrashForm();
-
+  // The article cannot be added again: no add window, only the message with a link to the crash
   if (data.urlExists) {
-    document.getElementById('editArticleUrl').value = data.media.url ?? '';
     showMessage(translate('article_has_already_been_added') + `<br><a href='/${data.urlExists.crashId}' style='text-decoration: underline;'>${translate('Article')}</a>`, 30);
     return;
   }
 
+  showNewCrashForm();
   fillArticleFromMeta(data.media);
 
   if (! data.media.alltext && data.html) fillArticleTextFromHtml(data.html, data.media);

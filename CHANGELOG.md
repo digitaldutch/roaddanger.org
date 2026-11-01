@@ -1,5 +1,8 @@
 # Changelog
 
+1 november 2026 v829:
+- Add article with the bookmark: if the article link already exists, only the message with a link to the crash is shown. The add window is no longer opened.
+
 1 november 2026 v828:
 - Add article with the bookmark: if the article link already exists, this is now shown right away (with a link to the crash) instead of when saving. The link in the error message when saving no longer ends with a stray }.
 
