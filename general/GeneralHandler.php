@@ -298,7 +298,9 @@ SQL;
     $crash = $this->input ?? [];
     $excludeId = (int)($crash['crashId'] ?? 0) ?: null;
 
-    $similar = SimilarCrashes::find($this->database, $crash, $excludeId, $this->user->id);
+    $limit = max(1, min(SimilarCrashes::MAX_RESULTS, (int)($crash['limit'] ?? SimilarCrashes::MAX_RESULTS)));
+
+    $similar = SimilarCrashes::find($this->database, $crash, $excludeId, $this->user->id, SimilarCrashes::MIN_SCORE, $limit);
     $response = ['crashes' => $similar];
 
     // The merge window shows the crashes with their articles

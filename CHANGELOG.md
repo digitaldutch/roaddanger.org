@@ -1,5 +1,10 @@
 # Changelog
 
+1 november 2026 v826:
+- Similar crashes (crash form, merge window, import API): the title is no longer compared, because a later article is often about the trial and not about the crash. The score is now 0 to 5 points (exact place 2, place nearby 1, same day 2, one day apart 1, same transportation modes 1, no mode in common -2) and is shown as a match rating of 1 to 5 stars. From 3 stars the crash is shown. A crash without a place is not found. The import API attaches an article automatically from 5 stars (was 5 points before, with the title counting), from 3 stars the status is review.
+- Crash form: possible duplicates are shown as compact rows (like the merge window, with thumbnail, stars, date, distance and persons), at most 3. For a new crash the button Compare in detail opens the merge window on top of the form, with the article at the top, the likely crashes and a search. Add article to this crash adds the article, No match, back to the form closes the window and the form stays filled in.
+- New texts (add on the live website with Admin > Translations): Similar_compare_in_detail, Merge_this_article, Merge_article_header, Merge_article_explanation, Merge_pick_crash, Merge_select_crash_article, Merge_no_match_back.
+
 28 october 2026 v825:
 - research/HtmlResearch.php: line endings changed.
 

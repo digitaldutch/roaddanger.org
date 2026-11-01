@@ -599,13 +599,13 @@ HTML;
 
   <form class="formFullPage" onclick="event.stopPropagation();">
     
-    <div class="popupHeader">{$texts['Merge_crashes']}</div>
+    <div id="mergeHeader" class="popupHeader">{$texts['Merge_crashes']}</div>
     <div class="popupCloseCross" onclick="closePopupForm();"></div>
 
-    <div class="smallFont">{$texts['Merge_crashes_explanation']}</div>
+    <div id="mergeExplanation" class="smallFont">{$texts['Merge_crashes_explanation']}</div>
 
     <div class="flexColumn">
-      <div class="formSubHeader">{$texts['Merge_remove_crash']}</div>
+      <div id="mergeFromHeader" class="formSubHeader">{$texts['Merge_remove_crash']}</div>
       <div id="mergeCrashFrom" class="crashRow mergeRemove"></div>
     </div>
 
@@ -614,7 +614,7 @@ HTML;
     </div>
 
     <div id="mergeCrashSection" class="flexColumn">
-      <div class="formSubHeader">{$texts['Merge_keep_crash']}</div>
+      <div id="mergeToHeader" class="formSubHeader">{$texts['Merge_keep_crash']}</div>
       <div id="mergeCrashTo" class="crashRow mergeKeep"></div>
   
       <div class="flexRow">
@@ -634,6 +634,7 @@ HTML;
             
     <div class="popupFooter">
       <input id="buttonMergeArticle" type="button" class="button" value="{$texts['Merge']}" onclick="mergeCrash();" disabled>
+      <input id="buttonMergeNoMatch" type="button" class="button buttonGray" style="display: none;" onclick="closePopupForm();">
       <input type="button" class="button buttonGray" value="{$texts['Cancel']}" onclick="closePopupForm();">
     </div>    
   </form>

@@ -1364,6 +1364,21 @@ async function showEditTab(tab) {
   else await showCrashTab();
 }
 
+// Match rating of a similar crash: 5 stars is almost certainly the same crash
+function similarStarsHTML(stars) {
+  stars = Math.max(0, Math.min(5, parseInt(stars) || 0));
+  return `<span class="matchStars" title="${stars}/5" aria-label="${stars}/5">${'★'.repeat(stars)}<span class="matchStarsOff">${'★'.repeat(5 - stars)}</span></span>`;
+}
+
+// The crashes of a findSimilarCrashes response with their articles and stars, best match first
+function similarItemsFromResponse(response) {
+  return response.crashes
+    .map(similar => ({similar, found: response.data.crashes.find(found => found.id === similar.id)}))
+    .filter(item => item.found)
+    .map(item => ({crash: item.found, stars: item.similar.stars,
+      articles: response.data.articles.filter(article => article.crashid === item.found.id)}));
+}
+
 // Show crashes that may be the same crash, so a crash is not added twice. A failure is not shown: this is only a hint.
 async function checkSimilarCrashes() {
   const box = document.getElementById('similarCrashes');
@@ -1376,38 +1391,31 @@ async function checkSimilarCrashes() {
     latitude: document.getElementById('editCrashLatitude').value,
     longitude: document.getElementById('editCrashLongitude').value,
     accuracy: document.getElementById('editCrashLocationAccuracy').value,
-    title: document.getElementById('editArticleTitle').value,
     modes: editCrashPersons.map(person => person.transportationmode),
+    withData: true,
+    limit: 3,
   };
 
   try {
     const response = await fetchFromServer('/general/ajaxGeneral.php?function=findSimilarCrashes', data);
-    if (response.error || ! response.crashes || response.crashes.length === 0) return;
+    if (response.error || ! response.crashes || response.crashes.length === 0 || ! response.data) return;
 
-    let html = `<div>${escapeHtml(translate('Similar_crashes_found'))}</div><ul style="margin: 3px 0 0 0; padding-left: 20px;">`;
-    for (const crash of response.crashes) {
-      const id = parseInt(crash.id);
+    prepareCrashesServerData(response.data);
+    const compareTo = {id: data.crashId? parseInt(data.crashId) : null, date: new Date(data.date), latitude: data.latitude, longitude: data.longitude};
 
-      // Why this crash looks the same
-      const reasons = [];
-      if (crash.locationMatch) {
-        const distance = crash.distanceKm < 1? '< 1' : crash.distanceKm;
-        reasons.push(`${translate(crash.exactPlace? 'Similar_reason_exact_place' : 'Similar_reason_near_place')} (${distance} km)`);
-      }
-      if (crash.sameDay) reasons.push(translate('Similar_reason_same_day'));
-      if (crash.commonWords.length > 0) reasons.push(`${translate('Similar_reason_title_words')}: ${crash.commonWords.join(', ')}`);
-      if (crash.sameModes) reasons.push(translate('Similar_reason_same_modes'));
-
+    let html = `<div class="similarHeader">${escapeHtml(translate('Similar_crashes_found'))}</div>`;
+    for (const item of similarItemsFromResponse(response)) {
       // The button is only for a new crash. An existing crash is edited, so its article is already part of it.
-      const button = editIsNewCrash?
-        `<button type="button" class="button buttonTiny" style="margin: 3px 0 0 0;" onclick="addArticleToFoundCrash(${id}, this.dataset.title)" data-title="${escapeHtml(crash.title)}">${escapeHtml(translate('Add_article_to_this_crash'))}</button>` : '';
+      const buttonHTML = editIsNewCrash?
+        `<button type="button" class="button buttonTiny" onclick="addArticleToFoundCrash(${item.crash.id}, this.dataset.title)" data-title="${escapeHtml(item.crash.title)}">${escapeHtml(translate('Add_article_to_this_crash'))}</button>` : '';
 
-      html += `<li style="margin-bottom: 6px;">
-        <a href="/${id}" target="_blank" rel="noopener">${escapeHtml(crash.title)}</a> (${escapeHtml(crash.date)})
-        ${reasons.map(reason => `<div>✓ ${escapeHtml(reason)}</div>`).join('')}
-        ${button}</li>`;
+      html += mergeCrashRowHTML(item, false, {compact: true, compareTo, buttonHTML});
     }
-    html += '</ul>';
+
+    // In doubt: compare in the merge window, with a search. Closing it brings the person back to this form.
+    if (editIsNewCrash) {
+      html += `<div style="margin-top: 6px;"><span class="button buttonGray buttonLine" role="button" onclick="showMergeFromForm();">${escapeHtml(translate('Similar_compare_in_detail'))}</span></div>`;
+    }
 
     box.innerHTML = html;
     box.style.display = 'block';
@@ -2683,6 +2691,7 @@ function deleteCrash(crashId) {
 let mergeFrom = null;
 let mergeTo = null;
 const mergeSearchItems = {};
+let mergeAddsArticle = false;  // The top card is the article of the crash form, not a saved crash
 
 function distanceKilometers(latitude1, longitude1, latitude2, longitude2) {
   const toRadians = degrees => degrees * Math.PI / 180;
@@ -2693,12 +2702,19 @@ function distanceKilometers(latitude1, longitude1, latitude2, longitude2) {
 }
 
 // One crash in the merge window. A list row has the title of the first article and can be clicked.
-function mergeCrashRowHTML(item, isListRow=false) {
+// Options: compact (small row with a link, for the crash form), compareTo (crash for the date and distance, default the
+// crash that is removed) and buttonHTML (at the end of a compact row).
+function mergeCrashRowHTML(item, isListRow=false, options={}) {
   const crash = item.crash;
   const crashArticles = getCrashArticles(crash.id, item.articles);
+  const compact = options.compact === true;
+  const compareTo = options.compareTo ?? (mergeFrom? mergeFrom.crash : null);
 
   let htmlTitles = '';
-  if (isListRow) {
+  if (compact) {
+    const title = crashArticles.length > 0? crashArticles[0].title : crash.title;
+    htmlTitles = `<div class="mergeTitle"><a href="/${crash.id}" target="_blank" rel="noopener">${escapeHtml(title)}</a></div>`;
+  } else if (isListRow) {
     if (crashArticles.length > 0) {
       htmlTitles = `<div class="mergeTitle">${escapeHtml(crashArticles[0].title)}</div>`;
     }
@@ -2711,32 +2727,34 @@ function mergeCrashRowHTML(item, isListRow=false) {
     `<img src="${safeUrl(crashArticles[0].urlimage)}" alt="">` : '';
 
   // Compared with the crash that is removed
-  const isOther = mergeFrom && crash.id !== mergeFrom.crash.id;
+  const isOther = compareTo && crash.id !== compareTo.id;
   let dateText = crash.date.toLocaleDateString();
   if (isOther) {
-    const days = Math.round((crash.date - mergeFrom.crash.date) / 86400000);
+    const days = Math.round((crash.date - compareTo.date) / 86400000);
     if (days === 0) dateText += ` (${translate('Merge_same_day')})`;
     else dateText += ` (${translate(days > 0? 'Merge_days_later' : 'Merge_days_earlier').replace('{n}', Math.abs(days))})`;
   }
 
-  const meta = [`#${crash.id}`, dateText];
+  const meta = crash.id? [`#${crash.id}`, dateText] : [dateText];
+  if ((isListRow || compact) && item.stars) meta.unshift(similarStarsHTML(item.stars));
   if (isListRow && crashArticles.length > 1) meta.push(`+${crashArticles.length - 1}`);
   if (crash.locationdescription) meta.push(escapeHtml(crash.locationdescription));
-  if (isOther && crash.latitude && crash.longitude && mergeFrom.crash.latitude && mergeFrom.crash.longitude) {
+  if (isOther && crash.latitude && crash.longitude && compareTo.latitude && compareTo.longitude) {
     const distance = distanceKilometers(
-      parseFloat(mergeFrom.crash.latitude), parseFloat(mergeFrom.crash.longitude),
+      parseFloat(compareTo.latitude), parseFloat(compareTo.longitude),
       parseFloat(crash.latitude), parseFloat(crash.longitude));
     meta.push(`${distance < 10? distance.toFixed(1) : Math.round(distance)} km`);
   }
 
   return `
-  <div class="mergeCard">
+  <div class="mergeCard${compact? ' compact' : ''}">
     <div class="mergeThumb">${img}</div>
     <div class="mergeBody">
       ${htmlTitles}
       <div class="mergeMeta">${meta.join(' · ')}</div>
       <div class="mergePersons">${getCrashHumansIcons(crash, false)}</div>
     </div>
+    ${options.buttonHTML ?? ''}
   </div>`;
 }
 
@@ -2744,8 +2762,52 @@ function showMergeCrashForm(id) {
   closeAllPopups();
   const crash = getCrashFromId(id);
 
+  mergeAddsArticle = false;
   mergeFrom = {crash: crash, articles: articles.filter(article => article.crashid === crash.id)};
+  openMergeWindow();
+}
+
+// From the form of a new crash: compare the article that is being added with the crashes that are already there. The
+// form stays open below the merge window, so closing it brings the person back to the form with everything filled in.
+function showMergeFromForm() {
+  const article = getEditedArticle();
+  if (! article) return;
+
+  const latitude = parseFloat(document.getElementById('editCrashLatitude').value);
+  const longitude = parseFloat(document.getElementById('editCrashLongitude').value);
+  const crash = {
+    id: null,
+    date: new Date(document.getElementById('editCrashDate').value || article.date),
+    countryid: document.getElementById('editCrashCountry').value,
+    latitude: isNaN(latitude)? null : latitude,
+    longitude: isNaN(longitude)? null : longitude,
+    locationaccuracy: document.getElementById('editCrashLocationAccuracy').value,
+    persons: editCrashPersons.map(person => ({...person})),
+  };
+
+  mergeAddsArticle = true;
+  mergeFrom = {crash: crash, articles: [{...article, crashid: null}]};
+  openMergeWindow();
+}
+
+// The merge window is also used to add the article of the crash form to an existing crash
+function applyMergeMode() {
+  const add = mergeAddsArticle;
+
+  document.getElementById('formMergeCrash').style.zIndex = add? '501' : '';
+  document.getElementById('mergeHeader').innerText = translate(add? 'Merge_article_header' : 'Merge_crashes');
+  document.getElementById('mergeExplanation').innerText = translate(add? 'Merge_article_explanation' : 'Merge_crashes_explanation');
+  document.getElementById('mergeFromHeader').innerText = translate(add? 'Merge_this_article' : 'Merge_remove_crash');
+  document.getElementById('mergeToHeader').innerText = translate(add? 'Merge_pick_crash' : 'Merge_keep_crash');
+  document.getElementById('mergeCrashFrom').classList.toggle('mergeRemove', ! add);
+  document.getElementById('buttonMergeArticle').value = translate(add? 'Add_article_to_this_crash' : 'Merge');
+  document.getElementById('buttonMergeNoMatch').value = translate('Merge_no_match_back');
+  document.getElementById('buttonMergeNoMatch').style.display = add? '' : 'none';
+}
+
+function openMergeWindow() {
   mergeTo = null;
+  applyMergeMode();
 
   document.getElementById('mergeCrashSearch').value           = '';
   document.getElementById('mergeSearchResults').innerHTML     = '';
@@ -2764,9 +2826,9 @@ function refreshMergeSelection() {
 
   const elementTo = document.getElementById('mergeCrashTo');
   elementTo.innerHTML = mergeTo? mergeCrashRowHTML(mergeTo) :
-    `<div class="mergeSelectHint">${escapeHtml(translate('Merge_select_crash'))}</div>`;
+    `<div class="mergeSelectHint">${escapeHtml(translate(mergeAddsArticle? 'Merge_select_crash_article' : 'Merge_select_crash'))}</div>`;
 
-  document.getElementById('buttonMergeSwap').style.display = mergeTo? '' : 'none';
+  document.getElementById('buttonMergeSwap').style.display = (mergeTo && ! mergeAddsArticle)? '' : 'none';
   document.getElementById('buttonMergeArticle').disabled = ! mergeTo;
 
   // Mark the selected row in the list
@@ -2801,7 +2863,6 @@ async function loadMergeSuggestions() {
     latitude: crash.latitude,
     longitude: crash.longitude,
     accuracy: crash.locationaccuracy,
-    title: mergeFrom.articles.length > 0? mergeFrom.articles[0].title : '',
     modes: crash.persons.map(person => person.transportationmode),
   };
 
@@ -2811,8 +2872,7 @@ async function loadMergeSuggestions() {
 
   prepareCrashesServerData(response.data);
 
-  return response.crashes.map(similar => response.data.crashes.find(found => found.id === similar.id)).filter(Boolean)
-    .map(found => ({crash: found, articles: response.data.articles.filter(article => article.crashid === found.id)}));
+  return similarItemsFromResponse(response);
 }
 
 // A search on text, near the date of the crash that is removed. The nearest first.
@@ -2879,6 +2939,11 @@ function mergeSearchResultClick(crashId) {
 function mergeCrash() {
   if (! mergeTo) {
     showError(translate('No_merge_crash_selected'));
+    return;
+  }
+
+  if (mergeAddsArticle) {
+    addArticleToFoundCrash(mergeTo.crash.id, mergeTo.crash.title);
     return;
   }
 
