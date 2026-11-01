@@ -379,7 +379,7 @@ SQL;
       // Check if new article url already in the database
       if ($article['id'] < 1) {
         $exists = $this->urlExists($article['url']);
-        if ($exists) throw new \Exception("<a href='/{$exists['crashId']}}' style='text-decoration: underline;'>There is already a crash with this link</a>", 1);
+        if ($exists) throw new \Exception("<a href='/{$exists['crashId']}' style='text-decoration: underline;'>There is already a crash with this link</a>", 1);
       }
 
       $streamToTopType = StreamTopType::new;

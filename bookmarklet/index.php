@@ -73,6 +73,13 @@ function bookmarkletReceive(): void {
 
   $payload = ['media' => $media];
 
+  // Same check as when fetching a page by url: tell the visitor now instead of when saving
+  $found = $database->fetchAll('SELECT id, crashid FROM articles WHERE url=:url LIMIT 1;', [':url' => $media['url']]);
+  if ($found) {
+    $payload['urlExists'] = ['articleId' => $found[0]['id'], 'crashId' => $found[0]['crashid']];
+    unset($payload['html']);
+  }
+
   // Without text the website looks for the article in the page itself (Readability, see main.js). The page waits in
   // the browser tab, which can only keep a few MB, so larger pages are skipped.
   if (empty($media['alltext']) && strlen($html) <= BOOKMARKLET_MAX_HTML_FOR_TEXT_BYTES) $payload['html'] = $html;

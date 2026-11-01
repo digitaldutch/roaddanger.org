@@ -1,5 +1,8 @@
 # Changelog
 
+1 november 2026 v828:
+- Add article with the bookmark: if the article link already exists, this is now shown right away (with a link to the crash) instead of when saving. The link in the error message when saving no longer ends with a stray }.
+
 1 november 2026 v827:
 - Merge window and similar crashes in the crash form: a crash with more than one article shows the number of articles (2 articles) instead of +1, and the stars are no longer followed by a dot.
 

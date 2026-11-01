@@ -2321,6 +2321,13 @@ function showPendingBookmarkArticle() {
   }
 
   showNewCrashForm();
+
+  if (data.urlExists) {
+    document.getElementById('editArticleUrl').value = data.media.url ?? '';
+    showMessage(translate('article_has_already_been_added') + `<br><a href='/${data.urlExists.crashId}' style='text-decoration: underline;'>${translate('Article')}</a>`, 30);
+    return;
+  }
+
   fillArticleFromMeta(data.media);
 
   if (! data.media.alltext && data.html) fillArticleTextFromHtml(data.html, data.media);
