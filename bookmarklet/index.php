@@ -107,7 +107,7 @@ function bookmarkletOrigin(): string {
 }
 
 function bookmarkletInstructionsPage(): void {
-  $texts = translateArray(['Bookmarklet_title', 'Bookmarklet_intro', 'Bookmarklet_install', 'Bookmarklet_use', 'Bookmarklet_select', 'Bookmarklet_link_text']);
+  $texts = translateArray(['Bookmarklet_title', 'Bookmarklet_intro', 'Bookmarklet_install_title', 'Bookmarklet_install', 'Bookmarklet_show_bar', 'Bookmarklet_use_title', 'Bookmarklet_use', 'Bookmarklet_select', 'Bookmarklet_link_text']);
 
   // No % in the code: browsers decode it in a bookmark address. The page is sent as a form to the website, in a new tab.
   $action = bookmarkletOrigin() . '/bookmarklet/';
@@ -123,9 +123,15 @@ function bookmarkletInstructionsPage(): void {
     <div class="pageSubTitle">{$texts['Bookmarklet_title']}</div>
 
     <p>{$texts['Bookmarklet_intro']}</p>
+    <h2>{$texts['Bookmarklet_install_title']}</h2>
     <p>{$texts['Bookmarklet_install']}</p>
-    <p><a class="button" href="$href" onclick="return false;">{$texts['Bookmarklet_link_text']}</a></p>
+    <p><a class="button" href="$href" onclick="return false;"><svg viewBox="0 0 14 20" width="12" height="17" style="margin-right: 8px; vertical-align: -2px;" aria-hidden="true"><path d="M2,0 h10 a2,2 0 0 1 2,2 v18 l-7,-5 l-7,5 v-18 a2,2 0 0 1 2,-2 z" fill="#ffffff"/></svg>{$texts['Bookmarklet_link_text']}</a></p>
+    <p><img src="/images/bookmarklet_drag.svg" alt="" style="width: 100%; max-width: 720px; height: auto;"></p>
+    <p>{$texts['Bookmarklet_show_bar']}</p>
+
+    <h2>{$texts['Bookmarklet_use_title']}</h2>
     <p>{$texts['Bookmarklet_use']}</p>
+    <p><img src="/images/bookmarklet_use.svg" alt="" style="width: 100%; max-width: 720px; height: auto;"></p>
     <p>{$texts['Bookmarklet_select']}</p>
   </div>
 </div>

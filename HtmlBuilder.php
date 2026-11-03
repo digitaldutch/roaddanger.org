@@ -396,7 +396,7 @@ HTML;
       'Photo_link_url', 'Same_as_article', 'Select_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
       'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
       'Location', 'Characteristics', 'Save', 'Cancel',
-      'Fetching_web_page', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions', 'Remove_location', 'Read_data_from_article', 'Clean_up_with_ai']);
+      'Fetching_web_page', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions', 'Remove_location', 'Read_data_from_article', 'Clean_up_with_ai', 'Bookmarklet_in_add_window']);
 
     $htmlLocation = self::getSearchLocationHtml( 'editCrashCountry');
 
@@ -431,6 +431,8 @@ HTML;
         <div class="button buttonLine" onclick="getArticleMetaData();">{$texts['Fetch_article']}</div>
       </div>
   
+      <div class="smallFont" style="margin-top: 4px;"><a href="/bookmarklet/" target="bookmarklet" style="text-decoration: underline;">{$texts['Bookmarklet_in_add_window']}</a></div>
+
       <div id="spinnerMeta" class="spiderBackground">
         <div class="popupHeader">{$texts['Fetching_web_page']}</div>
         <div id="spiderResults"></div> 

@@ -1,5 +1,12 @@
 # Changelog
 
+3 november 2026 v835:
+- The bookmark page (/bookmarklet/) is easier to find and to understand:
+  - The add crash window has a link under the article url to the bookmark page.
+  - The page has the titles Install once and Use, and a text about how to show the bookmarks bar (Ctrl+Shift+B, Cmd+Shift+B on a Mac).
+  - Two infographics (no text, so they work in every language): dragging the bookmark to the bookmarks bar, and using it on an article. The button has the bookmark icon.
+  - On a website that has the bookmark texts: run install/add_translation_bookmarklet.sql once (the new texts in de, en, es, fr and nl, and the texts Bookmarklet_install and Bookmarklet_use without the "Install once:" and "Use:" at the start).
+
 3 november 2026 v834:
 - Clean up with AI: a title that starts with a curly quote (‘ or “) or has a dash in front of it could get a broken character, because the separators were removed byte by byte. Now they are removed as characters.
 
