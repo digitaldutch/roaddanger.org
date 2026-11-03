@@ -1364,10 +1364,10 @@ async function showEditTab(tab) {
   else await showCrashTab();
 }
 
-// Match rating of a similar crash: 5 stars is almost certainly the same crash
+// Match rating of a similar crash: 5 squares is almost certainly the same crash
 function similarStarsHTML(stars) {
   stars = Math.max(0, Math.min(5, parseInt(stars) || 0));
-  return `<span class="matchStars" title="${stars}/5" aria-label="${stars}/5">${'★'.repeat(stars)}<span class="matchStarsOff">${'★'.repeat(5 - stars)}</span></span>`;
+  return `<span class="matchStars" title="${stars}/5" aria-label="${stars}/5">${'■'.repeat(stars)}<span class="matchStarsOff">${'■'.repeat(5 - stars)}</span></span>`;
 }
 
 // The crashes of a findSimilarCrashes response with their articles and stars, best match first

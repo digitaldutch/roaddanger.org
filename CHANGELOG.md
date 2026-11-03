@@ -1,5 +1,8 @@
 # Changelog
 
+3 november 2026 v830:
+- Similar crashes (crash form, merge window): the match rating is now shown as squares instead of stars.
+
 1 november 2026 v829:
 - Add article with the bookmark: if the article link already exists, only the message with a link to the crash is shown. The add window is no longer opened.
 
