@@ -2356,7 +2356,7 @@ function fillArticleFromMeta(meta){
   }
 }
 
-// The bookmark (see /bookmarklet/) sends the article from the browser of the visitor, for websites that block the server.
+// The bookmark (see /quickadd/) sends the article from the browser of the visitor, for websites that block the server.
 // The page has been read by the server and the data waits in this tab. Open the add window with it.
 function showPendingBookmarkArticle() {
   let data = null;
@@ -2427,7 +2427,7 @@ async function getArticleMetaData() {
         showMessage(translate('article_has_already_been_added') + `<br><a href='/${response.urlExists.crashId}' style='text-decoration: underline;'>${translate('Article')}</a>`, 30);
       } else if (response.tagcount.total === 0) {
         // The bookmark reads the page in the browser of the visitor, which the website may let in when it blocks the server
-        const linkBookmark = `<br><a href='/bookmarklet/' target='bookmarklet' style='text-decoration: underline;'>${translate('Bookmarklet_title')}</a>`;
+        const linkBookmark = `<br><a href='/quickadd/' target='quickadd' style='text-decoration: underline;'>${translate('Bookmarklet_title')}</a>`;
         if (response.media.cloudflare) showMessage(translate('No_data_found_cloudflare') + linkBookmark, 30);
         else showMessage(translate('No_data_found_on_web_page') + linkBookmark, 30);
       } else {

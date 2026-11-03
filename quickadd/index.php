@@ -110,7 +110,7 @@ function bookmarkletInstructionsPage(): void {
   $texts = translateArray(['Bookmarklet_title', 'Bookmarklet_intro', 'Bookmarklet_install_title', 'Bookmarklet_install', 'Bookmarklet_show_bar', 'Bookmarklet_use_title', 'Bookmarklet_use', 'Bookmarklet_select', 'Bookmarklet_link_text']);
 
   // No % in the code: browsers decode it in a bookmark address. The page is sent as a form to the website, in a new tab.
-  $action = bookmarkletOrigin() . '/bookmarklet/';
+  $action = bookmarkletOrigin() . '/quickadd/';
   $code = "javascript:(function(){var f=document.createElement('form');f.method='POST';f.action='" . $action . "';f.target='_blank';" .
     "f.acceptCharset='UTF-8';[['url',location.origin+location.pathname+location.search],['html','<!DOCTYPE html>'+document.documentElement.outerHTML],['selection',String(getSelection())]]" .
     ".forEach(function(p){var t=document.createElement('textarea');t.name=p[0];t.value=p[1];f.appendChild(t)});" .

@@ -431,7 +431,7 @@ HTML;
         <div class="button buttonLine" onclick="getArticleMetaData();">{$texts['Fetch_article']}</div>
       </div>
   
-      <div class="smallFont" style="margin-top: 4px;"><a href="/bookmarklet/" target="bookmarklet" style="text-decoration: underline;">{$texts['Bookmarklet_in_add_window']}</a></div>
+      <div class="smallFont" style="margin-top: 4px;"><a href="/quickadd/" target="quickadd" style="text-decoration: underline;">{$texts['Bookmarklet_in_add_window']}</a></div>
 
       <div id="spinnerMeta" class="spiderBackground">
         <div class="popupHeader">{$texts['Fetching_web_page']}</div>

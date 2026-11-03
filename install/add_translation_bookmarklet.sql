@@ -1,4 +1,4 @@
--- The texts of the bookmark page (/bookmarklet/) and the link to it in the add crash window, in all five languages:
+-- The texts of the bookmark page (/quickadd/) and the link to it in the add crash window, in all five languages:
 -- Bookmarklet_in_add_window (the link), Bookmarklet_install_title and Bookmarklet_use_title (the titles),
 -- Bookmarklet_show_bar (new), and Bookmarklet_install and Bookmarklet_use (now without the "Install once:" and "Use:"
 -- at the start, as those are the titles).

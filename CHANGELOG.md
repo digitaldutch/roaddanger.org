@@ -1,5 +1,8 @@
 # Changelog
 
+3 november 2026 v836:
+- The bookmark page moved from /bookmarklet/ to /quickadd/ (a neutral name, so it can also be used for a browser extension later). The link in the add crash window, the messages when fetching fails and the bookmark itself use the new address. Bookmarks that were installed from /bookmarklet/ no longer work: drag the button from /quickadd/ again. The folder bookmarklet/ is no longer needed on the server: delete it.
+
 3 november 2026 v835:
 - The bookmark page (/bookmarklet/) is easier to find and to understand:
   - The add crash window has a link under the article url to the bookmark page.
