@@ -396,7 +396,7 @@ HTML;
       'Photo_link_url', 'Same_as_article', 'Select_humans', 'Publication_date', 'Text', 'Date', 'Involved_humans',
       'Animals', 'Traffic_jam_disruption', 'One-sided_crash',
       'Location', 'Characteristics', 'Save', 'Cancel',
-      'Fetching_web_page', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions', 'Remove_location', 'Read_data_from_article']);
+      'Fetching_web_page', 'Full_text_info', 'Link_info', 'Accident_date_info', 'Edit_location_instructions', 'Remove_location', 'Read_data_from_article', 'Clean_up_with_ai']);
 
     $htmlLocation = self::getSearchLocationHtml( 'editCrashCountry');
 
@@ -452,7 +452,13 @@ HTML;
         <label for="editArticleAllText">{$texts['Full_text']}</label>
         <span class="iconTooltip" data-tippy-content="{$texts['Full_text_info']}"></span>
       </div>
-      <textarea id="editArticleAllText" maxlength="10000" style="height: 150px; resize: vertical;" class="popupInput" autocomplete="off"></textarea>
+      <div style="position: relative; display: flex;">
+        <textarea id="editArticleAllText" maxlength="10000" style="height: 150px; resize: vertical;" class="popupInput" autocomplete="off"></textarea>
+        <div id="spinnerCleanUp" class="spinnerOverlay"><img src="/images/spinner_black.svg" alt="Spinner"></div>
+      </div>
+      <div>
+        <span id="buttonCleanUpWithAi" class="button buttonGray buttonLine" role="button" style="margin: 8px 0 0 0;" onclick="cleanArticleTextWithAI(false);">{$texts['Clean_up_with_ai']}</span>
+      </div>
     </div>
 
     <div id="panelEditCrash" class="flexColumn" style="display: none;">

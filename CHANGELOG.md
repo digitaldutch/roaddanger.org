@@ -1,5 +1,11 @@
 # Changelog
 
+3 november 2026 v831:
+- Add article: the text is cleaned with AI by itself after the article is fetched (also with the bookmark), and there is a new button Clean up with AI under the full text. The AI looks at the paragraphs of the text and says which ones are not part of the article: bylines, dates, photo captions, links to other articles, slider and embed texts, and other articles on the same page. It only removes paragraphs, it never writes text. The rules of the cleaner run first. Limited with RateLimit (moderators are exempt).
+  - While the AI cleans, the spinner is shown over the full text. When fetching an article, the window with the found tags stays until the text is cleaned up and shows "Step 2: Cleaning up the text with AI...". New text Cleaning_up_text.
+  - New class ArticleTextAICleaner, ajax function cleanArticleTextWithAI, prompt function article_text_cleaner (also in AiPromptFunctions and init_data.sql).
+  - On an existing website: run install/add_ai_prompt_article_text_cleaner.sql (the prompt, does nothing if it exists) and install/add_translation_clean_up_with_ai.sql (the new texts in de, en, es, fr and nl) once.
+
 3 november 2026 v830:
 - Similar crashes (crash form, merge window): the match rating is now shown as squares instead of stars.
 

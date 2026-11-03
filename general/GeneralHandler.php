@@ -34,6 +34,7 @@ class GeneralHandler extends AjaxHandler {
         'articleModerateOK' => $this->articleModerateOK(),
         'getArticleWebpageMetaData' => $this->getArticleWebpageMetaData(),
         'cleanArticleText' => $this->cleanArticleText(),
+        'cleanArticleTextWithAI' => $this->cleanArticleTextWithAI(),
         'mergeCrashes' => $this->mergeCrashes(),
         'saveLanguage' => $this->saveLanguage(),
         'saveAnswer' => $this->saveAnswer(),
@@ -687,6 +688,32 @@ SQL;
     $sitename = (string)($this->input['sitename'] ?? '');
 
     return ['text' => ArticleTextCleaner::clean($text, $url, $sitename)];
+  }
+
+  /**
+   * The text of an article without what is not part of it, found by AI. The answer is the text; nothing is saved.
+   * @throws Exception
+   */
+  private function cleanArticleTextWithAI(): array {
+    // Every visitor can add an article, but each AI request costs money. Moderators are not limited.
+    if (! $this->user->isModerator()) {
+      $wait = RateLimit::aiWaitSeconds($this->database);
+      if ($wait > 0) {
+        http_response_code(429);
+        dieWithJSONErrorMessage(RateLimit::aiWaitMessage($wait));
+      }
+      RateLimit::record($this->database, RateLimit::AI);
+    }
+
+    require_once '../general/ArticleTextAICleaner.php';
+
+    $result = ArticleTextAICleaner::clean(
+      mb_substr((string)($this->input['text'] ?? ''), 0, 50000),
+      (string)($this->input['title'] ?? ''),
+      (string)($this->input['url'] ?? ''),
+      (string)($this->input['sitename'] ?? ''));
+
+    return $result;
   }
 
   private function mergeCrashes(): array {

@@ -1340,6 +1340,35 @@ h3, .pageSubTitleFont {
   background-color: #ffbcbc !important;
 }
 
+/* The spinner over a text field while something is being done, for example the AI cleans up the article text */
+.spinnerOverlay {
+  display: none;
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.75);
+  justify-content: center;
+  align-items: center;
+}
+
+.spinnerOverlay img {
+  height: 40px;
+}
+
+.spiderStep {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.spiderStep img {
+  height: 24px;
+}
+
 .buttonLine {
   height: auto !important;
   font-weight: normal !important;

@@ -22,6 +22,10 @@ class AiPromptFunctions {
         'name' => 'Find the place of a crash (script)',
         'description' => 'Finds the place where a crash happened in an article. Used by install/backfill_locations.php, to add the place to crashes that have none.',
       ],
+      'article_text_cleaner' => [
+        'name' => 'Clean up article text',
+        'description' => 'Decides which paragraphs of a copied web page are the article (button Clean up with AI in the add window). It returns paragraph numbers, never text.',
+      ],
       'questionnaire_answerer' => [
         'name' => 'Answer questionnaires with AI',
         'description' => 'Answers the questions of the questionnaires for an article.',

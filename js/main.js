@@ -1407,7 +1407,7 @@ async function checkSimilarCrashes() {
     for (const item of similarItemsFromResponse(response)) {
       // The button is only for a new crash. An existing crash is edited, so its article is already part of it.
       const buttonHTML = editIsNewCrash?
-        `<button type="button" class="button buttonTiny" onclick="addArticleToFoundCrash(${item.crash.id}, this.dataset.title)" data-title="${escapeHtml(item.crash.title)}">${escapeHtml(translate('Add_article_to_this_crash'))}</button>` : '';
+        `<button type="button" class="button" onclick="addArticleToFoundCrash(${item.crash.id}, this.dataset.title)" data-title="${escapeHtml(item.crash.title)}">${escapeHtml(translate('Add_article_to_this_crash'))}</button>` : '';
 
       html += mergeCrashRowHTML(item, false, {compact: true, compareTo, buttonHTML});
     }
@@ -2278,6 +2278,62 @@ async function fillArticleTextFromHtml(html, meta) {
   fieldText.value = text.slice(0, 10000);
 }
 
+// The AI removes what is not part of the article (bylines, dates, links to other articles, the other articles on the
+// page). It only chooses paragraphs, so the text stays as it was written. It runs by itself after an article is fetched
+// (automatic) and with the button Clean up with AI. Automatic: no messages, and nothing changes if the user has
+// changed the text in the meantime.
+let cleaningWithAI = false;
+async function cleanArticleTextWithAI(automatic=false) {
+  if (cleaningWithAI) return;
+
+  const fieldText = document.getElementById('editArticleAllText');
+  if (! fieldText.value.trim()) {
+    if (! automatic) showError(translate('Article_full_text_not_filled_in'));
+    return;
+  }
+
+  const button = document.getElementById('buttonCleanUpWithAi');
+  const buttonText = button.innerText;
+  const textBefore = fieldText.value;
+  const spinner = document.getElementById('spinnerCleanUp');
+  cleaningWithAI = true;
+  button.innerText = '⌛';
+  spinner.style.display = 'flex';
+
+  try {
+    const response = await fetchFromServer('/general/ajaxGeneral.php?function=cleanArticleTextWithAI', {
+      text: textBefore,
+      title: document.getElementById('editArticleTitle').value,
+      url: document.getElementById('editArticleUrl').value,
+      sitename: document.getElementById('editArticleSiteName').value,
+    });
+    if (response.error) {
+      if (! automatic) showError(response.error, 10);
+      return;
+    }
+
+    if (automatic && fieldText.value !== textBefore) return;
+
+    fieldText.value = response.text.slice(0, 10000);
+  } catch (e) {
+    if (! automatic) showError(e.message, 10);
+  } finally {
+    cleaningWithAI = false;
+    button.innerText = buttonText;
+    spinner.style.display = 'none';
+  }
+}
+
+// After an article is fetched: first the text from the page itself if the tags have none, then the AI cleanup
+async function fillArticleTextAndClean(html, meta) {
+  try {
+    if (html) await fillArticleTextFromHtml(html, meta);
+    await cleanArticleTextWithAI(true);
+  } catch (e) {
+    // The user can still use the button Clean up with AI
+  }
+}
+
 function fillArticleFromMeta(meta){
   document.getElementById('editArticleUrl').value = meta.url ?? '';
   document.getElementById('editArticleTitle').value = meta.title ?? '';
@@ -2329,7 +2385,7 @@ function showPendingBookmarkArticle() {
   showNewCrashForm();
   fillArticleFromMeta(data.media);
 
-  if (! data.media.alltext && data.html) fillArticleTextFromHtml(data.html, data.media);
+  fillArticleTextAndClean(data.media.alltext? null : data.html, data.media);
 }
 
 async function getArticleMetaData() {
@@ -2358,6 +2414,7 @@ async function getArticleMetaData() {
 
   document.getElementById('spinnerMeta').style.display = 'flex';
   document.getElementById('spiderResults').innerHTML = '<img src="/images/spinner_black.svg" style="height: 40px;">';
+  let cleaning = null;
   try {
     const response = await fetchFromServer(url, dataServer);
 
@@ -2372,8 +2429,12 @@ async function getArticleMetaData() {
         else showMessage(translate('No_data_found_on_web_page') + linkBookmark, 30);
       } else {
         showMetaData(response.media);
-        if (response.html) fillArticleTextFromHtml(response.html, response.media);
+        cleaning = fillArticleTextAndClean(response.html, response.media);
       }
+
+      // Step 2 is shown under the tags while the text is found in the page and cleaned up
+      const step2 = (cleaning && (response.html || response.media.alltext))?
+        `<div class="spiderStep"><img src="/images/spinner_black.svg" alt="Spinner"><span>${translate('Cleaning_up_text')}</span></div>` : '';
 
       document.getElementById('spiderResults').innerHTML = `
 <div>${translate('Tags_found')}</div>
@@ -2384,12 +2445,14 @@ async function getArticleMetaData() {
 <td><td>article tags:</td><td> ${response.tagcount.article}</td></tr>
 <td><td>itemprop tags:</td><td> ${response.tagcount.itemprop}</td></tr>
 <td><td>other tags:</td><td> ${response.tagcount.other}</td></tr>
-</table>`;
+</table>${step2}`;
     }
   } catch (error) {
     showError(error.message);
   } finally {
-    setTimeout(()=>{document.getElementById('spinnerMeta').style.display = 'none';}, 1500);
+    // The window with the tags stays until the text is cleaned up
+    const delay = cleaning? 600 : 1500;
+    Promise.resolve(cleaning).then(() => setTimeout(() => {document.getElementById('spinnerMeta').style.display = 'none';}, delay));
   }
 }
 
