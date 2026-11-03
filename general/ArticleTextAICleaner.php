@@ -4,13 +4,16 @@ require_once __DIR__ . '/ArticleTextCleaner.php';
 require_once __DIR__ . '/OpenRouterAIClient.php';
 
 /**
- * Cleans the full text of an article with AI, for what the rules in ArticleTextCleaner miss: a byline or date in a
- * layout that no rule knows, slider and embed texts, links to other articles, or a page with more than one article.
+ * Cleans the full text and the title of an article with AI, for what the rules in ArticleTextCleaner miss: a byline or
+ * date in a layout that no rule knows, slider and embed texts, links to other articles, a page with more than one
+ * article, and a title with the website name, a label or a second headline in it.
  *
- *   $result = ArticleTextAICleaner::clean($text, $title, $url, $sitename);   // ['text' => ..., 'removed' => 3]
+ *   $result = ArticleTextAICleaner::clean($text, $title, $url, $sitename);   // ['text' => ..., 'title' => ..., 'removed' => 3]
  *
  * The rules run first. Then the AI gets the paragraphs with a number and says which numbers are not part of the article.
- * The AI never writes text: the result is only paragraphs of the original, so nothing can be reworded or invented.
+ * It also gives the title without what does not belong in it.
+ * The AI never writes text: the result is only paragraphs of the original and a part of the original title (this is
+ * checked), so nothing can be reworded or invented.
  * The prompt is in the table ai_prompts, function 'article_text_cleaner'.
  */
 class ArticleTextAICleaner {
@@ -21,20 +24,29 @@ class ArticleTextAICleaner {
   private const PARAGRAPH_LENGTHS = [400, 250, 150, 90, 50];
 
   /**
-   * @return array{text: string, removed: int}
+   * @return array{text: string, title: string, removed: int}
    * @throws Exception
    */
   public static function clean(string $text, string $title, string $url = '', string $sitename = ''): array {
     $text = ArticleTextCleaner::clean($text, $url, $sitename);
+    $title = trim($title);
     $paragraphs = ($text === '')? [] : explode("\n\n", $text);
 
-    // With so few paragraphs there is nothing to separate
-    if (count($paragraphs) < 3) return ['text' => $text, 'removed' => 0];
+    // With so few paragraphs there is nothing to separate in the text, but the title can still be cleaned
+    $cleanText = count($paragraphs) >= 3;
+    if (! $cleanText && $title === '') return ['text' => $text, 'title' => $title, 'removed' => 0];
 
-    $article = (object)['title' => trim($title) ?: '(unknown)', 'text' => self::makeList($paragraphs)];
+    $article = (object)[
+      'title' => $title ?: '(unknown)',
+      'sitename' => trim($sitename) ?: '(unknown)',
+      'text' => self::makeList($paragraphs),
+    ];
 
     $openrouter = new OpenRouterAIClient();
     $answer = json_decode($openrouter->chatAboutArticle('article_text_cleaner', $article), true);
+
+    $newTitle = self::parseTitle($answer, $title);
+    if (! $cleanText) return ['text' => $text, 'title' => $newTitle, 'removed' => 0];
 
     $remove = self::parseRemove($answer, count($paragraphs));
 
@@ -44,13 +56,31 @@ class ArticleTextAICleaner {
     }
     if (count($kept) === 0) throw new \Exception('The AI did not find the text of the article');
 
-    return ['text' => implode("\n\n", $kept), 'removed' => count($paragraphs) - count($kept)];
+    return ['text' => implode("\n\n", $kept), 'title' => $newTitle, 'removed' => count($paragraphs) - count($kept)];
+  }
+
+  /**
+   * The title from the answer, but only if it is a part of the original title: removing a website name, a label or a
+   * second headline gives such a part, rewording does not. Anything else keeps the original title.
+   */
+  private static function parseTitle(mixed $answer, string $title): string {
+    if ($title === '' || ! is_array($answer) || ! is_string($answer['title'] ?? null)) return $title;
+
+    // Separators that are left at the start or the end of the part
+    $new = trim($answer['title'], " \t\n\r|–—-:·•");
+
+    if (mb_strlen($new) < 8 || mb_strlen($new) * 5 < mb_strlen($title)) return $title;
+    if (mb_strpos($title, $new) === false) return $title;
+
+    return $new;
   }
 
   /**
    * "[1] First paragraph", one paragraph per line. Paragraphs are cut so that the list fits in the prompt.
    */
   private static function makeList(array $paragraphs): string {
+    if (count($paragraphs) === 0) return '(no text)';
+
     foreach (self::PARAGRAPH_LENGTHS as $length) {
       $lines = [];
       foreach ($paragraphs as $index => $paragraph) {

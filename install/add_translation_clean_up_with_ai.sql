@@ -10,8 +10,8 @@ UPDATE languages SET translations = JSON_SET(translations, '$.clean_up_with_ai',
 UPDATE languages SET translations = JSON_SET(translations, '$.clean_up_with_ai', 'Nettoyer avec l\'IA')   WHERE id = 'fr';
 UPDATE languages SET translations = JSON_SET(translations, '$.clean_up_with_ai', 'Opschonen met AI')      WHERE id = 'nl';
 
-UPDATE languages SET translations = JSON_SET(translations, '$.cleaning_up_text', 'Schritt 2: Text wird mit KI bereinigt…') WHERE id = 'de';
-UPDATE languages SET translations = JSON_SET(translations, '$.cleaning_up_text', 'Step 2: Cleaning up the text with AI…') WHERE id = 'en';
-UPDATE languages SET translations = JSON_SET(translations, '$.cleaning_up_text', 'Paso 2: limpiando el texto con IA…') WHERE id = 'es';
-UPDATE languages SET translations = JSON_SET(translations, '$.cleaning_up_text', 'Étape 2 : nettoyage du texte avec l\'IA…') WHERE id = 'fr';
-UPDATE languages SET translations = JSON_SET(translations, '$.cleaning_up_text', 'Stap 2: tekst opschonen met AI…') WHERE id = 'nl';
+UPDATE languages SET translations = JSON_SET(translations, '$.cleaning_up_text', 'Schritt 2: Titel und Text werden mit KI bereinigt…') WHERE id = 'de';
+UPDATE languages SET translations = JSON_SET(translations, '$.cleaning_up_text', 'Step 2: Cleaning up the title and text with AI…') WHERE id = 'en';
+UPDATE languages SET translations = JSON_SET(translations, '$.cleaning_up_text', 'Paso 2: limpiando el título y el texto con IA…') WHERE id = 'es';
+UPDATE languages SET translations = JSON_SET(translations, '$.cleaning_up_text', 'Étape 2 : nettoyage du titre et du texte avec l\'IA…') WHERE id = 'fr';
+UPDATE languages SET translations = JSON_SET(translations, '$.cleaning_up_text', 'Stap 2: titel en tekst opschonen met AI…') WHERE id = 'nl';

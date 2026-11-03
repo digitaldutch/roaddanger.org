@@ -1,5 +1,11 @@
 # Changelog
 
+3 november 2026 v832:
+- Add article, Clean up with AI: the title is cleaned too. The AI removes the website name or slogan (`... | Sleutelstad`), a label like `112 ZWOLLE :`, a marker like `[video]` and a second headline in the title. It only removes parts: the new title must be a part of the old one (this is checked), otherwise the old title stays. The title is also cleaned when the text is too short for cleaning.
+  - The step 2 text now says "Cleaning up the title and text with AI...".
+  - New tag [article_sitename] for AI prompts.
+  - On a website that has the prompt of v831: run install/update_ai_prompt_article_text_cleaner.sql (keeps the model) and install/add_translation_clean_up_with_ai.sql again (the step 2 texts). add_ai_prompt_article_text_cleaner.sql and init_data.sql have the new prompt for new websites.
+
 3 november 2026 v831:
 - Add article: the text is cleaned with AI by itself after the article is fetched (also with the bookmark), and there is a new button Clean up with AI under the full text. The AI looks at the paragraphs of the text and says which ones are not part of the article: bylines, dates, photo captions, links to other articles, slider and embed texts, and other articles on the same page. It only removes paragraphs, it never writes text. The rules of the cleaner run first. Limited with RateLimit (moderators are exempt).
   - While the AI cleans, the spinner is shown over the full text. When fetching an article, the window with the found tags stays until the text is cleaned up and shows "Step 2: Cleaning up the text with AI...". New text Cleaning_up_text.

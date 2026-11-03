@@ -2279,7 +2279,8 @@ async function fillArticleTextFromHtml(html, meta) {
 }
 
 // The AI removes what is not part of the article (bylines, dates, links to other articles, the other articles on the
-// page). It only chooses paragraphs, so the text stays as it was written. It runs by itself after an article is fetched
+// page) and what is not part of the title (website name, label, second headline). It only chooses paragraphs and parts
+// of the title, so the text stays as it was written. It runs by itself after an article is fetched
 // (automatic) and with the button Clean up with AI. Automatic: no messages, and nothing changes if the user has
 // changed the text in the meantime.
 let cleaningWithAI = false;
@@ -2294,8 +2295,10 @@ async function cleanArticleTextWithAI(automatic=false) {
 
   const button = document.getElementById('buttonCleanUpWithAi');
   const buttonText = button.innerText;
+  const fieldTitle = document.getElementById('editArticleTitle');
   const textBefore = fieldText.value;
-  const spinner = document.getElementById('spinnerCleanUp');
+  const titleBefore = fieldTitle.value;
+  const spinner =document.getElementById('spinnerCleanUp');
   cleaningWithAI = true;
   button.innerText = '⌛';
   spinner.style.display = 'flex';
@@ -2303,7 +2306,7 @@ async function cleanArticleTextWithAI(automatic=false) {
   try {
     const response = await fetchFromServer('/general/ajaxGeneral.php?function=cleanArticleTextWithAI', {
       text: textBefore,
-      title: document.getElementById('editArticleTitle').value,
+      title: titleBefore,
       url: document.getElementById('editArticleUrl').value,
       sitename: document.getElementById('editArticleSiteName').value,
     });
@@ -2312,9 +2315,9 @@ async function cleanArticleTextWithAI(automatic=false) {
       return;
     }
 
-    if (automatic && fieldText.value !== textBefore) return;
-
-    fieldText.value = response.text.slice(0, 10000);
+    // The title and the text are changed separately: not what the user has changed in the meantime
+    if (response.title && (! automatic || fieldTitle.value === titleBefore)) fieldTitle.value = response.title.slice(0, 500);
+    if (! automatic || fieldText.value === textBefore) fieldText.value = response.text.slice(0, 10000);
   } catch (e) {
     if (! automatic) showError(e.message, 10);
   } finally {
