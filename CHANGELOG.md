@@ -1,5 +1,8 @@
 # Changelog
 
+3 november 2026 v834:
+- Clean up with AI: a title that starts with a curly quote (‘ or “) or has a dash in front of it could get a broken character, because the separators were removed byte by byte. Now they are removed as characters.
+
 3 november 2026 v833:
 - The AI prompt for Clean up with AI now keeps paragraphs with facts about the crash, also when they start with a label like "UPDATE:". On a website that has the prompt: run install/update_ai_prompt_article_text_cleaner.sql again.
 

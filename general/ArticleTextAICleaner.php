@@ -70,8 +70,10 @@ class ArticleTextAICleaner {
   private static function parseTitle(mixed $answer, string $title): string {
     if ($title === '' || ! is_array($answer) || ! is_string($answer['title'] ?? null)) return $title;
 
-    // Separators that are left at the start or the end of the part
-    $new = trim($answer['title'], " \t\n\r|–—-:·•");
+    // Separators that are left at the start or the end of the part. Not trim(): it works on bytes and cuts a
+    // multibyte character like ‘ in pieces.
+    $new = preg_replace('/^[\s|–—\-:·•]+|[\s|–—\-:·•]+$/u', '', $answer['title']);
+    if ($new === null) return $title;
 
     if (mb_strlen($new) < 8 || mb_strlen($new) * 5 < mb_strlen($title)) return $title;
     if (mb_strpos($title, $new) === false) return $title;
