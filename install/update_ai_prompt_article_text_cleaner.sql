@@ -22,7 +22,7 @@ Remove:
 - social media embeds, sliders, gallery controls, share buttons, menus and other page elements
 - the start or the end of a different article, when the page has more than one article. Keep only the article that fits the title.
 
-Never remove a paragraph that is part of the story, also when it is short. When in doubt, keep it.
+Never remove a paragraph that is part of the story, also when it is short. A paragraph with facts about the crash or the news is always part of the story: the people, the place, the time, the cause, injuries, deaths, the police or the court, the investigation. That also holds when it starts with a label like "UPDATE:" or "Breaking:". When in doubt, keep it.
 
 Give the ranges of paragraph numbers to remove in "remove", with a reason of a few words for each range, for example {"from":2,"to":3,"reason":"byline and date"}. A single paragraph has the same number in from and to. If everything is part of the article, give an empty list.
 

@@ -1,5 +1,8 @@
 # Changelog
 
+3 november 2026 v833:
+- The AI prompt for Clean up with AI now keeps paragraphs with facts about the crash, also when they start with a label like "UPDATE:". On a website that has the prompt: run install/update_ai_prompt_article_text_cleaner.sql again.
+
 3 november 2026 v832:
 - Add article, Clean up with AI: the title is cleaned too. The AI removes the website name or slogan (`... | Sleutelstad`), a label like `112 ZWOLLE :`, a marker like `[video]` and a second headline in the title. It only removes parts: the new title must be a part of the old one (this is checked), otherwise the old title stays. The title is also cleaned when the text is too short for cleaning.
   - The step 2 text now says "Cleaning up the title and text with AI...".

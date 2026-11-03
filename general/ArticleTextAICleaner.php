@@ -24,10 +24,14 @@ class ArticleTextAICleaner {
   private const PARAGRAPH_LENGTHS = [400, 250, 150, 90, 50];
 
   /**
+   * $ask is for scripts that have their own database connection: it gets the article object (title, sitename, text
+   * with the numbered paragraphs) and gives the answer of the AI as a JSON string. Without it the prompt of the
+   * website is used.
+   *
    * @return array{text: string, title: string, removed: int}
    * @throws Exception
    */
-  public static function clean(string $text, string $title, string $url = '', string $sitename = ''): array {
+  public static function clean(string $text, string $title, string $url = '', string $sitename = '', ?callable $ask = null): array {
     $text = ArticleTextCleaner::clean($text, $url, $sitename);
     $title = trim($title);
     $paragraphs = ($text === '')? [] : explode("\n\n", $text);
@@ -42,8 +46,8 @@ class ArticleTextAICleaner {
       'text' => self::makeList($paragraphs),
     ];
 
-    $openrouter = new OpenRouterAIClient();
-    $answer = json_decode($openrouter->chatAboutArticle('article_text_cleaner', $article), true);
+    $answer = $ask? $ask($article) : (new OpenRouterAIClient())->chatAboutArticle('article_text_cleaner', $article);
+    $answer = json_decode($answer, true);
 
     $newTitle = self::parseTitle($answer, $title);
     if (! $cleanText) return ['text' => $text, 'title' => $newTitle, 'removed' => 0];
