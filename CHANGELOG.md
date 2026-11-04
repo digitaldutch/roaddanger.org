@@ -1,5 +1,8 @@
 # Changelog
 
+4 november 2026 v837:
+- Add article: the AI could take the wrong day when an article says "on Wednesday" (a week too early). The article date in the AI prompts now includes the weekday, for example `2026-11-04 (Wednesday)`.
+
 3 november 2026 v836:
 - The bookmark page moved from /bookmarklet/ to /quickadd/ (a neutral name, so it can also be used for a browser extension later). The link in the add crash window, the messages when fetching fails and the bookmark itself use the new address. Bookmarks that were installed from /bookmarklet/ no longer work: drag the button from /quickadd/ again. The folder bookmarklet/ is no longer needed on the server: delete it.
 

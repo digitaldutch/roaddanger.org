@@ -582,8 +582,18 @@ function delete_site_cookie(string $name, array $opts = []): bool {
 }
 
 
+/**
+ * '2026-11-04' becomes '2026-11-04 (Wednesday)'. AI models often get the weekday of a date wrong, so an article that
+ * says "on Wednesday morning" ends up with the date of the wrong Wednesday. Other text is returned as it is.
+ */
+function articleDateWithWeekday(string $date): string {
+  $day = DateTime::createFromFormat('!Y-m-d', substr($date, 0, 10));
+  if ($day === false || $day->format('Y-m-d') !== substr($date, 0, 10)) return $date;
+  return $date . ' (' . $day->format('l') . ')';
+}
+
 function replaceArticleTags(string $text, object $article): string {
-  if (isset($article->date)) $text = str_replace('[article_date]', $article->date, $text);
+  if (isset($article->date)) $text = str_replace('[article_date]', articleDateWithWeekday((string)$article->date), $text);
   if (isset($article->sitename)) $text = str_replace('[article_sitename]', $article->sitename, $text);
   $text = str_replace('[article_text]', $article->text, $text);
   return str_replace('[article_title]', $article->title, $text);
