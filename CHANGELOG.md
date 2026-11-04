@@ -1,5 +1,8 @@
 # Changelog
 
+4 november 2026 v838:
+- The bookmark (/quickadd/) has a bookmark sign 🔖 in front of its name, so it stands out in the bookmarks bar (a bookmark cannot have its own icon). The sign is in the button text, so the icon in the button is gone. Run install/add_translation_bookmarklet.sql again (the new name in de, en, es, fr and nl). A bookmark that was already installed keeps its old name: rename it or drag the button again.
+
 4 november 2026 v837:
 - Add article: the AI could take the wrong day when an article says "on Wednesday" (a week too early). The article date in the AI prompts now includes the weekday, for example `2026-11-04 (Wednesday)`.
 

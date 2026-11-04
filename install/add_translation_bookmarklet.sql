@@ -1,6 +1,6 @@
 -- The texts of the bookmark page (/quickadd/) and the link to it in the add crash window, in all five languages:
 -- Bookmarklet_in_add_window (the link), Bookmarklet_install_title and Bookmarklet_use_title (the titles),
--- Bookmarklet_show_bar (new), and Bookmarklet_install and Bookmarklet_use (now without the "Install once:" and "Use:"
+-- Bookmarklet_link_text (the name of the bookmark, now with a bookmark sign in front), Bookmarklet_show_bar (new), and Bookmarklet_install and Bookmarklet_use (now without the "Install once:" and "Use:"
 -- at the start, as those are the titles).
 -- For a website that already exists: run this once. Running it again changes nothing.
 -- init_data.sql does not have these keys yet: on a new website run this file after the installation.
@@ -41,3 +41,9 @@ UPDATE languages SET translations = JSON_SET(translations, '$.bookmarklet_use', 
 UPDATE languages SET translations = JSON_SET(translations, '$.bookmarklet_use', 'Abre el artículo en tu navegador y haz clic en el marcador para añadirlo a roaddanger.') WHERE id = 'es';
 UPDATE languages SET translations = JSON_SET(translations, '$.bookmarklet_use', 'Ouvrez l’article dans votre navigateur et cliquez sur le favori pour l’ajouter à roaddanger.') WHERE id = 'fr';
 UPDATE languages SET translations = JSON_SET(translations, '$.bookmarklet_use', 'Open het artikel in je browser en klik op de bladwijzer om het aan roaddanger toe te voegen.') WHERE id = 'nl';
+
+UPDATE languages SET translations = JSON_SET(translations, '$.bookmarklet_link_text', '🔖 Zu roaddanger hinzufügen') WHERE id = 'de';
+UPDATE languages SET translations = JSON_SET(translations, '$.bookmarklet_link_text', '🔖 Add to roaddanger') WHERE id = 'en';
+UPDATE languages SET translations = JSON_SET(translations, '$.bookmarklet_link_text', '🔖 Añadir a roaddanger') WHERE id = 'es';
+UPDATE languages SET translations = JSON_SET(translations, '$.bookmarklet_link_text', '🔖 Ajouter à roaddanger') WHERE id = 'fr';
+UPDATE languages SET translations = JSON_SET(translations, '$.bookmarklet_link_text', '🔖 Toevoegen aan roaddanger') WHERE id = 'nl';
